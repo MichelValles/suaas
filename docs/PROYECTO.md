@@ -76,6 +76,7 @@ app/
   api/
     auth/route.ts         <- POST valida password y setea auth_suaas; DELETE limpia
     chat/route.ts         <- POST: turn humano + Reasoner (object) + Talker (stream NDJSON)
+    diag/route.ts         <- GET: estado de Supabase + count por tabla (debug, protegido por cookie)
     runs/
       five-second/route.ts <- POST: ejecuta runFiveSecondTest sobre N perfiles
 
