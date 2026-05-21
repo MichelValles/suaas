@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { BIG_FIVE_TRAITS } from "@/lib/big-five";
+import { COM_B_BARRIERS, COM_B_INTRO } from "@/lib/com-b";
 import { createProfileAction, type CreateProfileState } from "./actions";
 
 const initial: CreateProfileState = { ok: false };
@@ -24,8 +25,18 @@ export function NewProfileForm() {
 
       <FieldGroup title="Demografía">
         <Row>
-          <Field label="Edad" name="age" type="number" required defaultValue="34" min={0} max={120} />
-          <Field label="Género" name="gender" required defaultValue="mujer" />
+          <Field label="Edad" name="age" type="number" step={1} min={18} max={99} required defaultValue="34" />
+          <SelectField
+            label="Género"
+            name="gender"
+            required
+            defaultValue="mujer"
+            options={[
+              { value: "hombre", label: "Hombre" },
+              { value: "mujer", label: "Mujer" },
+              { value: "otro", label: "Otro" },
+            ]}
+          />
           <Field label="Ocupación" name="occupation" required defaultValue="diseñadora freelance" />
         </Row>
         <Row>
@@ -44,24 +55,27 @@ export function NewProfileForm() {
         </Row>
       </FieldGroup>
 
-      <FieldGroup title="Barreras COM-B" hint="Una por línea. Vacío = sin barreras en esa categoría.">
+      <FieldGroup title="Barreras COM-B" hint={COM_B_INTRO}>
         <TextArea
           label="Capacidad"
           name="capability"
           rows={3}
           placeholder="Planning fallacy&#10;Baja alfabetización digital"
+          tooltip={COM_B_BARRIERS.capability.description}
         />
         <TextArea
           label="Oportunidad"
           name="opportunity"
           rows={3}
           placeholder="Falta de apoyo social&#10;Solo dispone del móvil"
+          tooltip={COM_B_BARRIERS.opportunity.description}
         />
         <TextArea
           label="Motivación"
           name="motivation"
           rows={3}
           placeholder="Escepticismo ante el marketing&#10;Miedo a fallar a su familia"
+          tooltip={COM_B_BARRIERS.motivation.description}
         />
       </FieldGroup>
 
@@ -224,20 +238,26 @@ function TextArea(props: {
   required?: boolean;
   defaultValue?: string;
   minLength?: number;
+  tooltip?: string;
 }) {
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {props.label && (
-        <span
-          className="mono"
-          style={{
-            fontSize: 10,
-            letterSpacing: "0.22em",
-            textTransform: "uppercase",
-            color: "rgba(255,255,255,0.55)",
-          }}
-        >
-          {props.label}
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+          <span
+            className="mono"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.55)",
+            }}
+          >
+            {props.label}
+          </span>
+          {props.tooltip && (
+            <InfoTooltip text={props.tooltip} label={`Sobre ${props.label}`} />
+          )}
         </span>
       )}
       <textarea
@@ -249,6 +269,48 @@ function TextArea(props: {
         minLength={props.minLength}
         style={{ ...inputStyle, fontFamily: "var(--font-sans)", lineHeight: 1.5 }}
       />
+    </label>
+  );
+}
+
+function SelectField(props: {
+  label: string;
+  name: string;
+  required?: boolean;
+  defaultValue?: string;
+  options: { value: string; label: string }[];
+  tooltip?: string;
+}) {
+  return (
+    <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+        <span
+          className="mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.55)",
+          }}
+        >
+          {props.label}
+        </span>
+        {props.tooltip && (
+          <InfoTooltip text={props.tooltip} label={`Sobre ${props.label}`} />
+        )}
+      </span>
+      <select
+        name={props.name}
+        required={props.required}
+        defaultValue={props.defaultValue}
+        style={inputStyle}
+      >
+        {props.options.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+      </select>
     </label>
   );
 }

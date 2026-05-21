@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { BIG_FIVE_TRAITS } from "@/lib/big-five";
+import { COM_B_BARRIERS } from "@/lib/com-b";
 import { getProfile } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { ChatPanel } from "./chat-panel";
@@ -70,9 +71,21 @@ export default async function ProfileDetailPage({
           maxWidth: 1100,
         }}
       >
-        <BarrierCard label="Capacidad" items={profile.com_b_barriers.capability} />
-        <BarrierCard label="Oportunidad" items={profile.com_b_barriers.opportunity} />
-        <BarrierCard label="Motivación" items={profile.com_b_barriers.motivation} />
+        <BarrierCard
+          label="Capacidad"
+          items={profile.com_b_barriers.capability}
+          tooltip={COM_B_BARRIERS.capability.description}
+        />
+        <BarrierCard
+          label="Oportunidad"
+          items={profile.com_b_barriers.opportunity}
+          tooltip={COM_B_BARRIERS.opportunity.description}
+        />
+        <BarrierCard
+          label="Motivación"
+          items={profile.com_b_barriers.motivation}
+          tooltip={COM_B_BARRIERS.motivation.description}
+        />
       </section>
 
       <ChatPanel profileId={profile.id} />
@@ -142,7 +155,15 @@ function Trait({
   );
 }
 
-function BarrierCard({ label, items }: { label: string; items: string[] }) {
+function BarrierCard({
+  label,
+  items,
+  tooltip,
+}: {
+  label: string;
+  items: string[];
+  tooltip?: string;
+}) {
   return (
     <div
       style={{
@@ -154,16 +175,19 @@ function BarrierCard({ label, items }: { label: string; items: string[] }) {
         gap: 12,
       }}
     >
-      <span
-        className="mono"
-        style={{
-          fontSize: 10,
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          color: "var(--accent-500)",
-        }}
-      >
-        {label}
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+        <span
+          className="mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: "var(--accent-500)",
+          }}
+        >
+          {label}
+        </span>
+        {tooltip && <InfoTooltip text={tooltip} label={`Sobre ${label}`} />}
       </span>
       {items.length === 0 ? (
         <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
