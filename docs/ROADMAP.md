@@ -25,7 +25,7 @@ Estado vivo. Actualizar en cada hito.
 - [x] `components/app-shell.tsx` (header con nav + footer con versión).
 - [ ] **Bloqueante operativo**: provisionar Supabase desde el Marketplace de Vercel y aplicar `0001_initial.sql` en el SQL editor. Hasta entonces las páginas muestran un aviso y no crashean.
 
-## v0.3.0 — Talker-Reasoner (actual)
+## v0.3.0 — Talker-Reasoner
 
 - [x] `lib/agents.ts` con `reason()` (Opus + `generateObject` + `ReasonerPlanSchema`) y `talkStream()` (Sonnet + `streamText`).
 - [x] `/api/chat` reescrito: Reasoner síncrono → persist turno `reasoner` con `meta.plan` → Talker en streaming → persist turno `talker`.
@@ -33,11 +33,21 @@ Estado vivo. Actualizar en cada hito.
 - [x] `ChatPanel` lee el stream, muestra el texto progresivo y un `<details>` "Razonamiento" colapsable bajo cada turno con tono, esfuerzo, intent, barreras y plan.
 - [x] Métrica `effort_ratio` por run, calculada como media de `effort` sobre turnos `reasoner`. Upsert en `metrics`.
 
-## v0.4.0 — Test de claridad de 5 segundos
+## v0.4.0 — Test de claridad de 5 segundos (planificado, plan completo en `SIGUIENTE-PASO.md`)
 
-- [ ] Subir screenshot/URL → exponer N segundos → preguntar al agente.
-- [ ] Métrica: tasa de comprensión (fuzzy-match).
-- [ ] Vista de resultados agregados por run.
+Resumen:
+
+- [ ] Migración `0002_five_second.sql`: tabla `five_second_responses` (vista normalizada) + índice por `run_id`. No cambios estructurales en `targets`.
+- [ ] `lib/targets.ts` (`TargetInputSchema`, `FiveSecondPayloadSchema`, CRUD).
+- [ ] `lib/experiments/five-second.ts` con `probeProfile`, `judgeComprehension`, `runFiveSecondTest`.
+- [ ] UI: `/targets` (lista), `/targets/new` (URL o upload), `/targets/[id]` (multi-select de perfiles + "Lanzar test").
+- [ ] `/api/runs/five-second` con orquestador paralelo (chunks de 5 en flight).
+- [ ] `/experiments/five-second/[runId]` con tabla por perfil, `mean_clarity`, `mean_comprehension`, top barreras.
+- [ ] `components/result-bar.tsx` reutilizable.
+- [ ] Modelos: Reasoner (Opus) para `probeProfile` (multimodal con imagen), Sonnet para `judgeComprehension`.
+- [ ] Métricas en `metrics`: `mean_clarity`, `mean_comprehension`, `comprehension_p50`.
+
+Decisiones tomadas: LLM-as-judge para fuzzy-match (no embeddings de momento), batch sync con límite de 20 perfiles, dos modos de captura (URL → `og:image` server-side o upload a `data:` URL). Pendientes en `SIGUIENTE-PASO.md`.
 
 ## v0.5.0 — Simulación de embudo
 
