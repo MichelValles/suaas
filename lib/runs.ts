@@ -10,6 +10,7 @@ export type Run = {
   finished_at: string | null;
   profile_id: string;
   target_id: string | null;
+  funnel_id: string | null;
   kind: RunKind;
   status: RunStatus;
   params: Record<string, unknown> | null;
@@ -29,6 +30,7 @@ export async function createRun(input: {
   profile_id: string;
   kind: RunKind;
   target_id?: string | null;
+  funnel_id?: string | null;
   params?: Record<string, unknown> | null;
 }): Promise<Run> {
   const supa = getServerClient();
@@ -37,6 +39,7 @@ export async function createRun(input: {
     .insert({
       profile_id: input.profile_id,
       target_id: input.target_id ?? null,
+      funnel_id: input.funnel_id ?? null,
       kind: input.kind,
       params: input.params ?? null,
       status: "running",
@@ -64,6 +67,17 @@ export async function listRunsByTarget(targetId: string): Promise<Run[]> {
     .from("runs")
     .select("*")
     .eq("target_id", targetId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Run[];
+}
+
+export async function listRunsByFunnel(funnelId: string): Promise<Run[]> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("runs")
+    .select("*")
+    .eq("funnel_id", funnelId)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []) as Run[];

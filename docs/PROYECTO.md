@@ -67,18 +67,24 @@ app/
       new-form.tsx        <- form con pasos dinámicos (mín 2, máx 12), Client
       actions.ts          <- Server Action createFunnelAction (resuelve og:image por paso)
     [id]/
-      page.tsx            <- detalle: secuencia ordenada de pasos con hero por paso
+      page.tsx            <- detalle: secuencia + runs previos + LaunchPanel
+      launch-panel.tsx    <- Client: multi-select de perfiles + lanzar /api/runs/funnel
   experiments/
     five-second/
       [runId]/
         page.tsx          <- summary, top barreras, tabla por perfil (Server)
         responses-table.tsx <- Client: sortable + expandible
+    funnel/
+      [runId]/
+        page.tsx          <- summary, dropoff por paso, top fricciones, tabla por perfil
+        responses-table.tsx <- Client: matriz perfil × paso con drill-down expandible
   api/
     auth/route.ts         <- POST valida password y setea auth_suaas; DELETE limpia
     chat/route.ts         <- POST: turn humano + Reasoner (object) + Talker (stream NDJSON)
     diag/route.ts         <- GET: estado de Supabase + count por tabla (debug, protegido por cookie)
     runs/
       five-second/route.ts <- POST: ejecuta runFiveSecondTest sobre N perfiles
+      funnel/route.ts     <- POST: ejecuta runFunnelTest (recorrido paso a paso con dropoff)
 
 lib/
   auth.ts                 <- AUTH_COOKIE, AUTH_VALUE, getAccessPassword()
@@ -93,6 +99,7 @@ lib/
   funnels.ts              <- FunnelInputSchema, FunnelStepInputSchema + CRUD (server-only)
   experiments/
     five-second.ts        <- probeProfile, judgeComprehension, runFiveSecondTest, listFiveSecondResponses, summarizeResponses
+    funnel.ts             <- probeFunnelStep, runFunnelTest, listFunnelStepResponses, summarizeFunnelResponses
   utils.ts                <- cx() (concatenador de clases)
 
 components/
@@ -108,6 +115,7 @@ supabase/
     0001_initial.sql      <- profiles, targets, runs, messages, metrics + trigger
     0002_five_second.sql  <- five_second_responses (vista normalizada por (run, profile))
     0003_funnels.sql      <- funnels + funnel_steps (secuencia ordenada de pantallas)
+    0004_funnel_runs.sql  <- runs.funnel_id + funnel_step_responses (run, profile, step)
 
 proxy.ts                  <- middleware: bloquea todo lo no público sin cookie
 next.config.ts
@@ -144,8 +152,9 @@ Migración inicial en `supabase/migrations/0001_initial.sql`. Sin RLS: el acceso
 | `five_second_responses` | Vista normalizada por `(run_id, profile_id)` para tests de claridad de 5 segundos: `recall`, `perceived_offer`, `clarity`, `comprehension_rate`, `barriers_detected`, `meta`. |
 | `funnels` | Cabecera del embudo: `name`, `description`. |
 | `funnel_steps` | Pasos ordenados del embudo: `funnel_id`, `position` (único por embudo), `name`, `intent` (qué debería hacer el usuario), `payload` jsonb `{kind, image_url, source_url?}`. |
+| `funnel_step_responses` | Respuesta normalizada por `(run_id, profile_id, step_id)`: `position`, `perception`, `intent_match` 0..1, `effort` 0..1, `friction` text[], `would_continue`, `reasoning`, `meta`. Sólo hay fila para los pasos que el perfil llegó a evaluar (el dropoff corta el recorrido). |
 
-Aplicar las migraciones por orden en el SQL editor del proyecto Supabase (`0001_initial.sql`, `0002_five_second.sql`, `0003_funnels.sql`). Ver `ROADMAP.md` para evolución.
+Aplicar las migraciones por orden en el SQL editor del proyecto Supabase (`0001_initial.sql`, `0002_five_second.sql`, `0003_funnels.sql`, `0004_funnel_runs.sql`). Ver `ROADMAP.md` para evolución.
 
 ## Por qué importa este proyecto
 

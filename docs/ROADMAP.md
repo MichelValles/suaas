@@ -55,9 +55,9 @@ Decisiones aplicadas: LLM-as-judge para fuzzy-match (no embeddings), batch sync 
 ## v0.5.0 — Simulación de embudo
 
 - [x] **Definición + persistencia de embudos** (v0.5.0): migración `0003_funnels.sql` (`funnels` + `funnel_steps`), `lib/funnels.ts` con `FunnelInputSchema` / CRUD, `/funnels` (lista), `/funnels/new` (form dinámico, 2..12 pasos, modos URL o upload por paso), `/funnels/[id]` (secuencia ordenada con hero por paso). Nav "Embudos" en el shell.
-- [ ] Run con un perfil que recorre el embudo paso a paso.
-- [ ] Detección de fricción: ratio de esfuerzo percibido por paso.
-- [ ] Almacenamiento de uploads en Vercel Blob (sustituir `data:` URLs en `five_second_responses` / `targets.payload`).
+- [x] **Run con perfil(es) recorriendo el embudo paso a paso** (v0.5.2): migración `0004_funnel_runs.sql` (`runs.funnel_id` + `funnel_step_responses`), `lib/experiments/funnel.ts` con `probeFunnelStep` (Reasoner multimodal con memoria de pasos previos) y `runFunnelTest` (orquestador en chunks de 5), `/api/runs/funnel`, `LaunchPanel` en `/funnels/[id]`, `/experiments/funnel/[runId]` con summary, dropoff por paso, top fricciones agregadas y tabla por perfil con drill-down expandible.
+- [x] **Detección de fricción**: cada respuesta de paso captura `effort` 0..1, `intent_match` 0..1 y un array de `friction` textual. Las métricas agregadas (`completion_rate`, `mean_effort`, `mean_intent_match`) y el dropoff por paso permiten ver dónde se rompe el embudo.
+- [ ] Almacenamiento de uploads en Vercel Blob (sustituir `data:` URLs en `five_second_responses` / `targets.payload` / `funnel_steps.payload`).
 
 ## Backlog / decisiones abiertas
 
