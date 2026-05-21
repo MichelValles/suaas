@@ -23,7 +23,7 @@ Estado vivo. Actualizar en cada hito.
 - [x] `/profiles` (lista), `/profiles/new` (Server Action), `/profiles/[id]` (detalle con chat).
 - [x] `/api/chat` (POST) con `generateText` sobre `DEFAULT_MODEL`. Persiste turnos en `messages`.
 - [x] `components/app-shell.tsx` (header con nav + footer con versión).
-- [ ] **Bloqueante operativo**: provisionar Supabase desde el Marketplace de Vercel y aplicar `0001_initial.sql` en el SQL editor. Hasta entonces las páginas muestran un aviso y no crashean.
+- [x] **Bloqueante operativo resuelto**: Supabase provisionado desde el Marketplace de Vercel y migraciones aplicadas. La app opera contra base real en producción.
 
 ## v0.3.0 — Talker-Reasoner
 
