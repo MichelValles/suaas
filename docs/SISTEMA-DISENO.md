@@ -87,6 +87,29 @@ Por qué: USAAS no es un deck editorial sino una herramienta de producto. El DS 
 
 Si reutilizas el patrón para otra traza meta, factoriza a `<Disclosure>` en `components/`.
 
+## Componente `ResultBar`
+
+`components/result-bar.tsx`. Barra horizontal de 6 px con valor 0..1, label en `.mono` arriba a la izquierda y porcentaje a la derecha. Hint opcional debajo.
+
+```tsx
+import { ResultBar } from "@/components/result-bar";
+
+<ResultBar
+  label="Comprensión media"
+  value={0.62}
+  hint="9 de 14 perfiles recordaron la promesa principal."
+/>
+```
+
+Props:
+
+- `label` *(string)*: eyebrow en `.mono` 10px tracked.
+- `value` *(0..1)*: clamp interno, se pinta como porcentaje entero.
+- `hint` *(string, opcional)*: línea pequeña debajo.
+- `tone` *(`accent` | `muted` | `warn`)*: color del relleno. Default `accent`.
+
+Reutilízalo para cualquier ratio normalizado (porcentaje de éxito, recall, share). Si necesitas varias barras alineadas verticalmente, envuélvelas en un grid de columna única o un `auto-fit` con `minmax(280px, 1fr)`.
+
 ## Patrón HUD (login)
 
 `app/login/login-form.tsx` implementa un patrón "HUD oscuro":

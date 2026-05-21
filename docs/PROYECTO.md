@@ -51,9 +51,25 @@ app/
     [id]/
       page.tsx            <- detalle: traits + barreras + chat
       chat-panel.tsx      <- Client: ChatPanel
+  targets/
+    page.tsx              <- lista de targets (Server)
+    new/
+      page.tsx
+      new-form.tsx        <- form 5s_test (modo URL o upload), Client
+      actions.ts          <- Server Action createTargetAction (resuelve og:image)
+    [id]/
+      page.tsx            <- detalle: hero + runs previos + multi-select de perfiles
+      launch-panel.tsx    <- Client: lanzar /api/runs/five-second + navega a resultados
+  experiments/
+    five-second/
+      [runId]/
+        page.tsx          <- summary, top barreras, tabla por perfil (Server)
+        responses-table.tsx <- Client: sortable + expandible
   api/
     auth/route.ts         <- POST valida password y setea auth_usaas; DELETE limpia
     chat/route.ts         <- POST: turn humano + Reasoner (object) + Talker (stream NDJSON)
+    runs/
+      five-second/route.ts <- POST: ejecuta runFiveSecondTest sobre N perfiles
 
 lib/
   auth.ts                 <- AUTH_COOKIE, AUTH_VALUE, getAccessPassword()
@@ -61,14 +77,18 @@ lib/
   supabase.ts             <- getBrowserClient(), getServerClient()
   gateway.ts              <- DEFAULT_MODEL, REASONER_MODEL, isGatewayConfigured()
   profiles.ts             <- ProfileInputSchema (zod) + CRUD (server-only)
-  runs.ts                 <- Run/Message types + createRun, appendMessage, upsertMetric, ...
+  runs.ts                 <- Run/Message types + createRun, appendMessage, upsertMetric, markRunFinished, listRunsByTarget, getMetricsForRun
   prompts.ts              <- buildSystemPrompt(profile) con negative prompts
   agents.ts               <- ReasonerPlanSchema, reason() (object), talkStream() (text)
+  targets.ts              <- TargetInputSchema, FiveSecondPayloadSchema + CRUD + resolveOgImage(url)
+  experiments/
+    five-second.ts        <- probeProfile, judgeComprehension, runFiveSecondTest, listFiveSecondResponses, summarizeResponses
   utils.ts                <- cx() (concatenador de clases)
 
 components/
   app-shell.tsx           <- AppShell + PageHeading reutilizables
   console-banner.tsx      <- imprime USAAS + versión en la consola del navegador
+  result-bar.tsx          <- ResultBar (label + valor 0..1 + porcentaje + hint)
 
 public/
   logos/flat101.svg       <- logo de marca
@@ -76,6 +96,7 @@ public/
 supabase/
   migrations/
     0001_initial.sql      <- profiles, targets, runs, messages, metrics + trigger
+    0002_five_second.sql  <- five_second_responses (vista normalizada por (run, profile))
 
 proxy.ts                  <- middleware: bloquea todo lo no público sin cookie
 next.config.ts
@@ -108,9 +129,10 @@ Migración inicial en `supabase/migrations/0001_initial.sql`. Sin RLS: el acceso
 | `targets` | URLs / copy / screenshots / embudos a evaluar. `kind` + `payload` jsonb. |
 | `runs` | Una sesión de simulación: `profile_id`, `target_id`, `kind` (`chat` / `5s_test` / `funnel` / `pricing`), `status`, `params`. |
 | `messages` | Trazas por turno. `role`: `human` / `talker` / `reasoner` / `system`. `meta` jsonb con model, tokens, latency. |
-| `metrics` | Resultados agregados por run. Pares `key` + `value` numérico. |
+| `metrics` | Resultados agregados por run. Pares `key` + `value` numérico (p.ej. `mean_clarity`, `mean_comprehension`, `effort_ratio`, `n`). |
+| `five_second_responses` | Vista normalizada por `(run_id, profile_id)` para tests de claridad de 5 segundos: `recall`, `perceived_offer`, `clarity`, `comprehension_rate`, `barriers_detected`, `meta`. |
 
-Aplicar (una vez): copiar `0001_initial.sql` en el SQL editor del proyecto Supabase y ejecutar. Ver `ROADMAP.md` para evolución.
+Aplicar las migraciones por orden en el SQL editor del proyecto Supabase (`0001_initial.sql`, `0002_five_second.sql`). Ver `ROADMAP.md` para evolución.
 
 ## Por qué importa este proyecto
 

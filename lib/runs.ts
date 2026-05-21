@@ -58,6 +58,44 @@ export async function listRunsByProfile(profileId: string): Promise<Run[]> {
   return (data ?? []) as Run[];
 }
 
+export async function listRunsByTarget(targetId: string): Promise<Run[]> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("runs")
+    .select("*")
+    .eq("target_id", targetId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Run[];
+}
+
+export async function getRun(runId: string): Promise<Run | null> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("runs")
+    .select("*")
+    .eq("id", runId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  return (data ?? null) as Run | null;
+}
+
+export async function getMetricsForRun(
+  runId: string,
+): Promise<Record<string, number>> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("metrics")
+    .select("key, value")
+    .eq("run_id", runId);
+  if (error) throw new Error(error.message);
+  const out: Record<string, number> = {};
+  for (const row of data ?? []) {
+    out[row.key as string] = row.value as number;
+  }
+  return out;
+}
+
 export async function listMessages(runId: string): Promise<Message[]> {
   const supa = getServerClient();
   const { data, error } = await supa

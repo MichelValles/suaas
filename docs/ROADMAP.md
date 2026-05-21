@@ -33,27 +33,31 @@ Estado vivo. Actualizar en cada hito.
 - [x] `ChatPanel` lee el stream, muestra el texto progresivo y un `<details>` "Razonamiento" colapsable bajo cada turno con tono, esfuerzo, intent, barreras y plan.
 - [x] Métrica `effort_ratio` por run, calculada como media de `effort` sobre turnos `reasoner`. Upsert en `metrics`.
 
-## v0.4.0 — Test de claridad de 5 segundos (planificado, plan completo en `SIGUIENTE-PASO.md`)
+## v0.3.x — Fixes post-lanzamiento
 
-Resumen:
+- [x] `0.3.1`: typo / bump menor.
+- [x] `0.3.2`: `/api/chat` llama a `markRunFinished(runId, "done" | "error")` antes del frame final. Hasta 0.3.1 los runs OK quedaban con `status='running'` y `finished_at=null`.
 
-- [ ] Migración `0002_five_second.sql`: tabla `five_second_responses` (vista normalizada) + índice por `run_id`. No cambios estructurales en `targets`.
-- [ ] `lib/targets.ts` (`TargetInputSchema`, `FiveSecondPayloadSchema`, CRUD).
-- [ ] `lib/experiments/five-second.ts` con `probeProfile`, `judgeComprehension`, `runFiveSecondTest`.
-- [ ] UI: `/targets` (lista), `/targets/new` (URL o upload), `/targets/[id]` (multi-select de perfiles + "Lanzar test").
-- [ ] `/api/runs/five-second` con orquestador paralelo (chunks de 5 en flight).
-- [ ] `/experiments/five-second/[runId]` con tabla por perfil, `mean_clarity`, `mean_comprehension`, top barreras.
-- [ ] `components/result-bar.tsx` reutilizable.
-- [ ] Modelos: Reasoner (Opus) para `probeProfile` (multimodal con imagen), Sonnet para `judgeComprehension`.
-- [ ] Métricas en `metrics`: `mean_clarity`, `mean_comprehension`, `comprehension_p50`.
+## v0.4.0 — Test de claridad de 5 segundos
 
-Decisiones tomadas: LLM-as-judge para fuzzy-match (no embeddings de momento), batch sync con límite de 20 perfiles, dos modos de captura (URL → `og:image` server-side o upload a `data:` URL). Pendientes en `SIGUIENTE-PASO.md`.
+- [x] Migración `0002_five_second.sql`: tabla `five_second_responses` (vista normalizada) + índice por `run_id`. No cambios estructurales en `targets`.
+- [x] `lib/targets.ts` (`TargetInputSchema`, `FiveSecondPayloadSchema`, CRUD, `resolveOgImage`).
+- [x] `lib/experiments/five-second.ts` con `probeProfile`, `judgeComprehension`, `runFiveSecondTest`.
+- [x] UI: `/targets` (lista), `/targets/new` (URL o upload), `/targets/[id]` (hero + runs previos + multi-select de perfiles + "Lanzar test").
+- [x] `/api/runs/five-second` con orquestador paralelo (chunks de 5 en flight).
+- [x] `/experiments/five-second/[runId]` con tabla sortable por perfil, summary (mean_clarity, mean_comprehension, n), top barreras.
+- [x] `components/result-bar.tsx` reutilizable.
+- [x] Modelos: Reasoner (Opus) para `probeProfile` (multimodal con imagen), Sonnet para `judgeComprehension`.
+- [x] Métricas en `metrics`: `mean_clarity`, `mean_comprehension`, `n` (`comprehension_p50` no aporta sobre `mean_comprehension` con N pequeño, lo dejamos fuera).
+
+Decisiones aplicadas: LLM-as-judge para fuzzy-match (no embeddings), batch sync con límite de 20 perfiles, dos modos de captura (URL → `og:image` server-side o upload a `data:` URL).
 
 ## v0.5.0 — Simulación de embudo
 
 - [ ] Definir un embudo (lista de pantallas).
 - [ ] Run con un perfil que recorre el embudo paso a paso.
 - [ ] Detección de fricción: ratio de esfuerzo percibido por paso.
+- [ ] Almacenamiento de uploads en Vercel Blob (sustituir `data:` URLs en `five_second_responses` / `targets.payload`).
 
 ## Backlog / decisiones abiertas
 

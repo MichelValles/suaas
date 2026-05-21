@@ -64,6 +64,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/profiles" style={{ color: "rgba(255,255,255,0.7)" }}>
             Perfiles
           </Link>
+          <Link href="/targets" style={{ color: "rgba(255,255,255,0.7)" }}>
+            Targets
+          </Link>
           <span
             style={{
               fontSize: 10,

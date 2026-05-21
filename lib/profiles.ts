@@ -62,6 +62,17 @@ export async function listProfiles(): Promise<Profile[]> {
   return (data ?? []) as Profile[];
 }
 
+export async function listProfilesByIds(ids: string[]): Promise<Profile[]> {
+  if (ids.length === 0) return [];
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("profiles")
+    .select("*")
+    .in("id", ids);
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Profile[];
+}
+
 export async function getProfile(id: string): Promise<Profile | null> {
   const supa = getServerClient();
   const { data, error } = await supa
