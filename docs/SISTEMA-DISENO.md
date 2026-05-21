@@ -147,6 +147,16 @@ Reutilízalo para cualquier ratio normalizado (porcentaje de éxito, recall, sha
 
 Si se reusa para otra pantalla, factorizar a un componente `<HudFrame>` en `components/`.
 
+## Layout: container central
+
+Desde v0.5.3, `AppShell` aplica un container interno con `max-width: 1280px; margin: 0 auto` al header, al `<main>` y al footer. Esto significa:
+
+- ✅ Las páginas pueden hacer `display: flex / grid` directamente sin preocuparse de centrar el bloque entero. El AppShell ya lo centra.
+- ❌ No declarar `maxWidth: 1100` (u otros valores) en secciones de página con el único objetivo de "no estirar". El container global ya lo hace y mejor.
+- ✅ Sí declarar maxWidth interno para legibilidad puntual (formularios a 880, párrafos a 640, etc.). Esos son criterios de tipografía, no de layout.
+
+Si una página necesita romper el container (banner full-bleed, p.ej.), envuelve la sección fuera del `AppShell` o usa una clase específica documentada aquí.
+
 ## Antipatrones
 
 - ❌ Importar Tailwind o utility classes.
@@ -154,6 +164,7 @@ Si se reusa para otra pantalla, factorizar a un componente `<HudFrame>` en `comp
 - ❌ Animar atributos SVG `x`/`y` con motion (duplica posición porque se suma transform al atributo). Solo animar `opacity`.
 - ❌ Usar raw `#000` o `#fff` para texto/fondos. Siempre `--ink-900` / `--paper`.
 - ❌ Saturar con más de un accent. El amarillo `--accent-500` es el único color brand.
+- ❌ Aplicar `maxWidth: 1100` (u otros valores genéricos) a secciones de página: el container global del AppShell ya centra a 1280.
 
 ## Cómo añadir un componente reutilizable
 

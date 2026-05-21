@@ -15,98 +15,123 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     >
       <header
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
           padding: "clamp(20px, 3vw, 32px) clamp(24px, 5vw, 64px)",
           borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
-        <Link
-          href="/"
-          aria-label="Inicio SUAAS"
-          style={{ display: "inline-flex", alignItems: "center", gap: 16 }}
-        >
-          <Image
-            src="/logos/flat101.svg"
-            alt="Flat 101"
-            width={96}
-            height={24}
-            style={{ height: 24, width: "auto", filter: "brightness(0) invert(1)" }}
-            priority
-          />
-          <span
-            className="mono"
-            style={{
-              fontSize: 10,
-              letterSpacing: "0.28em",
-              color: "var(--accent-500)",
-              textTransform: "uppercase",
-            }}
-          >
-            SUAAS
-          </span>
-        </Link>
-        <nav
+        <div
           style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            width: "100%",
             display: "flex",
             alignItems: "center",
-            gap: 24,
-            fontSize: 12,
-            letterSpacing: "0.16em",
-            textTransform: "uppercase",
+            justifyContent: "space-between",
+            gap: 16,
           }}
-          className="mono"
         >
-          <Link href="/" style={{ color: "rgba(255,255,255,0.7)" }}>
-            Panel
-          </Link>
-          <Link href="/profiles" style={{ color: "rgba(255,255,255,0.7)" }}>
-            Perfiles
-          </Link>
-          <Link href="/targets" style={{ color: "rgba(255,255,255,0.7)" }}>
-            Targets
-          </Link>
-          <Link href="/funnels" style={{ color: "rgba(255,255,255,0.7)" }}>
-            Embudos
-          </Link>
-          <span
-            style={{
-              fontSize: 10,
-              color: "rgba(255,255,255,0.4)",
-              letterSpacing: "0.24em",
-            }}
+          <Link
+            href="/"
+            aria-label="Inicio SUAAS"
+            style={{ display: "inline-flex", alignItems: "center", gap: 16 }}
           >
-            v{APP_VERSION}
-          </span>
-        </nav>
+            <Image
+              src="/logos/flat101.svg"
+              alt="Flat 101"
+              width={96}
+              height={24}
+              style={{ height: 24, width: "auto", filter: "brightness(0) invert(1)" }}
+              priority
+            />
+            <span
+              className="mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.28em",
+                color: "var(--accent-500)",
+                textTransform: "uppercase",
+              }}
+            >
+              SUAAS
+            </span>
+          </Link>
+          <nav
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 24,
+              fontSize: 12,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+            }}
+            className="mono"
+          >
+            <Link href="/" style={{ color: "rgba(255,255,255,0.7)" }}>
+              Panel
+            </Link>
+            <Link href="/profiles" style={{ color: "rgba(255,255,255,0.7)" }}>
+              Perfiles
+            </Link>
+            <Link href="/targets" style={{ color: "rgba(255,255,255,0.7)" }}>
+              Targets
+            </Link>
+            <Link href="/funnels" style={{ color: "rgba(255,255,255,0.7)" }}>
+              Embudos
+            </Link>
+            <span
+              style={{
+                fontSize: 10,
+                color: "rgba(255,255,255,0.4)",
+                letterSpacing: "0.24em",
+              }}
+            >
+              v{APP_VERSION}
+            </span>
+          </nav>
+        </div>
       </header>
       <main
         style={{
           flex: 1,
           padding: "clamp(28px, 5vw, 64px) clamp(24px, 5vw, 64px)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 32,
         }}
       >
-        {children}
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            gap: 32,
+          }}
+        >
+          {children}
+        </div>
       </main>
       <footer
         className="mono"
         style={{
           padding: "20px clamp(24px, 5vw, 64px)",
           borderTop: "1px solid rgba(255,255,255,0.06)",
-          display: "flex",
-          justifyContent: "space-between",
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
           color: "rgba(255,255,255,0.4)",
         }}
       >
-        <span>suaas.flat101.business</span>
-        <span>build {APP_VERSION}</span>
+        <div
+          style={{
+            maxWidth: 1280,
+            margin: "0 auto",
+            width: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+          }}
+        >
+          <span>suaas.flat101.business</span>
+          <span>build {APP_VERSION}</span>
+        </div>
       </footer>
     </div>
   );

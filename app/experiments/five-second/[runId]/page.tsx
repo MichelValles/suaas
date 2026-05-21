@@ -132,7 +132,6 @@ export default async function FiveSecondRunPage({
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
               gap: 16,
-              maxWidth: 1100,
             }}
           >
             {summary.top_barriers.map((b) => (

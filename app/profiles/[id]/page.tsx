@@ -68,7 +68,6 @@ export default async function ProfileDetailPage({
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
           gap: 16,
-          maxWidth: 1100,
         }}
       >
         <BarrierCard

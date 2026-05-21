@@ -77,7 +77,6 @@ export default async function FunnelRunPage({
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
           gap: 16,
-          maxWidth: 1100,
         }}
       >
         <SummaryCard
@@ -117,7 +116,6 @@ export default async function FunnelRunPage({
             display: "flex",
             flexDirection: "column",
             gap: 8,
-            maxWidth: 1100,
           }}
         >
           {summary.dropoff_by_step.map((step) => {
@@ -198,7 +196,6 @@ export default async function FunnelRunPage({
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
               gap: 16,
-              maxWidth: 1100,
             }}
           >
             {summary.top_friction_overall.map((f) => (

@@ -56,7 +56,6 @@ export default async function FunnelsPage() {
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
             gap: 16,
-            maxWidth: 1100,
           }}
         >
           {funnels.map((f) => (
