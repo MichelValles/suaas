@@ -154,7 +154,6 @@ export function PageHeading({
         display: "flex",
         flexDirection: "column",
         gap: 16,
-        maxWidth: 880,
       }}
     >
       {eyebrow && (

@@ -88,6 +88,8 @@ export function NewFunnelForm() {
         gridTemplateColumns: "1fr",
         gap: 24,
         maxWidth: 960,
+        width: "100%",
+        marginInline: "auto",
       }}
     >
       <Field

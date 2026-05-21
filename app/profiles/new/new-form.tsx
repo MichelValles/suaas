@@ -19,6 +19,8 @@ export function NewProfileForm() {
         gridTemplateColumns: "1fr",
         gap: 24,
         maxWidth: 880,
+        width: "100%",
+        marginInline: "auto",
       }}
     >
       <Field label="Nombre" name="name" required defaultValue="Lucía 34" />

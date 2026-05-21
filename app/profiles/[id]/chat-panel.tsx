@@ -156,6 +156,8 @@ export function ChatPanel({ profileId }: { profileId: string }) {
         flexDirection: "column",
         gap: 16,
         maxWidth: 880,
+        width: "100%",
+        marginInline: "auto",
       }}
     >
       <header style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>

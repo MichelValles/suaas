@@ -53,7 +53,6 @@ export default async function ProfileDetailPage({
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
           gap: 16,
-          maxWidth: 880,
         }}
       >
         <Trait label="Apertura" value={b.openness} tooltip={BIG_FIVE_TRAITS.openness.description} />

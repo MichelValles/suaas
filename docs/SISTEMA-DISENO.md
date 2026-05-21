@@ -149,11 +149,12 @@ Si se reusa para otra pantalla, factorizar a un componente `<HudFrame>` en `comp
 
 ## Layout: container central
 
-Desde v0.5.3, `AppShell` aplica un container interno con `max-width: 1280px; margin: 0 auto` al header, al `<main>` y al footer. Esto significa:
+Desde v0.5.3, `AppShell` aplica un container interno con `max-width: 1280px; margin: 0 auto` al header, al `<main>` y al footer. El `<main>` es `display: flex; flex-direction: column` (con `align-items: stretch` por defecto) para que los hijos ocupen el ancho completo del container.
 
-- ✅ Las páginas pueden hacer `display: flex / grid` directamente sin preocuparse de centrar el bloque entero. El AppShell ya lo centra.
-- ❌ No declarar `maxWidth: 1100` (u otros valores) en secciones de página con el único objetivo de "no estirar". El container global ya lo hace y mejor.
-- ✅ Sí declarar maxWidth interno para legibilidad puntual (formularios a 880, párrafos a 640, etc.). Esos son criterios de tipografía, no de layout.
+- ✅ Por defecto, las secciones de página ocupan todo el ancho del container (1280). Las grids `auto-fit` se aprovechan de ello.
+- ❌ No declarar `maxWidth: 1100` (u otros valores) en secciones de página con el único objetivo de "no estirar".
+- ⚠️ Si una sección **sí** necesita limitar su ancho (formulario, chat-panel, párrafo largo), añadir **siempre** `width: 100%; marginInline: "auto"` junto al `maxWidth`. Si no, el elemento se queda alineado al borde izquierdo del container y deja una franja vacía a la derecha (regresión visual conocida en v0.5.3, resuelta en v0.5.4).
+- ✅ `PageHeading` no limita su propio ancho: lo hacen su `<h1>` (720) y `<p>` (640) interno. Eso permite que las "actions" (botones tipo "Volver") queden alineadas al extremo derecho del container.
 
 Si una página necesita romper el container (banner full-bleed, p.ej.), envuelve la sección fuera del `AppShell` o usa una clase específica documentada aquí.
 

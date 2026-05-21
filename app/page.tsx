@@ -25,7 +25,6 @@ export default function HomePage() {
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
           gap: 16,
-          maxWidth: 880,
         }}
       >
         <StatusCard label="Login" value="ok" />
