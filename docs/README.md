@@ -8,6 +8,7 @@
 | [`SISTEMA-DISENO.md`](./SISTEMA-DISENO.md) | Tokens del DS, clases semánticas, antipatrones, regla "no Tailwind". |
 | [`DESARROLLO.md`](./DESARROLLO.md) | Comandos, env vars, deploy a Vercel, subdominio, troubleshooting. |
 | [`ROADMAP.md`](./ROADMAP.md) | Estado actual, próximos hitos, decisiones abiertas. |
+| [`SIGUIENTE-PASO.md`](./SIGUIENTE-PASO.md) | **Handoff entre sesiones**. Por dónde empezar, qué verificar, plan concreto del próximo sprint. Actualizar al cerrar cada sprint. |
 | [`CONOCIMIENTO-USUARIOS-SINTETICOS.md`](./CONOCIMIENTO-USUARIOS-SINTETICOS.md) | Base teórica: vignettes grounded, Talker-Reasoner, métricas, riesgos. Fuente fundacional de la plataforma. |
 
 ## Cómo mantener esta carpeta
