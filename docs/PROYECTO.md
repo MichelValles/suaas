@@ -60,6 +60,14 @@ app/
     [id]/
       page.tsx            <- detalle: hero + runs previos + multi-select de perfiles
       launch-panel.tsx    <- Client: lanzar /api/runs/five-second + navega a resultados
+  funnels/
+    page.tsx              <- lista de embudos (Server)
+    new/
+      page.tsx
+      new-form.tsx        <- form con pasos dinámicos (mín 2, máx 12), Client
+      actions.ts          <- Server Action createFunnelAction (resuelve og:image por paso)
+    [id]/
+      page.tsx            <- detalle: secuencia ordenada de pasos con hero por paso
   experiments/
     five-second/
       [runId]/
@@ -81,6 +89,7 @@ lib/
   prompts.ts              <- buildSystemPrompt(profile) con negative prompts
   agents.ts               <- ReasonerPlanSchema, reason() (object), talkStream() (text)
   targets.ts              <- TargetInputSchema, FiveSecondPayloadSchema + CRUD + resolveOgImage(url)
+  funnels.ts              <- FunnelInputSchema, FunnelStepInputSchema + CRUD (server-only)
   experiments/
     five-second.ts        <- probeProfile, judgeComprehension, runFiveSecondTest, listFiveSecondResponses, summarizeResponses
   utils.ts                <- cx() (concatenador de clases)
@@ -97,6 +106,7 @@ supabase/
   migrations/
     0001_initial.sql      <- profiles, targets, runs, messages, metrics + trigger
     0002_five_second.sql  <- five_second_responses (vista normalizada por (run, profile))
+    0003_funnels.sql      <- funnels + funnel_steps (secuencia ordenada de pantallas)
 
 proxy.ts                  <- middleware: bloquea todo lo no público sin cookie
 next.config.ts
@@ -131,8 +141,10 @@ Migración inicial en `supabase/migrations/0001_initial.sql`. Sin RLS: el acceso
 | `messages` | Trazas por turno. `role`: `human` / `talker` / `reasoner` / `system`. `meta` jsonb con model, tokens, latency. |
 | `metrics` | Resultados agregados por run. Pares `key` + `value` numérico (p.ej. `mean_clarity`, `mean_comprehension`, `effort_ratio`, `n`). |
 | `five_second_responses` | Vista normalizada por `(run_id, profile_id)` para tests de claridad de 5 segundos: `recall`, `perceived_offer`, `clarity`, `comprehension_rate`, `barriers_detected`, `meta`. |
+| `funnels` | Cabecera del embudo: `name`, `description`. |
+| `funnel_steps` | Pasos ordenados del embudo: `funnel_id`, `position` (único por embudo), `name`, `intent` (qué debería hacer el usuario), `payload` jsonb `{kind, image_url, source_url?}`. |
 
-Aplicar las migraciones por orden en el SQL editor del proyecto Supabase (`0001_initial.sql`, `0002_five_second.sql`). Ver `ROADMAP.md` para evolución.
+Aplicar las migraciones por orden en el SQL editor del proyecto Supabase (`0001_initial.sql`, `0002_five_second.sql`, `0003_funnels.sql`). Ver `ROADMAP.md` para evolución.
 
 ## Por qué importa este proyecto
 

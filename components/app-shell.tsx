@@ -67,6 +67,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Link href="/targets" style={{ color: "rgba(255,255,255,0.7)" }}>
             Targets
           </Link>
+          <Link href="/funnels" style={{ color: "rgba(255,255,255,0.7)" }}>
+            Embudos
+          </Link>
           <span
             style={{
               fontSize: 10,

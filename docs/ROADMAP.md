@@ -54,7 +54,7 @@ Decisiones aplicadas: LLM-as-judge para fuzzy-match (no embeddings), batch sync 
 
 ## v0.5.0 — Simulación de embudo
 
-- [ ] Definir un embudo (lista de pantallas).
+- [x] **Definición + persistencia de embudos** (v0.5.0): migración `0003_funnels.sql` (`funnels` + `funnel_steps`), `lib/funnels.ts` con `FunnelInputSchema` / CRUD, `/funnels` (lista), `/funnels/new` (form dinámico, 2..12 pasos, modos URL o upload por paso), `/funnels/[id]` (secuencia ordenada con hero por paso). Nav "Embudos" en el shell.
 - [ ] Run con un perfil que recorre el embudo paso a paso.
 - [ ] Detección de fricción: ratio de esfuerzo percibido por paso.
 - [ ] Almacenamiento de uploads en Vercel Blob (sustituir `data:` URLs en `five_second_responses` / `targets.payload`).
