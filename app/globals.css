@@ -1,0 +1,312 @@
+/* ============================================================
+   USAAS — globals.css
+   Sólo tokens del design system de sd.michelvalles.com.
+   NO Tailwind, NO utility classes. Sólo CSS estándar.
+   ============================================================ */
+
+/* Reset mínimo (sin opinar fuera de los tokens) */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+img,
+svg,
+video,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+button {
+  font: inherit;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ============================================================
+   Design system — tokens (espejo de sd.michelvalles.com)
+   ============================================================ */
+
+:root {
+  /* ink scale (tinted neutrals, nunca raw #000/#fff) */
+  --paper: #ffffff;
+  --ink-50: #f7f8fa;
+  --ink-100: #eef0f3;
+  --ink-200: #e1e4ea;
+  --ink-300: #c7ccd4;
+  --ink-400: #97a0ad;
+  --ink-500: #6b7480;
+  --ink-600: #4a525e;
+  --ink-700: #2e343d;
+  --ink-800: #181b21;
+  --ink-900: #0a0b0d;
+
+  /* brand surfaces */
+  --brand-flat: #0a0b0d;
+
+  /* accent (único color saturado) */
+  --accent-50: #fffae6;
+  --accent-100: #fef3cb;
+  --accent-200: #fde791;
+  --accent-400: #fbd64a;
+  --accent-500: #facc0d;
+  --accent-600: #c7a007;
+  --accent-700: #8a6f04;
+  --accent-900: #4a3d02;
+
+  /* semantic */
+  --success-100: #e2f1e9;
+  --success-500: #1f7a4d;
+  --success-700: #15623e;
+  --warning-100: #fbefd8;
+  --warning-500: #b45309;
+  --warning-700: #8a4a06;
+  --error-100: #fbe5e2;
+  --error-500: #b42318;
+  --error-700: #8e1b14;
+  --info-100: #e4ebfd;
+  --info-500: #1652f0;
+  --info-700: #0a4bc4;
+
+  /* type scale */
+  --fs-eyebrow: clamp(11px, 0.85vw, 14px);
+  --ls-eyebrow: 0.14em;
+  --fs-caption: clamp(12px, 0.95vw, 15px);
+  --fs-body: clamp(15px, 1.15vw, 18px);
+  --fs-body-lg: clamp(17px, 1.3vw, 20px);
+  --fs-h3: clamp(20px, 1.7vw, 26px);
+  --fs-h2: clamp(28px, 2.4vw, 38px);
+  --fs-h1: clamp(36px, 3.6vw, 56px);
+  --fs-display: clamp(48px, 6vw, 96px);
+
+  /* spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+
+  /* radii */
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+  --radius: 6px;
+
+  /* shadows */
+  --shadow-flat: 0 1px 0 rgba(10, 11, 13, 0.04);
+  --shadow-rest: 0 1px 2px rgba(10, 11, 13, 0.06), 0 0 0 1px rgba(10, 11, 13, 0.04);
+  --shadow-hover: 0 4px 12px rgba(10, 11, 13, 0.08), 0 0 0 1px rgba(10, 11, 13, 0.06);
+
+  /* motion */
+  --dur-micro: 150ms;
+  --dur-short: 300ms;
+  --dur-med: 500ms;
+  --dur-long: 800ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* family aliases (next/font inyecta --font-nunito y --font-dm-serif) */
+  --font-sans: var(--font-nunito), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-nunito), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-dm-serif), "Times New Roman", Georgia, serif;
+}
+
+/* ============================================================
+   Base
+   ============================================================ */
+html,
+body {
+  font-family: var(--font-sans);
+  color: var(--ink-800);
+  background: var(--paper);
+  font-feature-settings: "ss01", "cv11";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100%;
+}
+
+/* ============================================================
+   Tipografía semántica
+   ============================================================ */
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: var(--fs-eyebrow);
+  line-height: 1.3;
+  letter-spacing: var(--ls-eyebrow);
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--ink-500);
+}
+
+.h1,
+h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h1);
+  line-height: 1.08;
+  letter-spacing: -0.01em;
+  font-weight: 400;
+  color: var(--ink-900);
+  margin: 0;
+}
+.h2,
+h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-h2);
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  font-weight: 400;
+  color: var(--ink-900);
+  margin: 0;
+}
+.h3,
+h3 {
+  font-family: var(--font-sans);
+  font-size: var(--fs-h3);
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+  font-weight: 700;
+  color: var(--ink-800);
+  margin: 0;
+}
+.display {
+  font-family: var(--font-display);
+  font-size: var(--fs-display);
+  line-height: 1;
+  letter-spacing: -0.015em;
+  font-weight: 400;
+  font-style: italic;
+  color: var(--ink-900);
+}
+.body,
+p {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  line-height: 1.55;
+  font-weight: 400;
+  color: var(--ink-700);
+  margin: 0;
+}
+.body-lg {
+  font-size: var(--fs-body-lg);
+  line-height: 1.5;
+  color: var(--ink-700);
+}
+.caption {
+  font-size: var(--fs-caption);
+  line-height: 1.5;
+  color: var(--ink-500);
+}
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ============================================================
+   Superficies
+   ============================================================ */
+.surface-feature {
+  background-color: var(--ink-900);
+  color: #fff;
+}
+.surface-feature .display,
+.surface-feature h1,
+.surface-feature h2 {
+  color: var(--accent-500);
+}
+.surface-paper {
+  background-color: var(--paper);
+  color: var(--ink-800);
+}
+.surface-tone {
+  background-color: var(--ink-50);
+}
+
+/* ============================================================
+   Componentes
+   ============================================================ */
+
+/* Pill CTA (outlined) */
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 26px;
+  border-radius: var(--radius-pill);
+  border: 2px solid var(--accent-500);
+  background: transparent;
+  color: var(--accent-500);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition:
+    background var(--dur-short) var(--ease-out),
+    color var(--dur-short) var(--ease-out);
+}
+.btn-pill:hover {
+  background: var(--accent-500);
+  color: var(--ink-900);
+}
+.btn-pill.solid {
+  background: var(--accent-500);
+  color: var(--ink-900);
+}
+.btn-pill.solid:hover {
+  background: var(--accent-400);
+}
+.btn-pill:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+/* Highlight inline */
+.hl {
+  background: var(--accent-500);
+  color: var(--ink-900);
+  padding: 0 0.08em;
+  border-radius: var(--radius-xs);
+}
+
+/* Focus */
+*:focus-visible {
+  outline: 2px solid var(--accent-600);
+  outline-offset: 2px;
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
