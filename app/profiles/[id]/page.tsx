@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { InfoTooltip } from "@/components/info-tooltip";
+import { BIG_FIVE_TRAITS } from "@/lib/big-five";
 import { getProfile } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { ChatPanel } from "./chat-panel";
@@ -53,11 +55,11 @@ export default async function ProfileDetailPage({
           maxWidth: 880,
         }}
       >
-        <Trait label="Apertura" value={b.openness} />
-        <Trait label="Conciencia" value={b.conscientiousness} />
-        <Trait label="Extraversión" value={b.extraversion} />
-        <Trait label="Amabilidad" value={b.agreeableness} />
-        <Trait label="Neuroticismo" value={b.neuroticism} />
+        <Trait label="Apertura" value={b.openness} tooltip={BIG_FIVE_TRAITS.openness.description} />
+        <Trait label="Conciencia" value={b.conscientiousness} tooltip={BIG_FIVE_TRAITS.conscientiousness.description} />
+        <Trait label="Extraversión" value={b.extraversion} tooltip={BIG_FIVE_TRAITS.extraversion.description} />
+        <Trait label="Amabilidad" value={b.agreeableness} tooltip={BIG_FIVE_TRAITS.agreeableness.description} />
+        <Trait label="Neuroticismo" value={b.neuroticism} tooltip={BIG_FIVE_TRAITS.neuroticism.description} />
       </section>
 
       <section
@@ -78,7 +80,15 @@ export default async function ProfileDetailPage({
   );
 }
 
-function Trait({ label, value }: { label: string; value: number }) {
+function Trait({
+  label,
+  value,
+  tooltip,
+}: {
+  label: string;
+  value: number;
+  tooltip?: string;
+}) {
   return (
     <div
       style={{
@@ -90,16 +100,19 @@ function Trait({ label, value }: { label: string; value: number }) {
         gap: 10,
       }}
     >
-      <span
-        className="mono"
-        style={{
-          fontSize: 10,
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
-        }}
-      >
-        {label}
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+        <span
+          className="mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.55)",
+          }}
+        >
+          {label}
+        </span>
+        {tooltip && <InfoTooltip text={tooltip} label={`Sobre ${label}`} />}
       </span>
       <div
         aria-hidden

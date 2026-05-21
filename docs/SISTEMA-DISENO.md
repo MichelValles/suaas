@@ -87,6 +87,29 @@ Por qué: USAAS no es un deck editorial sino una herramienta de producto. El DS 
 
 Si reutilizas el patrón para otra traza meta, factoriza a `<Disclosure>` en `components/`.
 
+## Componente `InfoTooltip`
+
+`components/info-tooltip.tsx` + clases `.tooltip-host`, `.tooltip-trigger`, `.tooltip-panel` en `globals.css`. Tooltip CSS-only: se muestra con `:hover` o `:focus-within` sobre el host. Cero JS, vive en Server Components.
+
+```tsx
+import { InfoTooltip } from "@/components/info-tooltip";
+
+<span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+  <span className="mono">Apertura</span>
+  <InfoTooltip
+    text="Curiosidad por lo nuevo, ideas abstractas, arte."
+    label="Sobre Apertura"
+  />
+</span>
+```
+
+Props:
+
+- `text` *(string)*: contenido del panel. Máximo 1-2 frases.
+- `label` *(string, opcional)*: `aria-label` del trigger. Default `"Información"`.
+
+Patrón de uso recomendado: trigger en círculo de 16×16 con la "i" alineado a la derecha del label de un campo o eyebrow. El panel aparece centrado encima con `max-width: 260px`, fondo `var(--ink-800)` y texto blanco. Para datos puntuales sobre rasgos de personalidad (Big Five), los textos viven en `lib/big-five.ts` como fuente única.
+
 ## Componente `ResultBar`
 
 `components/result-bar.tsx`. Barra horizontal de 6 px con valor 0..1, label en `.mono` arriba a la izquierda y porcentaje a la derecha. Hint opcional debajo.

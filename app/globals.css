@@ -293,6 +293,69 @@ p {
   border-radius: var(--radius-xs);
 }
 
+/* Tooltip */
+.tooltip-host {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.tooltip-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  padding: 0;
+  cursor: help;
+  transition:
+    color var(--dur-short) var(--ease-out),
+    border-color var(--dur-short) var(--ease-out);
+}
+.tooltip-trigger:hover,
+.tooltip-host:focus-within .tooltip-trigger {
+  color: var(--accent-500);
+  border-color: var(--accent-500);
+}
+.tooltip-panel {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 260px;
+  padding: 10px 12px;
+  background: var(--ink-800);
+  color: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-short) var(--ease-out),
+    visibility 0s linear var(--dur-short);
+  z-index: 100;
+}
+.tooltip-host:hover .tooltip-panel,
+.tooltip-host:focus-within .tooltip-panel {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s, 0s;
+}
+
 /* Focus */
 *:focus-visible {
   outline: 2px solid var(--accent-600);

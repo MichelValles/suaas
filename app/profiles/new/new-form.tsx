@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { InfoTooltip } from "@/components/info-tooltip";
+import { BIG_FIVE_TRAITS } from "@/lib/big-five";
 import { createProfileAction, type CreateProfileState } from "./actions";
 
 const initial: CreateProfileState = { ok: false };
@@ -34,11 +36,11 @@ export function NewProfileForm() {
 
       <FieldGroup title="Big Five (0..1)">
         <Row>
-          <Field label="Apertura" name="openness" type="number" step={0.05} min={0} max={1} required defaultValue="0.7" />
-          <Field label="Conciencia" name="conscientiousness" type="number" step={0.05} min={0} max={1} required defaultValue="0.55" />
-          <Field label="Extraversión" name="extraversion" type="number" step={0.05} min={0} max={1} required defaultValue="0.4" />
-          <Field label="Amabilidad" name="agreeableness" type="number" step={0.05} min={0} max={1} required defaultValue="0.65" />
-          <Field label="Neuroticismo" name="neuroticism" type="number" step={0.05} min={0} max={1} required defaultValue="0.5" />
+          <Field label="Apertura" name="openness" type="number" step={0.05} min={0} max={1} required defaultValue="0.7" tooltip={BIG_FIVE_TRAITS.openness.description} />
+          <Field label="Conciencia" name="conscientiousness" type="number" step={0.05} min={0} max={1} required defaultValue="0.55" tooltip={BIG_FIVE_TRAITS.conscientiousness.description} />
+          <Field label="Extraversión" name="extraversion" type="number" step={0.05} min={0} max={1} required defaultValue="0.4" tooltip={BIG_FIVE_TRAITS.extraversion.description} />
+          <Field label="Amabilidad" name="agreeableness" type="number" step={0.05} min={0} max={1} required defaultValue="0.65" tooltip={BIG_FIVE_TRAITS.agreeableness.description} />
+          <Field label="Neuroticismo" name="neuroticism" type="number" step={0.05} min={0} max={1} required defaultValue="0.5" tooltip={BIG_FIVE_TRAITS.neuroticism.description} />
         </Row>
       </FieldGroup>
 
@@ -180,19 +182,25 @@ function Field(props: {
   step?: number;
   min?: number;
   max?: number;
+  tooltip?: string;
 }) {
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-      <span
-        className="mono"
-        style={{
-          fontSize: 10,
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
-        }}
-      >
-        {props.label}
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+        <span
+          className="mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.55)",
+          }}
+        >
+          {props.label}
+        </span>
+        {props.tooltip && (
+          <InfoTooltip text={props.tooltip} label={`Sobre ${props.label}`} />
+        )}
       </span>
       <input
         name={props.name}
