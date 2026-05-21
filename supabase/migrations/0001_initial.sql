@@ -1,4 +1,4 @@
--- USAAS · esquema inicial v0.2.0
+-- SUAAS · esquema inicial v0.2.0
 --
 -- Aplicar copiando este archivo en el SQL editor del proyecto de Supabase
 -- (Marketplace de Vercel -> Supabase -> Open dashboard -> SQL editor).

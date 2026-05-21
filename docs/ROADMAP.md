@@ -4,10 +4,10 @@ Estado vivo. Actualizar en cada hito.
 
 ## v0.1.0 — Esqueleto
 
-- [x] Repo git inicializado en `C:\Users\Míchel\usaas`.
+- [x] Repo git inicializado en `C:\Users\Míchel\suaas`.
 - [x] Next.js 16 App Router, sin Tailwind.
 - [x] Tokens del DS de sd.michelvalles.com en `globals.css`.
-- [x] Login HUD (réplica del estilo adams/uoc) con cookie `auth_usaas`.
+- [x] Login HUD (réplica del estilo adams/uoc) con cookie `auth_suaas`.
 - [x] `proxy.ts` que protege todo lo no público.
 - [x] Stubs de `lib/supabase.ts` y `lib/gateway.ts`.
 - [x] Dashboard placeholder con status cards (Supabase / AI Gateway / Login).

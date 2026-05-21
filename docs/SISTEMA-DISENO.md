@@ -1,6 +1,6 @@
 # Sistema de diseño
 
-USAAS adopta el design system de **sd.michelvalles.com** con una variante crítica respecto a `flat101business` (adams/uoc): **no usa Tailwind**.
+SUAAS adopta el design system de **sd.michelvalles.com** con una variante crítica respecto a `flat101business` (adams/uoc): **no usa Tailwind**.
 
 ## Regla núcleo: no Tailwind
 
@@ -12,7 +12,7 @@ USAAS adopta el design system de **sd.michelvalles.com** con una variante críti
 - ✅ Sí clases semánticas del DS (`.eyebrow`, `.h1`, `.btn-pill`...).
 - ✅ Sí CSS inline (`style={{...}}`) o reglas CSS estándar para layout.
 
-Por qué: USAAS no es un deck editorial sino una herramienta de producto. El DS de sd.michelvalles.com está pensado como token system, no como Tailwind. Usándolo desnudo evitamos arrastrar dependencias y mantenemos la superficie de estilo legible.
+Por qué: SUAAS no es un deck editorial sino una herramienta de producto. El DS de sd.michelvalles.com está pensado como token system, no como Tailwind. Usándolo desnudo evitamos arrastrar dependencias y mantenemos la superficie de estilo legible.
 
 ## Tokens disponibles
 

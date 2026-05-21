@@ -12,10 +12,10 @@ export default async function ProfilesPage() {
         <PageHeading
           eyebrow="Perfiles · usuarios sintéticos"
           title="Supabase aún no está conectado."
-          description="Provisiona Supabase desde el Marketplace de Vercel del proyecto usaas. Tras instalarlo, vuelve a esta página."
+          description="Provisiona Supabase desde el Marketplace de Vercel del proyecto suaas. Tras instalarlo, vuelve a esta página."
         />
         <Notice>
-          Pasos: Vercel dashboard → proyecto usaas → Integrations → Supabase → Add.
+          Pasos: Vercel dashboard → proyecto suaas → Integrations → Supabase → Add.
           Después aplicar <code>supabase/migrations/0001_initial.sql</code> en el
           SQL editor de Supabase.
         </Notice>

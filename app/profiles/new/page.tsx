@@ -3,7 +3,7 @@ import { AppShell, PageHeading } from "@/components/app-shell";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { NewProfileForm } from "./new-form";
 
-export const metadata = { title: "USAAS · Nuevo perfil" };
+export const metadata = { title: "SUAAS · Nuevo perfil" };
 
 export default function NewProfilePage() {
   if (!isSupabaseConfigured()) {

@@ -1,8 +1,8 @@
 @AGENTS.md
 
-# Reglas operativas del proyecto USAAS
+# Reglas operativas del proyecto SUAAS
 
-USAAS es una plataforma para hacer **test de UX/CRO con usuarios sintéticos**, expuesta en `usaas.flat101.business`. Stack: Next.js 16 (App Router) + Supabase + Vercel AI Gateway. Sin Tailwind, sólo tokens del design system de sd.michelvalles.com.
+SUAAS es una plataforma para hacer **test de UX/CRO con usuarios sintéticos**, expuesta en `suaas.flat101.business`. Stack: Next.js 16 (App Router) + Supabase + Vercel AI Gateway. Sin Tailwind, sólo tokens del design system de sd.michelvalles.com.
 
 ## 1. Documentación viva en `docs/`
 
@@ -26,7 +26,7 @@ Tras completar cualquier cambio funcional (no para exploraciones o lecturas), el
    - **patch** (+0.0.1): `fix`, `refactor`, `docs`, `chore`.
    - **minor** (+0.1.0): `feat` (nueva ruta, módulo, integración).
    - **major** (+1.0.0): cambio estructural o breaking.
-4. **Deploy a producción**: `vercel --prod --yes`. Esperar a "Deployment ready" y confirmar la URL final (`https://usaas.flat101.business`).
+4. **Deploy a producción**: `vercel --prod --yes`. Esperar a "Deployment ready" y confirmar la URL final (`https://suaas.flat101.business`).
 5. **Commit** con mensaje en castellano siguiendo la convención (`feat:` / `fix:` / `refactor:` / `docs:` / `chore:`). Incluir el bump de versión en el mismo commit.
 6. **Actualizar el repositorio git**: si hay `git remote` configurado, hacer `git push`. Si no lo hay, el commit local ya cuenta como "actualizar git".
 

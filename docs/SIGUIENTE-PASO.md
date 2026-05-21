@@ -5,7 +5,7 @@
 
 ## Estado actual (v0.4.0 desplegada)
 
-- Producción: https://usaas.flat101.business (login con `michel101`, cookie `auth_usaas`).
+- Producción: https://suaas.flat101.business (login con `michel101`, cookie `auth_suaas`).
 - Supabase activado en la org separada del Marketplace de Vercel (proyecto `supabase-erin-mirror`). Migraciones aplicadas: `0001_initial.sql` y `0002_five_second.sql`.
 - Vercel AI Gateway con créditos cargados.
 - **Chat Talker-Reasoner** funcionando en `/profiles/[id]`. Runs cerrados correctamente (`status='done'`, `finished_at` poblado).
@@ -47,7 +47,7 @@ Objetivo: pasar del test atómico (una pantalla) a una secuencia (un embudo). Un
 ## Comandos de emergencia
 
 ```bash
-vercel logs https://usaas.flat101.business --follow
+vercel logs https://suaas.flat101.business --follow
 vercel promote <deployment-url>
 vercel rollback
 vercel env ls

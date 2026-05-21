@@ -1,4 +1,4 @@
--- USAAS · esquema v0.4.0 · Test de claridad de 5 segundos
+-- SUAAS · esquema v0.4.0 · Test de claridad de 5 segundos
 --
 -- Aplicar copiando este archivo en el SQL editor del proyecto Supabase
 -- (Marketplace de Vercel -> Supabase -> Open in Supabase -> SQL editor).

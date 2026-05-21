@@ -24,7 +24,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       >
         <Link
           href="/"
-          aria-label="Inicio USAAS"
+          aria-label="Inicio SUAAS"
           style={{ display: "inline-flex", alignItems: "center", gap: 16 }}
         >
           <Image
@@ -44,7 +44,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               textTransform: "uppercase",
             }}
           >
-            USAAS
+            SUAAS
           </span>
         </Link>
         <nav
@@ -102,7 +102,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           color: "rgba(255,255,255,0.4)",
         }}
       >
-        <span>usaas.flat101.business</span>
+        <span>suaas.flat101.business</span>
         <span>build {APP_VERSION}</span>
       </footer>
     </div>

@@ -1,6 +1,6 @@
-# USAAS · Synthetic Users as a Service
+# SUAAS · Synthetic Users as a Service
 
-Plataforma para experimentación predictiva en UX y CRO con agentes sintéticos calibrados. Vive en `usaas.flat101.business`.
+Plataforma para experimentación predictiva en UX y CRO con agentes sintéticos calibrados. Vive en `suaas.flat101.business`.
 
 ## Stack
 
@@ -18,7 +18,7 @@ npm run lint         # eslint
 
 ## Acceso
 
-Login con password global (cookie `auth_usaas`). En dev fallback: `michel101`. En prod: `process.env.ACCESS_PASSWORD`.
+Login con password global (cookie `auth_suaas`). En dev fallback: `michel101`. En prod: `process.env.ACCESS_PASSWORD`.
 
 ## Documentación
 

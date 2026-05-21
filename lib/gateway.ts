@@ -16,10 +16,10 @@
  */
 
 export const DEFAULT_MODEL =
-  process.env.USAAS_DEFAULT_MODEL ?? "anthropic/claude-sonnet-4.6";
+  process.env.SUAAS_DEFAULT_MODEL ?? "anthropic/claude-sonnet-4.6";
 
 export const REASONER_MODEL =
-  process.env.USAAS_REASONER_MODEL ?? "anthropic/claude-opus-4.7";
+  process.env.SUAAS_REASONER_MODEL ?? "anthropic/claude-opus-4.7";
 
 export function isGatewayConfigured(): boolean {
   // En Vercel la var se inyecta sin acción del usuario. En local, depende del pull.

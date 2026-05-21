@@ -21,9 +21,19 @@ function withSecurityHeaders(response: NextResponse): NextResponse {
   return response;
 }
 
+const LEGACY_HOST = "usaas.flat101.business";
+const CANONICAL_HOST = "suaas.flat101.business";
+
 export function proxy(request: NextRequest) {
   const url = request.nextUrl.clone();
   const { pathname } = url;
+
+  // Redirect permanente del dominio legado (rename USAAS -> SUAAS).
+  const host = request.headers.get("host")?.toLowerCase() ?? "";
+  if (host === LEGACY_HOST) {
+    url.host = CANONICAL_HOST;
+    return NextResponse.redirect(url, 308);
+  }
 
   if (isPublic(pathname)) {
     return withSecurityHeaders(NextResponse.next());

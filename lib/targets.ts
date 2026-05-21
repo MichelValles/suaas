@@ -88,7 +88,7 @@ export async function resolveOgImage(sourceUrl: string): Promise<string | null> 
       headers: {
         // UA realista para evitar bloqueos a bots básicos.
         "User-Agent":
-          "Mozilla/5.0 (compatible; USAAS/0.4; +https://usaas.flat101.business)",
+          "Mozilla/5.0 (compatible; SUAAS/0.4; +https://suaas.flat101.business)",
         Accept: "text/html,application/xhtml+xml",
       },
     });

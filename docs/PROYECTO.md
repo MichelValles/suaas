@@ -2,11 +2,11 @@
 
 ## Qué es
 
-**USAAS** (Synthetic Users as a Service) es una plataforma interna de Flat 101 para hacer test de usabilidad, copy y embudos con **agentes sintéticos calibrados**. Permite descartar variantes de bajo rendimiento antes de comprometer tráfico real, simular elasticidad de precios y validar heurísticas (Nielsen, Hick) sin coste de reclutamiento.
+**SUAAS** (Synthetic Users as a Service) es una plataforma interna de Flat 101 para hacer test de usabilidad, copy y embudos con **agentes sintéticos calibrados**. Permite descartar variantes de bajo rendimiento antes de comprometer tráfico real, simular elasticidad de precios y validar heurísticas (Nielsen, Hick) sin coste de reclutamiento.
 
-- **Dominio**: `usaas.flat101.business`.
+- **Dominio**: `suaas.flat101.business`.
 - **Hosting**: Vercel (proyecto independiente, no comparte deploy con `flat101business`).
-- **Acceso**: contraseña global (cookie `auth_usaas`). Comparte mecánica con `adams.flat101.business` y `uoc.flat101.business`.
+- **Acceso**: contraseña global (cookie `auth_suaas`). Comparte mecánica con `adams.flat101.business` y `uoc.flat101.business`.
 
 ## Cliente
 
@@ -66,7 +66,7 @@ app/
         page.tsx          <- summary, top barreras, tabla por perfil (Server)
         responses-table.tsx <- Client: sortable + expandible
   api/
-    auth/route.ts         <- POST valida password y setea auth_usaas; DELETE limpia
+    auth/route.ts         <- POST valida password y setea auth_suaas; DELETE limpia
     chat/route.ts         <- POST: turn humano + Reasoner (object) + Talker (stream NDJSON)
     runs/
       five-second/route.ts <- POST: ejecuta runFiveSecondTest sobre N perfiles
@@ -87,7 +87,7 @@ lib/
 
 components/
   app-shell.tsx           <- AppShell + PageHeading reutilizables
-  console-banner.tsx      <- imprime USAAS + versión en la consola del navegador
+  console-banner.tsx      <- imprime SUAAS + versión en la consola del navegador
   result-bar.tsx          <- ResultBar (label + valor 0..1 + porcentaje + hint)
 
 public/
@@ -110,13 +110,13 @@ docs/
 
 ## Autenticación
 
-Login con **password global** (`process.env.ACCESS_PASSWORD`, fallback dev `michel101`) y cookie `auth_usaas` (`httpOnly`, `sameSite=lax`, `secure` en prod, 30 días).
+Login con **password global** (`process.env.ACCESS_PASSWORD`, fallback dev `michel101`) y cookie `auth_suaas` (`httpOnly`, `sameSite=lax`, `secure` en prod, 30 días).
 
 Flujo:
 1. Usuario llega a cualquier ruta no pública sin cookie.
 2. `proxy.ts` redirige a `/login`.
 3. El form envía `{ password }` a `/api/auth`.
-4. Si la password es correcta, se setea `auth_usaas=ok`.
+4. Si la password es correcta, se setea `auth_suaas=ok`.
 5. Redirect a `/`, dashboard accesible.
 
 ## Modelo de datos

@@ -4,7 +4,7 @@ Esta versión (Next 16.2.6) tiene breaking changes vs. el training data del LLM.
 
 # Sistema de diseño
 
-USAAS adopta el design system de **sd.michelvalles.com** pero con una variante crítica:
+SUAAS adopta el design system de **sd.michelvalles.com** pero con una variante crítica:
 
 - **NO usa Tailwind**. Ni `@import "tailwindcss"`, ni utility classes (`flex`, `min-h-screen`, `p-4`, `bg-*`, etc.).
 - Sólo usa los **tokens CSS** definidos en `:root` de `app/globals.css` y las **clases semánticas** del sistema (`.eyebrow`, `.h1`, `.h2`, `.h3`, `.display`, `.body`, `.body-lg`, `.caption`, `.mono`, `.btn-pill`, `.btn-pill.solid`, `.hl`, `.surface-feature`, `.surface-paper`, `.surface-tone`).

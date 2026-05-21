@@ -1,6 +1,6 @@
 {
-  "name": "usaas",
-  "version": "0.4.2",
+  "name": "suaas",
+  "version": "0.4.3",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",

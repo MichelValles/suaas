@@ -19,7 +19,7 @@ const dmSerif = DM_Serif_Text({
 });
 
 export const metadata: Metadata = {
-  title: "USAAS · Flat 101",
+  title: "SUAAS · Flat 101",
   description: "Plataforma de test con usuarios sintéticos.",
   robots: {
     index: false,

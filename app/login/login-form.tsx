@@ -112,7 +112,7 @@ export function LoginForm() {
 
       {/* Marca esquinas inferiores */}
       <div aria-hidden className="mono" style={S.cornerLeft}>
-        FLAT 101 · USAAS
+        FLAT 101 · SUAAS
       </div>
       <div aria-hidden className="mono" style={S.cornerRight}>
         <span
@@ -155,7 +155,7 @@ export function LoginForm() {
           }}
         >
           <span className="mono" style={S.eyebrow}>
-            USAAS · Usuarios sintéticos
+            SUAAS · Usuarios sintéticos
           </span>
           <p className="display" style={S.headline}>
             Acceso privado.

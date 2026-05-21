@@ -5,11 +5,11 @@ import { APP_VERSION } from "@/lib/version";
 
 export function ConsoleBanner() {
   useEffect(() => {
-    const label = "USAAS · FLAT 101";
+    const label = "SUAAS · FLAT 101";
     const host =
       typeof window !== "undefined"
         ? window.location.hostname
-        : "usaas.flat101.business";
+        : "suaas.flat101.business";
 
     const labelStyle =
       "background:#0a0b0d;color:#facc0d;padding:3px 8px;border-radius:2px;font-weight:700;letter-spacing:0.08em;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;";
