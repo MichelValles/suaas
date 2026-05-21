@@ -2,7 +2,7 @@
 
 Estado vivo. Actualizar en cada hito.
 
-## v0.1.0 — Esqueleto (actual)
+## v0.1.0 — Esqueleto
 
 - [x] Repo git inicializado en `C:\Users\Míchel\usaas`.
 - [x] Next.js 16 App Router, sin Tailwind.
@@ -14,13 +14,16 @@ Estado vivo. Actualizar en cada hito.
 - [x] Reglas operativas en `CLAUDE.md` (docs vivas + bump + deploy + commit).
 - [x] Base de conocimiento (`docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md`).
 
-## v0.2.0 — Datos + primer agente
+## v0.2.0 — Datos + primer agente (actual)
 
-- [ ] Instalar Supabase desde el Marketplace de Vercel. `vercel env pull`.
-- [ ] Esquema inicial: `profiles`, `targets`, `runs`, `messages`, `metrics`.
-- [ ] Migraciones SQL en `supabase/migrations/`.
-- [ ] CRUD mínimo de `profiles` (formulario para crear vignette grounded).
-- [ ] Llamada de prueba al Gateway: prompt + response simple a un perfil.
+- [x] Esquema inicial en `supabase/migrations/0001_initial.sql`: `profiles`, `targets`, `runs`, `messages`, `metrics`.
+- [x] `lib/profiles.ts` con `ProfileInputSchema` (zod) y CRUD vía service role.
+- [x] `lib/runs.ts` con `createRun`, `appendMessage`, `listMessages`, `nextTurn`.
+- [x] `lib/prompts.ts` con `buildSystemPrompt` (vignette + negative prompts).
+- [x] `/profiles` (lista), `/profiles/new` (Server Action), `/profiles/[id]` (detalle con chat).
+- [x] `/api/chat` (POST) con `generateText` sobre `DEFAULT_MODEL`. Persiste turnos en `messages`.
+- [x] `components/app-shell.tsx` (header con nav + footer con versión).
+- [ ] **Bloqueante operativo**: provisionar Supabase desde el Marketplace de Vercel y aplicar `0001_initial.sql` en el SQL editor. Hasta entonces las páginas muestran un aviso y no crashean.
 
 ## v0.3.0 — Talker-Reasoner
 

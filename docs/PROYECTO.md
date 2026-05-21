@@ -38,25 +38,43 @@ app/
   globals.css             <- tokens del design system + clases semánticas
   robots.ts               <- noindex global
   icon.svg                <- favicon
-  page.tsx                <- dashboard tras login (placeholder con status cards)
+  page.tsx                <- dashboard con status cards + CTA a /profiles
   login/
     page.tsx              <- pantalla de contraseña (Server)
     login-form.tsx        <- formulario HUD oscuro (Client)
+  profiles/
+    page.tsx              <- lista de perfiles (Server)
+    new/
+      page.tsx
+      new-form.tsx        <- formulario con useActionState
+      actions.ts          <- Server Action createProfileAction
+    [id]/
+      page.tsx            <- detalle: traits + barreras + chat
+      chat-panel.tsx      <- Client: ChatPanel
   api/
     auth/route.ts         <- POST valida password y setea auth_usaas; DELETE limpia
+    chat/route.ts         <- POST: turn humano + generateText + persiste talker
 
 lib/
   auth.ts                 <- AUTH_COOKIE, AUTH_VALUE, getAccessPassword()
   version.ts              <- APP_VERSION (espejo de package.json)
   supabase.ts             <- getBrowserClient(), getServerClient()
-  gateway.ts              <- gateway, DEFAULT_MODEL, REASONER_MODEL
+  gateway.ts              <- DEFAULT_MODEL, REASONER_MODEL, isGatewayConfigured()
+  profiles.ts             <- ProfileInputSchema (zod) + CRUD (server-only)
+  runs.ts                 <- Run/Message types + createRun, appendMessage, ...
+  prompts.ts              <- buildSystemPrompt(profile) con negative prompts
   utils.ts                <- cx() (concatenador de clases)
 
 components/
+  app-shell.tsx           <- AppShell + PageHeading reutilizables
   console-banner.tsx      <- imprime USAAS + versión en la consola del navegador
 
 public/
   logos/flat101.svg       <- logo de marca
+
+supabase/
+  migrations/
+    0001_initial.sql      <- profiles, targets, runs, messages, metrics + trigger
 
 proxy.ts                  <- middleware: bloquea todo lo no público sin cookie
 next.config.ts
@@ -79,19 +97,19 @@ Flujo:
 4. Si la password es correcta, se setea `auth_usaas=ok`.
 5. Redirect a `/`, dashboard accesible.
 
-## Modelo de datos (planificado)
+## Modelo de datos
 
-Pendiente de la primera implementación con Supabase. Esbozo inicial:
+Migración inicial en `supabase/migrations/0001_initial.sql`. Sin RLS: el acceso es vía `SUPABASE_SERVICE_ROLE_KEY` desde el server, el navegador nunca habla con la base directamente.
 
 | Tabla | Propósito |
 |---|---|
-| `profiles` | Vignettes grounded: demografía, Big Five, barreras COM-B, backstory. |
-| `targets` | URLs / flujos / propuestas de valor a evaluar. |
-| `runs` | Una sesión de simulación: perfil + target + parámetros del experimento. |
-| `messages` | Trazas Talker-Reasoner por turno (sistema 1 + sistema 2). |
-| `metrics` | Resultados agregados por run: ratio de esfuerzo, comprensión, barreras detectadas. |
+| `profiles` | Vignettes grounded: demografía (`jsonb`), Big Five (`jsonb` 0..1), barreras COM-B (`jsonb` con capability/opportunity/motivation), backstory, source. Trigger `updated_at`. |
+| `targets` | URLs / copy / screenshots / embudos a evaluar. `kind` + `payload` jsonb. |
+| `runs` | Una sesión de simulación: `profile_id`, `target_id`, `kind` (`chat` / `5s_test` / `funnel` / `pricing`), `status`, `params`. |
+| `messages` | Trazas por turno. `role`: `human` / `talker` / `reasoner` / `system`. `meta` jsonb con model, tokens, latency. |
+| `metrics` | Resultados agregados por run. Pares `key` + `value` numérico. |
 
-Ver `ROADMAP.md` para el orden de implementación.
+Aplicar (una vez): copiar `0001_initial.sql` en el SQL editor del proyecto Supabase y ejecutar. Ver `ROADMAP.md` para evolución.
 
 ## Por qué importa este proyecto
 
