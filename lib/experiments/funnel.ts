@@ -10,6 +10,7 @@ import {
   upsertMetric,
 } from "@/lib/runs";
 import { getServerClient } from "@/lib/supabase";
+import { recordUsage } from "@/lib/usage";
 
 /**
  * Experimento: Simulación de embudo.
@@ -270,6 +271,13 @@ async function simulateOneProfile(
     let probed;
     try {
       probed = await probeFunnelStep(profile, funnel, step, responses);
+      await recordUsage({
+        runId,
+        scope: "probe_funnel",
+        model: DEFAULT_MODEL,
+        usage: probed.usage,
+        meta: { latency_ms: probed.latencyMs, step: step.position },
+      });
     } catch (err) {
       const e = err as Error & { text?: string; cause?: unknown };
       console.error("[probeFunnelStep] fallo", {

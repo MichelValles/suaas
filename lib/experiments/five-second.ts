@@ -10,6 +10,7 @@ import {
 } from "@/lib/runs";
 import { getServerClient } from "@/lib/supabase";
 import { type Target, getTarget } from "@/lib/targets";
+import { recordUsage } from "@/lib/usage";
 
 /**
  * Experimento: Test de claridad de 5 segundos.
@@ -263,6 +264,13 @@ async function probeOne(
   let probed;
   try {
     probed = await probeProfile(profile, target);
+    await recordUsage({
+      runId,
+      scope: "probe_5s",
+      model: DEFAULT_MODEL,
+      usage: probed.usage,
+      meta: { latency_ms: probed.latencyMs },
+    });
   } catch (err) {
     const e = err as Error & {
       text?: string;
@@ -292,6 +300,13 @@ async function probeOne(
     );
     comprehension = judged.output;
     judgeLatency = judged.latencyMs;
+    await recordUsage({
+      runId,
+      scope: "judge_5s",
+      model: DEFAULT_MODEL,
+      usage: judged.usage,
+      meta: { latency_ms: judged.latencyMs },
+    });
   } catch {
     // Si el judge falla, dejamos comprehension_rate=null y seguimos.
   }

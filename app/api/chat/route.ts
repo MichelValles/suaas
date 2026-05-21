@@ -12,6 +12,8 @@ import {
   upsertMetric,
 } from "@/lib/runs";
 import { reason, talkStream } from "@/lib/agents";
+import { DEFAULT_MODEL, REASONER_MODEL } from "@/lib/gateway";
+import { recordUsage } from "@/lib/usage";
 
 export const runtime = "nodejs";
 export const maxDuration = 120;
@@ -83,6 +85,14 @@ export async function POST(request: Request) {
           message: parsed.message,
         });
 
+        await recordUsage({
+          runId,
+          scope: "reasoner_chat",
+          model: REASONER_MODEL,
+          usage: reasonerResult.usage,
+          meta: { latency_ms: reasonerResult.latencyMs },
+        });
+
         const reasonerTurn = humanTurn + 1;
         await appendMessage({
           run_id: runId,
@@ -136,6 +146,14 @@ export async function POST(request: Request) {
             latency_ms: Date.now() - startedAt,
             usage: talkerUsage ?? null,
           },
+        });
+
+        await recordUsage({
+          runId,
+          scope: "talker_chat",
+          model: DEFAULT_MODEL,
+          usage: talkerUsage ?? null,
+          meta: { latency_ms: Date.now() - startedAt },
         });
 
         // 3) Metric: effort_ratio = media de effort sobre los turnos reasoner.

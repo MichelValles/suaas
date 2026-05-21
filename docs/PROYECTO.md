@@ -38,7 +38,11 @@ app/
   globals.css             <- tokens del design system + clases semánticas
   robots.ts               <- noindex global
   icon.svg                <- favicon
-  page.tsx                <- dashboard con status cards + CTA a /profiles
+  page.tsx                <- home: presentación del software (feature cards + cómo funciona)
+  diag/
+    page.tsx              <- estado visual del esquema (server-side, mismo dato que /api/diag)
+  tokens/
+    page.tsx              <- créditos AI Gateway + acumulado interno por modelo/scope
   login/
     page.tsx              <- pantalla de contraseña (Server)
     login-form.tsx        <- formulario HUD oscuro (Client)
@@ -97,13 +101,15 @@ lib/
   agents.ts               <- ReasonerPlanSchema, reason() (object), talkStream() (text)
   targets.ts              <- TargetInputSchema, FiveSecondPayloadSchema + CRUD + resolveOgImage(url)
   funnels.ts              <- FunnelInputSchema, FunnelStepInputSchema + CRUD (server-only)
+  usage.ts                <- recordUsage(), getUsageSummary(), getGatewayCredits() (telemetría tokens)
   experiments/
     five-second.ts        <- probeProfile, judgeComprehension, runFiveSecondTest, listFiveSecondResponses, summarizeResponses
     funnel.ts             <- probeFunnelStep, runFunnelTest, listFunnelStepResponses, summarizeFunnelResponses
   utils.ts                <- cx() (concatenador de clases)
 
 components/
-  app-shell.tsx           <- AppShell + PageHeading reutilizables
+  app-shell.tsx           <- AppShell (sidebar + main + footer con badges) + PageHeading
+  sidebar.tsx             <- Sidebar (client, lateral izquierdo, colapsable en móvil) con iconos lucide
   console-banner.tsx      <- imprime SUAAS + versión en la consola del navegador
   result-bar.tsx          <- ResultBar (label + valor 0..1 + porcentaje + hint)
 
@@ -116,6 +122,7 @@ supabase/
     0002_five_second.sql  <- five_second_responses (vista normalizada por (run, profile))
     0003_funnels.sql      <- funnels + funnel_steps (secuencia ordenada de pantallas)
     0004_funnel_runs.sql  <- runs.funnel_id + funnel_step_responses (run, profile, step)
+    0005_gateway_usage.sql <- gateway_usage (telemetría de tokens por scope/modelo)
 
 proxy.ts                  <- middleware: bloquea todo lo no público sin cookie
 next.config.ts
@@ -153,8 +160,9 @@ Migración inicial en `supabase/migrations/0001_initial.sql`. Sin RLS: el acceso
 | `funnels` | Cabecera del embudo: `name`, `description`. |
 | `funnel_steps` | Pasos ordenados del embudo: `funnel_id`, `position` (único por embudo), `name`, `intent` (qué debería hacer el usuario), `payload` jsonb `{kind, image_url, source_url?}`. |
 | `funnel_step_responses` | Respuesta normalizada por `(run_id, profile_id, step_id)`: `position`, `perception`, `intent_match` 0..1, `effort` 0..1, `friction` text[], `would_continue`, `reasoning`, `meta`. Sólo hay fila para los pasos que el perfil llegó a evaluar (el dropoff corta el recorrido). |
+| `gateway_usage` | Telemetría por llamada al AI Gateway: `run_id` (nullable), `scope` (`probe_5s` / `judge_5s` / `probe_funnel` / `reasoner_chat` / `talker_chat`), `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Alimenta `/tokens`. |
 
-Aplicar las migraciones por orden en el SQL editor del proyecto Supabase (`0001_initial.sql`, `0002_five_second.sql`, `0003_funnels.sql`, `0004_funnel_runs.sql`). Ver `ROADMAP.md` para evolución.
+Aplicar las migraciones por orden en el SQL editor del proyecto Supabase (`0001_initial.sql`, `0002_five_second.sql`, `0003_funnels.sql`, `0004_funnel_runs.sql`, `0005_gateway_usage.sql`). Ver `ROADMAP.md` para evolución.
 
 ## Por qué importa este proyecto
 

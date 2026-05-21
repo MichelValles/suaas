@@ -1,132 +1,50 @@
-import Image from "next/image";
-import Link from "next/link";
 import { APP_VERSION } from "@/lib/version";
+import { isGatewayConfigured } from "@/lib/gateway";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { Sidebar } from "@/components/sidebar";
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const supabaseReady = isSupabaseConfigured();
+  const gatewayReady = isGatewayConfigured();
+
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "var(--ink-900)",
-        color: "#fff",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <header
-        style={{
-          padding: "clamp(20px, 3vw, 32px) clamp(24px, 5vw, 64px)",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-        }}
-      >
+    <div className="app-shell">
+      <Sidebar />
+      <main className="app-shell-main">{children}</main>
+      <footer className="app-shell-footer mono">
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <span
+            className="status-badge"
+            data-status={supabaseReady ? "ok" : "off"}
+            title={
+              supabaseReady
+                ? "Supabase configurado y accesible"
+                : "Supabase no configurado"
+            }
+          >
+            Supabase {supabaseReady ? "ready" : "off"}
+          </span>
+          <span
+            className="status-badge"
+            data-status={gatewayReady ? "ok" : "off"}
+            title={
+              gatewayReady
+                ? "AI Gateway configurado"
+                : "AI Gateway no configurado"
+            }
+          >
+            AI Gateway {gatewayReady ? "ready" : "off"}
+          </span>
+        </div>
         <div
           style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            width: "100%",
             display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
             gap: 16,
-          }}
-        >
-          <Link
-            href="/"
-            aria-label="Inicio SUAAS"
-            style={{ display: "inline-flex", alignItems: "center", gap: 16 }}
-          >
-            <Image
-              src="/logos/flat101.svg"
-              alt="Flat 101"
-              width={96}
-              height={24}
-              style={{ height: 24, width: "auto", filter: "brightness(0) invert(1)" }}
-              priority
-            />
-            <span
-              className="mono"
-              style={{
-                fontSize: 10,
-                letterSpacing: "0.28em",
-                color: "var(--accent-500)",
-                textTransform: "uppercase",
-              }}
-            >
-              SUAAS
-            </span>
-          </Link>
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 24,
-              fontSize: 12,
-              letterSpacing: "0.16em",
-              textTransform: "uppercase",
-            }}
-            className="mono"
-          >
-            <Link href="/" style={{ color: "rgba(255,255,255,0.7)" }}>
-              Panel
-            </Link>
-            <Link href="/profiles" style={{ color: "rgba(255,255,255,0.7)" }}>
-              Perfiles
-            </Link>
-            <Link href="/targets" style={{ color: "rgba(255,255,255,0.7)" }}>
-              Targets
-            </Link>
-            <Link href="/funnels" style={{ color: "rgba(255,255,255,0.7)" }}>
-              Embudos
-            </Link>
-            <span
-              style={{
-                fontSize: 10,
-                color: "rgba(255,255,255,0.4)",
-                letterSpacing: "0.24em",
-              }}
-            >
-              v{APP_VERSION}
-            </span>
-          </nav>
-        </div>
-      </header>
-      <main
-        style={{
-          flex: 1,
-          padding: "clamp(28px, 5vw, 64px) clamp(24px, 5vw, 64px)",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            gap: 32,
-          }}
-        >
-          {children}
-        </div>
-      </main>
-      <footer
-        className="mono"
-        style={{
-          padding: "20px clamp(24px, 5vw, 64px)",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          fontSize: 10,
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          color: "rgba(255,255,255,0.4)",
-        }}
-      >
-        <div
-          style={{
-            maxWidth: 1280,
-            margin: "0 auto",
-            width: "100%",
-            display: "flex",
-            justifyContent: "space-between",
+            alignItems: "center",
+            color: "rgba(255,255,255,0.4)",
+            fontSize: 10,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
           }}
         >
           <span>suaas.flat101.business</span>
@@ -182,7 +100,7 @@ export function PageHeading({
           className="display"
           style={{
             color: "#fff",
-            fontSize: "clamp(36px, 5vw, 72px)",
+            fontSize: "clamp(32px, 4vw, 56px)",
             lineHeight: 1.05,
             maxWidth: 720,
           }}

@@ -59,6 +59,14 @@ Decisiones aplicadas: LLM-as-judge para fuzzy-match (no embeddings), batch sync 
 - [x] **Detección de fricción**: cada respuesta de paso captura `effort` 0..1, `intent_match` 0..1 y un array de `friction` textual. Las métricas agregadas (`completion_rate`, `mean_effort`, `mean_intent_match`) y el dropoff por paso permiten ver dónde se rompe el embudo.
 - [ ] Almacenamiento de uploads en Vercel Blob (sustituir `data:` URLs en `five_second_responses` / `targets.payload` / `funnel_steps.payload`).
 
+## v0.6.0 — App shell tipo software
+
+- [x] Sidebar lateral izquierdo (240px en desktop, overlay colapsable en móvil con botón hamburguesa) reemplazando el header con nav. Iconos `lucide-react` por entrada.
+- [x] Footer global con badges de estado (Supabase ready / AI Gateway ready) en verde cuando están configurados.
+- [x] Home reescrita como presentación del software (feature cards + cómo funciona en 3 pasos), no como dashboard de estado.
+- [x] Nueva ruta `/diag`: vista visual del estado del esquema y configuración (mismo dato que `/api/diag` pero renderizado).
+- [x] Nueva ruta `/tokens`: créditos del AI Gateway + acumulado interno por modelo y por scope. Soportada por migración `0005_gateway_usage.sql` y `lib/usage.ts`. Llamadas instrumentadas: probe_5s, judge_5s, probe_funnel, reasoner_chat, talker_chat.
+
 ## Backlog / decisiones abiertas
 
 - ¿Auth por email (Supabase Auth) además del password global? Cuando se invite a clientes externos.

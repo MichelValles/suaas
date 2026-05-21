@@ -147,16 +147,28 @@ Reutilízalo para cualquier ratio normalizado (porcentaje de éxito, recall, sha
 
 Si se reusa para otra pantalla, factorizar a un componente `<HudFrame>` en `components/`.
 
-## Layout: container central
+## Layout: app shell con sidebar (v0.6.0+)
 
-Desde v0.5.3, `AppShell` aplica un container interno con `max-width: 1280px; margin: 0 auto` al header, al `<main>` y al footer. El `<main>` es `display: flex; flex-direction: column` (con `align-items: stretch` por defecto) para que los hijos ocupen el ancho completo del container.
+Desde v0.6.0 SUAAS usa un app shell tipo software, no web. `AppShell` aplica un grid:
 
-- ✅ Por defecto, las secciones de página ocupan todo el ancho del container (1280). Las grids `auto-fit` se aprovechan de ello.
-- ❌ No declarar `maxWidth: 1100` (u otros valores) en secciones de página con el único objetivo de "no estirar".
-- ⚠️ Si una sección **sí** necesita limitar su ancho (formulario, chat-panel, párrafo largo), añadir **siempre** `width: 100%; marginInline: "auto"` junto al `maxWidth`. Si no, el elemento se queda alineado al borde izquierdo del container y deja una franja vacía a la derecha (regresión visual conocida en v0.5.3, resuelta en v0.5.4).
-- ✅ `PageHeading` no limita su propio ancho: lo hacen su `<h1>` (720) y `<p>` (640) interno. Eso permite que las "actions" (botones tipo "Volver") queden alineadas al extremo derecho del container.
+```
+┌─────────┬───────────────────────┐
+│         │   <main>              │
+│ sidebar │                       │
+│ (240px) ├───────────────────────┤
+│         │   <footer> badges     │
+└─────────┴───────────────────────┘
+```
 
-Si una página necesita romper el container (banner full-bleed, p.ej.), envuelve la sección fuera del `AppShell` o usa una clase específica documentada aquí.
+- **Sidebar**: cliente (`components/sidebar.tsx`). En desktop ≥881px queda fijo a la izquierda. En móvil <881px se oculta y aparece un botón hamburguesa que abre la sidebar como overlay con backdrop. Los enlaces activos se resaltan con `data-active="true"` (clase `.sidebar-link`).
+- **Footer**: badges de estado (`.status-badge[data-status="ok|warn|off"]`) para Supabase y AI Gateway. Verdes cuando `isSupabaseConfigured()` / `isGatewayConfigured()` devuelven `true`.
+- **PageHeading**: sin maxWidth en el wrapper; el `<h1>` (720) y `<p>` (640) limitan internamente. Las "actions" quedan en el extremo derecho.
+- **Iconos**: `lucide-react`. Importar individualmente (`Users`, `Target`, `Filter`, `Activity`, `Coins`, etc.) para que tree-shaking elimine el resto.
+
+Reglas:
+- ❌ No reintroducir el header superior con nav: el menú vive en el sidebar.
+- ✅ Las nuevas páginas se añaden al sidebar editando `MAIN_ITEMS` o `SYSTEM_ITEMS` en `components/sidebar.tsx`. Con un icono lucide y un `href`.
+- ⚠️ El `<main>` ya no tiene un container central de 1280: el ancho útil lo determina el grid del shell menos el sidebar. Bloques con `maxWidth` interno deben centrarse con `marginInline: "auto"` si quieren no quedarse pegados al borde izquierdo.
 
 ## Antipatrones
 
