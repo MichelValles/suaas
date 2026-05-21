@@ -77,6 +77,16 @@ Por qué: USAAS no es un deck editorial sino una herramienta de producto. El DS 
 | `.surface-paper` | Fondo `paper`. |
 | `.surface-tone` | Fondo `ink-50` neutro. |
 
+## Patrón "Razonamiento" colapsable (CoT)
+
+`app/profiles/[id]/chat-panel.tsx` usa `<details>` nativo para exponer el plan del Reasoner bajo cada respuesta del Talker.
+
+- Header (`<summary>`) en `.mono` 10px tracked, con `tono` y `esfuerzo` como chips.
+- Body: `dl` con grid de 2 columnas (`auto 1fr`), `dt` en `.mono` minúsculas-tracked y `dd` en cuerpo.
+- Borde `rgba(255,255,255,0.08)` y fondo `rgba(255,255,255,0.02)`: nunca un panel sólido para no robarle peso al mensaje del Talker.
+
+Si reutilizas el patrón para otra traza meta, factoriza a `<Disclosure>` en `components/`.
+
 ## Patrón HUD (login)
 
 `app/login/login-form.tsx` implementa un patrón "HUD oscuro":

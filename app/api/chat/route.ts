@@ -1,17 +1,19 @@
-import { generateText, type ModelMessage } from "ai";
 import { z } from "zod";
-import { DEFAULT_MODEL, isGatewayConfigured } from "@/lib/gateway";
+import type { ModelMessage } from "ai";
+import { isGatewayConfigured } from "@/lib/gateway";
 import { getProfile } from "@/lib/profiles";
 import {
   appendMessage,
   createRun,
+  listEffortValues,
   listMessages,
   nextTurn,
+  upsertMetric,
 } from "@/lib/runs";
-import { buildSystemPrompt } from "@/lib/prompts";
+import { reason, talkStream } from "@/lib/agents";
 
 export const runtime = "nodejs";
-export const maxDuration = 60;
+export const maxDuration = 120;
 
 const BodySchema = z.object({
   profileId: z.string().uuid(),
@@ -19,35 +21,38 @@ const BodySchema = z.object({
   runId: z.string().uuid().optional(),
 });
 
+type Frame =
+  | { type: "meta"; runId: string; humanTurn: number; reasonerTurn: number; talkerTurn: number; plan: unknown }
+  | { type: "delta"; text: string }
+  | { type: "done"; latencyMs: number; effortRatio: number | null }
+  | { type: "error"; message: string };
+
+function frame(obj: Frame): Uint8Array {
+  return new TextEncoder().encode(JSON.stringify(obj) + "\n");
+}
+
 export async function POST(request: Request) {
   if (!isGatewayConfigured()) {
-    return Response.json(
-      { ok: false, error: "AI Gateway no configurado." },
-      { status: 503 },
-    );
+    return jsonError(503, "AI Gateway no configurado.");
   }
 
   let parsed: z.infer<typeof BodySchema>;
   try {
     parsed = BodySchema.parse(await request.json());
   } catch (err) {
-    return Response.json(
-      { ok: false, error: (err as Error).message },
-      { status: 400 },
-    );
+    return jsonError(400, (err as Error).message);
   }
 
   const profile = await getProfile(parsed.profileId);
-  if (!profile) {
-    return Response.json({ ok: false, error: "Perfil no encontrado." }, { status: 404 });
-  }
+  if (!profile) return jsonError(404, "Perfil no encontrado.");
 
+  // Run: nuevo o existente.
   const runId =
     parsed.runId ??
     (await createRun({ profile_id: profile.id, kind: "chat" })).id;
 
+  // Historial conversacional para el modelo (sólo human + talker).
   const previous = parsed.runId ? await listMessages(runId) : [];
-
   const history: ModelMessage[] = previous
     .filter((m) => m.role === "human" || m.role === "talker")
     .map((m) => ({
@@ -55,8 +60,7 @@ export async function POST(request: Request) {
       content: m.content,
     }));
 
-  const systemPrompt = buildSystemPrompt(profile);
-
+  // Persistir turno humano antes de razonar.
   const humanTurn = await nextTurn(runId);
   await appendMessage({
     run_id: runId,
@@ -67,27 +71,116 @@ export async function POST(request: Request) {
   });
 
   const startedAt = Date.now();
-  const result = await generateText({
-    model: DEFAULT_MODEL,
-    system: systemPrompt,
-    messages: [...history, { role: "user", content: parsed.message }],
-  });
-  const latencyMs = Date.now() - startedAt;
 
-  const text = result.text ?? "";
+  const stream = new ReadableStream<Uint8Array>({
+    async start(controller) {
+      try {
+        // 1) Reasoner
+        const reasonerResult = await reason({
+          profile,
+          history,
+          message: parsed.message,
+        });
 
-  const talkerTurn = humanTurn + 1;
-  await appendMessage({
-    run_id: runId,
-    turn: talkerTurn,
-    role: "talker",
-    content: text,
-    meta: {
-      model: DEFAULT_MODEL,
-      latency_ms: latencyMs,
-      usage: result.usage ?? null,
+        const reasonerTurn = humanTurn + 1;
+        await appendMessage({
+          run_id: runId,
+          turn: reasonerTurn,
+          role: "reasoner",
+          content: reasonerResult.plan.plan,
+          meta: {
+            model: reasonerResult.model,
+            latency_ms: reasonerResult.latencyMs,
+            usage: reasonerResult.usage,
+            plan: reasonerResult.plan,
+            cot: true,
+          },
+        });
+
+        const talkerTurn = reasonerTurn + 1;
+
+        controller.enqueue(
+          frame({
+            type: "meta",
+            runId,
+            humanTurn,
+            reasonerTurn,
+            talkerTurn,
+            plan: reasonerResult.plan,
+          }),
+        );
+
+        // 2) Talker (streaming)
+        const talker = talkStream({
+          profile,
+          plan: reasonerResult.plan,
+          history,
+          message: parsed.message,
+        });
+
+        let fullText = "";
+        for await (const delta of talker.textStream) {
+          fullText += delta;
+          controller.enqueue(frame({ type: "delta", text: delta }));
+        }
+
+        const talkerUsage = await talker.usage;
+        await appendMessage({
+          run_id: runId,
+          turn: talkerTurn,
+          role: "talker",
+          content: fullText,
+          meta: {
+            model: (await talker.providerMetadata) ?? null,
+            latency_ms: Date.now() - startedAt,
+            usage: talkerUsage ?? null,
+          },
+        });
+
+        // 3) Metric: effort_ratio = media de effort sobre los turnos reasoner.
+        const efforts = await listEffortValues(runId);
+        const effortRatio =
+          efforts.length === 0
+            ? null
+            : efforts.reduce((a, b) => a + b, 0) / efforts.length;
+        if (effortRatio !== null) {
+          await upsertMetric({
+            run_id: runId,
+            key: "effort_ratio",
+            value: effortRatio,
+            unit: "0..1",
+          });
+        }
+
+        controller.enqueue(
+          frame({
+            type: "done",
+            latencyMs: Date.now() - startedAt,
+            effortRatio,
+          }),
+        );
+      } catch (err) {
+        controller.enqueue(
+          frame({ type: "error", message: (err as Error).message }),
+        );
+      } finally {
+        controller.close();
+      }
     },
   });
 
-  return Response.json({ ok: true, runId, turn: talkerTurn, text });
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "application/x-ndjson; charset=utf-8",
+      "Cache-Control": "no-store",
+      "X-Accel-Buffering": "no",
+    },
+  });
+}
+
+function jsonError(status: number, message: string): Response {
+  return new Response(JSON.stringify({ ok: false, error: message }), {
+    status,
+    headers: { "Content-Type": "application/json" },
+  });
 }

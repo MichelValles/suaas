@@ -53,7 +53,7 @@ app/
       chat-panel.tsx      <- Client: ChatPanel
   api/
     auth/route.ts         <- POST valida password y setea auth_usaas; DELETE limpia
-    chat/route.ts         <- POST: turn humano + generateText + persiste talker
+    chat/route.ts         <- POST: turn humano + Reasoner (object) + Talker (stream NDJSON)
 
 lib/
   auth.ts                 <- AUTH_COOKIE, AUTH_VALUE, getAccessPassword()
@@ -61,8 +61,9 @@ lib/
   supabase.ts             <- getBrowserClient(), getServerClient()
   gateway.ts              <- DEFAULT_MODEL, REASONER_MODEL, isGatewayConfigured()
   profiles.ts             <- ProfileInputSchema (zod) + CRUD (server-only)
-  runs.ts                 <- Run/Message types + createRun, appendMessage, ...
+  runs.ts                 <- Run/Message types + createRun, appendMessage, upsertMetric, ...
   prompts.ts              <- buildSystemPrompt(profile) con negative prompts
+  agents.ts               <- ReasonerPlanSchema, reason() (object), talkStream() (text)
   utils.ts                <- cx() (concatenador de clases)
 
 components/

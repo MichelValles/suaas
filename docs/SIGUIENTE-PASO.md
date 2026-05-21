@@ -1,67 +1,66 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-05-21 tras v0.2.0.
+> Última actualización: 2026-05-21 tras v0.3.0.
 
-## Estado actual (v0.2.0 desplegada)
+## Estado actual (v0.3.0 desplegada)
 
 - Producción: https://usaas.flat101.business (login con `michel101`, cookie `auth_usaas`).
-- Esquema SQL en `supabase/migrations/0001_initial.sql`.
-- `lib/profiles.ts` (zod + CRUD), `lib/runs.ts`, `lib/prompts.ts` (system prompt grounded con negative prompts).
-- UI: `/profiles` lista, `/profiles/new` formulario, `/profiles/[id]` detalle + chat.
-- `/api/chat` con `generateText` sobre Vercel AI Gateway, persiste turnos en `messages`.
-- **Bloqueante operativo (tú)**: aún falta provisionar Supabase desde el Marketplace de Vercel y aplicar el SQL. Mientras tanto las páginas muestran un aviso, no crashean.
+- Arquitectura Talker-Reasoner viva en `/api/chat`:
+  - Reasoner (`REASONER_MODEL`, Opus) → `generateObject` con `ReasonerPlanSchema`.
+  - Talker (`DEFAULT_MODEL`, Sonnet) → `streamText` con plan inyectado en el system.
+  - Protocolo NDJSON: frames `meta` (plan completo) → N×`delta` → `done`.
+- `ChatPanel` consume el stream y muestra un `<details>` "Razonamiento" colapsable con estado, intent, tono, esfuerzo, barreras y plan.
+- Métrica `effort_ratio` por run en tabla `metrics` (media de `effort` sobre turnos `reasoner`).
+- **Sigue bloqueado por Supabase** hasta que provisione y aplique `0001_initial.sql`. Sin DB el chat falla con 5xx (no hay `runs` ni `messages` donde persistir).
 
-## Activar Supabase (lo que falta para que v0.2.0 sea funcional end-to-end)
+## Activar Supabase (sigue siendo el único prerequisito operativo)
 
-1. Ir al dashboard de Vercel → proyecto `usaas` → Integrations → Marketplace → Supabase → Add.
-2. Aceptar provisión: autoinyecta `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` en producción.
-3. Abrir el proyecto Supabase recién provisionado → SQL editor → pegar y ejecutar `supabase/migrations/0001_initial.sql`.
-4. Redeploy (`vercel --prod --yes`) para que las nuevas env vars carguen.
-5. Verificar: `https://usaas.flat101.business/profiles/new` debe permitir crear un perfil y redirigir a `/profiles/[id]` para chatear.
+1. Vercel dashboard → proyecto `usaas` → Integrations → Marketplace → Supabase → Add.
+2. Supabase dashboard → SQL editor → pegar y ejecutar `supabase/migrations/0001_initial.sql`.
+3. `vercel --prod --yes` para que las env vars inyectadas (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) se carguen en runtime.
+4. Verificar end-to-end: crear un perfil en `/profiles/new`, abrir `/profiles/[id]`, mandar un mensaje. Debe verse "Razonando…", luego el texto del Talker aparece palabra a palabra, y al final el `<details>` muestra el plan.
 
-## Próximo hito: v0.3.0 — Talker-Reasoner
+## Próximo hito: v0.4.0 — Test de claridad de 5 segundos
 
-Objetivo: pasar del agente único a la arquitectura cognitiva del MD de conocimiento (sección 3): Reasoner emula Sistema 2 (analítico, lento, Opus), Talker emula Sistema 1 (fluido, rápido, Sonnet).
+Objetivo: pasar del chat libre a un primer experimento estructurado del cuadro de aplicaciones (sección 4 del MD de conocimiento): "Test de claridad de 5 segundos" sobre una URL o screenshot.
 
 ### Diseño
 
-`/api/chat` se reescribe en dos pasos:
-
-1. **Reasoner** (`REASONER_MODEL`): recibe el system prompt grounded + el mensaje humano + historial. Output estructurado (`generateObject` con schema): estado interno percibido del usuario, plan de respuesta, posibles barreras detectadas. Se persiste como turno `reasoner` con `meta.cot = true`.
-2. **Talker** (`DEFAULT_MODEL`): recibe el plan del reasoner + system prompt + historial. Output texto natural en voz del perfil. Se persiste como turno `talker`.
+1. **Targets**: añadir UI para crear `targets` con `kind = "5s_test"` y `payload = { url | imageDataUrl, mainPromise: string }`.
+2. **Run de tipo 5s_test**:
+   - Mostrar el target al perfil "como si lo viera 5 segundos" (en prompt: "miras esta pantalla 5 segundos y la ocultan").
+   - Reasoner devuelve: qué entendió, qué creyó que ofrece, nivel de claridad (0..1), recall de la promesa principal.
+   - Talker no interviene (es test, no diálogo).
+3. **Métrica**: `comprehension_rate` por run = fuzzy-match entre `mainPromise` y `recall` (LLM-as-judge o similitud por embeddings).
+4. **Vista de resultados**: agregada por target, con N perfiles, media de comprensión, distribución de barreras detectadas.
 
 ### Tareas
 
-- [ ] `lib/agents.ts` con `reason(profile, history, message)` y `talk(profile, plan, history)`.
-- [ ] Schema zod para el plan del Reasoner: `state`, `barriers_detected[]`, `tone`, `intent`, `plan`.
-- [ ] Streaming del Talker al cliente con `streamText` (que aparezca palabra a palabra).
-- [ ] Vista "Chain of Thought" colapsable en el chat (mostrar el plan del reasoner bajo cada respuesta del talker).
-- [ ] Métrica derivada: `effort_ratio` por run, calculada del plan del reasoner.
+- [ ] Esquema: añadir migración `0002_5s_test.sql` si hace falta extender `targets.payload` o crear índices nuevos.
+- [ ] `/targets` (lista) + `/targets/new` (form con URL o upload).
+- [ ] `lib/experiments/five-second.ts` con `runFiveSecondTest(profile, target)`.
+- [ ] Endpoint `/api/runs/5s_test` que itera N perfiles y devuelve el resumen.
+- [ ] Vista de resultados con tabla y barras de `comprehension_rate`.
 
 ### Decisiones abiertas
 
-- ¿Cachear el plan del reasoner con Vercel Runtime Cache si la conversación se repite por A/B (mismo perfil + mismo prompt)?
-- ¿Encolar runs largos en Vercel Queues (si la conversación se extiende a 20+ turnos)?
-- ¿Targets (`targets`) y runs de tipo `5s_test`/`funnel` antes o después del Talker-Reasoner?
+- **Embeddings vs LLM-as-judge** para fuzzy-match: empezar con LLM-as-judge (más simple) y migrar si el coste sube.
+- **Batch sync vs en background**: para 10-20 perfiles el sync es viable; >50 ya necesita Vercel Queues.
+- **Captura del target**: ¿URL pública que renderizamos con `og:image` o `screenshotone.com`? ¿O preferir upload manual de screenshot para no depender de un tercero?
+
+## Decisiones de v0.3.0 a recordar
+
+- El Reasoner persiste su `plan` en `messages.meta.plan` (no en `content`). El `content` del turno reasoner es el resumen "plan" textual.
+- `effort_ratio` se calcula desde `messages.meta.plan.effort`, no desde un campo dedicado. Si cambia el esquema del plan, actualizar `listEffortValues` en `lib/runs.ts`.
+- El stream NDJSON es propio (no AI SDK UI streams). Cada frame es JSON + `\n`. Si en v0.4.0 se adopta `useChat`, hay que cambiar el endpoint a `toUIMessageStreamResponse()`.
 
 ## Comandos de emergencia
 
 ```bash
-# Logs en vivo del deploy más reciente
 vercel logs https://usaas.flat101.business --follow
-
-# Promover un deploy de preview a producción
 vercel promote <deployment-url>
-
-# Rollback al deploy anterior
 vercel rollback
-
-# Ver y editar env vars
 vercel env ls
-vercel env add <NAME> production
-vercel env rm <NAME> production
-
-# Sincronizar env vars al .env.local
 vercel env pull
 ```

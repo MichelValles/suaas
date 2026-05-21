@@ -113,3 +113,36 @@ export async function markRunFinished(runId: string, status: RunStatus = "done")
     .eq("id", runId);
   if (error) throw new Error(error.message);
 }
+
+export async function upsertMetric(input: {
+  run_id: string;
+  key: string;
+  value: number;
+  unit?: string | null;
+}) {
+  const supa = getServerClient();
+  await supa.from("metrics").delete().eq("run_id", input.run_id).eq("key", input.key);
+  const { error } = await supa.from("metrics").insert({
+    run_id: input.run_id,
+    key: input.key,
+    value: input.value,
+    unit: input.unit ?? null,
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function listEffortValues(runId: string): Promise<number[]> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("messages")
+    .select("meta")
+    .eq("run_id", runId)
+    .eq("role", "reasoner");
+  if (error) throw new Error(error.message);
+  return (data ?? [])
+    .map((row) => {
+      const meta = row.meta as { plan?: { effort?: number } } | null;
+      return meta?.plan?.effort;
+    })
+    .filter((v): v is number => typeof v === "number");
+}

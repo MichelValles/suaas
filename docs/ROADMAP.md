@@ -14,7 +14,7 @@ Estado vivo. Actualizar en cada hito.
 - [x] Reglas operativas en `CLAUDE.md` (docs vivas + bump + deploy + commit).
 - [x] Base de conocimiento (`docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md`).
 
-## v0.2.0 — Datos + primer agente (actual)
+## v0.2.0 — Datos + primer agente
 
 - [x] Esquema inicial en `supabase/migrations/0001_initial.sql`: `profiles`, `targets`, `runs`, `messages`, `metrics`.
 - [x] `lib/profiles.ts` con `ProfileInputSchema` (zod) y CRUD vía service role.
@@ -25,11 +25,13 @@ Estado vivo. Actualizar en cada hito.
 - [x] `components/app-shell.tsx` (header con nav + footer con versión).
 - [ ] **Bloqueante operativo**: provisionar Supabase desde el Marketplace de Vercel y aplicar `0001_initial.sql` en el SQL editor. Hasta entonces las páginas muestran un aviso y no crashean.
 
-## v0.3.0 — Talker-Reasoner
+## v0.3.0 — Talker-Reasoner (actual)
 
-- [ ] Arquitectura de dos agentes: razonador (Opus) + hablador (Sonnet).
-- [ ] Log de Chain-of-Thought por turno en `messages`.
-- [ ] Streaming de la conversación en UI (Server Actions + AI SDK streaming).
+- [x] `lib/agents.ts` con `reason()` (Opus + `generateObject` + `ReasonerPlanSchema`) y `talkStream()` (Sonnet + `streamText`).
+- [x] `/api/chat` reescrito: Reasoner síncrono → persist turno `reasoner` con `meta.plan` → Talker en streaming → persist turno `talker`.
+- [x] Protocolo NDJSON: frames `meta`/`delta`/`done`/`error` separados por `\n`.
+- [x] `ChatPanel` lee el stream, muestra el texto progresivo y un `<details>` "Razonamiento" colapsable bajo cada turno con tono, esfuerzo, intent, barreras y plan.
+- [x] Métrica `effort_ratio` por run, calculada como media de `effort` sobre turnos `reasoner`. Upsert en `metrics`.
 
 ## v0.4.0 — Test de claridad de 5 segundos
 
