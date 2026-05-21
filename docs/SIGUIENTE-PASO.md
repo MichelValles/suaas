@@ -1,25 +1,27 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-05-21 tras v0.3.0 + plan detallado de v0.4.0.
+> Última actualización: 2026-05-21 tras validación end-to-end de v0.3.x y fix de `runs.status`.
 
-## Estado actual (v0.3.0 desplegada)
+## Estado actual (v0.3.2 desplegada, v0.3.0 validada en prod)
 
 - Producción: https://usaas.flat101.business (login con `michel101`, cookie `auth_usaas`).
-- Arquitectura Talker-Reasoner viva en `/api/chat`:
-  - Reasoner (`REASONER_MODEL`, Opus) → `generateObject` con `ReasonerPlanSchema`.
-  - Talker (`DEFAULT_MODEL`, Sonnet) → `streamText` con plan inyectado en el system.
-  - Protocolo NDJSON: frames `meta` (plan completo) → N×`delta` → `done`.
-- `ChatPanel` consume el stream y muestra un `<details>` "Razonamiento" colapsable con estado, intent, tono, esfuerzo, barreras y plan.
-- Métrica `effort_ratio` por run en tabla `metrics` (media de `effort` sobre turnos `reasoner`).
-- **Sigue bloqueado por Supabase** hasta que provisione y aplique `0001_initial.sql`. Sin DB el chat falla con 5xx (no hay `runs` ni `messages` donde persistir).
+- Supabase activado y operativo. Integración del Marketplace en una org separada (no `MichelValles`), proyecto `supabase-erin-mirror`. Migración `0001_initial.sql` aplicada. Env vars en runtime.
+- Vercel AI Gateway con créditos cargados. Cuentas free siguen restringidas globalmente ("free credits abuse"); ya no nos afecta.
+- Arquitectura Talker-Reasoner viva en `/api/chat`, verificada con perfil real:
+  - Reasoner (`REASONER_MODEL`, Opus) → `generateObject` con `ReasonerPlanSchema`. Plan coherente con el perfil (recoge barreras COM-B y demografía).
+  - Talker (`DEFAULT_MODEL`, Sonnet) → `streamText` entrando en personaje sin leakage.
+  - Protocolo NDJSON: frames `meta` (plan completo) → N×`delta` → `done`. Latencia típica ~18 s.
+- Persistencia: `runs`, `messages` (humano/reasoner/talker) y `metrics.effort_ratio` se guardan correctamente.
+- **Fix 0.3.2**: `/api/chat` llama a `markRunFinished(runId, "done")` (o `"error"` en el catch) antes del frame final. Hasta 0.3.1, los runs OK quedaban con `status='running'` y `finished_at=null`.
 
-## Activar Supabase (prerequisito operativo, sigue pendiente)
+## Perfiles sembrados
 
-1. Vercel dashboard → proyecto `usaas` → Integrations → Marketplace → Supabase → Add.
-2. Supabase dashboard → SQL editor → pegar y ejecutar `supabase/migrations/0001_initial.sql`.
-3. `vercel --prod --yes` para que las env vars inyectadas (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) se carguen en runtime.
-4. Verificar end-to-end: crear un perfil en `/profiles/new`, abrir `/profiles/[id]`, mandar un mensaje. Debe verse "Razonando…", luego el texto del Talker aparece palabra a palabra, y al final el `<details>` muestra el plan.
+Hay 2 perfiles de prueba creados vía SQL (origen `manual`) que cubren arquetipos opuestos:
+- **Marta Cebrián** (31, diseñadora UX freelance, alta apertura, escéptica con fees ocultos, abandona si tarda más de 6 s).
+- **Joaquín Espinosa** (56, autónomo construcción, alto conscientiousness, exige teléfono visible y oficina física tras phishing en 2024).
+
+Útiles para validar a ojo el contraste de respuestas del Talker en cualquier experimento futuro.
 
 ---
 

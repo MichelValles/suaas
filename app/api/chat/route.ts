@@ -7,6 +7,7 @@ import {
   createRun,
   listEffortValues,
   listMessages,
+  markRunFinished,
   nextTurn,
   upsertMetric,
 } from "@/lib/runs";
@@ -152,6 +153,8 @@ export async function POST(request: Request) {
           });
         }
 
+        await markRunFinished(runId, "done");
+
         controller.enqueue(
           frame({
             type: "done",
@@ -160,6 +163,7 @@ export async function POST(request: Request) {
           }),
         );
       } catch (err) {
+        await markRunFinished(runId, "error").catch(() => {});
         controller.enqueue(
           frame({ type: "error", message: (err as Error).message }),
         );

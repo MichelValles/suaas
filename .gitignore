@@ -43,3 +43,4 @@ Thumbs.db
 .scratch/
 
 .vercel
+.env*.local
