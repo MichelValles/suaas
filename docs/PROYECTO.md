@@ -49,7 +49,6 @@ app/
   profiles/
     page.tsx              <- lista (delegada a ProfilesManageView)
     manage-view.tsx       <- Client: usa ProfileExplorer mode="manage" + delete fetch
-    actions.ts            <- Server Actions: deleteProfileAction, deleteProfileAndRedirect
     new/
       page.tsx
       new-form.tsx        <- wrapper que usa <ProfileForm initial=DEFAULT_PROFILE_INITIAL />

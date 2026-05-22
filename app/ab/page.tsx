@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { MigrationNeeded } from "@/components/migration-needed";
 import { listAbTests } from "@/lib/ab";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +16,12 @@ export default async function AbListPage() {
   }
   let tests: Awaited<ReturnType<typeof listAbTests>> = [];
   let err: string | null = null;
+  let missingMigration = false;
   try {
     tests = await listAbTests();
   } catch (e) {
-    err = (e as Error).message;
+    if (isMissingTableError(e)) missingMigration = true;
+    else err = (e as Error).message;
   }
   return (
     <AppShell>
@@ -32,11 +35,18 @@ export default async function AbListPage() {
           </Link>
         }
       />
+      {missingMigration && (
+        <MigrationNeeded
+          migration="0006_ab_copy_pricing.sql"
+          feature="A/B tests"
+          details="Crea las tablas ab_tests y ab_test_runs y la columna runs.ab_test_id."
+        />
+      )}
       {err && <Notice tone="error">Error: {err}</Notice>}
-      {!err && tests.length === 0 && (
+      {!err && !missingMigration && tests.length === 0 && (
         <Notice>Todavía no hay A/B tests. Crea el primero.</Notice>
       )}
-      {!err && tests.length > 0 && (
+      {!err && !missingMigration && tests.length > 0 && (
         <ul
           style={{
             listStyle: "none",

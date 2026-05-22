@@ -116,6 +116,16 @@ Aplazadas a futuras subversiones (por alcance):
 - [x] Botón "Generar con LLM" añadido a la toolbar de `/profiles` junto a "Importar/Exportar CSV".
 - [x] Telemetría: cada generación registra en `gateway_usage` con `scope: reasoner_chat` y meta `kind: seed_profile`.
 
+## v0.9.0 — Auditoría de seguridad / estabilidad / limpieza
+
+Hardening del login y manejo robusto de migraciones pendientes, sin cambios funcionales.
+
+- [x] **Seguridad · login**: `getAccessPassword()` ya no cae a `michel101` en producción si falta `ACCESS_PASSWORD`; devuelve `null` y bloquea cualquier intento de login. Nueva función `verifyAccessPassword()` con `crypto.timingSafeEqual` constant-time (defensa frente a timing attacks). `app/api/auth/route.ts` migrado al helper.
+- [x] **Estabilidad · migraciones pendientes**: nuevo helper `isMissingTableError(err)` que detecta el código PostgREST `PGRST205`. Las listas de `/ab`, `/copy`, `/pricing` ya no crashean si falta `0006_ab_copy_pricing.sql`: muestran un componente `<MigrationNeeded>` con el nombre exacto de la migración a aplicar.
+- [x] **UX · AI Gateway sin enlazar**: copy más claro en `/tokens` explicando que los runs siguen funcionando vía OIDC y que sólo la consulta de saldo necesita "Connect to project" en el dashboard.
+- [x] **Limpieza · código muerto**: eliminado `getBrowserClient` de `lib/supabase.ts` (no se usaba en ningún sitio; SUAAS opera todo desde server con service role). Eliminado `app/profiles/actions.ts` completo (sus dos exports `deleteProfileAction` / `deleteProfileAndRedirect` fueron reemplazados por `DELETE /api/profiles/[id]` en v0.8.0).
+- [x] **Docs**: árbol en `docs/PROYECTO.md` sincronizado con la realidad.
+
 ## v0.6.0 — App shell tipo software
 
 - [x] Sidebar lateral izquierdo (240px en desktop, overlay colapsable en móvil con botón hamburguesa) reemplazando el header con nav. Iconos `lucide-react` por entrada.

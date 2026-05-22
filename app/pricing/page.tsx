@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { MigrationNeeded } from "@/components/migration-needed";
 import { listPricingOffers } from "@/lib/pricing";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +16,12 @@ export default async function PricingListPage() {
   }
   let offers: Awaited<ReturnType<typeof listPricingOffers>> = [];
   let err: string | null = null;
+  let missingMigration = false;
   try {
     offers = await listPricingOffers();
   } catch (e) {
-    err = (e as Error).message;
+    if (isMissingTableError(e)) missingMigration = true;
+    else err = (e as Error).message;
   }
   return (
     <AppShell>
@@ -32,11 +35,18 @@ export default async function PricingListPage() {
           </Link>
         }
       />
+      {missingMigration && (
+        <MigrationNeeded
+          migration="0006_ab_copy_pricing.sql"
+          feature="Pricing"
+          details="Crea las tablas pricing_offers, pricing_prices, pricing_responses y la columna runs.pricing_offer_id."
+        />
+      )}
       {err && <Notice tone="error">Error: {err}</Notice>}
-      {!err && offers.length === 0 && (
+      {!err && !missingMigration && offers.length === 0 && (
         <Notice>Aún no hay ofertas. Crea la primera.</Notice>
       )}
-      {!err && offers.length > 0 && (
+      {!err && !missingMigration && offers.length > 0 && (
         <ul
           style={{
             listStyle: "none",

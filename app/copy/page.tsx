@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { MigrationNeeded } from "@/components/migration-needed";
 import { listCopyDecks } from "@/lib/copy";
-import { isSupabaseConfigured } from "@/lib/supabase";
+import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -15,10 +16,12 @@ export default async function CopyListPage() {
   }
   let decks: Awaited<ReturnType<typeof listCopyDecks>> = [];
   let err: string | null = null;
+  let missingMigration = false;
   try {
     decks = await listCopyDecks();
   } catch (e) {
-    err = (e as Error).message;
+    if (isMissingTableError(e)) missingMigration = true;
+    else err = (e as Error).message;
   }
   return (
     <AppShell>
@@ -32,11 +35,18 @@ export default async function CopyListPage() {
           </Link>
         }
       />
+      {missingMigration && (
+        <MigrationNeeded
+          migration="0006_ab_copy_pricing.sql"
+          feature="Copy resonance"
+          details="Crea las tablas copy_decks, copy_blocks, copy_responses y la columna runs.copy_deck_id."
+        />
+      )}
       {err && <Notice tone="error">Error: {err}</Notice>}
-      {!err && decks.length === 0 && (
+      {!err && !missingMigration && decks.length === 0 && (
         <Notice>Todavía no hay decks. Crea el primero.</Notice>
       )}
-      {!err && decks.length > 0 && (
+      {!err && !missingMigration && decks.length > 0 && (
         <ul
           style={{
             listStyle: "none",

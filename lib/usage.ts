@@ -219,7 +219,8 @@ export async function getGatewayCredits(): Promise<GatewayCredits> {
       balance: null,
       totalUsed: null,
       raw: null,
-      error: "AI_GATEWAY_API_KEY no disponible en este entorno.",
+      error:
+        "AI Gateway sin API key visible. Las llamadas a modelos siguen funcionando en Vercel vía OIDC; sólo falla la consulta de saldo. Enlaza AI Gateway al proyecto desde el dashboard (Storage → AI Gateway → Connect to project) para verlo aquí.",
     };
   }
   try {

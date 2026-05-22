@@ -3,7 +3,7 @@ import {
   AUTH_COOKIE,
   AUTH_MAX_AGE_SECONDS,
   AUTH_VALUE,
-  getAccessPassword,
+  verifyAccessPassword,
 } from "@/lib/auth";
 
 export async function POST(request: Request) {
@@ -15,7 +15,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false }, { status: 400 });
   }
 
-  if (password !== getAccessPassword()) {
+  if (!verifyAccessPassword(password)) {
     await new Promise((resolve) => setTimeout(resolve, 350));
     return NextResponse.json({ ok: false }, { status: 401 });
   }
