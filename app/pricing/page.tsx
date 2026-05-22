@@ -29,7 +29,6 @@ export default async function PricingListPage() {
       <PageHeading
         eyebrow="Pricing · elasticidad por precio"
         title="Cómo reacciona el público a diferentes niveles."
-        description="Cada oferta tiene una descripción común y 2..8 precios candidatos. Los perfiles deciden por cada precio si comprarían, su WTP y el valor percibido."
         actions={
           <Link href="/pricing/new" className="btn-pill solid">
             Crear oferta

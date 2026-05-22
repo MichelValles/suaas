@@ -32,7 +32,6 @@ export default async function TargetsPage() {
       <PageHeading
         eyebrow="Targets · qué se evalúa"
         title="Pantallas que ponemos delante de los usuarios sintéticos."
-        description="Cada test enseña una pantalla durante 5 segundos a un set de perfiles y mide qué recuerdan, cómo perciben la oferta y qué fricciones detectan. La promesa principal se contrasta vía LLM-as-judge."
         actions={
           <Link href="/targets/new" className="btn-pill solid">
             Nuevo test

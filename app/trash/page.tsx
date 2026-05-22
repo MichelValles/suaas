@@ -49,7 +49,6 @@ export default async function TrashPage() {
         <PageHeading
           eyebrow="Sistema · papelera"
           title="Papelera."
-          description="Las entidades enviadas a la papelera quedan ocultas en sus listados pero conservan sus runs y respuestas. Restáuralas para volver a usarlas o elimínalas definitivamente cuando no las necesites."
         />
 
         {err && (

@@ -86,7 +86,6 @@ export default async function DiagPage() {
       <PageHeading
         eyebrow="Sistema · diagnóstico"
         title="Estado de la plataforma."
-        description="Visión rápida del esquema de Supabase y de la configuración del entorno. Si una tabla aparece en rojo, aplica la migración correspondiente desde supabase/migrations en el SQL editor."
       />
 
       <section

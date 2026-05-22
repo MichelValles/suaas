@@ -33,7 +33,32 @@ Ver `.env.example` para el listado completo. Esenciales:
 
 - **Server Actions body limit**: por defecto Next 16 lo deja en 1MB. SUAAS lo sube a `10mb` en `next.config.ts` (`experimental.serverActions.bodySizeLimit`) para que los uploads de screenshot (data: URL base64) no salten en `/targets/new` ni en `/funnels/new`. Si subes imágenes > 10MB, conviene migrar al patrón **client upload directo a Vercel Blob** con `handleUpload`.
 - **Schema cache de PostgREST**: tras aplicar una migración con `ALTER TABLE`, PostgREST puede tardar en ver las columnas nuevas. Si ves errores tipo `Could not find the 'X' column of 'runs' in the schema cache`, ejecuta en el SQL editor: `NOTIFY pgrst, 'reload schema';`. `lib/runs.ts:createRun` es defensivo y sólo inserta columnas no-null para mitigar el efecto.
-- **Migraciones a aplicar en orden**: `0001_initial` → `0002_five_second` → `0003_funnels` → `0004_funnel_runs` → `0005_gateway_usage` → `0006_ab_copy_pricing` → `0007_trash`. Usa `/diag` o `/api/diag` para confirmar que todas las tablas + columnas críticas de `runs` están verdes.
+- **Migraciones a aplicar en orden** (estado actual, v0.26.x):
+   1. `0001_initial.sql`
+   2. `0002_five_second.sql`
+   3. `0003_funnels.sql`
+   4. `0004_funnel_runs.sql`
+   5. `0005_gateway_usage.sql`
+   6. `0006_ab_copy_pricing.sql`
+   7. `0007_trash.sql`
+   8. `0008_campaigns.sql`
+   9. `0009_campaigns_relax.sql`
+   10. `0010_campaigns_channel.sql`
+   11. `0011_campaigns_multichannel.sql`
+   12. `0012_campaigns_headlines_fix.sql` (idempotente, parche)
+   13. `0013_campaigns_strategy.sql`
+   14. `0014_campaigns_display.sql`
+
+   Usa `/diag` o `/api/diag` para confirmar que todas las tablas + columnas críticas de `runs` están verdes.
+
+- **¿Cómo aplico las migraciones?** El proyecto suaas **no está conectado a Git en Vercel**, así que `supabase db push` automático no aplica. El flujo es manual:
+   1. Vercel → Marketplace → Supabase → **Open in Supabase** → SQL editor.
+   2. Pegar el contenido del archivo `.sql`.
+   3. Ejecutar.
+   4. Ejecutar `NOTIFY pgrst, 'reload schema';` para refrescar el cache de PostgREST inmediatamente.
+   5. Comprobar en `/diag` que la tabla y columnas nuevas aparecen verdes.
+
+   `POSTGRES_URL_NON_POOLING` está marcada como `sensitive` en Vercel, así que `vercel env pull` devuelve `""`. Esto impide aplicar las migraciones desde el código del agente directamente.
 
 Para sincronizar local con Vercel:
 
@@ -82,6 +107,11 @@ vercel --prod --yes  # deploy producción
 ## Troubleshooting
 
 - **El login no acepta `michel101`**: verifica que no haya `ACCESS_PASSWORD` definida en `.env.local` o que coincida.
+- **`/seed-examples` me pide pass y la rechaza**: probablemente `SEED_PASSWORD` no está en el entorno (Vercel responde 503 con `code: seed_password_unset`). Configúrala con `vercel env add SEED_PASSWORD production --force --yes --value <pass>` y haz redeploy.
+- **`/campaigns` da 500 `TypeError: Cannot read 'length' of undefined`**: faltan migraciones de Campañas. v0.24.1 añadió `normalizeCampaign` defensivo pero conviene aplicar 0010..0014 si no lo has hecho.
+- **`new row for relation "campaigns" violates check constraint "campaigns_headlines_check"`**: la migración 0009 (relax headlines a 1..15) no está aplicada. Ejecuta `0012_campaigns_headlines_fix.sql` que es idempotente.
+- **`/api/runs/campaign` da error "Combinatorial demasiado grande"**: estás pidiendo más de 200 combinaciones perfil × canal × query. Reduce alguno.
 - **Cookie no persiste en local**: navegador con `secure` requiere HTTPS. En dev, la cookie cae a `secure: false` automáticamente (`process.env.NODE_ENV === "production"`).
 - **Tailwind se cuela por accidente**: revisa que `globals.css` no tenga `@import "tailwindcss"` ni `@theme inline`. No instalar `tailwindcss` ni `postcss`.
 - **Versión en consola no cambia tras deploy**: forzar hard-reload (Ctrl+Shift+R). Si sigue, comprobar que el bump se aplicó en `lib/version.ts` Y `package.json`.
+- **Imagen Display no aparece en preview**: el rol de la creatividad no es `landscape_image` o `logo_square`. Cámbialo en el selector de Rol de la creatividad.

@@ -15,7 +15,6 @@ export default function ProfileSeedPage() {
       <PageHeading
         eyebrow="Generar perfiles · LLM"
         title="Crea perfiles realistas en lote."
-        description="Un sociólogo digital sintético fabricará N perfiles distintos según briefs curados (demografía española variada). Cada uno se valida con el mismo schema que el formulario y se inserta en Supabase. Si una generación falla, las anteriores se conservan."
         actions={
           <Link href="/profiles" className="btn-pill">
             Volver

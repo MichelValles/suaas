@@ -19,7 +19,6 @@ export default function NewPricingPage() {
       <PageHeading
         eyebrow="Nueva oferta de pricing"
         title="Define la oferta y los precios a testear."
-        description="La descripción es lo que el perfil leerá antes de decidir. 2..8 niveles de precio. Si pones un 'precio actual de referencia', el perfil lo verá y reaccionará respecto a él."
         actions={<Link href="/pricing" className="btn-pill">Volver</Link>}
       />
       <NewPricingForm />

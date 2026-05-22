@@ -29,7 +29,6 @@ export default async function EditProfilePage({
       <PageHeading
         eyebrow="Editar perfil"
         title={profile.name}
-        description="Ajusta demografía, rasgos, barreras o backstory. Las validaciones son las mismas que al crear."
         actions={
           <Link href={`/profiles/${id}`} className="btn-pill">
             Cancelar

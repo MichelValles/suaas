@@ -24,7 +24,6 @@ export default function NewFunnelPage() {
       <PageHeading
         eyebrow="Nuevo embudo · v0.5.0"
         title="Encadena pantallas para simular un recorrido."
-        description="Cada paso es una captura (URL pública o screenshot manual) más una intención: qué debería hacer el usuario al llegar ahí. Mínimo 2 pasos, máximo 12."
         actions={
           <Link href="/funnels" className="btn-pill">
             Volver

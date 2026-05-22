@@ -214,6 +214,48 @@ Cada listado mapea su entidad a `EntityListItem` (id, href, trash, title, descri
 
 Desde v0.13.0 las 5 entidades soportan soft delete vía `deleted_at` (migración 0007). En cada card hay un botón `<SendToTrashButton>` que envía a la papelera; en `/trash` aparecen los elementos borrados con "Restaurar" y "Eliminar definitivamente". `lib/trash.ts` orquesta soft delete / restore / hard delete por tipo.
 
+## Espaciado vertical entre PageHeading y secciones
+
+Desde v0.26.2 `.app-shell-main` es `display: flex; flex-direction: column; gap: clamp(32px, 4vw, 56px)`. Esto da espacio consistente entre el `PageHeading` y la primera section / ol que renderice cada página. Las páginas que envuelven todo en un wrapper flex propio (home, `/trash`, `/seed-examples`) no se ven afectadas porque entonces main sólo tiene 1 hijo directo y el `gap` no aplica con un único elemento.
+
+Por la misma razón, **no metas tu propio wrapper flex en una página normal** si lo único que necesitas es espaciado entre secciones: el shell ya lo da.
+
+## Panel 3x3 de la home
+
+`/` renderiza una única sección «Panel» con 9 `<FeatureCard>` en un grid `auto-fit minmax(260px, 1fr)`. En desktop salen 3×3, en móvil 1 columna. Las cards son: Claridad 5s · Embudos · A/B · Copy · Pricing · Campañas · Perfiles · Tokens · Diag. Si añades un módulo nuevo, mantén la composición 3×N (con N múltiplo de 3) para evitar huérfanos.
+
+## Iconos por canal y estrategia (módulo Campañas)
+
+- `components/channel-icon.tsx`: SVGs monocromos inline (`currentColor`) para `google · meta · linkedin · tiktok · x`. Sin dependencias externas. Heredan el color de su padre.
+- `components/strategy-icon.tsx`: switch sobre lucide-react para las 7 estrategias (`Search · Image · Sparkles · TrendingUp · Play · Smartphone · ShoppingBag`).
+
+Patrón de uso: dentro de un chip o de una pestaña, con un `display: inline-flex; gap: 8` para alinearlos con el label.
+
+## Patrón: pestañas con badge "Próx." para features incompletas
+
+Cuando una pestaña / opción está modelada pero no implementada todavía (canales no-Google, estrategias no-Search/Display), se renderiza con:
+
+- `cursor: not-allowed`.
+- `opacity: 0.6` (en `ChannelTabs`) o color desaturado (`rgba(255,255,255,0.35)`).
+- Chip `Próx.` en `.mono` con `padding: 2px 6px`, `borderRadius: var(--radius-pill)`, borde sutil.
+- `title` con explicación: "En construcción · [descripción larga]".
+- Si se hace click, no llama a `onChange`.
+
+Cuando la feature se implementa, basta con que `isFeatureImplemented(value)` devuelva `true` para que el badge desaparezca y la pestaña se active.
+
+## Patrón: preview en vivo de anuncio
+
+`/campaigns/new` muestra a la derecha un panel sticky con un mockup del anuncio. El layout es **2 columnas** (`grid-template-columns: minmax(0, 1fr) minmax(0, 360px)`):
+
+- Izquierda: el formulario completo.
+- Derecha: preview vivo que se actualiza con cada keystroke.
+
+El preview se elige por strategy:
+- **Search**: SERP textual (URL display + titular azul + descripción gris) en `<SearchAdPreview>`.
+- **Display**: card con imagen landscape 1.91:1 arriba, logo + company + URL, titular largo grande, headline corto en azul, descripción y botón CTA en `<DisplayAdPreview>`.
+
+Si reutilizas el patrón para Performance Max u otras strategies, factoriza cada preview a un componente sibling y selecciona con un switch.
+
 ## Cómo añadir un componente reutilizable
 
 1. Crearlo en `components/` con estilos via `style={{...}}` o CSS module.

@@ -29,7 +29,6 @@ export default async function CopyListPage() {
       <PageHeading
         eyebrow="Copy · resonancia de texto"
         title="Cómo reaccionan los perfiles a un copy puro."
-        description="Cada deck agrupa 2..10 variantes de texto evaluadas contra el mismo set de perfiles. Resultados por bloque: sentimiento, claridad, persuasión y CTR estimado."
         actions={
           <Link href="/copy/new" className="btn-pill solid">
             Crear deck

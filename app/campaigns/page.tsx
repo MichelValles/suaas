@@ -29,7 +29,6 @@ export default async function CampaignsListPage() {
       <PageHeading
         eyebrow="Campañas · Paid Search tester"
         title="Cómo reaccionan los perfiles a tu anuncio bajo cada query."
-        description="Cada campaña reúne titulares, descripciones, landing y creatividades de un anuncio RSA. Los perfiles lo evalúan bajo varias queries objetivo: intent-to-click, claridad, credibilidad, diferenciación y su versión ideal en su voz."
         actions={
           <Link href="/campaigns/new" className="btn-pill solid">
             Crear campaña

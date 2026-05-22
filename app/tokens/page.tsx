@@ -35,7 +35,6 @@ export default async function TokensPage() {
         <PageHeading
           eyebrow="Sistema · tokens"
           title="Consumo del AI Gateway."
-          description="Saldo restante del Vercel AI Gateway en dólares y consumo acumulado registrado por SUAAS (tokens y llamadas), desglosado por modelo, por scope y por día."
         />
 
         {/* HERO: saldo en dinero + total tokens */}

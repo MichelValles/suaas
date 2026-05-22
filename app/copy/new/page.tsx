@@ -19,7 +19,6 @@ export default function NewCopyPage() {
       <PageHeading
         eyebrow="Nuevo deck de copy"
         title="Variantes de texto a evaluar."
-        description="Define entre 2 y 10 bloques. Cada perfil leerá los bloques en orden y dará una reacción independiente por cada uno."
         actions={<Link href="/copy" className="btn-pill">Volver</Link>}
       />
       <NewCopyForm />

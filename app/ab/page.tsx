@@ -29,7 +29,6 @@ export default async function AbListPage() {
       <PageHeading
         eyebrow="A/B tests · comparar dos tests de claridad"
         title="Enfrenta dos pantallas con el mismo set de perfiles."
-        description="Cada A/B test reutiliza dos tests de claridad existentes y lanza el experimento sobre ambos en paralelo. La página de resultados muestra deltas y ganador."
         actions={
           <Link href="/ab/new" className="btn-pill solid">
             Crear A/B test

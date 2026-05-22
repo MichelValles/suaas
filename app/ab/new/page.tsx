@@ -21,7 +21,6 @@ export default async function NewAbPage() {
       <PageHeading
         eyebrow="Nuevo A/B test"
         title="Elige dos tests de claridad para enfrentar."
-        description="Ambas variantes deben ser tests de claridad ya creados. Tras crear el A/B, podrás lanzar el run contra el set de perfiles que elijas."
         actions={<Link href="/ab" className="btn-pill">Volver</Link>}
       />
       <NewAbForm

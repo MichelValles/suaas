@@ -32,7 +32,6 @@ export default async function FunnelsPage() {
       <PageHeading
         eyebrow="Embudos · simulación de recorrido"
         title="Pantallas encadenadas que un perfil recorre paso a paso."
-        description="Cada embudo es una secuencia de capturas con un objetivo por paso. En la próxima versión podrás lanzar runs que detecten fricción y abandono."
         actions={
           <Link href="/funnels/new" className="btn-pill solid">
             Crear embudo
