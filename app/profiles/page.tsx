@@ -30,7 +30,7 @@ export default async function ProfilesPage() {
       <PageHeading
         eyebrow="Perfiles · vignettes grounded"
         title="Hablamos con usuarios sintéticos."
-        description="Cada perfil mezcla demografía, Big Five y barreras COM-B. Filtra por rango o palabra (sin backstory: pasa el ratón por encima para verlo). Cambia entre grid y tabla solo por comodidad."
+        description="Cada perfil mezcla demografía, Big Five y barreras COM-B. Filtra por rango o palabra (la backstory no se filtra; se ve abriendo el perfil). Cambia entre grid y tabla solo por comodidad."
         actions={
           <Link href="/profiles/new" className="btn-pill solid">
             Nuevo perfil

@@ -2,15 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import {
-  Eye,
-  LayoutGrid,
-  Pencil,
-  Rows3,
-  SlidersHorizontal,
-  Trash2,
-  X,
-} from "lucide-react";
+import { Eye, LayoutGrid, Pencil, Rows3, SlidersHorizontal, Trash2, X } from "lucide-react";
 import type { Profile } from "@/lib/profiles";
 import {
   DEFAULT_FILTERS,
@@ -585,7 +577,6 @@ function ProfileCard({
           {profile.demographics.geo ? ` · ${profile.demographics.geo}` : ""}
         </p>
         <BigFiveDots b={profile.big_five} />
-        <BackstoryHover backstory={profile.backstory} />
       </div>
     </li>
   );
@@ -618,26 +609,6 @@ function BigFiveDots({ b }: { b: Profile["big_five"] }) {
           </span>
         </span>
       ))}
-    </div>
-  );
-}
-
-function BackstoryHover({ backstory }: { backstory: string }) {
-  return (
-    <div className="profile-hover">
-      <span
-        className="mono"
-        style={{
-          fontSize: 10,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          color: "rgba(255,255,255,0.45)",
-          cursor: "help",
-        }}
-      >
-        backstory ↗
-      </span>
-      <div className="profile-hover-panel">{backstory}</div>
     </div>
   );
 }
@@ -700,10 +671,7 @@ function ProfileTable({
                 />
               </Td>
               <Td>
-                <div className="profile-hover" style={{ display: "inline-flex", flexDirection: "column", gap: 2 }}>
-                  <span style={{ color: "#fff" }}>{p.name}</span>
-                  <div className="profile-hover-panel">{p.backstory}</div>
-                </div>
+                <span style={{ color: "#fff" }}>{p.name}</span>
               </Td>
               <Td>{p.demographics.age}</Td>
               <Td>{p.demographics.gender}</Td>
