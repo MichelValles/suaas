@@ -62,7 +62,7 @@ export function NewCampaignForm() {
   const [state, formAction] = useActionState(createCampaignAction, initial);
 
   const [name, setName] = useState("");
-  const [channels, setChannels] = useState<Channel[]>(["google"]);
+  const [channel, setChannel] = useState<Channel>("google");
   const [brief, setBrief] = useState("");
   const [finalUrl, setFinalUrl] = useState("");
   const [landingMode, setLandingMode] = useState<LandingMode>("og");
@@ -201,7 +201,7 @@ export function NewCampaignForm() {
 
   const payload = {
     name,
-    channels,
+    channels: [channel] as Channel[],
     brief: brief.trim() || null,
     final_url: finalUrl,
     landing_mode: landingMode,
@@ -245,7 +245,7 @@ export function NewCampaignForm() {
           value={JSON.stringify(payload)}
         />
 
-        <Section title={`Canales · ${channels.length} / 5`}>
+        <Section title="Canal">
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <span
               className="mono"
@@ -256,9 +256,9 @@ export function NewCampaignForm() {
                 color: "rgba(255,255,255,0.55)",
               }}
             >
-              ¿En qué redes simulamos el anuncio? Selecciona una o varias.
+              ¿En qué red simulamos el anuncio?
             </span>
-            <ChannelTabs value={channels} onChange={setChannels} />
+            <ChannelTabs value={channel} onChange={setChannel} />
             <p
               style={{
                 color: "rgba(255,255,255,0.55)",
@@ -267,7 +267,10 @@ export function NewCampaignForm() {
                 margin: 0,
               }}
             >
-              {channelsDisclaimer(channels)}
+              Cada red tiene formato propio (caps de caracteres, creatividades,
+              targeting). Por ahora sólo Google Ads RSA está implementado. Meta,
+              LinkedIn, TikTok y X llegarán como módulos específicos en futuras
+              versiones.
             </p>
           </div>
         </Section>
@@ -641,6 +644,102 @@ export function NewCampaignForm() {
           </p>
         </div>
 
+        {(headlines.filter(Boolean).length > 1 ||
+          descriptions.filter(Boolean).length > 1) && (
+          <div
+            style={{
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "var(--radius-md)",
+              background: "rgba(255,255,255,0.02)",
+              padding: 14,
+              display: "flex",
+              flexDirection: "column",
+              gap: 12,
+            }}
+          >
+            {headlines.filter(Boolean).length > 1 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span
+                  className="mono"
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: "0.22em",
+                    color: "rgba(255,255,255,0.55)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Otros titulares
+                </span>
+                <ul
+                  style={{
+                    listStyle: "none",
+                    padding: 0,
+                    margin: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                  }}
+                >
+                  {headlines.slice(1).map((h, i) =>
+                    h ? (
+                      <li
+                        key={i}
+                        style={{
+                          color: "rgba(132, 192, 255, 0.78)",
+                          fontSize: 13,
+                          lineHeight: 1.35,
+                        }}
+                      >
+                        H{i + 2}: {h}
+                      </li>
+                    ) : null,
+                  )}
+                </ul>
+              </div>
+            )}
+            {descriptions.filter(Boolean).length > 1 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span
+                  className="mono"
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: "0.22em",
+                    color: "rgba(255,255,255,0.55)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Otras descripciones
+                </span>
+                <ul
+                  style={{
+                    listStyle: "none",
+                    padding: 0,
+                    margin: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                  }}
+                >
+                  {descriptions.slice(1).map((d, i) =>
+                    d ? (
+                      <li
+                        key={i}
+                        style={{
+                          color: "rgba(255,255,255,0.7)",
+                          fontSize: 12,
+                          lineHeight: 1.55,
+                        }}
+                      >
+                        D{i + 2}: {d}
+                      </li>
+                    ) : null,
+                  )}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+
         {previewImage && (
           <div
             style={{
@@ -705,31 +804,6 @@ export function NewCampaignForm() {
           </div>
         )}
 
-        {(headlines.length > 1 || descriptions.length > 1) && (
-          <div
-            style={{
-              border: "1px solid rgba(255,255,255,0.08)",
-              borderRadius: "var(--radius-md)",
-              background: "rgba(255,255,255,0.02)",
-              padding: 12,
-              display: "flex",
-              flexDirection: "column",
-              gap: 6,
-            }}
-          >
-            <span
-              className="mono"
-              style={{ fontSize: 10, letterSpacing: "0.22em", color: "rgba(255,255,255,0.55)" }}
-            >
-              Google rota
-            </span>
-            <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 12, lineHeight: 1.5 }}>
-              Google Ads RSA combina aleatoriamente tus {headlines.filter(Boolean).length}{" "}
-              titulares con tus {descriptions.filter(Boolean).length} descripciones. La
-              vista previa muestra la primera combinación; el modelo verá todas.
-            </span>
-          </div>
-        )}
       </aside>
     </div>
   );
@@ -1081,22 +1155,13 @@ function ChannelTabs({
   value,
   onChange,
 }: {
-  value: Channel[];
-  onChange: (v: Channel[]) => void;
+  value: Channel;
+  onChange: (v: Channel) => void;
 }) {
-  function toggle(c: Channel) {
-    if (value.includes(c)) {
-      if (value.length <= 1) return; // mantener al menos 1
-      onChange(value.filter((v) => v !== c));
-    } else {
-      if (value.length >= 5) return;
-      onChange([...value, c]);
-    }
-  }
   return (
     <div
-      role="group"
-      aria-label="Canales publicitarios"
+      role="tablist"
+      aria-label="Canal publicitario"
       style={{
         display: "flex",
         gap: 0,
@@ -1105,14 +1170,25 @@ function ChannelTabs({
       }}
     >
       {CHANNEL_VALUES.map((c) => {
-        const active = value.includes(c);
+        const active = value === c;
+        const disabled = c !== "google";
+        const color = disabled
+          ? "rgba(255,255,255,0.3)"
+          : active
+            ? "var(--accent-500)"
+            : "rgba(255,255,255,0.6)";
         return (
           <button
             key={c}
             type="button"
-            role="checkbox"
-            aria-checked={active}
-            onClick={() => toggle(c)}
+            role="tab"
+            aria-selected={active}
+            aria-disabled={disabled}
+            onClick={() => {
+              if (disabled) return;
+              onChange(c);
+            }}
+            title={disabled ? "Próximamente · cada red tendrá sus propios campos" : undefined}
             style={{
               background: "transparent",
               border: 0,
@@ -1120,71 +1196,42 @@ function ChannelTabs({
                 ? "2px solid var(--accent-500)"
                 : "2px solid transparent",
               padding: "10px 14px",
-              cursor: "pointer",
+              cursor: disabled ? "not-allowed" : "pointer",
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              color: active ? "var(--accent-500)" : "rgba(255,255,255,0.55)",
+              color,
               fontFamily: "var(--font-sans)",
               fontSize: 13,
               fontWeight: active ? 600 : 400,
               whiteSpace: "nowrap",
+              opacity: disabled ? 0.6 : 1,
               transition: "color var(--dur-short) var(--ease-out)",
             }}
           >
-            <CheckboxIcon checked={active} />
             <ChannelIcon channel={c} size={16} />
             <span>{CHANNEL_LABEL[c]}</span>
+            {disabled && (
+              <span
+                className="mono"
+                style={{
+                  fontSize: 9,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  padding: "2px 6px",
+                  borderRadius: "var(--radius-pill)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  color: "rgba(255,255,255,0.5)",
+                }}
+              >
+                Próx.
+              </span>
+            )}
           </button>
         );
       })}
     </div>
   );
-}
-
-function CheckboxIcon({ checked }: { checked: boolean }) {
-  return (
-    <span
-      aria-hidden
-      style={{
-        width: 14,
-        height: 14,
-        borderRadius: 3,
-        border: `1.5px solid ${checked ? "var(--accent-500)" : "rgba(255,255,255,0.35)"}`,
-        background: checked ? "var(--accent-500)" : "transparent",
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-        transition: "all var(--dur-short) var(--ease-out)",
-      }}
-    >
-      {checked && (
-        <svg width="10" height="10" viewBox="0 0 16 16" aria-hidden>
-          <path
-            d="M3.5 8.5 L7 12 L12.5 5"
-            fill="none"
-            stroke="var(--ink-900)"
-            strokeWidth="2.4"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )}
-    </span>
-  );
-}
-
-function channelsDisclaimer(channels: Channel[]): string {
-  const hasSearch = channels.includes("google");
-  const hasFeed = channels.some((c) => c !== "google");
-  if (hasSearch && hasFeed) {
-    return "Mixto: las queries se interpretan como búsquedas literales en Google y como intereses / contexto en feed (Meta, LinkedIn, TikTok, X). El runner genera una respuesta por cada combinación perfil × canal × query.";
-  }
-  if (hasSearch) {
-    return "Search activo: el perfil llega con intención de búsqueda. Las queries son keywords.";
-  }
-  return "Feed pasivo: el perfil ve el anuncio mientras scrollea. Las queries pasan a ser intereses o contexto del usuario, no búsquedas literales.";
 }
 
 function CreativeThumb({ c }: { c: Creative }) {
