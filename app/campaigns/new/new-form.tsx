@@ -1,7 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { Loader2 } from "lucide-react";
+import { extractYouTubeId, youtubeThumbnail } from "@/lib/campaigns";
 import {
   createCampaignAction,
   type CreateCampaignState,
@@ -10,18 +12,22 @@ import {
 const initial: CreateCampaignState = { ok: false };
 
 type LandingMode = "og" | "upload";
-type CreativeMode = "url" | "upload";
+type CreativeKind = "image" | "video" | "youtube";
 type Creative = {
-  mode: CreativeMode;
+  kind: CreativeKind;
   url: string;
   upload_data: string;
   label: string;
+  youtube_id: string | null;
+  thumbnail_url: string | null;
 };
-const emptyCreative = (): Creative => ({
-  mode: "url",
+const emptyCreative = (kind: CreativeKind = "image"): Creative => ({
+  kind,
   url: "",
   upload_data: "",
   label: "",
+  youtube_id: null,
+  thumbnail_url: null,
 });
 
 const HEADLINE_MAX = 30;
@@ -36,6 +42,15 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
+function displayUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    return u.host + (u.pathname === "/" ? "" : u.pathname);
+  } catch {
+    return url || "ejemplo.com";
+  }
+}
+
 export function NewCampaignForm() {
   const [state, formAction] = useActionState(createCampaignAction, initial);
 
@@ -45,10 +60,25 @@ export function NewCampaignForm() {
   const [landingMode, setLandingMode] = useState<LandingMode>("og");
   const [landingUpload, setLandingUpload] = useState<string>("");
   const [landingPreviewName, setLandingPreviewName] = useState<string>("");
+  const [resolvedLanding, setResolvedLanding] = useState<string>("");
+  const [resolveStatus, setResolveStatus] =
+    useState<"idle" | "loading" | "ok" | "error">("idle");
+  const [resolveError, setResolveError] = useState<string | null>(null);
   const [queries, setQueries] = useState<string[]>([""]);
   const [headlines, setHeadlines] = useState<string[]>(["", "", ""]);
   const [descriptions, setDescriptions] = useState<string[]>(["", ""]);
   const [creatives, setCreatives] = useState<Creative[]>([]);
+
+  // Cuando el usuario cambia la URL final, invalidamos la imagen resuelta para
+  // que vuelva a pulsar el botón explícitamente. Evita previews stale.
+  useEffect(() => {
+    if (resolvedLanding) {
+      setResolvedLanding("");
+      setResolveStatus("idle");
+      setResolveError(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [finalUrl]);
 
   function updateAt<T>(arr: T[], i: number, value: T): T[] {
     return arr.map((v, idx) => (idx === i ? value : v));
@@ -70,7 +100,7 @@ export function NewCampaignForm() {
     setHeadlines([...headlines, ""]);
   }
   function removeHeadline(i: number) {
-    if (headlines.length <= 3) return;
+    if (headlines.length <= 1) return;
     setHeadlines(headlines.filter((_, idx) => idx !== i));
   }
 
@@ -85,15 +115,34 @@ export function NewCampaignForm() {
   }
 
   // ============ creatives ============
-  function addCreative() {
+  function addCreative(kind: CreativeKind = "image") {
     if (creatives.length >= 6) return;
-    setCreatives([...creatives, emptyCreative()]);
+    setCreatives([...creatives, emptyCreative(kind)]);
   }
   function removeCreative(i: number) {
     setCreatives(creatives.filter((_, idx) => idx !== i));
   }
   function patchCreative(i: number, patch: Partial<Creative>) {
-    setCreatives((prev) => prev.map((c, idx) => (idx === i ? { ...c, ...patch } : c)));
+    setCreatives((prev) =>
+      prev.map((c, idx) => (idx === i ? { ...c, ...patch } : c)),
+    );
+  }
+  function changeCreativeKind(i: number, kind: CreativeKind) {
+    setCreatives((prev) =>
+      prev.map((c, idx) =>
+        idx === i
+          ? { ...c, kind, url: "", upload_data: "", youtube_id: null, thumbnail_url: null }
+          : c,
+      ),
+    );
+  }
+  function setCreativeYouTubeUrl(i: number, url: string) {
+    const id = extractYouTubeId(url);
+    patchCreative(i, {
+      url,
+      youtube_id: id,
+      thumbnail_url: id ? youtubeThumbnail(id) : null,
+    });
   }
 
   async function onLandingFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -110,7 +159,36 @@ export function NewCampaignForm() {
     const file = e.currentTarget.files?.[0];
     if (!file) return;
     const dataUrl = await fileToDataUrl(file);
-    patchCreative(i, { upload_data: dataUrl, label: creatives[i]?.label ?? file.name });
+    const kind: CreativeKind = file.type.startsWith("video/") ? "video" : "image";
+    patchCreative(i, {
+      upload_data: dataUrl,
+      kind,
+      label: creatives[i]?.label || file.name,
+    });
+  }
+
+  async function resolveOg() {
+    if (!finalUrl) {
+      setResolveError("Introduce primero la URL final.");
+      setResolveStatus("error");
+      return;
+    }
+    setResolveStatus("loading");
+    setResolveError(null);
+    try {
+      const res = await fetch(`/api/og-image?url=${encodeURIComponent(finalUrl)}`);
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        setResolveStatus("error");
+        setResolveError(json.error ?? `HTTP ${res.status}`);
+        return;
+      }
+      setResolvedLanding(json.url as string);
+      setResolveStatus("ok");
+    } catch (err) {
+      setResolveStatus("error");
+      setResolveError((err as Error).message);
+    }
   }
 
   const payload = {
@@ -119,233 +197,644 @@ export function NewCampaignForm() {
     final_url: finalUrl,
     landing_mode: landingMode,
     landing_upload_data: landingUpload,
+    landing_resolved_url: resolvedLanding || null,
     queries,
     headlines,
     descriptions,
     creatives,
   };
 
+  // Para el preview: muestra el snippet (headline 1 + description 1) y la
+  // landing si hay imagen disponible.
+  const previewHeadline = headlines[0] || "Tu titular aquí";
+  const previewDescription =
+    descriptions[0] || "Tu descripción aparecerá aquí debajo del titular.";
+  const previewImage =
+    landingMode === "upload" ? landingUpload : resolvedLanding;
+
   return (
-    <form
-      action={formAction}
+    <div
       style={{
         display: "grid",
-        gridTemplateColumns: "1fr",
-        gap: 24,
-        maxWidth: 960,
-        width: "100%",
-        marginInline: "auto",
+        gridTemplateColumns: "minmax(0, 1fr) minmax(0, 360px)",
+        gap: 32,
+        alignItems: "start",
       }}
     >
-      <input type="hidden" name="payload_json" value={JSON.stringify(payload)} />
-
-      <Section title="Identidad">
-        <Controlled label="Nombre" value={name} onChange={setName} required placeholder="Hipoteca fija agosto 2026" />
-        <ControlledTextArea
-          label="Brief interno (opcional, no se muestra al perfil)"
-          rows={2}
-          value={brief}
-          onChange={setBrief}
-          placeholder="Promesa diferencial vs ING. Limitaciones legales: no decir TAE."
+      <form
+        action={formAction}
+        style={{
+          display: "grid",
+          gridTemplateColumns: "1fr",
+          gap: 24,
+          width: "100%",
+        }}
+      >
+        <input
+          type="hidden"
+          name="payload_json"
+          value={JSON.stringify(payload)}
         />
-      </Section>
 
-      <Section title="Landing">
-        <Controlled
-          label="URL final del anuncio"
-          value={finalUrl}
-          onChange={setFinalUrl}
-          required
-          placeholder="https://miweb.com/landing-hipoteca"
-        />
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          <ToggleButton
-            active={landingMode === "og"}
-            onClick={() => setLandingMode("og")}
-            label="Resolver og:image"
+        <Section title="Identidad">
+          <Controlled
+            label="Nombre"
+            value={name}
+            onChange={setName}
+            required
+            placeholder="Hipoteca fija agosto 2026"
           />
-          <ToggleButton
-            active={landingMode === "upload"}
-            onClick={() => setLandingMode("upload")}
-            label="Subir screenshot"
+          <ControlledTextArea
+            label="Brief interno (opcional, no se muestra al perfil)"
+            rows={2}
+            value={brief}
+            onChange={setBrief}
+            placeholder="Promesa diferencial vs ING. Limitaciones legales: no decir TAE."
           />
-        </div>
-        {landingMode === "upload" && (
-          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <Label>Screenshot de la landing</Label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={onLandingFile}
-              style={inputStyle}
-            />
-            {landingPreviewName && (
-              <span className="mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
-                {landingPreviewName} cargado.
-              </span>
-            )}
-          </label>
-        )}
-      </Section>
+        </Section>
 
-      <Section title={`Queries · ${queries.length} / 5`} onAdd={addQuery} addLabel="+ Añadir query" canAdd={queries.length < 5}>
-        {queries.map((q, i) => (
-          <RowWithRemove key={i} canRemove={queries.length > 1} onRemove={() => removeQuery(i)}>
-            <Controlled
-              label={`Query ${i + 1}`}
-              value={q}
-              onChange={(v) => setQueries(updateAt(queries, i, v))}
-              required
-              placeholder="hipoteca fija madrid"
+        <Section title="Landing">
+          <Controlled
+            label="URL final del anuncio"
+            value={finalUrl}
+            onChange={setFinalUrl}
+            required
+            placeholder="https://miweb.com/landing-hipoteca"
+          />
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <ToggleButton
+              active={landingMode === "og"}
+              onClick={() => setLandingMode("og")}
+              label="Resolver og:image"
             />
-          </RowWithRemove>
-        ))}
-      </Section>
-
-      <Section
-        title={`Titulares · ${headlines.length} / 15`}
-        onAdd={addHeadline}
-        addLabel="+ Añadir titular"
-        canAdd={headlines.length < 15}
-      >
-        {headlines.map((h, i) => (
-          <RowWithRemove
-            key={i}
-            canRemove={headlines.length > 3}
-            onRemove={() => removeHeadline(i)}
-          >
-            <CharCountedInput
-              label={`Titular ${i + 1}`}
-              value={h}
-              onChange={(v) => setHeadlines(updateAt(headlines, i, v))}
-              max={HEADLINE_MAX}
-              required
-              placeholder="Hipoteca fija al 2,90% TAE"
+            <ToggleButton
+              active={landingMode === "upload"}
+              onClick={() => setLandingMode("upload")}
+              label="Subir screenshot"
             />
-          </RowWithRemove>
-        ))}
-      </Section>
-
-      <Section
-        title={`Descripciones · ${descriptions.length} / 4`}
-        onAdd={addDescription}
-        addLabel="+ Añadir descripción"
-        canAdd={descriptions.length < 4}
-      >
-        {descriptions.map((d, i) => (
-          <RowWithRemove
-            key={i}
-            canRemove={descriptions.length > 2}
-            onRemove={() => removeDescription(i)}
-          >
-            <CharCountedTextarea
-              label={`Descripción ${i + 1}`}
-              value={d}
-              onChange={(v) => setDescriptions(updateAt(descriptions, i, v))}
-              max={DESCRIPTION_MAX}
-              required
-              placeholder="Sin comisiones de apertura. Decisión en 48h. Trato personal en tu sucursal."
-            />
-          </RowWithRemove>
-        ))}
-      </Section>
-
-      <Section
-        title={`Creatividades · ${creatives.length} / 6 (opcional)`}
-        onAdd={addCreative}
-        addLabel="+ Añadir creatividad"
-        canAdd={creatives.length < 6}
-      >
-        {creatives.length === 0 && (
-          <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: 0 }}>
-            Las creatividades son opcionales. Súbelas si el anuncio incluye banners
-            o si testeas Display / Performance Max.
-          </p>
-        )}
-        {creatives.map((c, i) => (
-          <fieldset key={i} style={fieldsetStyle}>
-            <legend className="mono" style={legendStyle}>
-              Creatividad {i + 1}
-            </legend>
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <button
-                type="button"
-                onClick={() => removeCreative(i)}
-                className="btn-pill"
-                style={{ fontSize: 11 }}
-              >
-                Eliminar
-              </button>
-            </div>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              <ToggleButton
-                active={c.mode === "url"}
-                onClick={() => patchCreative(i, { mode: "url" })}
-                label="URL"
-              />
-              <ToggleButton
-                active={c.mode === "upload"}
-                onClick={() => patchCreative(i, { mode: "upload" })}
-                label="Subir imagen"
-              />
-            </div>
-            {c.mode === "url" ? (
-              <Controlled
-                label="URL de la creatividad"
-                value={c.url}
-                onChange={(v) => patchCreative(i, { url: v })}
-                placeholder="https://cdn.miweb.com/banner-300x250.png"
-              />
-            ) : (
-              <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <Label>Imagen</Label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => onCreativeFile(i, e)}
-                  style={inputStyle}
-                />
-                {c.upload_data && (
-                  <span className="mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
-                    Imagen cargada.
+          </div>
+          {landingMode === "og" && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 8,
+                padding: 14,
+                border: "1px dashed rgba(255,255,255,0.12)",
+                borderRadius: "var(--radius-sm)",
+              }}
+            >
+              <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <button
+                  type="button"
+                  onClick={resolveOg}
+                  disabled={!finalUrl || resolveStatus === "loading"}
+                  className="btn-pill solid"
+                  style={{ fontSize: 12 }}
+                >
+                  {resolveStatus === "loading" ? (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+                      <Loader2 size={12} className="spin" /> Resolviendo…
+                    </span>
+                  ) : resolvedLanding ? (
+                    "Volver a resolver"
+                  ) : (
+                    "Resolver og:image"
+                  )}
+                </button>
+                {resolveStatus === "ok" && (
+                  <span
+                    className="mono"
+                    style={{ fontSize: 10, color: "var(--success-500)", letterSpacing: "0.18em" }}
+                  >
+                    Imagen resuelta
                   </span>
                 )}
-              </label>
-            )}
-            <Controlled
-              label="Etiqueta interna (opcional)"
-              value={c.label}
-              onChange={(v) => patchCreative(i, { label: v })}
-              placeholder="Banner 300x250 v1"
-            />
-          </fieldset>
-        ))}
-      </Section>
+              </div>
+              {resolveError && (
+                <span style={{ color: "var(--error-500)", fontSize: 12, lineHeight: 1.5 }}>
+                  {resolveError}
+                </span>
+              )}
+              {resolvedLanding && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={resolvedLanding}
+                  alt="Preview landing"
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: 240,
+                    objectFit: "cover",
+                    borderRadius: "var(--radius-sm)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                  }}
+                />
+              )}
+            </div>
+          )}
+          {landingMode === "upload" && (
+            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label>Screenshot de la landing</Label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={onLandingFile}
+                style={inputStyle}
+              />
+              {landingPreviewName && (
+                <span className="mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
+                  {landingPreviewName} cargado.
+                </span>
+              )}
+              {landingUpload && (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  src={landingUpload}
+                  alt="Preview landing"
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: 240,
+                    objectFit: "cover",
+                    borderRadius: "var(--radius-sm)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    marginTop: 6,
+                  }}
+                />
+              )}
+            </label>
+          )}
+        </Section>
 
-      {state.error && (
-        <div
-          role="alert"
+        <Section
+          title={`Queries · ${queries.length} / 5`}
+          onAdd={addQuery}
+          addLabel="+ Añadir query"
+          canAdd={queries.length < 5}
+        >
+          {queries.map((q, i) => (
+            <RowWithRemove
+              key={i}
+              canRemove={queries.length > 1}
+              onRemove={() => removeQuery(i)}
+            >
+              <Controlled
+                label={`Query ${i + 1}`}
+                value={q}
+                onChange={(v) => setQueries(updateAt(queries, i, v))}
+                required={i === 0}
+                placeholder="hipoteca fija madrid"
+              />
+            </RowWithRemove>
+          ))}
+        </Section>
+
+        <Section
+          title={`Titulares · ${headlines.length} / 15`}
+          onAdd={addHeadline}
+          addLabel="+ Añadir titular"
+          canAdd={headlines.length < 15}
+        >
+          {headlines.map((h, i) => (
+            <RowWithRemove
+              key={i}
+              canRemove={headlines.length > 1}
+              onRemove={() => removeHeadline(i)}
+            >
+              <CharCountedInput
+                label={`Titular ${i + 1}${i === 0 ? " · obligatorio" : " · opcional"}`}
+                value={h}
+                onChange={(v) => setHeadlines(updateAt(headlines, i, v))}
+                max={HEADLINE_MAX}
+                required={i === 0}
+                placeholder="Hipoteca fija al 2,90% TAE"
+              />
+            </RowWithRemove>
+          ))}
+        </Section>
+
+        <Section
+          title={`Descripciones · ${descriptions.length} / 4`}
+          onAdd={addDescription}
+          addLabel="+ Añadir descripción"
+          canAdd={descriptions.length < 4}
+        >
+          {descriptions.map((d, i) => (
+            <RowWithRemove
+              key={i}
+              canRemove={descriptions.length > 2}
+              onRemove={() => removeDescription(i)}
+            >
+              <CharCountedTextarea
+                label={`Descripción ${i + 1}`}
+                value={d}
+                onChange={(v) => setDescriptions(updateAt(descriptions, i, v))}
+                max={DESCRIPTION_MAX}
+                required
+                placeholder="Sin comisiones de apertura. Decisión en 48h. Trato personal en tu sucursal."
+              />
+            </RowWithRemove>
+          ))}
+        </Section>
+
+        <Section
+          title={`Creatividades · ${creatives.length} / 6 (opcional)`}
+          onAdd={() => addCreative("image")}
+          addLabel="+ Añadir creatividad"
+          canAdd={creatives.length < 6}
+        >
+          {creatives.length === 0 && (
+            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: 0 }}>
+              Imagen, vídeo o YouTube. El perfil sintético ve la imagen
+              directamente o el thumbnail si es vídeo / YouTube (los modelos
+              actuales no procesan vídeo).
+            </p>
+          )}
+          {creatives.map((c, i) => (
+            <fieldset key={i} style={fieldsetStyle}>
+              <legend className="mono" style={legendStyle}>
+                Creatividad {i + 1}
+              </legend>
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <button
+                  type="button"
+                  onClick={() => removeCreative(i)}
+                  className="btn-pill"
+                  style={{ fontSize: 11 }}
+                >
+                  Eliminar
+                </button>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <ToggleButton
+                  active={c.kind === "image"}
+                  onClick={() => changeCreativeKind(i, "image")}
+                  label="Imagen"
+                />
+                <ToggleButton
+                  active={c.kind === "video"}
+                  onClick={() => changeCreativeKind(i, "video")}
+                  label="Vídeo"
+                />
+                <ToggleButton
+                  active={c.kind === "youtube"}
+                  onClick={() => changeCreativeKind(i, "youtube")}
+                  label="YouTube"
+                />
+              </div>
+
+              {c.kind === "image" && (
+                <CreativeImageInput
+                  creative={c}
+                  onUrl={(v) => patchCreative(i, { url: v, upload_data: "" })}
+                  onFile={(e) => onCreativeFile(i, e)}
+                />
+              )}
+              {c.kind === "video" && (
+                <CreativeVideoInput
+                  creative={c}
+                  onUrl={(v) => patchCreative(i, { url: v, upload_data: "" })}
+                  onFile={(e) => onCreativeFile(i, e)}
+                  onThumbnail={(v) => patchCreative(i, { thumbnail_url: v || null })}
+                />
+              )}
+              {c.kind === "youtube" && (
+                <CreativeYouTubeInput
+                  creative={c}
+                  onUrl={(v) => setCreativeYouTubeUrl(i, v)}
+                />
+              )}
+
+              <Controlled
+                label="Etiqueta interna (opcional)"
+                value={c.label}
+                onChange={(v) => patchCreative(i, { label: v })}
+                placeholder="Banner 300x250 v1"
+              />
+            </fieldset>
+          ))}
+        </Section>
+
+        {state.error && (
+          <div
+            role="alert"
+            style={{
+              padding: 16,
+              border: "1px solid var(--error-500)",
+              borderRadius: "var(--radius-md)",
+              color: "rgba(255,255,255,0.9)",
+              background: "rgba(180,35,24,0.12)",
+              fontSize: 14,
+            }}
+          >
+            {state.error}
+          </div>
+        )}
+
+        <Submit />
+      </form>
+
+      {/* Preview en vivo */}
+      <aside
+        style={{
+          position: "sticky",
+          top: 24,
+          display: "flex",
+          flexDirection: "column",
+          gap: 14,
+        }}
+      >
+        <span
+          className="mono"
           style={{
-            padding: 16,
-            border: "1px solid var(--error-500)",
-            borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.9)",
-            background: "rgba(180,35,24,0.12)",
-            fontSize: 14,
+            fontSize: 11,
+            letterSpacing: "0.28em",
+            textTransform: "uppercase",
+            color: "var(--accent-500)",
           }}
         >
-          {state.error}
+          Vista previa en vivo
+        </span>
+        <div
+          style={{
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: "var(--radius-md)",
+            background: "rgba(255,255,255,0.02)",
+            padding: 18,
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+          }}
+        >
+          <span
+            style={{
+              color: "rgba(255,255,255,0.45)",
+              fontSize: 11,
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            Patrocinado
+          </span>
+          <span
+            style={{
+              color: "rgba(255,255,255,0.7)",
+              fontSize: 12,
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            {displayUrl(finalUrl)}
+          </span>
+          <p
+            style={{
+              color: "rgba(132, 192, 255, 0.95)",
+              fontSize: 18,
+              margin: 0,
+              lineHeight: 1.3,
+            }}
+          >
+            {previewHeadline}
+          </p>
+          <p
+            style={{
+              color: "rgba(255,255,255,0.78)",
+              fontSize: 13,
+              margin: 0,
+              lineHeight: 1.55,
+            }}
+          >
+            {previewDescription}
+          </p>
         </div>
-      )}
 
-      <Submit />
-    </form>
+        {previewImage && (
+          <div
+            style={{
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "var(--radius-md)",
+              background: "rgba(255,255,255,0.02)",
+              padding: 12,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
+            <span
+              className="mono"
+              style={{ fontSize: 10, letterSpacing: "0.22em", color: "rgba(255,255,255,0.55)" }}
+            >
+              Landing
+            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewImage}
+              alt="Landing"
+              style={{
+                width: "100%",
+                maxHeight: 200,
+                objectFit: "cover",
+                borderRadius: "var(--radius-sm)",
+              }}
+            />
+          </div>
+        )}
+
+        {creatives.length > 0 && (
+          <div
+            style={{
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "var(--radius-md)",
+              background: "rgba(255,255,255,0.02)",
+              padding: 12,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
+            <span
+              className="mono"
+              style={{ fontSize: 10, letterSpacing: "0.22em", color: "rgba(255,255,255,0.55)" }}
+            >
+              Creatividades · {creatives.length}
+            </span>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(80px, 1fr))",
+                gap: 6,
+              }}
+            >
+              {creatives.map((c, i) => (
+                <CreativeThumb key={i} c={c} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(headlines.length > 1 || descriptions.length > 1) && (
+          <div
+            style={{
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "var(--radius-md)",
+              background: "rgba(255,255,255,0.02)",
+              padding: 12,
+              display: "flex",
+              flexDirection: "column",
+              gap: 6,
+            }}
+          >
+            <span
+              className="mono"
+              style={{ fontSize: 10, letterSpacing: "0.22em", color: "rgba(255,255,255,0.55)" }}
+            >
+              Google rota
+            </span>
+            <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 12, lineHeight: 1.5 }}>
+              Google Ads RSA combina aleatoriamente tus {headlines.filter(Boolean).length}{" "}
+              titulares con tus {descriptions.filter(Boolean).length} descripciones. La
+              vista previa muestra la primera combinación; el modelo verá todas.
+            </span>
+          </div>
+        )}
+      </aside>
+    </div>
   );
 }
 
 // ============================================================
 // Subcomponentes locales
 // ============================================================
+
+function CreativeImageInput({
+  creative,
+  onUrl,
+  onFile,
+}: {
+  creative: Creative;
+  onUrl: (v: string) => void;
+  onFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <Controlled
+        label="URL de la imagen (opcional si subes archivo)"
+        value={creative.url}
+        onChange={onUrl}
+        placeholder="https://cdn.miweb.com/banner-300x250.png"
+      />
+      <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <Label>O sube un archivo</Label>
+        <input
+          type="file"
+          accept="image/*"
+          onChange={onFile}
+          style={inputStyle}
+        />
+      </label>
+      <Preview src={creative.upload_data || creative.url} />
+    </div>
+  );
+}
+
+function CreativeVideoInput({
+  creative,
+  onUrl,
+  onFile,
+  onThumbnail,
+}: {
+  creative: Creative;
+  onUrl: (v: string) => void;
+  onFile: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onThumbnail: (v: string) => void;
+}) {
+  const src = creative.upload_data || creative.url;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <Controlled
+        label="URL del vídeo (opcional si subes archivo)"
+        value={creative.url}
+        onChange={onUrl}
+        placeholder="https://cdn.miweb.com/spot-15s.mp4"
+      />
+      <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <Label>O sube un archivo de vídeo</Label>
+        <input type="file" accept="video/*" onChange={onFile} style={inputStyle} />
+      </label>
+      <Controlled
+        label="Thumbnail (URL, opcional · lo verá el modelo)"
+        value={creative.thumbnail_url ?? ""}
+        onChange={onThumbnail}
+        placeholder="https://cdn.miweb.com/spot-thumb.jpg"
+      />
+      <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 12, lineHeight: 1.55, margin: 0 }}>
+        Los modelos actuales no procesan vídeo. Si subes un .mp4 o pones una URL,
+        sube también un thumbnail estático (jpg/png) para que el perfil sintético
+        pueda &quot;verlo&quot;. Sin thumbnail la creatividad se ignora.
+      </p>
+      {src && (
+        /* eslint-disable-next-line jsx-a11y/media-has-caption */
+        <video src={src} controls style={previewBox} />
+      )}
+    </div>
+  );
+}
+
+function CreativeYouTubeInput({
+  creative,
+  onUrl,
+}: {
+  creative: Creative;
+  onUrl: (v: string) => void;
+}) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <Controlled
+        label="URL de YouTube"
+        value={creative.url}
+        onChange={onUrl}
+        placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+      />
+      {creative.youtube_id ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <iframe
+            title={`YouTube ${creative.youtube_id}`}
+            src={`https://www.youtube.com/embed/${creative.youtube_id}`}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+            style={{
+              width: "100%",
+              aspectRatio: "16 / 9",
+              border: 0,
+              borderRadius: "var(--radius-sm)",
+            }}
+          />
+          <span
+            className="mono"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.18em",
+              color: "rgba(255,255,255,0.55)",
+            }}
+          >
+            Thumbnail enviado al modelo · {creative.youtube_id}
+          </span>
+        </div>
+      ) : (
+        creative.url && (
+          <span style={{ color: "var(--warning-500)", fontSize: 12 }}>
+            No reconozco el ID de YouTube en esa URL. Acepta formatos
+            youtube.com/watch?v=, youtu.be/ y youtube.com/shorts/.
+          </span>
+        )
+      )}
+    </div>
+  );
+}
+
+function Preview({ src }: { src: string }) {
+  if (!src) return null;
+  return (
+    /* eslint-disable-next-line @next/next/no-img-element */
+    <img src={src} alt="Preview" style={previewBox} />
+  );
+}
 
 function Section({
   title,
@@ -552,6 +1041,50 @@ function ToggleButton({
   );
 }
 
+function CreativeThumb({ c }: { c: Creative }) {
+  if (c.kind === "youtube") {
+    const src = c.thumbnail_url ?? "";
+    if (!src) return <ThumbPlaceholder label="YouTube" />;
+    /* eslint-disable-next-line @next/next/no-img-element */
+    return <img src={src} alt={c.label} style={thumbStyle} />;
+  }
+  if (c.kind === "video") {
+    const src = c.thumbnail_url || c.upload_data || c.url;
+    if (!src) return <ThumbPlaceholder label="Vídeo" />;
+    if (src.startsWith("data:video") || /\.(mp4|webm|mov)$/i.test(src)) {
+      /* eslint-disable-next-line jsx-a11y/media-has-caption */
+      return <video src={src} muted style={thumbStyle} />;
+    }
+    /* eslint-disable-next-line @next/next/no-img-element */
+    return <img src={src} alt={c.label} style={thumbStyle} />;
+  }
+  const src = c.upload_data || c.url;
+  if (!src) return <ThumbPlaceholder label="Imagen" />;
+  /* eslint-disable-next-line @next/next/no-img-element */
+  return <img src={src} alt={c.label} style={thumbStyle} />;
+}
+
+function ThumbPlaceholder({ label }: { label: string }) {
+  return (
+    <div
+      className="mono"
+      style={{
+        ...thumbStyle,
+        background: "rgba(255,255,255,0.04)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        color: "rgba(255,255,255,0.5)",
+        fontSize: 10,
+        letterSpacing: "0.18em",
+        textTransform: "uppercase",
+      }}
+    >
+      {label}
+    </div>
+  );
+}
+
 function Label({ children }: { children: React.ReactNode }) {
   return (
     <span
@@ -605,4 +1138,20 @@ const legendStyle: React.CSSProperties = {
   letterSpacing: "0.24em",
   textTransform: "uppercase",
   color: "var(--accent-500)",
+};
+
+const previewBox: React.CSSProperties = {
+  maxWidth: "100%",
+  maxHeight: 200,
+  objectFit: "cover",
+  borderRadius: "var(--radius-sm)",
+  border: "1px solid rgba(255,255,255,0.08)",
+};
+
+const thumbStyle: React.CSSProperties = {
+  width: "100%",
+  aspectRatio: "1 / 1",
+  objectFit: "cover",
+  borderRadius: "var(--radius-sm)",
+  border: "1px solid rgba(255,255,255,0.08)",
 };

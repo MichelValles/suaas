@@ -25,9 +25,11 @@ export async function uploadDataUrlToBlob(opts: {
     return opts.dataUrl;
   }
 
-  const match = opts.dataUrl.match(/^data:(image\/[a-zA-Z0-9+.\-]+);base64,(.+)$/);
+  const match = opts.dataUrl.match(
+    /^data:((?:image|video|audio)\/[a-zA-Z0-9+.\-]+);base64,(.+)$/,
+  );
   if (!match) {
-    throw new Error("data: URL no parece una imagen base64 válida.");
+    throw new Error("data: URL no parece un media base64 válido (image|video|audio).");
   }
   const mime = match[1];
   const bytes = Buffer.from(match[2], "base64");
@@ -56,6 +58,9 @@ function mimeToExt(mime: string): string {
     "image/gif": "gif",
     "image/avif": "avif",
     "image/svg+xml": "svg",
+    "video/mp4": "mp4",
+    "video/webm": "webm",
+    "video/quicktime": "mov",
   };
   return map[mime] ?? mime.split("/")[1] ?? "bin";
 }

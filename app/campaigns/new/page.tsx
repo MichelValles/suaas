@@ -19,7 +19,6 @@ export default function NewCampaignPage() {
       <PageHeading
         eyebrow="Nueva campaña · Paid Search"
         title="Sube los assets del anuncio bajo test."
-        description="Estructura RSA de Google Ads: 3..15 titulares (30 chars), 2..4 descripciones (90 chars), 1..5 queries objetivo, landing (URL o upload) y hasta 6 creatividades opcionales. El brief libre ayuda al modelo a contextualizar pero no se le enseña al perfil."
         actions={<Link href="/campaigns" className="btn-pill">Volver</Link>}
       />
       <NewCampaignForm />

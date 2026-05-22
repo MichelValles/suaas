@@ -188,9 +188,18 @@ async function probeCampaignSnippet(
   ];
 
   // Adjuntar creatividades como imágenes (Display / Performance Max companions).
+  // - image: se intenta normalizar la URL directamente.
+  // - youtube: el thumbnail (jpg) sí lo entiende el modelo.
+  // - video: si trae thumbnail_url la usamos; si no, se ignora (el modelo no
+  //   acepta vídeo). El perfil sintético no "ve" el vídeo, sólo su miniatura.
   for (const c of (campaign.creatives ?? []).slice(0, 4)) {
+    const candidate =
+      c.kind === "youtube" || c.kind === "video"
+        ? c.thumbnail_url
+        : c.url;
+    if (!candidate) continue;
     try {
-      const image = await resolveImageForApi(c.url);
+      const image = await resolveImageForApi(candidate);
       content.push({ type: "image", image });
     } catch {
       // si una creatividad no se puede normalizar, seguimos con el resto

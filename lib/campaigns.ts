@@ -6,16 +6,46 @@ import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 // Schemas con los caps RSA reales de Google Ads.
 // ============================================================
 
+export const CreativeKindSchema = z.enum(["image", "video", "youtube"]);
+export type CreativeKind = z.infer<typeof CreativeKindSchema>;
+
 export const CreativeSchema = z.object({
+  kind: CreativeKindSchema.default("image"),
   url: z
     .string()
     .refine(
-      (v) => /^https?:\/\//i.test(v) || /^data:image\//i.test(v),
-      "Debe ser una URL http(s) o un data:image URL.",
+      (v) =>
+        /^https?:\/\//i.test(v) ||
+        /^data:image\//i.test(v) ||
+        /^data:video\//i.test(v),
+      "Debe ser una URL http(s) o un data:image|video URL.",
     ),
+  // Para YouTube: id del vídeo (extraído de la URL). Permite mostrar embed y
+  // miniatura sin recargar otra vez.
+  youtube_id: z.string().optional().nullable(),
+  // Para los kinds que el modelo NO puede ver (video uploaded), guardamos una
+  // miniatura en `thumbnail_url` para mostrar al perfil sintético. Si no
+  // existe, el runner ignora la creatividad.
+  thumbnail_url: z
+    .string()
+    .url()
+    .optional()
+    .nullable(),
   label: z.string().optional().nullable(),
 });
 export type Creative = z.infer<typeof CreativeSchema>;
+
+const YOUTUBE_REGEX =
+  /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i;
+
+export function extractYouTubeId(url: string): string | null {
+  const m = url.match(YOUTUBE_REGEX);
+  return m?.[1] ?? null;
+}
+
+export function youtubeThumbnail(videoId: string): string {
+  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+}
 
 export const CampaignInputSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio."),
@@ -39,7 +69,7 @@ export const CampaignInputSchema = z.object({
         .min(1, "Titular vacío.")
         .max(30, "Cada titular admite máximo 30 caracteres (RSA)."),
     )
-    .min(3, "Mínimo 3 titulares (RSA).")
+    .min(1, "Al menos 1 titular.")
     .max(15, "Máximo 15 titulares (RSA)."),
   descriptions: z
     .array(

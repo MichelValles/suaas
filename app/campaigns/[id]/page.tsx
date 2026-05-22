@@ -3,10 +3,70 @@ import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 import { RunsPreviousGrid } from "@/components/runs-previous";
-import { getCampaign } from "@/lib/campaigns";
+import { getCampaign, type Creative } from "@/lib/campaigns";
 import { listProfiles } from "@/lib/profiles";
 import { getMetricsForRun, listRunsByCampaign } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
+
+function creativeKindLabel(kind: Creative["kind"]): string {
+  switch (kind) {
+    case "youtube":
+      return "YouTube";
+    case "video":
+      return "Vídeo";
+    default:
+      return "Imagen";
+  }
+}
+
+function CreativeRender({ creative, index }: { creative: Creative; index: number }) {
+  const alt = creative.label ?? `Creatividad ${index + 1}`;
+  if (creative.kind === "youtube" && creative.youtube_id) {
+    return (
+      <iframe
+        title={alt}
+        src={`https://www.youtube.com/embed/${creative.youtube_id}`}
+        allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        style={{
+          width: "100%",
+          aspectRatio: "16 / 9",
+          border: 0,
+          borderRadius: "var(--radius-sm)",
+        }}
+      />
+    );
+  }
+  if (creative.kind === "video") {
+    /* eslint-disable-next-line jsx-a11y/media-has-caption */
+    return (
+      <video
+        src={creative.url}
+        controls
+        style={{
+          width: "100%",
+          aspectRatio: "16 / 9",
+          objectFit: "cover",
+          borderRadius: "var(--radius-sm)",
+          background: "rgba(0,0,0,0.4)",
+        }}
+      />
+    );
+  }
+  /* eslint-disable-next-line @next/next/no-img-element */
+  return (
+    <img
+      src={creative.url}
+      alt={alt}
+      style={{
+        width: "100%",
+        height: 140,
+        objectFit: "cover",
+        borderRadius: "var(--radius-sm)",
+        display: "block",
+      }}
+    />
+  );
+}
 
 export const dynamic = "force-dynamic";
 
@@ -187,29 +247,28 @@ export default async function CampaignDetailPage({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
               gap: 12,
             }}
           >
             {campaign.creatives.map((c, i) => (
               <div key={i} style={{ ...cardStyle, padding: 12 }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={c.url}
-                  alt={c.label ?? `Creatividad ${i + 1}`}
-                  style={{
-                    width: "100%",
-                    height: 140,
-                    objectFit: "cover",
-                    borderRadius: "var(--radius-sm)",
-                    display: "block",
-                  }}
-                />
-                {c.label && (
+                <CreativeRender creative={c} index={i} />
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                   <span className="mono" style={chipMonoStyle}>
-                    {c.label}
+                    {creativeKindLabel(c.kind)}
                   </span>
-                )}
+                  {c.label && (
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: "rgba(255,255,255,0.6)",
+                      }}
+                    >
+                      {c.label}
+                    </span>
+                  )}
+                </div>
               </div>
             ))}
           </div>
