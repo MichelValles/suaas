@@ -120,6 +120,24 @@ export type Campaign = {
 // CRUD
 // ============================================================
 
+/**
+ * Normaliza una fila cruda de `campaigns`. Defensivo contra la transición
+ * `channel` (single, v0.23) → `channels[]` (array, v0.24): si el cliente
+ * ejecuta el código nuevo contra una BD con la migración 0011 aún pendiente,
+ * mapea el `channel` antiguo o cae a `["google"]` por defecto. Evita un
+ * `TypeError: cannot read 'length' of undefined` en el listado/detalle hasta
+ * que el operador aplique la migración.
+ */
+function normalizeCampaign(row: Record<string, unknown>): Campaign {
+  const channels =
+    Array.isArray(row.channels) && (row.channels as unknown[]).length > 0
+      ? (row.channels as Channel[])
+      : typeof row.channel === "string"
+        ? [row.channel as Channel]
+        : (["google"] as Channel[]);
+  return { ...(row as unknown as Campaign), channels };
+}
+
 export async function listCampaigns(): Promise<
   Array<Campaign & { run_count: number; user_count: number }>
 > {
@@ -136,7 +154,7 @@ export async function listCampaigns(): Promise<
       .order("created_at", { ascending: false }));
   }
   if (error) throw new Error(error.message);
-  const rows = (data ?? []) as Campaign[];
+  const rows = (data ?? []).map((r) => normalizeCampaign(r as Record<string, unknown>));
   if (rows.length === 0) return [];
   const stats = await getRunsStatsByEntity(
     "campaign_id",
@@ -165,30 +183,43 @@ export async function getCampaign(id: string): Promise<Campaign | null> {
       .maybeSingle());
   }
   if (error) throw new Error(error.message);
-  return (data ?? null) as Campaign | null;
+  if (!data) return null;
+  return normalizeCampaign(data as Record<string, unknown>);
 }
 
 export async function createCampaign(input: CampaignInput): Promise<Campaign> {
   const parsed = CampaignInputSchema.parse(input);
   const supa = getServerClient();
-  const { data, error } = await supa
+  const base = {
+    name: parsed.name,
+    brief: parsed.brief ?? null,
+    final_url: parsed.final_url,
+    landing_image_url: parsed.landing_image_url,
+    landing_source_url: parsed.landing_source_url ?? null,
+    queries: parsed.queries,
+    headlines: parsed.headlines,
+    descriptions: parsed.descriptions,
+    creatives: parsed.creatives ?? [],
+  };
+  let { data, error } = await supa
     .from("campaigns")
-    .insert({
-      name: parsed.name,
-      channels: parsed.channels,
-      brief: parsed.brief ?? null,
-      final_url: parsed.final_url,
-      landing_image_url: parsed.landing_image_url,
-      landing_source_url: parsed.landing_source_url ?? null,
-      queries: parsed.queries,
-      headlines: parsed.headlines,
-      descriptions: parsed.descriptions,
-      creatives: parsed.creatives ?? [],
-    })
+    .insert({ ...base, channels: parsed.channels })
     .select("*")
     .single();
+  // Si la migración 0011 aún no está aplicada (channels no existe), caemos al
+  // schema antiguo con channel single. Aviso explícito en logs.
+  if (isMissingColumnError(error, "channels")) {
+    console.warn(
+      "[createCampaign] columna 'channels' no existe; fallback a 'channel'. Aplica la migración 0011_campaigns_multichannel.sql.",
+    );
+    ({ data, error } = await supa
+      .from("campaigns")
+      .insert({ ...base, channel: parsed.channels[0] })
+      .select("*")
+      .single());
+  }
   if (error) throw new Error(error.message);
-  return data as Campaign;
+  return normalizeCampaign(data as Record<string, unknown>);
 }
 
 export async function softDeleteCampaign(id: string): Promise<void> {
