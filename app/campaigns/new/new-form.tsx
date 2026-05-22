@@ -764,58 +764,25 @@ export function NewCampaignForm() {
             color: "var(--accent-500)",
           }}
         >
-          Vista previa en vivo
+          Vista previa · {STRATEGY_LABEL[strategy]}
         </span>
-        <div
-          style={{
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "var(--radius-md)",
-            background: "rgba(255,255,255,0.02)",
-            padding: 18,
-            display: "flex",
-            flexDirection: "column",
-            gap: 10,
-          }}
-        >
-          <span
-            style={{
-              color: "rgba(255,255,255,0.45)",
-              fontSize: 11,
-              fontFamily: "var(--font-mono)",
-            }}
-          >
-            Patrocinado
-          </span>
-          <span
-            style={{
-              color: "rgba(255,255,255,0.7)",
-              fontSize: 12,
-              fontFamily: "var(--font-mono)",
-            }}
-          >
-            {displayUrl(finalUrl)}
-          </span>
-          <p
-            style={{
-              color: "rgba(132, 192, 255, 0.95)",
-              fontSize: 18,
-              margin: 0,
-              lineHeight: 1.3,
-            }}
-          >
-            {previewHeadline}
-          </p>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.78)",
-              fontSize: 13,
-              margin: 0,
-              lineHeight: 1.55,
-            }}
-          >
-            {previewDescription}
-          </p>
-        </div>
+        {strategy === "display" ? (
+          <DisplayAdPreview
+            companyName={companyName}
+            longHeadline={longHeadline}
+            previewHeadline={previewHeadline}
+            previewDescription={previewDescription}
+            cta={cta}
+            creatives={creatives}
+            finalUrl={finalUrl}
+          />
+        ) : (
+          <SearchAdPreview
+            finalUrl={finalUrl}
+            previewHeadline={previewHeadline}
+            previewDescription={previewDescription}
+          />
+        )}
 
         {(headlines.filter(Boolean).length > 1 ||
           descriptions.filter(Boolean).length > 1) && (
@@ -1321,6 +1288,250 @@ function ToggleButton({
     >
       {label}
     </button>
+  );
+}
+
+function SearchAdPreview({
+  finalUrl,
+  previewHeadline,
+  previewDescription,
+}: {
+  finalUrl: string;
+  previewHeadline: string;
+  previewDescription: string;
+}) {
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "var(--radius-md)",
+        background: "rgba(255,255,255,0.02)",
+        padding: 18,
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+      }}
+    >
+      <span
+        style={{
+          color: "rgba(255,255,255,0.45)",
+          fontSize: 11,
+          fontFamily: "var(--font-mono)",
+        }}
+      >
+        Patrocinado
+      </span>
+      <span
+        style={{
+          color: "rgba(255,255,255,0.7)",
+          fontSize: 12,
+          fontFamily: "var(--font-mono)",
+        }}
+      >
+        {displayUrl(finalUrl)}
+      </span>
+      <p
+        style={{
+          color: "rgba(132, 192, 255, 0.95)",
+          fontSize: 18,
+          margin: 0,
+          lineHeight: 1.3,
+        }}
+      >
+        {previewHeadline}
+      </p>
+      <p
+        style={{
+          color: "rgba(255,255,255,0.78)",
+          fontSize: 13,
+          margin: 0,
+          lineHeight: 1.55,
+        }}
+      >
+        {previewDescription}
+      </p>
+    </div>
+  );
+}
+
+function DisplayAdPreview({
+  companyName,
+  longHeadline,
+  previewHeadline,
+  previewDescription,
+  cta,
+  creatives,
+  finalUrl,
+}: {
+  companyName: string;
+  longHeadline: string;
+  previewHeadline: string;
+  previewDescription: string;
+  cta: string;
+  creatives: Creative[];
+  finalUrl: string;
+}) {
+  const landscape = creatives.find(
+    (c) => c.role === "landscape_image" && (c.upload_data || c.url),
+  );
+  const logo = creatives.find(
+    (c) => c.role === "logo_square" && (c.upload_data || c.url),
+  );
+  const landscapeSrc = landscape ? landscape.upload_data || landscape.url : "";
+  const logoSrc = logo ? logo.upload_data || logo.url : "";
+
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "var(--radius-md)",
+        background: "rgba(255,255,255,0.02)",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        style={{
+          background: "rgba(255,255,255,0.04)",
+          aspectRatio: "1.91 / 1",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "rgba(255,255,255,0.4)",
+          fontSize: 11,
+          fontFamily: "var(--font-mono)",
+        }}
+      >
+        {landscapeSrc ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={landscapeSrc}
+            alt="Landscape"
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+              display: "block",
+            }}
+          />
+        ) : (
+          <span>Imagen landscape · 1.91:1</span>
+        )}
+      </div>
+      <div
+        style={{
+          padding: "14px 16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+        }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {logoSrc ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={logoSrc}
+              alt="Logo"
+              style={{
+                width: 28,
+                height: 28,
+                objectFit: "cover",
+                borderRadius: "var(--radius-sm)",
+                background: "rgba(255,255,255,0.06)",
+              }}
+            />
+          ) : (
+            <span
+              className="mono"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: "var(--radius-sm)",
+                background: "rgba(255,255,255,0.06)",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 9,
+                color: "rgba(255,255,255,0.4)",
+              }}
+            >
+              Logo
+            </span>
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <span
+              style={{
+                color: "rgba(255,255,255,0.9)",
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              {companyName || "Tu empresa"}
+            </span>
+            <span
+              className="mono"
+              style={{
+                color: "rgba(255,255,255,0.45)",
+                fontSize: 10,
+              }}
+            >
+              Patrocinado · {displayUrl(finalUrl)}
+            </span>
+          </div>
+        </div>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.95)",
+            fontSize: 16,
+            lineHeight: 1.3,
+            margin: 0,
+          }}
+        >
+          {longHeadline || previewHeadline || "Tu titular largo aquí"}
+        </p>
+        {(previewHeadline || longHeadline) && previewHeadline && (
+          <p
+            style={{
+              color: "rgba(132, 192, 255, 0.8)",
+              fontSize: 12,
+              margin: 0,
+              lineHeight: 1.3,
+            }}
+          >
+            {previewHeadline}
+          </p>
+        )}
+        <p
+          style={{
+            color: "rgba(255,255,255,0.7)",
+            fontSize: 12,
+            margin: 0,
+            lineHeight: 1.55,
+          }}
+        >
+          {previewDescription}
+        </p>
+        <button
+          type="button"
+          disabled
+          style={{
+            alignSelf: "flex-start",
+            padding: "8px 16px",
+            borderRadius: "var(--radius-sm)",
+            background: cta ? "var(--accent-500)" : "rgba(255,255,255,0.08)",
+            color: cta ? "var(--ink-900)" : "rgba(255,255,255,0.5)",
+            border: 0,
+            fontFamily: "var(--font-sans)",
+            fontSize: 12,
+            fontWeight: 600,
+            cursor: "default",
+          }}
+        >
+          {cta || "Sin CTA"}
+        </button>
+      </div>
+    </div>
   );
 }
 
