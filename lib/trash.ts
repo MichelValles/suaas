@@ -129,29 +129,50 @@ type Row = {
   name?: string | null;
   description?: string | null;
   hypothesis?: string | null;
+  kind?: string | null;
   created_at: string;
   deleted_at: string;
 };
 
+/**
+ * Columnas a seleccionar por tipo. Targets NO tiene description, sólo kind y
+ * payload (no se selecciona payload aquí porque pesa). AB usa hypothesis. El
+ * resto (funnels, copy_decks, pricing_offers) sí tienen description.
+ */
+const SELECT_BY_TYPE: Record<TrashType, string> = {
+  targets: "id, name, kind, created_at, deleted_at",
+  funnels: "id, name, description, created_at, deleted_at",
+  ab: "id, name, hypothesis, created_at, deleted_at",
+  copy: "id, name, description, created_at, deleted_at",
+  pricing: "id, name, description, created_at, deleted_at",
+};
+
+function hintFor(type: TrashType, row: Row): string | null {
+  switch (type) {
+    case "ab":
+      return row.hypothesis ?? null;
+    case "targets":
+      return row.kind ?? null;
+    default:
+      return row.description ?? null;
+  }
+}
+
 async function listTrashedFor(type: TrashType): Promise<TrashItem[]> {
   const supa = getServerClient();
   const table = TYPE_TO_TABLE[type];
-  const select =
-    type === "ab"
-      ? "id, name, hypothesis, created_at, deleted_at"
-      : "id, name, description, created_at, deleted_at";
   const { data, error } = await supa
     .from(table)
-    .select(select)
+    .select(SELECT_BY_TYPE[type])
     .not("deleted_at", "is", null)
     .order("deleted_at", { ascending: false });
   if (error) throw new Error(error.message);
-  const rows = (data ?? []) as Row[];
+  const rows = (data ?? []) as unknown as Row[];
   return rows.map((r) => ({
     type,
     id: r.id,
     name: r.name ?? "(sin nombre)",
-    hint: type === "ab" ? r.hypothesis ?? null : r.description ?? null,
+    hint: hintFor(type, r),
     created_at: r.created_at,
     deleted_at: r.deleted_at,
   }));
