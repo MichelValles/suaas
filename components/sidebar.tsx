@@ -14,6 +14,7 @@ import {
   Split,
   Tag,
   Target,
+  Trash2,
   Users,
   X,
 } from "lucide-react";
@@ -31,6 +32,7 @@ const MAIN_ITEMS = [
 const SYSTEM_ITEMS = [
   { href: "/diag", label: "Diagnóstico", icon: Activity, exact: false },
   { href: "/tokens", label: "Tokens", icon: Coins, exact: false },
+  { href: "/trash", label: "Papelera", icon: Trash2, exact: false },
 ];
 
 export function Sidebar() {

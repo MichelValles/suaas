@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { SendToTrashButton } from "@/components/trash-button";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { listFunnels } from "@/lib/funnels";
 
@@ -59,7 +60,8 @@ export default async function FunnelsPage() {
           }}
         >
           {funnels.map((f) => (
-            <li key={f.id}>
+            <li key={f.id} style={{ position: "relative" }}>
+              <SendToTrashButton type="funnels" id={f.id} name={f.name} />
               <Link
                 href={`/funnels/${f.id}`}
                 style={{

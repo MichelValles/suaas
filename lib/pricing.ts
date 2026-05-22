@@ -46,6 +46,7 @@ export async function listPricingOffers(): Promise<
   const { data: offers, error } = await supa
     .from("pricing_offers")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   if (!offers || offers.length === 0) return [];
@@ -73,6 +74,7 @@ export async function getPricingOffer(
     .from("pricing_offers")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!offer) return null;
@@ -116,4 +118,28 @@ export async function createPricingOffer(
     throw new Error(pErr.message);
   }
   return offer as PricingOffer;
+}
+
+export async function softDeletePricingOffer(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("pricing_offers")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function restorePricingOffer(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("pricing_offers")
+    .update({ deleted_at: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function hardDeletePricingOffer(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa.from("pricing_offers").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }

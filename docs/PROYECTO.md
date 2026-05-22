@@ -154,6 +154,7 @@ supabase/
     0004_funnel_runs.sql  <- runs.funnel_id + funnel_step_responses (run, profile, step)
     0005_gateway_usage.sql <- gateway_usage (telemetría de tokens por scope/modelo)
     0006_ab_copy_pricing.sql <- ab_tests + copy_decks/blocks/responses + pricing_offers/prices/responses + runs.{ab_test_id,copy_deck_id,pricing_offer_id}
+    0007_trash.sql        <- columna deleted_at en targets/funnels/ab_tests/copy_decks/pricing_offers (soft delete + papelera)
 
 proxy.ts                  <- middleware: bloquea todo lo no público sin cookie
 next.config.ts

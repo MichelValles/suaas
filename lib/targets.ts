@@ -44,6 +44,7 @@ export async function listTargets(): Promise<Target[]> {
   const { data, error } = await supa
     .from("targets")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []) as Target[];
@@ -55,9 +56,34 @@ export async function getTarget(id: string): Promise<Target | null> {
     .from("targets")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .maybeSingle();
   if (error) throw new Error(error.message);
   return (data ?? null) as Target | null;
+}
+
+export async function softDeleteTarget(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("targets")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function restoreTarget(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("targets")
+    .update({ deleted_at: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function hardDeleteTarget(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa.from("targets").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 export async function createTarget(input: TargetInput): Promise<Target> {

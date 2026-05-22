@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { MigrationNeeded } from "@/components/migration-needed";
+import { SendToTrashButton } from "@/components/trash-button";
 import { listPricingOffers } from "@/lib/pricing";
 import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
 
@@ -58,7 +59,8 @@ export default async function PricingListPage() {
           }}
         >
           {offers.map((o) => (
-            <li key={o.id}>
+            <li key={o.id} style={{ position: "relative" }}>
+              <SendToTrashButton type="pricing" id={o.id} name={o.name} />
               <Link
                 href={`/pricing/${o.id}`}
                 style={{

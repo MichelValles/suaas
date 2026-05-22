@@ -64,6 +64,7 @@ export async function listFunnels(): Promise<
   const { data: funnels, error } = await supa
     .from("funnels")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   if (!funnels || funnels.length === 0) return [];
@@ -91,6 +92,7 @@ export async function getFunnel(id: string): Promise<FunnelWithSteps | null> {
     .from("funnels")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!funnel) return null;
@@ -138,8 +140,31 @@ export async function createFunnel(input: FunnelInput): Promise<Funnel> {
   return funnel as Funnel;
 }
 
-export async function deleteFunnel(id: string): Promise<void> {
+export async function softDeleteFunnel(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("funnels")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function restoreFunnel(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("funnels")
+    .update({ deleted_at: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function hardDeleteFunnel(id: string): Promise<void> {
   const supa = getServerClient();
   const { error } = await supa.from("funnels").delete().eq("id", id);
   if (error) throw new Error(error.message);
+}
+
+/** @deprecated Usa softDeleteFunnel/hardDeleteFunnel. Mantenido por compat. */
+export async function deleteFunnel(id: string): Promise<void> {
+  return hardDeleteFunnel(id);
 }

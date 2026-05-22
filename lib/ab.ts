@@ -34,6 +34,7 @@ export async function listAbTests(): Promise<AbTest[]> {
   const { data, error } = await supa
     .from("ab_tests")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []) as AbTest[];
@@ -45,9 +46,34 @@ export async function getAbTest(id: string): Promise<AbTest | null> {
     .from("ab_tests")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .maybeSingle();
   if (error) throw new Error(error.message);
   return (data ?? null) as AbTest | null;
+}
+
+export async function softDeleteAbTest(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("ab_tests")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function restoreAbTest(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("ab_tests")
+    .update({ deleted_at: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function hardDeleteAbTest(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa.from("ab_tests").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }
 
 export async function createAbTest(input: AbTestInput): Promise<AbTest> {

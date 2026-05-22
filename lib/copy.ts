@@ -44,6 +44,7 @@ export async function listCopyDecks(): Promise<
   const { data: decks, error } = await supa
     .from("copy_decks")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   if (!decks || decks.length === 0) return [];
@@ -69,6 +70,7 @@ export async function getCopyDeck(id: string): Promise<CopyDeckWithBlocks | null
     .from("copy_decks")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .maybeSingle();
   if (error) throw new Error(error.message);
   if (!deck) return null;
@@ -106,4 +108,28 @@ export async function createCopyDeck(input: CopyDeckInput): Promise<CopyDeck> {
     throw new Error(bErr.message);
   }
   return deck as CopyDeck;
+}
+
+export async function softDeleteCopyDeck(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("copy_decks")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function restoreCopyDeck(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("copy_decks")
+    .update({ deleted_at: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function hardDeleteCopyDeck(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa.from("copy_decks").delete().eq("id", id);
+  if (error) throw new Error(error.message);
 }

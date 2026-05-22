@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { MigrationNeeded } from "@/components/migration-needed";
+import { SendToTrashButton } from "@/components/trash-button";
 import { listAbTests } from "@/lib/ab";
 import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
 
@@ -58,7 +59,8 @@ export default async function AbListPage() {
           }}
         >
           {tests.map((t) => (
-            <li key={t.id}>
+            <li key={t.id} style={{ position: "relative" }}>
+              <SendToTrashButton type="ab" id={t.id} name={t.name} />
               <Link
                 href={`/ab/${t.id}`}
                 style={{

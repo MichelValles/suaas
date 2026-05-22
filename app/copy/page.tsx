@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { MigrationNeeded } from "@/components/migration-needed";
+import { SendToTrashButton } from "@/components/trash-button";
 import { listCopyDecks } from "@/lib/copy";
 import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
 
@@ -58,7 +59,8 @@ export default async function CopyListPage() {
           }}
         >
           {decks.map((d) => (
-            <li key={d.id}>
+            <li key={d.id} style={{ position: "relative" }}>
+              <SendToTrashButton type="copy" id={d.id} name={d.name} />
               <Link
                 href={`/copy/${d.id}`}
                 style={{

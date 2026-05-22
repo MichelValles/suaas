@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { SendToTrashButton } from "@/components/trash-button";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { listTargets } from "@/lib/targets";
 
@@ -60,7 +61,8 @@ export default async function TargetsPage() {
           }}
         >
           {targets.map((t) => (
-            <li key={t.id}>
+            <li key={t.id} style={{ position: "relative" }}>
+              <SendToTrashButton type="targets" id={t.id} name={t.name} />
               <Link
                 href={`/targets/${t.id}`}
                 style={{
