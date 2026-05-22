@@ -182,6 +182,13 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.25.x — Estrategias dentro del canal
+
+- [x] **v0.25.0**: dentro de Google Ads aparecen las 7 estrategias publicitarias como sub-pestañas: **Search · Display · Performance Max · Demand Gen · Video / YouTube · App Campaigns · Shopping**. Sólo **Search (RSA)** está implementada; las otras 6 son sub-pestañas con su icono lucide propio (`Image`, `Sparkles`, `TrendingUp`, `Play`, `Smartphone`, `ShoppingBag`) y badge `Próx.`. Al seleccionarlas, el form muestra un panel `En construcción` con la descripción exhaustiva de los campos que tendrá cada una (URLs, caps de caracteres, formatos de imagen, vídeo, CTA, feeds, etc.) en vez de los campos RSA. Helper `isStrategyImplemented(s)` central para activar features futuras sin tocar el form.
+  - Modelo: nueva columna `campaigns.strategy text not null default 'search'` con check sobre los 7 valores, migración `0013_campaigns_strategy.sql` idempotente. `lib/campaigns.ts` añade `STRATEGY_VALUES`, `STRATEGY_LABEL`, `STRATEGY_DESCRIPTION` y `Campaign.strategy: Strategy`. `normalizeCampaign` defensivo para BDs sin la columna (cae a `"search"`). `createCampaign` fallback si la migración 0013 no está aplicada todavía.
+  - UI: la sección **Estrategia** aparece debajo de la sección **Canal** en `/campaigns/new`. El detalle muestra dos chips: el de canal (gris) y el de estrategia (acento amarillo). El listado añade columna `Estrategia` y reordena los stats (Canal · Estrategia · Runs · Perfiles).
+  - Aplicar `0013_campaigns_strategy.sql` en Supabase + `NOTIFY pgrst, 'reload schema';` antes de crear nuevas campañas.
+
 ## v0.24.x — Multi-canal por campaña
 
 - [x] **v0.24.2**: tres correcciones tras feedback.

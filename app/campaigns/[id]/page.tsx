@@ -4,7 +4,13 @@ import { AppShell, PageHeading } from "@/components/app-shell";
 import { ChannelIcon } from "@/components/channel-icon";
 import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 import { RunsPreviousGrid } from "@/components/runs-previous";
-import { CHANNEL_LABEL, getCampaign, type Creative } from "@/lib/campaigns";
+import { StrategyIcon } from "@/components/strategy-icon";
+import {
+  CHANNEL_LABEL,
+  STRATEGY_LABEL,
+  getCampaign,
+  type Creative,
+} from "@/lib/campaigns";
 import { listProfiles } from "@/lib/profiles";
 import { getMetricsForRun, listRunsByCampaign } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -117,11 +123,9 @@ export default async function CampaignDetailPage({
         }
       />
 
-      {/* Canales */}
+      {/* Canales y estrategia */}
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <SectionLabel>
-          Canales · {campaign.channels.length}
-        </SectionLabel>
+        <SectionLabel>Canal y estrategia</SectionLabel>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {campaign.channels.map((ch) => (
             <span
@@ -145,6 +149,25 @@ export default async function CampaignDetailPage({
               {CHANNEL_LABEL[ch]}
             </span>
           ))}
+          <span
+            className="mono"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              padding: "6px 12px",
+              borderRadius: "var(--radius-pill)",
+              border: "1px solid var(--accent-500)",
+              background: "rgba(250,204,13,0.08)",
+              color: "var(--accent-500)",
+              fontSize: 11,
+              letterSpacing: "0.16em",
+              textTransform: "uppercase",
+            }}
+          >
+            <StrategyIcon strategy={campaign.strategy} size={14} />
+            {STRATEGY_LABEL[campaign.strategy]}
+          </span>
         </div>
       </section>
 

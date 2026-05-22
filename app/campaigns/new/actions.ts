@@ -7,6 +7,7 @@ import { uploadDataUrlToBlob } from "@/lib/blob";
 import {
   CHANNEL_VALUES,
   CampaignInputSchema,
+  STRATEGY_VALUES,
   createCampaign,
   extractYouTubeId,
   youtubeThumbnail,
@@ -30,6 +31,7 @@ const PayloadSchema = z.object({
     .min(1)
     .max(5)
     .default(["google"]),
+  strategy: z.enum(STRATEGY_VALUES).default("search"),
   brief: z.string().optional().nullable(),
   final_url: z.string().url(),
   landing_mode: z.enum(["og", "upload"]),
@@ -183,6 +185,7 @@ export async function createCampaignAction(
   const input: CampaignInput = {
     name: payload.name.trim(),
     channels: payload.channels,
+    strategy: payload.strategy,
     brief: payload.brief?.trim() || null,
     final_url: payload.final_url,
     landing_image_url: landingImageUrl,

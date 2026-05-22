@@ -17,6 +17,55 @@ export const CHANNEL_LABEL: Record<Channel, string> = {
   x: "X (Twitter) Ads",
 };
 
+// ============================================================
+// Estrategias dentro de un canal. Hoy sólo modelamos Google Ads.
+// Search (RSA) está implementado. Las demás se exponen como "En
+// construcción" hasta que tengan sus campos específicos (Display,
+// PMax, Demand Gen, Video / YouTube, App Campaigns, Shopping).
+// ============================================================
+
+export const STRATEGY_VALUES = [
+  "search",
+  "display",
+  "pmax",
+  "demand_gen",
+  "video",
+  "app",
+  "shopping",
+] as const;
+export type Strategy = (typeof STRATEGY_VALUES)[number];
+
+export const STRATEGY_LABEL: Record<Strategy, string> = {
+  search: "Search",
+  display: "Display",
+  pmax: "Performance Max",
+  demand_gen: "Demand Gen",
+  video: "Video / YouTube",
+  app: "App Campaigns",
+  shopping: "Shopping",
+};
+
+export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
+  search:
+    "Anuncio RSA en el SERP. URL final + 3..15 titulares (30c) + 2..4 descripciones (90c). Opcional: rutas visibles, sitelinks, callouts, snippets, imágenes y logo.",
+  display:
+    "Anuncio responsive de Display. URL final + nombre de empresa + titulares cortos/largos + descripciones + imágenes landscape (1.91:1), square (1:1) y logo. Opcional: portrait (4:5), logo landscape, vídeo (YouTube).",
+  pmax:
+    "Asset group multi-canal. Logo + ≥3 imágenes (al menos una landscape y una square) + 3+ titulares + 1+ titular largo + 2 descripciones + CTA. Vídeo opcional pero Google lo autogenera si no lo subes. Señales de audiencia.",
+  demand_gen:
+    "Subformatos single image, carousel o video. Imagen landscape + square + logo + titulares (40c) + descripciones + nombre de empresa + CTA. Para carousel: ≥2 tarjetas (imagen + headline + URL).",
+  video:
+    "YouTube. Vídeo subido + URL final. Skippable / non-skippable / bumper / in-feed con titulares y descripciones según subformato. Companion banner opcional.",
+  app:
+    "App vinculada de Play / App Store como baseline. 2+ titulares (30c) + 1+ descripción (90c). Hasta 20 imágenes y 20 vídeos en formatos 1.91:1, 1:1, 4:5, 9:16. HTML5 opcional.",
+  shopping:
+    "Feed de Merchant Center, no anuncio individual. ID producto + título + descripción + link + imagen + disponibilidad + precio + GTIN/marca/MPN según categoría. Imágenes adicionales y promociones opcionales.",
+};
+
+export function isStrategyImplemented(s: Strategy): boolean {
+  return s === "search";
+}
+
 export const CreativeKindSchema = z.enum(["image", "video", "youtube"]);
 export type CreativeKind = z.infer<typeof CreativeKindSchema>;
 
@@ -66,6 +115,7 @@ export const CampaignInputSchema = z.object({
     .max(5, "Máximo 5 canales por campaña.")
     .default(["google"])
     .transform((arr) => Array.from(new Set(arr))),
+  strategy: z.enum(STRATEGY_VALUES).default("search"),
   brief: z.string().optional().nullable(),
   final_url: z.string().url("La URL final no es válida."),
   landing_image_url: z
@@ -106,6 +156,7 @@ export type Campaign = {
   created_at: string;
   name: string;
   channels: Channel[];
+  strategy: Strategy;
   brief: string | null;
   final_url: string;
   landing_image_url: string;
@@ -135,7 +186,12 @@ function normalizeCampaign(row: Record<string, unknown>): Campaign {
       : typeof row.channel === "string"
         ? [row.channel as Channel]
         : (["google"] as Channel[]);
-  return { ...(row as unknown as Campaign), channels };
+  const strategy =
+    typeof row.strategy === "string" &&
+    (STRATEGY_VALUES as readonly string[]).includes(row.strategy)
+      ? (row.strategy as Strategy)
+      : ("search" as Strategy);
+  return { ...(row as unknown as Campaign), channels, strategy };
 }
 
 export async function listCampaigns(): Promise<
@@ -200,14 +256,26 @@ export async function createCampaign(input: CampaignInput): Promise<Campaign> {
     headlines: parsed.headlines,
     descriptions: parsed.descriptions,
     creatives: parsed.creatives ?? [],
+    strategy: parsed.strategy,
   };
   let { data, error } = await supa
     .from("campaigns")
     .insert({ ...base, channels: parsed.channels })
     .select("*")
     .single();
-  // Si la migración 0011 aún no está aplicada (channels no existe), caemos al
-  // schema antiguo con channel single. Aviso explícito en logs.
+  // Si la migración 0013 aún no está aplicada (strategy no existe), caemos a
+  // un insert sin la columna. La 0011 (channels) tiene su propio fallback.
+  if (isMissingColumnError(error, "strategy")) {
+    console.warn(
+      "[createCampaign] columna 'strategy' no existe; fallback sin ella. Aplica la migración 0013_campaigns_strategy.sql.",
+    );
+    const { strategy: _ignored, ...baseNoStrategy } = base;
+    ({ data, error } = await supa
+      .from("campaigns")
+      .insert({ ...baseNoStrategy, channels: parsed.channels })
+      .select("*")
+      .single());
+  }
   if (isMissingColumnError(error, "channels")) {
     console.warn(
       "[createCampaign] columna 'channels' no existe; fallback a 'channel'. Aplica la migración 0011_campaigns_multichannel.sql.",

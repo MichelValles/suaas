@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { EntityListView, type EntityListItem } from "@/components/entity-list";
 import { MigrationNeeded } from "@/components/migration-needed";
-import { CHANNEL_LABEL, listCampaigns } from "@/lib/campaigns";
+import { CHANNEL_LABEL, STRATEGY_LABEL, listCampaigns } from "@/lib/campaigns";
 import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -63,9 +63,9 @@ export default async function CampaignsListPage() {
                     ? c.channels.map((ch) => CHANNEL_LABEL[ch].split(" ")[0]).join(" + ")
                     : `${c.channels.length} redes`,
               },
+              { label: "Estrategia", value: STRATEGY_LABEL[c.strategy] },
               { label: "Runs", value: c.run_count },
               { label: "Perfiles", value: c.user_count },
-              { label: "Titulares", value: c.headlines.length },
             ],
           }))}
           emptyHint="Todavía no hay campañas. Crea la primera."

@@ -4,12 +4,18 @@ import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 import { ChannelIcon } from "@/components/channel-icon";
+import { StrategyIcon } from "@/components/strategy-icon";
 import {
   CHANNEL_LABEL,
   CHANNEL_VALUES,
+  STRATEGY_DESCRIPTION,
+  STRATEGY_LABEL,
+  STRATEGY_VALUES,
   extractYouTubeId,
+  isStrategyImplemented,
   youtubeThumbnail,
   type Channel,
+  type Strategy,
 } from "@/lib/campaigns";
 import {
   createCampaignAction,
@@ -63,6 +69,7 @@ export function NewCampaignForm() {
 
   const [name, setName] = useState("");
   const [channel, setChannel] = useState<Channel>("google");
+  const [strategy, setStrategy] = useState<Strategy>("search");
   const [brief, setBrief] = useState("");
   const [finalUrl, setFinalUrl] = useState("");
   const [landingMode, setLandingMode] = useState<LandingMode>("og");
@@ -202,6 +209,7 @@ export function NewCampaignForm() {
   const payload = {
     name,
     channels: [channel] as Channel[],
+    strategy,
     brief: brief.trim() || null,
     final_url: finalUrl,
     landing_mode: landingMode,
@@ -268,13 +276,46 @@ export function NewCampaignForm() {
               }}
             >
               Cada red tiene formato propio (caps de caracteres, creatividades,
-              targeting). Por ahora sólo Google Ads RSA está implementado. Meta,
+              targeting). Por ahora sólo Google Ads está implementado. Meta,
               LinkedIn, TikTok y X llegarán como módulos específicos en futuras
               versiones.
             </p>
           </div>
         </Section>
 
+        <Section title="Estrategia">
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <span
+              className="mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.55)",
+              }}
+            >
+              Tipo de campaña dentro de {CHANNEL_LABEL[channel].split(" ")[0]}
+            </span>
+            <StrategyTabs value={strategy} onChange={setStrategy} />
+            <p
+              style={{
+                color: "rgba(255,255,255,0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              {STRATEGY_DESCRIPTION[strategy]}
+            </p>
+          </div>
+        </Section>
+
+        {!isStrategyImplemented(strategy) && (
+          <UnderConstruction strategy={strategy} />
+        )}
+
+        {isStrategyImplemented(strategy) && (
+        <>
         <Section title="Identidad">
           <Controlled
             label="Nombre"
@@ -570,6 +611,8 @@ export function NewCampaignForm() {
         )}
 
         <Submit />
+        </>
+        )}
       </form>
 
       {/* Preview en vivo */}
@@ -1148,6 +1191,142 @@ function ToggleButton({
     >
       {label}
     </button>
+  );
+}
+
+function StrategyTabs({
+  value,
+  onChange,
+}: {
+  value: Strategy;
+  onChange: (v: Strategy) => void;
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Estrategia"
+      style={{
+        display: "flex",
+        gap: 0,
+        borderBottom: "1px solid rgba(255,255,255,0.1)",
+        overflowX: "auto",
+      }}
+    >
+      {STRATEGY_VALUES.map((s) => {
+        const active = value === s;
+        const implemented = isStrategyImplemented(s);
+        const color = !implemented
+          ? "rgba(255,255,255,0.35)"
+          : active
+            ? "var(--accent-500)"
+            : "rgba(255,255,255,0.6)";
+        return (
+          <button
+            key={s}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(s)}
+            title={
+              implemented
+                ? STRATEGY_DESCRIPTION[s]
+                : `En construcción · ${STRATEGY_DESCRIPTION[s]}`
+            }
+            style={{
+              background: "transparent",
+              border: 0,
+              borderBottom: active
+                ? "2px solid var(--accent-500)"
+                : "2px solid transparent",
+              padding: "10px 14px",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              color,
+              fontFamily: "var(--font-sans)",
+              fontSize: 13,
+              fontWeight: active ? 600 : 400,
+              whiteSpace: "nowrap",
+              transition: "color var(--dur-short) var(--ease-out)",
+            }}
+          >
+            <StrategyIcon strategy={s} size={14} />
+            <span>{STRATEGY_LABEL[s]}</span>
+            {!implemented && (
+              <span
+                className="mono"
+                style={{
+                  fontSize: 9,
+                  letterSpacing: "0.18em",
+                  textTransform: "uppercase",
+                  padding: "2px 6px",
+                  borderRadius: "var(--radius-pill)",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  color: "rgba(255,255,255,0.5)",
+                }}
+              >
+                Próx.
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function UnderConstruction({ strategy }: { strategy: Strategy }) {
+  return (
+    <div
+      style={{
+        border: "1px dashed rgba(255,255,255,0.15)",
+        borderRadius: "var(--radius-md)",
+        background: "rgba(255,255,255,0.02)",
+        padding: "28px 32px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 14,
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <StrategyIcon strategy={strategy} size={20} />
+        <span
+          className="mono"
+          style={{
+            fontSize: 11,
+            letterSpacing: "0.28em",
+            textTransform: "uppercase",
+            color: "var(--accent-500)",
+          }}
+        >
+          {STRATEGY_LABEL[strategy]} · En construcción
+        </span>
+      </div>
+      <p
+        style={{
+          margin: 0,
+          color: "rgba(255,255,255,0.75)",
+          fontSize: 14,
+          lineHeight: 1.65,
+          maxWidth: 720,
+        }}
+      >
+        {STRATEGY_DESCRIPTION[strategy]}
+      </p>
+      <p
+        style={{
+          margin: 0,
+          color: "rgba(255,255,255,0.55)",
+          fontSize: 12,
+          lineHeight: 1.55,
+        }}
+      >
+        Cada estrategia tendrá su propio formulario y su propio runner cuando
+        esté implementada. Mientras tanto, usa <strong>Search (RSA)</strong>{" "}
+        para probar tus textos.
+      </p>
+    </div>
   );
 }
 
