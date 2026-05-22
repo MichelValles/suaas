@@ -16,8 +16,12 @@ export const runtime = "nodejs";
 // 4 ejemplos + 4 runs paralelos (con 3 perfiles cada uno) → margen amplio.
 export const maxDuration = 300;
 
+const KIND_VALUES = ["copy", "pricing", "ab", "funnel"] as const;
+type Kind = (typeof KIND_VALUES)[number];
+
 const BodySchema = z.object({
   launch: z.number().int().min(0).max(10).optional().default(0),
+  kinds: z.array(z.enum(KIND_VALUES)).optional(),
 });
 
 type ExampleResult =
@@ -45,67 +49,79 @@ export async function POST(request: Request) {
     );
   }
 
+  const selected: Set<Kind> = new Set(
+    body.kinds && body.kinds.length > 0 ? body.kinds : KIND_VALUES,
+  );
+
   const profileIds = launch > 0 ? await pickRandomProfileIds(launch) : [];
   const results: ExampleResult[] = [];
 
   // ============================================================
   // Copy
   // ============================================================
-  try {
-    const { deckId } = await seedCopyExample();
-    let runId: string | undefined;
-    if (launch > 0 && profileIds.length > 0) {
-      const { runId: rid } = await runCopyTest({ deckId, profileIds });
-      runId = rid;
+  if (selected.has("copy")) {
+    try {
+      const { deckId } = await seedCopyExample();
+      let runId: string | undefined;
+      if (launch > 0 && profileIds.length > 0) {
+        const { runId: rid } = await runCopyTest({ deckId, profileIds });
+        runId = rid;
+      }
+      results.push({ kind: "copy", ok: true, deckId, runId });
+    } catch (err) {
+      results.push({ kind: "copy", ok: false, error: (err as Error).message });
     }
-    results.push({ kind: "copy", ok: true, deckId, runId });
-  } catch (err) {
-    results.push({ kind: "copy", ok: false, error: (err as Error).message });
   }
 
   // ============================================================
   // Pricing
   // ============================================================
-  try {
-    const { offerId } = await seedPricingExample();
-    let runId: string | undefined;
-    if (launch > 0 && profileIds.length > 0) {
-      const { runId: rid } = await runPricingTest({ offerId, profileIds });
-      runId = rid;
+  if (selected.has("pricing")) {
+    try {
+      const { offerId } = await seedPricingExample();
+      let runId: string | undefined;
+      if (launch > 0 && profileIds.length > 0) {
+        const { runId: rid } = await runPricingTest({ offerId, profileIds });
+        runId = rid;
+      }
+      results.push({ kind: "pricing", ok: true, offerId, runId });
+    } catch (err) {
+      results.push({ kind: "pricing", ok: false, error: (err as Error).message });
     }
-    results.push({ kind: "pricing", ok: true, offerId, runId });
-  } catch (err) {
-    results.push({ kind: "pricing", ok: false, error: (err as Error).message });
   }
 
   // ============================================================
   // A/B test (2 runs 5s en paralelo si launch > 0; runAbTest se encarga)
   // ============================================================
-  try {
-    const { abTestId } = await seedAbExample();
-    let runIds: string[] | undefined;
-    if (launch > 0 && profileIds.length > 0) {
-      const { runs } = await runAbTest({ abTestId, profileIds });
-      runIds = runs.map((r) => r.runId);
+  if (selected.has("ab")) {
+    try {
+      const { abTestId } = await seedAbExample();
+      let runIds: string[] | undefined;
+      if (launch > 0 && profileIds.length > 0) {
+        const { runs } = await runAbTest({ abTestId, profileIds });
+        runIds = runs.map((r) => r.runId);
+      }
+      results.push({ kind: "ab", ok: true, abTestId, runIds });
+    } catch (err) {
+      results.push({ kind: "ab", ok: false, error: (err as Error).message });
     }
-    results.push({ kind: "ab", ok: true, abTestId, runIds });
-  } catch (err) {
-    results.push({ kind: "ab", ok: false, error: (err as Error).message });
   }
 
   // ============================================================
   // Funnel
   // ============================================================
-  try {
-    const { funnelId } = await seedFunnelExample();
-    let runId: string | undefined;
-    if (launch > 0 && profileIds.length > 0) {
-      const { runId: rid } = await runFunnelTest({ funnelId, profileIds });
-      runId = rid;
+  if (selected.has("funnel")) {
+    try {
+      const { funnelId } = await seedFunnelExample();
+      let runId: string | undefined;
+      if (launch > 0 && profileIds.length > 0) {
+        const { runId: rid } = await runFunnelTest({ funnelId, profileIds });
+        runId = rid;
+      }
+      results.push({ kind: "funnel", ok: true, funnelId, runId });
+    } catch (err) {
+      results.push({ kind: "funnel", ok: false, error: (err as Error).message });
     }
-    results.push({ kind: "funnel", ok: true, funnelId, runId });
-  } catch (err) {
-    results.push({ kind: "funnel", ok: false, error: (err as Error).message });
   }
 
   return Response.json({

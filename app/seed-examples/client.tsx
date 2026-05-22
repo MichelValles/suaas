@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
+type Kind = "copy" | "pricing" | "ab" | "funnel";
+
 type ResultRow = {
   kind: string;
   ok: boolean;
@@ -29,16 +31,18 @@ export function SeedExamplesClient() {
   const [data, setData] = useState<Response | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const [pendingKind, setPendingKind] = useState<Kind | "all" | null>(null);
 
-  function trigger() {
+  function trigger(kinds?: Kind[]) {
     setError(null);
     setData(null);
+    setPendingKind(kinds && kinds.length === 1 ? kinds[0] : "all");
     startTransition(async () => {
       try {
         const res = await fetch("/api/seed/examples", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ launch }),
+          body: JSON.stringify({ launch, ...(kinds ? { kinds } : {}) }),
         });
         const json = (await res.json()) as Response & { error?: string };
         if (!res.ok) {
@@ -49,6 +53,8 @@ export function SeedExamplesClient() {
         router.refresh();
       } catch (err) {
         setError((err as Error).message);
+      } finally {
+        setPendingKind(null);
       }
     });
   }
@@ -108,18 +114,18 @@ export function SeedExamplesClient() {
         </label>
         <button
           type="button"
-          onClick={trigger}
+          onClick={() => trigger()}
           disabled={pending}
           className="btn-pill solid"
         >
-          {pending ? (
+          {pending && pendingKind === "all" ? (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <Loader2 size={14} className="spin" /> Sembrando…
+              <Loader2 size={14} className="spin" /> Sembrando los 4…
             </span>
           ) : launch > 0 ? (
-            `Crear ejemplos y lanzar (${launch} perfiles)`
+            `Crear los 4 y lanzar (${launch} perfiles)`
           ) : (
-            "Crear ejemplos (sin lanzar)"
+            "Crear los 4 (sin lanzar)"
           )}
         </button>
       </div>
@@ -135,21 +141,43 @@ export function SeedExamplesClient() {
         }}
       >
         <li>
-          <Recipe title="Copy resonance" body="4 variantes de headline para el servicio CRO de Flat 101." />
-        </li>
-        <li>
-          <Recipe title="Pricing" body="Flat 101 Lab con 4 niveles: founder · actual · agency · enterprise." />
-        </li>
-        <li>
           <Recipe
-            title="A/B test"
-            body="BBVA hipoteca fija vs ING hipoteca Naranja. Resolución de og:image en runtime."
+            kind="copy"
+            title="Copy resonance"
+            body="4 variantes de headline para el servicio CRO de Flat 101."
+            onTrigger={trigger}
+            pending={pending}
+            pendingKind={pendingKind}
           />
         </li>
         <li>
           <Recipe
+            kind="pricing"
+            title="Pricing"
+            body="Flat 101 Lab con 4 niveles: founder · actual · agency · enterprise."
+            onTrigger={trigger}
+            pending={pending}
+            pendingKind={pendingKind}
+          />
+        </li>
+        <li>
+          <Recipe
+            kind="ab"
+            title="A/B test"
+            body="Vercel vs Netlify. Resolución de og:image en runtime."
+            onTrigger={trigger}
+            pending={pending}
+            pendingKind={pendingKind}
+          />
+        </li>
+        <li>
+          <Recipe
+            kind="funnel"
             title="Embudo"
-            body="Onboarding Filmin · home → colección → ficha de película → suscripción."
+            body="Onboarding Stripe · home → producto → casos → precios."
+            onTrigger={trigger}
+            pending={pending}
+            pendingKind={pendingKind}
           />
         </li>
       </ul>
@@ -177,7 +205,22 @@ export function SeedExamplesClient() {
   );
 }
 
-function Recipe({ title, body }: { title: string; body: string }) {
+function Recipe({
+  kind,
+  title,
+  body,
+  onTrigger,
+  pending,
+  pendingKind,
+}: {
+  kind: Kind;
+  title: string;
+  body: string;
+  onTrigger: (kinds?: Kind[]) => void;
+  pending: boolean;
+  pendingKind: Kind | "all" | null;
+}) {
+  const isMine = pendingKind === kind;
   return (
     <div
       style={{
@@ -187,7 +230,7 @@ function Recipe({ title, body }: { title: string; body: string }) {
         background: "rgba(255,255,255,0.02)",
         display: "flex",
         flexDirection: "column",
-        gap: 6,
+        gap: 10,
         height: "100%",
       }}
     >
@@ -208,10 +251,26 @@ function Recipe({ title, body }: { title: string; body: string }) {
           fontSize: 13,
           lineHeight: 1.5,
           margin: 0,
+          flex: 1,
         }}
       >
         {body}
       </p>
+      <button
+        type="button"
+        onClick={() => onTrigger([kind])}
+        disabled={pending}
+        className="btn-pill"
+        style={{ alignSelf: "flex-start", fontSize: 12 }}
+      >
+        {isMine ? (
+          <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <Loader2 size={12} className="spin" /> Sembrando…
+          </span>
+        ) : (
+          "Sembrar sólo este"
+        )}
+      </button>
     </div>
   );
 }

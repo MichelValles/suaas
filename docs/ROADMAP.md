@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.18.x — Seeds por módulo
+
+- [x] **v0.18.0**: `/api/seed/examples` acepta `kinds: ('copy'|'pricing'|'ab'|'funnel')[]` opcional para sembrar sólo un subconjunto (sin `kinds` o vacío sigue sembrando los 4, compatible con consumidores previos). `/seed-examples` muestra un botón "Sembrar sólo este" en cada tarjeta (Copy / Pricing / A/B / Embudo) además del botón global "Crear los 4". Útil para regenerar un ejemplo concreto sin tocar los demás.
+
 ## v0.17.x — Descripción destacada y relanzamiento de runs
 
 - [x] **v0.17.0**: nuevo `descriptionVariant="panel"` en `PageHeading`. La descripción se renderiza como caja destacada con borde-izquierdo accent. Aplicado en las 9 páginas que muestran copy descriptivo (4 detalle + 5 results). Eyebrows de results enriquecidas con metadata (status · N perfiles · contexto). Sweet spot de pricing en layout horizontal para coherencia.

@@ -14,7 +14,7 @@ export default function SeedExamplesPage() {
       <PageHeading
         eyebrow="Sembrar ejemplos"
         title="Crea ejemplos en los 4 módulos."
-        description="Genera un copy deck, una oferta de pricing, un A/B test (BBVA vs ING) y un embudo de Filmin. Opcionalmente lanza un run sobre N perfiles aleatorios para ver resultados de inmediato."
+        description="Genera un copy deck, una oferta de pricing, un A/B test (Vercel vs Netlify) y un embudo de Stripe. Puedes sembrar los 4 a la vez o sólo uno desde cada tarjeta. Opcionalmente lanza un run sobre N perfiles aleatorios para ver resultados de inmediato."
         actions={
           <Link href="/" className="btn-pill">
             Volver al panel
