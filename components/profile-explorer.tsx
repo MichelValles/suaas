@@ -441,11 +441,11 @@ function FiltersPanel({
       }}
     >
       <RangeField label="Edad" value={filters.age} min={0} max={120} step={1} onChange={(v) => set("age", v)} />
-      <RangeField label="Apertura" value={filters.openness} min={0} max={1} step={0.05} onChange={(v) => set("openness", v)} />
-      <RangeField label="Conciencia" value={filters.conscientiousness} min={0} max={1} step={0.05} onChange={(v) => set("conscientiousness", v)} />
-      <RangeField label="Extraversión" value={filters.extraversion} min={0} max={1} step={0.05} onChange={(v) => set("extraversion", v)} />
-      <RangeField label="Amabilidad" value={filters.agreeableness} min={0} max={1} step={0.05} onChange={(v) => set("agreeableness", v)} />
-      <RangeField label="Neuroticismo" value={filters.neuroticism} min={0} max={1} step={0.05} onChange={(v) => set("neuroticism", v)} />
+      <RangeField label="Apertura" value={filters.openness} min={0} max={1} step={0.01} onChange={(v) => set("openness", v)} />
+      <RangeField label="Conciencia" value={filters.conscientiousness} min={0} max={1} step={0.01} onChange={(v) => set("conscientiousness", v)} />
+      <RangeField label="Extraversión" value={filters.extraversion} min={0} max={1} step={0.01} onChange={(v) => set("extraversion", v)} />
+      <RangeField label="Amabilidad" value={filters.agreeableness} min={0} max={1} step={0.01} onChange={(v) => set("agreeableness", v)} />
+      <RangeField label="Neuroticismo" value={filters.neuroticism} min={0} max={1} step={0.01} onChange={(v) => set("neuroticism", v)} />
       <div style={{ display: "flex", alignItems: "flex-end" }}>
         <button
           type="button"
