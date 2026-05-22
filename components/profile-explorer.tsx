@@ -658,7 +658,7 @@ function ProfileTable({
             <Th>Género</Th>
             <Th>Ocupación</Th>
             <Th>Geo</Th>
-            <Th>O · C · E · A · N</Th>
+            <Th className="col-ocean">O · C · E · A · N</Th>
             {mode === "manage" && <Th>Acciones</Th>}
           </tr>
         </thead>
@@ -687,7 +687,7 @@ function ProfileTable({
               <Td>{p.demographics.gender}</Td>
               <Td>{p.demographics.occupation}</Td>
               <Td>{p.demographics.geo ?? "—"}</Td>
-              <Td>
+              <Td className="col-ocean">
                 <span className="mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
                   {Math.round(p.big_five.openness * 100)} · {Math.round(p.big_five.conscientiousness * 100)} ·{" "}
                   {Math.round(p.big_five.extraversion * 100)} · {Math.round(p.big_five.agreeableness * 100)} ·{" "}
@@ -707,10 +707,10 @@ function ProfileTable({
   );
 }
 
-function Th({ children }: { children?: React.ReactNode }) {
+function Th({ children, className }: { children?: React.ReactNode; className?: string }) {
   return (
     <th
-      className="mono"
+      className={className ? `mono ${className}` : "mono"}
       style={{
         padding: "8px 12px",
         fontSize: 10,
@@ -723,8 +723,12 @@ function Th({ children }: { children?: React.ReactNode }) {
     </th>
   );
 }
-function Td({ children }: { children: React.ReactNode }) {
-  return <td style={{ padding: "10px 12px", verticalAlign: "middle" }}>{children}</td>;
+function Td({ children, className }: { children: React.ReactNode; className?: string }) {
+  return (
+    <td className={className} style={{ padding: "10px 12px", verticalAlign: "middle" }}>
+      {children}
+    </td>
+  );
 }
 
 // ============================================================

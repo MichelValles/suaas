@@ -622,6 +622,14 @@ textarea.backstory-input:focus-visible {
   background: rgba(255, 255, 255, 0.25);
 }
 
+/* Mobile: ocultar la columna OCEAN de la tabla de perfiles
+   para que no desborde horizontalmente. */
+@media (max-width: 880px) {
+  .col-ocean {
+    display: none;
+  }
+}
+
 /* Mobile: sidebar oculto, overlay al abrir */
 @media (max-width: 880px) {
   .app-shell {
