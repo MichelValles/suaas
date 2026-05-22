@@ -65,8 +65,12 @@ app/
       page.tsx
       import-client.tsx   <- dropzone + parser + preview por fila
       actions.ts          <- importProfilesAction (inserta sólo válidas, max 500)
+    seed/
+      page.tsx
+      seed-client.tsx     <- selector de N + progreso en vivo (NDJSON stream)
   api/
     profiles/[id]/route.ts <- DELETE: borra perfil (cascade a runs y respuestas)
+    profiles/seed/route.ts <- POST: NDJSON stream con eventos de generación
   targets/
     page.tsx              <- lista de targets (Server)
     new/
@@ -112,6 +116,7 @@ lib/
   profile-filters.ts      <- ProfileFilters (rangos + texto contiene) + filterProfiles
   csv.ts                  <- parseCSV, stringifyCSV, detectSeparator (RFC 4180 simplificado)
   profile-csv.ts          <- PROFILE_CSV_HEADERS, profileToCsvRow, validateCsvRow, reorderCsvRows
+  seed-profiles.ts        <- PROFILE_SEEDS (50) + streamSeededProfiles (generación con Reasoner)
   runs.ts                 <- Run/Message types + createRun, appendMessage, upsertMetric, markRunFinished, listRunsByTarget, getMetricsForRun
   prompts.ts              <- buildSystemPrompt(profile) con negative prompts
   agents.ts               <- ReasonerPlanSchema, reason() (object), talkStream() (text)

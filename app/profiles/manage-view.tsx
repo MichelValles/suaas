@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
-import { Download, Upload } from "lucide-react";
+import { Download, Sparkles, Upload } from "lucide-react";
 import { ProfileExplorer } from "@/components/profile-explorer";
 import { stringifyCSV } from "@/lib/csv";
 import { PROFILE_CSV_HEADERS, profileToCsvRow } from "@/lib/profile-csv";
@@ -120,6 +120,27 @@ function ToolbarExtras({
       >
         <Upload size={14} />
         Importar CSV
+      </Link>
+      <Link
+        href="/profiles/seed"
+        className="mono"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "8px 14px",
+          background: "transparent",
+          color: "rgba(255,255,255,0.75)",
+          border: "1px solid rgba(255,255,255,0.12)",
+          borderRadius: "var(--radius-pill)",
+          fontSize: 11,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          fontFamily: "inherit",
+        }}
+      >
+        <Sparkles size={14} />
+        Generar con LLM
       </Link>
     </>
   );

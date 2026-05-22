@@ -91,7 +91,8 @@ Refactor grande del módulo de perfiles para tratarlo como software (no como lis
 - [x] **ProfileLaunchPanel rehecho** sobre `<ProfileExplorer mode="picker">`: ahora todos los sitios donde se selecciona perfil (targets, funnels, copy, pricing, A/B) heredan filtros, vista grid/tabla y hover de backstory.
 
 Aplazadas a futuras subversiones (por alcance):
-- v0.8.2: generación automática de 48 perfiles vía LLM (alcanzar 50 totales).
+- ~~v0.8.2~~ → reasignada a la retirada del hover de backstory (ver más abajo).
+- v0.8.3: generación automática de 48 perfiles vía LLM.
 
 ## v0.8.1 — Importador y exportador CSV de perfiles
 
@@ -101,6 +102,19 @@ Aplazadas a futuras subversiones (por alcance):
 - [x] **Importar**: `/profiles/import` con dropzone, detección automática de separador, parseo cliente, validación fila a fila con preview de estado (verde/rojo) y mensaje específico por fila errónea. Server action `importProfilesAction` inserta sólo las filas válidas; tope de 500 filas por import.
 - [x] Columnas desconocidas del CSV se ignoran con aviso, y faltantes generan un error claro en la validación (no se importa la fila).
 - [x] Listas COM-B (capability/opportunity/motivation) se serializan con `;` interno para sobrevivir al separador `,` del CSV.
+
+## v0.8.2 — Retirada del hover de backstory
+
+- [x] Quitado el tooltip flotante de backstory en el grid y la tabla (ruido visual). La backstory sigue accesible abriendo el detalle del perfil. Limpieza de `.profile-hover*` en `globals.css`.
+
+## v0.8.3 — Generación de perfiles vía LLM
+
+- [x] `lib/seed-profiles.ts`: 50 seeds curados en castellano (demografía española variada, desde estudiantes a jubilados, urbano/rural, diferentes ocupaciones y barreras COM-B). Schema `SeedOutputSchema` con validación zod estricta. Generación con Reasoner (Opus) via `generateObject`.
+- [x] `streamSeededProfiles(n)`: orquestador async generator que produce eventos `started` / `progress` / `error` / `done`. Inserta cada perfil inmediatamente para no perder trabajo si algo falla a mitad.
+- [x] `/api/profiles/seed` (POST): endpoint con stream NDJSON. Cuerpo `{ n: 48 }`.
+- [x] `/profiles/seed`: UI con selector de N, botón "Generar", barra de progreso y log en vivo (verde por perfil creado, rojo por error con el seed que lo originó).
+- [x] Botón "Generar con LLM" añadido a la toolbar de `/profiles` junto a "Importar/Exportar CSV".
+- [x] Telemetría: cada generación registra en `gateway_usage` con `scope: reasoner_chat` y meta `kind: seed_profile`.
 
 ## v0.6.0 — App shell tipo software
 
