@@ -1,3 +1,4 @@
+import { internalError, validationError } from "@/lib/error-response";
 import { deleteProfile } from "@/lib/profiles";
 
 export const runtime = "nodejs";
@@ -8,15 +9,12 @@ export async function DELETE(
 ) {
   const { id } = await context.params;
   if (!id) {
-    return Response.json({ ok: false, error: "Falta id" }, { status: 400 });
+    return validationError("Falta id");
   }
   try {
     await deleteProfile(id);
     return Response.json({ ok: true });
   } catch (err) {
-    return Response.json(
-      { ok: false, error: (err as Error).message },
-      { status: 500 },
-    );
+    return internalError(500, "/api/profiles/[id]:DELETE", err);
   }
 }

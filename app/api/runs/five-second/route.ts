@@ -1,4 +1,9 @@
 import { z } from "zod";
+import {
+  internalError,
+  serviceUnavailable,
+  validationError,
+} from "@/lib/error-response";
 import { isGatewayConfigured } from "@/lib/gateway";
 import { runFiveSecondTest } from "@/lib/experiments/five-second";
 
@@ -13,33 +18,20 @@ const BodySchema = z.object({
 
 export async function POST(request: Request) {
   if (!isGatewayConfigured()) {
-    return jsonError(503, "AI Gateway no configurado.");
+    return serviceUnavailable("AI Gateway no configurado.");
   }
 
   let parsed: z.infer<typeof BodySchema>;
   try {
     parsed = BodySchema.parse(await request.json());
   } catch (err) {
-    return jsonError(400, (err as Error).message);
+    return validationError((err as Error).message);
   }
 
   try {
     const { runId, summary } = await runFiveSecondTest(parsed);
     return Response.json({ ok: true, runId, summary });
   } catch (err) {
-    const e = err as Error;
-    console.error("[/api/runs/five-second] error", {
-      message: e.message,
-      stack: e.stack,
-      cause: (e as { cause?: unknown }).cause,
-    });
-    return jsonError(500, e.message);
+    return internalError(500, "/api/runs/five-second", err);
   }
-}
-
-function jsonError(status: number, message: string): Response {
-  return new Response(JSON.stringify({ ok: false, error: message }), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
 }

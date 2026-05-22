@@ -24,6 +24,10 @@ export function SeedGate() {
           headers: { "content-type": "application/json" },
           body: JSON.stringify({ password }),
         });
+        if (res.status === 503) {
+          setError("SEED_PASSWORD no está configurada en este entorno. Pídele al admin que la añada en Vercel.");
+          return;
+        }
         if (!res.ok) {
           setError("Contraseña incorrecta.");
           return;

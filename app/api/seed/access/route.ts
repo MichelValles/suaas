@@ -3,12 +3,20 @@ import {
   SEED_COOKIE,
   SEED_MAX_AGE_SECONDS,
   SEED_VALUE,
+  getSeedPassword,
   verifySeedPassword,
 } from "@/lib/seed-auth";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  if (!getSeedPassword()) {
+    return NextResponse.json(
+      { ok: false, code: "seed_password_unset" },
+      { status: 503 },
+    );
+  }
+
   let password = "";
   try {
     const body = await request.json();

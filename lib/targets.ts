@@ -1,6 +1,11 @@
 import { z } from "zod";
 import { getRunsStatsByEntity } from "@/lib/runs";
 import { getServerClient, isMissingColumnError } from "@/lib/supabase";
+import { assertPublicUrl } from "@/lib/url-safety";
+
+const FETCH_TIMEOUT_MS = 5000;
+const MAX_HTML_BYTES = 1_500_000; // 1.5 MB; <head> rara vez excede 200 KB.
+const MAX_REDIRECTS = 3;
 
 // ============================================================
 // Schemas (zod) — la fuente de verdad de la forma del dato.
@@ -148,20 +153,48 @@ export type OgImageResolution =
 export async function resolveOgImageDetailed(
   sourceUrl: string,
 ): Promise<OgImageResolution> {
-  let res: Response;
+  // Validar host público y seguir redirects manualmente, revalidando cada
+  // salto. Evita SSRF a localhost/RFC1918/metadata cloud y redirects
+  // maliciosos hacia hosts internos.
+  let currentUrl: string = sourceUrl;
+  let res: Response | null = null;
   try {
-    res = await fetch(sourceUrl, {
-      redirect: "follow",
-      headers: {
-        // UA de Chrome real: muchas landings corporativas (BBVA, ING…)
-        // sirven HTML distinto a UAs marcadas como bot.
-        "User-Agent":
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-        Accept:
-          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
-      },
-    });
+    for (let hop = 0; hop <= MAX_REDIRECTS; hop += 1) {
+      await assertPublicUrl(currentUrl);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+      let response: Response;
+      try {
+        response = await fetch(currentUrl, {
+          redirect: "manual",
+          signal: controller.signal,
+          headers: {
+            // UA de Chrome real: muchas landings corporativas sirven HTML
+            // distinto a UAs marcadas como bot.
+            "User-Agent":
+              "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+            Accept:
+              "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
+          },
+        });
+      } finally {
+        clearTimeout(timeout);
+      }
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        if (!location) {
+          return { ok: false, reason: "status", detail: `HTTP ${response.status} sin Location.` };
+        }
+        currentUrl = new URL(location, currentUrl).toString();
+        continue;
+      }
+      res = response;
+      break;
+    }
+    if (!res) {
+      return { ok: false, reason: "fetch", detail: "Demasiadas redirecciones." };
+    }
   } catch (err) {
     return { ok: false, reason: "fetch", detail: (err as Error).message };
   }
@@ -172,7 +205,7 @@ export async function resolveOgImageDetailed(
       detail: `HTTP ${res.status} al pedir la URL.`,
     };
   }
-  const html = await res.text();
+  const html = await readBoundedText(res, MAX_HTML_BYTES);
 
   // Sólo nos quedamos con el <head> si lo encontramos: las landings grandes
   // tienen MB de body que ralentizan el regex.
@@ -222,4 +255,32 @@ function absolutize(href: string, base: string): string {
   } catch {
     return href;
   }
+}
+
+/**
+ * Lee el body como texto deteniéndose cuando excede `maxBytes`. Evita
+ * que un servidor malicioso (o lento) nos haga procesar GBs en memoria.
+ */
+async function readBoundedText(res: Response, maxBytes: number): Promise<string> {
+  const reader = res.body?.getReader();
+  if (!reader) return "";
+  const decoder = new TextDecoder();
+  const chunks: string[] = [];
+  let received = 0;
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    received += value.byteLength;
+    if (received > maxBytes) {
+      try {
+        await reader.cancel();
+      } catch {
+        /* ignore */
+      }
+      break;
+    }
+    chunks.push(decoder.decode(value, { stream: true }));
+  }
+  chunks.push(decoder.decode());
+  return chunks.join("");
 }

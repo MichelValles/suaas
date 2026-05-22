@@ -1,5 +1,10 @@
 import { z } from "zod";
 import type { ModelMessage } from "ai";
+import {
+  internalError,
+  serviceUnavailable,
+  validationError,
+} from "@/lib/error-response";
 import { isGatewayConfigured } from "@/lib/gateway";
 import { getProfile } from "@/lib/profiles";
 import {
@@ -38,18 +43,28 @@ function frame(obj: Frame): Uint8Array {
 
 export async function POST(request: Request) {
   if (!isGatewayConfigured()) {
-    return jsonError(503, "AI Gateway no configurado.");
+    return serviceUnavailable("AI Gateway no configurado.");
   }
 
   let parsed: z.infer<typeof BodySchema>;
   try {
     parsed = BodySchema.parse(await request.json());
   } catch (err) {
-    return jsonError(400, (err as Error).message);
+    return validationError((err as Error).message);
   }
 
-  const profile = await getProfile(parsed.profileId);
-  if (!profile) return jsonError(404, "Perfil no encontrado.");
+  let profile;
+  try {
+    profile = await getProfile(parsed.profileId);
+  } catch (err) {
+    return internalError(500, "/api/chat:getProfile", err);
+  }
+  if (!profile) {
+    return new Response(
+      JSON.stringify({ ok: false, error: "Perfil no encontrado." }),
+      { status: 404, headers: { "Content-Type": "application/json" } },
+    );
+  }
 
   // Run: nuevo o existente.
   const runId =
@@ -183,10 +198,14 @@ export async function POST(request: Request) {
           }),
         );
       } catch (err) {
+        const e = err as Error & { cause?: unknown };
+        console.error("[/api/chat] stream error", {
+          message: e.message,
+          stack: e.stack,
+          cause: e.cause,
+        });
         await markRunFinished(runId, "error").catch(() => {});
-        controller.enqueue(
-          frame({ type: "error", message: (err as Error).message }),
-        );
+        controller.enqueue(frame({ type: "error", message: "Error interno." }));
       } finally {
         controller.close();
       }
@@ -202,9 +221,3 @@ export async function POST(request: Request) {
   });
 }
 
-function jsonError(status: number, message: string): Response {
-  return new Response(JSON.stringify({ ok: false, error: message }), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
-}
