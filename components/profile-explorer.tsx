@@ -1,8 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { Eye, LayoutGrid, Pencil, Rows3, SlidersHorizontal, Trash2, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Eye,
+  LayoutGrid,
+  Pencil,
+  Rows3,
+  SlidersHorizontal,
+  Trash2,
+  X,
+} from "lucide-react";
 import type { Profile } from "@/lib/profiles";
 import {
   DEFAULT_FILTERS,
@@ -14,23 +27,17 @@ import {
 
 type ViewMode = "grid" | "table";
 
+type SortKey = "name" | "age" | "gender" | "occupation" | "geo";
+type SortState = { key: SortKey; dir: "asc" | "desc" } | null;
+
+const PAGE_SIZE = 30;
+
 export type ProfileExplorerProps = {
   profiles: Profile[];
-  /**
-   * "manage": expone acciones por fila (ver / editar / eliminar) y selección
-   * para futuras acciones masivas. "picker": modo embebido en un launch
-   * panel, ofrece selección hacia arriba.
-   */
   mode: "manage" | "picker";
   initialView?: ViewMode;
-  /** Notifica selección al padre (modo picker). */
   onSelectionChange?: (ids: string[]) => void;
-  /** Acción de eliminación; sólo en modo manage. */
   onDelete?: (id: string) => Promise<void> | void;
-  /**
-   * Slot opcional a la derecha de la toolbar. Recibe el conjunto actual de
-   * perfiles visibles (tras filtros) y la selección, útil para exportar.
-   */
   extraActions?: (ctx: { visible: Profile[]; selectedIds: string[] }) => React.ReactNode;
 };
 
@@ -46,10 +53,28 @@ export function ProfileExplorer({
   const [filters, setFilters] = useState<ProfileFilters>(DEFAULT_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [sort, setSort] = useState<SortState>(null);
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(() => filterProfiles(profiles, filters), [profiles, filters]);
-  const filteredIds = useMemo(() => filtered.map((p) => p.id), [filtered]);
 
+  const sorted = useMemo(() => {
+    if (!sort) return filtered;
+    const dir = sort.dir === "asc" ? 1 : -1;
+    return [...filtered].sort((a, b) => dir * compareBy(a, b, sort.key));
+  }, [filtered, sort]);
+
+  const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pageStart = (safePage - 1) * PAGE_SIZE;
+  const paged = sorted.slice(pageStart, pageStart + PAGE_SIZE);
+
+  // Resetea la paginación cuando cambian filtros, vista u ordenación.
+  useEffect(() => {
+    setPage(1);
+  }, [filters, view, sort]);
+
+  const filteredIds = useMemo(() => filtered.map((p) => p.id), [filtered]);
   const allFilteredSelected =
     filtered.length > 0 && filtered.every((p) => selected.has(p.id));
 
@@ -77,6 +102,13 @@ export function ProfileExplorer({
   function clearSelection() {
     setSelected(new Set());
     onSelectionChange?.([]);
+  }
+  function toggleSort(key: SortKey) {
+    setSort((prev) => {
+      if (!prev || prev.key !== key) return { key, dir: "asc" };
+      if (prev.dir === "asc") return { key, dir: "desc" };
+      return null;
+    });
   }
 
   return (
@@ -121,7 +153,7 @@ export function ProfileExplorer({
         </div>
       ) : view === "grid" ? (
         <ProfileGrid
-          profiles={filtered}
+          profiles={paged}
           mode={mode}
           selected={selected}
           onToggle={toggle}
@@ -129,15 +161,48 @@ export function ProfileExplorer({
         />
       ) : (
         <ProfileTable
-          profiles={filtered}
+          profiles={paged}
           mode={mode}
           selected={selected}
           onToggle={toggle}
           onDelete={onDelete}
+          sort={sort}
+          onSort={toggleSort}
+        />
+      )}
+
+      {sorted.length > PAGE_SIZE && (
+        <Pagination
+          page={safePage}
+          totalPages={totalPages}
+          totalItems={sorted.length}
+          pageStart={pageStart}
+          pageEnd={Math.min(pageStart + PAGE_SIZE, sorted.length)}
+          onChange={setPage}
         />
       )}
     </section>
   );
+}
+
+// ============================================================
+// Sort helpers
+// ============================================================
+
+function compareBy(a: Profile, b: Profile, key: SortKey): number {
+  const collator = new Intl.Collator("es", { sensitivity: "base", numeric: true });
+  switch (key) {
+    case "name":
+      return collator.compare(a.name, b.name);
+    case "age":
+      return a.demographics.age - b.demographics.age;
+    case "gender":
+      return collator.compare(a.demographics.gender, b.demographics.gender);
+    case "occupation":
+      return collator.compare(a.demographics.occupation, b.demographics.occupation);
+    case "geo":
+      return collator.compare(a.demographics.geo ?? "", b.demographics.geo ?? "");
+  }
 }
 
 // ============================================================
@@ -525,6 +590,11 @@ function ProfileCard({
   onToggle: () => void;
   onDelete?: (id: string) => Promise<void> | void;
 }) {
+  const barriersCount =
+    (profile.com_b_barriers.capability?.length ?? 0) +
+    (profile.com_b_barriers.opportunity?.length ?? 0) +
+    (profile.com_b_barriers.motivation?.length ?? 0);
+
   return (
     <li style={{ display: "flex" }}>
       <div
@@ -534,18 +604,39 @@ function ProfileCard({
           position: "relative",
           display: "flex",
           flexDirection: "column",
-          gap: 10,
-          padding: 16,
+          gap: 14,
+          padding: 18,
           border: `1px solid ${selected ? "var(--accent-500)" : "rgba(255,255,255,0.08)"}`,
           background: selected ? "rgba(250,204,13,0.06)" : "rgba(255,255,255,0.02)",
           borderRadius: "var(--radius-md)",
           width: "100%",
-          minHeight: 180,
+          minHeight: 220,
+          transition:
+            "border-color var(--dur-short) var(--ease-out), background var(--dur-short) var(--ease-out)",
         }}
       >
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-          <label style={{ display: "inline-flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
-            <input type="checkbox" checked={selected} onChange={onToggle} />
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            gap: 8,
+          }}
+        >
+          <label
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 10,
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={onToggle}
+              aria-label={`Seleccionar ${profile.name}`}
+            />
             <span
               className="mono"
               style={{
@@ -558,67 +649,176 @@ function ProfileCard({
               {profile.demographics.age} · {profile.demographics.gender}
             </span>
           </label>
-          {mode === "manage" && (
-            <RowActions profile={profile} onDelete={onDelete} />
+          {mode === "manage" && <RowActions profile={profile} onDelete={onDelete} />}
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
+          <h3
+            style={{
+              fontFamily: "var(--font-display)",
+              fontStyle: "italic",
+              fontSize: 22,
+              lineHeight: 1.15,
+              color: "#fff",
+              margin: 0,
+            }}
+          >
+            {profile.name}
+          </h3>
+          <p
+            style={{
+              color: "rgba(255,255,255,0.7)",
+              fontSize: 13,
+              margin: 0,
+              lineHeight: 1.45,
+            }}
+          >
+            {profile.demographics.occupation}
+          </p>
+          {profile.demographics.geo && (
+            <p
+              style={{
+                color: "rgba(255,255,255,0.45)",
+                fontSize: 12,
+                margin: 0,
+                lineHeight: 1.4,
+              }}
+            >
+              {profile.demographics.geo}
+            </p>
           )}
         </div>
-        <h3
+
+        <BigFiveBars b={profile.big_five} />
+
+        <div
+          className="mono"
           style={{
-            fontFamily: "var(--font-display)",
-            fontStyle: "italic",
-            fontSize: 22,
-            lineHeight: 1.15,
-            color: "#fff",
-            margin: 0,
+            display: "flex",
+            justifyContent: "space-between",
+            fontSize: 10,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.4)",
+            paddingTop: 8,
+            borderTop: "1px solid rgba(255,255,255,0.05)",
           }}
         >
-          {profile.name}
-        </h3>
-        <p
-          style={{
-            color: "rgba(255,255,255,0.7)",
-            fontSize: 13,
-            margin: 0,
-            flex: 1,
-            lineHeight: 1.45,
-          }}
-        >
-          {profile.demographics.occupation}
-          {profile.demographics.geo ? ` · ${profile.demographics.geo}` : ""}
-        </p>
-        <BigFiveDots b={profile.big_five} />
+          <span>{barriersCount} barrera{barriersCount === 1 ? "" : "s"} COM-B</span>
+          {profile.demographics.income_band && (
+            <span>{profile.demographics.income_band}</span>
+          )}
+        </div>
       </div>
     </li>
   );
 }
 
-function BigFiveDots({ b }: { b: Profile["big_five"] }) {
-  const items: { k: string; v: number }[] = [
-    { k: "O", v: b.openness },
-    { k: "C", v: b.conscientiousness },
-    { k: "E", v: b.extraversion },
-    { k: "A", v: b.agreeableness },
-    { k: "N", v: b.neuroticism },
-  ];
+// ============================================================
+// Big Five visual
+// ============================================================
+
+const BIG_FIVE_LABELS: Array<{ k: keyof Profile["big_five"]; label: string }> = [
+  { k: "openness", label: "O" },
+  { k: "conscientiousness", label: "C" },
+  { k: "extraversion", label: "E" },
+  { k: "agreeableness", label: "A" },
+  { k: "neuroticism", label: "N" },
+];
+
+function BigFiveBars({ b }: { b: Profile["big_five"] }) {
   return (
     <div
-      className="mono"
       style={{
-        display: "flex",
-        gap: 8,
-        fontSize: 10,
-        letterSpacing: "0.14em",
-        color: "rgba(255,255,255,0.55)",
+        display: "grid",
+        gridTemplateColumns: "repeat(5, 1fr)",
+        gap: 6,
       }}
+      title="Big Five (Apertura · Conciencia · Extraversión · Amabilidad · Neuroticismo)"
     >
-      {items.map((i) => (
-        <span key={i.k}>
-          {i.k}
-          <span style={{ color: "rgba(255,255,255,0.85)", marginLeft: 4 }}>
-            {Math.round(i.v * 100)}
-          </span>
-        </span>
-      ))}
+      {BIG_FIVE_LABELS.map(({ k, label }) => {
+        const v = b[k];
+        return (
+          <div
+            key={k}
+            style={{ display: "flex", flexDirection: "column", gap: 4, alignItems: "center" }}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: 5,
+                background: "rgba(255,255,255,0.06)",
+                borderRadius: 999,
+                overflow: "hidden",
+              }}
+              title={`${label}: ${Math.round(v * 100)}`}
+            >
+              <div
+                style={{
+                  width: `${Math.round(v * 100)}%`,
+                  height: "100%",
+                  background: "var(--accent-500)",
+                }}
+              />
+            </div>
+            <span
+              className="mono"
+              style={{
+                fontSize: 9,
+                letterSpacing: "0.16em",
+                color: "rgba(255,255,255,0.5)",
+              }}
+            >
+              {label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function BigFiveInlineBars({ b }: { b: Profile["big_five"] }) {
+  return (
+    <div style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
+      {BIG_FIVE_LABELS.map(({ k, label }) => {
+        const v = b[k];
+        return (
+          <div
+            key={k}
+            style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "center", width: 32 }}
+            title={`${label}: ${Math.round(v * 100)}`}
+          >
+            <div
+              style={{
+                width: "100%",
+                height: 4,
+                background: "rgba(255,255,255,0.06)",
+                borderRadius: 999,
+                overflow: "hidden",
+              }}
+            >
+              <div
+                style={{
+                  width: `${Math.round(v * 100)}%`,
+                  height: "100%",
+                  background: "var(--accent-500)",
+                }}
+              />
+            </div>
+            <span
+              className="mono"
+              style={{
+                fontSize: 9,
+                letterSpacing: "0.14em",
+                color: "rgba(255,255,255,0.5)",
+              }}
+            >
+              {label}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -633,12 +833,16 @@ function ProfileTable({
   selected,
   onToggle,
   onDelete,
+  sort,
+  onSort,
 }: {
   profiles: Profile[];
   mode: "manage" | "picker";
   selected: Set<string>;
   onToggle: (id: string) => void;
   onDelete?: (id: string) => Promise<void> | void;
+  sort: SortState;
+  onSort: (k: SortKey) => void;
 }) {
   return (
     <div style={{ overflowX: "auto" }}>
@@ -653,12 +857,22 @@ function ProfileTable({
         <thead>
           <tr style={{ textAlign: "left", color: "rgba(255,255,255,0.55)" }}>
             <Th></Th>
-            <Th>Nombre</Th>
-            <Th>Edad</Th>
-            <Th>Género</Th>
-            <Th>Ocupación</Th>
-            <Th>Geo</Th>
-            <Th className="col-ocean">O · C · E · A · N</Th>
+            <SortableTh sortKey="name" current={sort} onClick={() => onSort("name")}>
+              Nombre
+            </SortableTh>
+            <SortableTh sortKey="age" current={sort} onClick={() => onSort("age")}>
+              Edad
+            </SortableTh>
+            <SortableTh sortKey="gender" current={sort} onClick={() => onSort("gender")}>
+              Género
+            </SortableTh>
+            <SortableTh sortKey="occupation" current={sort} onClick={() => onSort("occupation")}>
+              Ocupación
+            </SortableTh>
+            <SortableTh sortKey="geo" current={sort} onClick={() => onSort("geo")}>
+              Geo
+            </SortableTh>
+            <Th className="col-ocean">Big Five</Th>
             {mode === "manage" && <Th>Acciones</Th>}
           </tr>
         </thead>
@@ -678,6 +892,7 @@ function ProfileTable({
                   type="checkbox"
                   checked={selected.has(p.id)}
                   onChange={() => onToggle(p.id)}
+                  aria-label={`Seleccionar ${p.name}`}
                 />
               </Td>
               <Td>
@@ -688,11 +903,7 @@ function ProfileTable({
               <Td>{p.demographics.occupation}</Td>
               <Td>{p.demographics.geo ?? "—"}</Td>
               <Td className="col-ocean">
-                <span className="mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.7)" }}>
-                  {Math.round(p.big_five.openness * 100)} · {Math.round(p.big_five.conscientiousness * 100)} ·{" "}
-                  {Math.round(p.big_five.extraversion * 100)} · {Math.round(p.big_five.agreeableness * 100)} ·{" "}
-                  {Math.round(p.big_five.neuroticism * 100)}
-                </span>
+                <BigFiveInlineBars b={p.big_five} />
               </Td>
               {mode === "manage" && (
                 <Td>
@@ -712,7 +923,7 @@ function Th({ children, className }: { children?: React.ReactNode; className?: s
     <th
       className={className ? `mono ${className}` : "mono"}
       style={{
-        padding: "8px 12px",
+        padding: "10px 12px",
         fontSize: 10,
         letterSpacing: "0.22em",
         textTransform: "uppercase",
@@ -723,12 +934,217 @@ function Th({ children, className }: { children?: React.ReactNode; className?: s
     </th>
   );
 }
+
+function SortableTh({
+  children,
+  sortKey,
+  current,
+  onClick,
+}: {
+  children: React.ReactNode;
+  sortKey: SortKey;
+  current: SortState;
+  onClick: () => void;
+}) {
+  const active = current?.key === sortKey;
+  const dir = active ? current.dir : null;
+  return (
+    <th
+      className="mono"
+      style={{
+        padding: 0,
+        fontSize: 10,
+        letterSpacing: "0.22em",
+        textTransform: "uppercase",
+        fontWeight: 400,
+      }}
+    >
+      <button
+        type="button"
+        onClick={onClick}
+        className="mono"
+        aria-sort={dir === "asc" ? "ascending" : dir === "desc" ? "descending" : "none"}
+        style={{
+          width: "100%",
+          background: "transparent",
+          border: 0,
+          color: active ? "var(--accent-500)" : "rgba(255,255,255,0.55)",
+          padding: "10px 12px",
+          textAlign: "left",
+          fontSize: 10,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          fontFamily: "inherit",
+          cursor: "pointer",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
+        }}
+      >
+        <span>{children}</span>
+        {dir === "asc" ? (
+          <ArrowUp size={12} />
+        ) : dir === "desc" ? (
+          <ArrowDown size={12} />
+        ) : (
+          <ArrowUpDown size={12} style={{ opacity: 0.5 }} />
+        )}
+      </button>
+    </th>
+  );
+}
+
 function Td({ children, className }: { children: React.ReactNode; className?: string }) {
   return (
-    <td className={className} style={{ padding: "10px 12px", verticalAlign: "middle" }}>
+    <td className={className} style={{ padding: "12px 12px", verticalAlign: "middle" }}>
       {children}
     </td>
   );
+}
+
+// ============================================================
+// Pagination
+// ============================================================
+
+function Pagination({
+  page,
+  totalPages,
+  totalItems,
+  pageStart,
+  pageEnd,
+  onChange,
+}: {
+  page: number;
+  totalPages: number;
+  totalItems: number;
+  pageStart: number;
+  pageEnd: number;
+  onChange: (p: number) => void;
+}) {
+  const items = paginationRange(page, totalPages);
+  return (
+    <nav
+      aria-label="Paginación"
+      style={{
+        display: "flex",
+        gap: 12,
+        alignItems: "center",
+        justifyContent: "space-between",
+        flexWrap: "wrap",
+        paddingTop: 8,
+      }}
+    >
+      <span
+        className="mono"
+        style={{
+          fontSize: 11,
+          letterSpacing: "0.18em",
+          textTransform: "uppercase",
+          color: "rgba(255,255,255,0.5)",
+        }}
+      >
+        {pageStart + 1}–{pageEnd} de {totalItems} · {PAGE_SIZE} por página
+      </span>
+
+      <div style={{ display: "inline-flex", gap: 4, alignItems: "center" }}>
+        <PageBtn
+          disabled={page <= 1}
+          onClick={() => onChange(page - 1)}
+          ariaLabel="Página anterior"
+        >
+          <ChevronLeft size={14} />
+        </PageBtn>
+        {items.map((it, idx) =>
+          it === "…" ? (
+            <span
+              key={`gap-${idx}`}
+              className="mono"
+              style={{
+                padding: "0 6px",
+                fontSize: 11,
+                color: "rgba(255,255,255,0.4)",
+              }}
+            >
+              …
+            </span>
+          ) : (
+            <PageBtn
+              key={it}
+              active={it === page}
+              onClick={() => onChange(it)}
+              ariaLabel={`Página ${it}`}
+            >
+              {it}
+            </PageBtn>
+          ),
+        )}
+        <PageBtn
+          disabled={page >= totalPages}
+          onClick={() => onChange(page + 1)}
+          ariaLabel="Página siguiente"
+        >
+          <ChevronRight size={14} />
+        </PageBtn>
+      </div>
+    </nav>
+  );
+}
+
+function PageBtn({
+  children,
+  active,
+  disabled,
+  onClick,
+  ariaLabel,
+}: {
+  children: React.ReactNode;
+  active?: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  ariaLabel: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={ariaLabel}
+      aria-current={active ? "page" : undefined}
+      className="mono"
+      style={{
+        minWidth: 30,
+        height: 30,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "0 8px",
+        background: active ? "var(--accent-500)" : "transparent",
+        color: active ? "var(--ink-900)" : disabled ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.7)",
+        border: `1px solid ${active ? "var(--accent-500)" : "rgba(255,255,255,0.12)"}`,
+        borderRadius: "var(--radius-sm)",
+        fontSize: 11,
+        letterSpacing: "0.16em",
+        fontFamily: "inherit",
+        cursor: disabled ? "not-allowed" : "pointer",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function paginationRange(current: number, total: number): Array<number | "…"> {
+  if (total <= 7) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+  const out: Array<number | "…"> = [1];
+  if (current > 3) out.push("…");
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  for (let i = start; i <= end; i++) out.push(i);
+  if (current < total - 2) out.push("…");
+  out.push(total);
+  return out;
 }
 
 // ============================================================
@@ -745,7 +1161,9 @@ function RowActions({
   async function confirmDelete(e: React.MouseEvent) {
     e.preventDefault();
     if (!onDelete) return;
-    const ok = window.confirm(`¿Eliminar el perfil «${profile.name}»? Esto borrará también sus runs y respuestas.`);
+    const ok = window.confirm(
+      `¿Eliminar el perfil «${profile.name}»? Esto borrará también sus runs y respuestas.`,
+    );
     if (!ok) return;
     await onDelete(profile.id);
   }
