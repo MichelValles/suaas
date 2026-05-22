@@ -1,4 +1,4 @@
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 export type RunKind = "5s_test" | "funnel" | "pricing" | "copy_resonance" | "ab_test" | "chat";
 export type RunStatus = "queued" | "running" | "done" | "error";
@@ -92,6 +92,7 @@ export async function listRunsByFunnel(funnelId: string): Promise<Run[]> {
     .select("*")
     .eq("funnel_id", funnelId)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "funnel_id")) return [];
   if (error) throw new Error(error.message);
   return (data ?? []) as Run[];
 }
@@ -103,6 +104,7 @@ export async function listRunsByAbTest(abTestId: string): Promise<Run[]> {
     .select("*")
     .eq("ab_test_id", abTestId)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "ab_test_id")) return [];
   if (error) throw new Error(error.message);
   return (data ?? []) as Run[];
 }
@@ -114,6 +116,7 @@ export async function listRunsByCopyDeck(deckId: string): Promise<Run[]> {
     .select("*")
     .eq("copy_deck_id", deckId)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "copy_deck_id")) return [];
   if (error) throw new Error(error.message);
   return (data ?? []) as Run[];
 }
@@ -125,6 +128,7 @@ export async function listRunsByPricingOffer(offerId: string): Promise<Run[]> {
     .select("*")
     .eq("pricing_offer_id", offerId)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "pricing_offer_id")) return [];
   if (error) throw new Error(error.message);
   return (data ?? []) as Run[];
 }
