@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
+import { ChannelIcon } from "@/components/channel-icon";
 import {
   CHANNEL_LABEL,
   CHANNEL_VALUES,
@@ -245,7 +246,7 @@ export function NewCampaignForm() {
         />
 
         <Section title="Canal">
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <span
               className="mono"
               style={{
@@ -257,16 +258,7 @@ export function NewCampaignForm() {
             >
               ¿En qué red simulamos el anuncio?
             </span>
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-              {CHANNEL_VALUES.map((c) => (
-                <ToggleButton
-                  key={c}
-                  active={channel === c}
-                  onClick={() => setChannel(c)}
-                  label={CHANNEL_LABEL[c]}
-                />
-              ))}
-            </div>
+            <ChannelTabs value={channel} onChange={setChannel} />
             <p
               style={{
                 color: "rgba(255,255,255,0.55)",
@@ -1084,6 +1076,61 @@ function ToggleButton({
     >
       {label}
     </button>
+  );
+}
+
+function ChannelTabs({
+  value,
+  onChange,
+}: {
+  value: Channel;
+  onChange: (v: Channel) => void;
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Canal publicitario"
+      style={{
+        display: "flex",
+        gap: 0,
+        borderBottom: "1px solid rgba(255,255,255,0.1)",
+        overflowX: "auto",
+      }}
+    >
+      {CHANNEL_VALUES.map((c) => {
+        const active = value === c;
+        return (
+          <button
+            key={c}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(c)}
+            style={{
+              background: "transparent",
+              border: 0,
+              borderBottom: active
+                ? "2px solid var(--accent-500)"
+                : "2px solid transparent",
+              padding: "10px 14px",
+              cursor: "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 8,
+              color: active ? "var(--accent-500)" : "rgba(255,255,255,0.6)",
+              fontFamily: "var(--font-sans)",
+              fontSize: 13,
+              fontWeight: active ? 600 : 400,
+              whiteSpace: "nowrap",
+              transition: "color var(--dur-short) var(--ease-out)",
+            }}
+          >
+            <ChannelIcon channel={c} size={16} />
+            <span>{CHANNEL_LABEL[c]}</span>
+          </button>
+        );
+      })}
+    </div>
   );
 }
 

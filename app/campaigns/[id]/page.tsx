@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { ChannelIcon } from "@/components/channel-icon";
 import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 import { RunsPreviousGrid } from "@/components/runs-previous";
 import { CHANNEL_LABEL, getCampaign, type Creative } from "@/lib/campaigns";
@@ -105,14 +106,35 @@ export default async function CampaignDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Campaña · ${CHANNEL_LABEL[campaign.channel]} · ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} · ${campaign.headlines.length} titulares`}
+        eyebrow={`Campaña · ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} · ${campaign.headlines.length} titulares`}
         title={campaign.name}
         description={campaign.brief ?? undefined}
         descriptionVariant="panel"
         actions={
-          <Link href="/campaigns" className="btn-pill">
-            Volver
-          </Link>
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            <span
+              className="mono"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 12px",
+                borderRadius: "var(--radius-pill)",
+                border: "1px solid rgba(255,255,255,0.18)",
+                background: "rgba(255,255,255,0.04)",
+                color: "rgba(255,255,255,0.85)",
+                fontSize: 11,
+                letterSpacing: "0.16em",
+                textTransform: "uppercase",
+              }}
+            >
+              <ChannelIcon channel={campaign.channel} size={14} />
+              {CHANNEL_LABEL[campaign.channel]}
+            </span>
+            <Link href="/campaigns" className="btn-pill">
+              Volver
+            </Link>
+          </div>
         }
       />
 
