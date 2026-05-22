@@ -562,6 +562,13 @@ textarea.backstory-input:focus-visible {
   grid-area: main;
   padding: clamp(28px, 4vw, 56px) clamp(24px, 4vw, 48px);
   min-width: 0;
+  /* Espaciado vertical consistente entre el PageHeading y las secciones
+     que cada página renderiza después. Páginas que envuelven todo en un
+     wrapper flex propio (home, /trash) no se ven afectadas porque main
+     sólo tiene 1 hijo y el gap no aplica con un único elemento. */
+  display: flex;
+  flex-direction: column;
+  gap: clamp(32px, 4vw, 56px);
 }
 
 .app-shell-footer {

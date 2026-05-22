@@ -184,6 +184,7 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 
 ## v0.26.x — Display Ads (RDA)
 
+- [x] **v0.26.2**: `.app-shell-main` ahora es `display: flex; flex-direction: column; gap: clamp(32px, 4vw, 56px)`. Antes los `<section>` y `<ol>` aparecían pegados al PageHeading; ahora todas las páginas heredan ese gap automáticamente. Las que envuelven todo en un wrapper flex propio (home, `/trash`) no se ven afectadas (el gap aplica entre hijos directos del main, no entre nietos).
 - [x] **v0.26.1**: el preview en vivo de `/campaigns/new` ahora se adapta a la strategy. Para **Display** se renderiza un mockup tipo card con imagen landscape (1.91:1) arriba, logo square + nombre de empresa + URL display debajo, titular largo en grande, headline corto en azul, descripción y botón CTA con color accent. Si aún no has subido landscape o logo se muestran placeholders. Para **Search** sigue mostrándose el SERP textual de antes. Eyebrow del preview muestra la strategy.
 - [x] **v0.26.0**: segunda estrategia implementada dentro de Google Ads, **Display (Responsive Display Ad)**. Modelo extendido con `company_name` (max 25c), `long_headline` (max 90c) y `cta` (de un set predefinido), columnas en `campaigns` añadidas por la migración `0014_campaigns_display.sql`. Cada `Creative` gana un campo `role` (`landscape_image | square_image | portrait_image | logo_square | logo_landscape | video_youtube | generic`) que la UI usa para validar los assets obligatorios de RDA.
   - Schema zod ahora usa `superRefine` por strategy:
