@@ -39,22 +39,26 @@ export async function createRun(input: {
   pricing_offer_id?: string | null;
   params?: Record<string, unknown> | null;
 }): Promise<Run> {
+  // Sólo incluimos en el INSERT las columnas con valor real. Si PostgREST
+  // tiene un schema cache desactualizado (caso clásico justo después de
+  // aplicar una migración) y enviamos todas las columnas con null,
+  // cualquier columna que aún no esté en su cache hace fallar el INSERT
+  // entero, incluso cuando la columna SÍ existe en la base. Omitiendo
+  // los null evitamos arrastrar a unos módulos por un cache parcial.
   const supa = getServerClient();
-  const { data, error } = await supa
-    .from("runs")
-    .insert({
-      profile_id: input.profile_id,
-      target_id: input.target_id ?? null,
-      funnel_id: input.funnel_id ?? null,
-      ab_test_id: input.ab_test_id ?? null,
-      copy_deck_id: input.copy_deck_id ?? null,
-      pricing_offer_id: input.pricing_offer_id ?? null,
-      kind: input.kind,
-      params: input.params ?? null,
-      status: "running",
-    })
-    .select("*")
-    .single();
+  const row: Record<string, unknown> = {
+    profile_id: input.profile_id,
+    kind: input.kind,
+    status: "running",
+    params: input.params ?? null,
+  };
+  if (input.target_id) row.target_id = input.target_id;
+  if (input.funnel_id) row.funnel_id = input.funnel_id;
+  if (input.ab_test_id) row.ab_test_id = input.ab_test_id;
+  if (input.copy_deck_id) row.copy_deck_id = input.copy_deck_id;
+  if (input.pricing_offer_id) row.pricing_offer_id = input.pricing_offer_id;
+
+  const { data, error } = await supa.from("runs").insert(row).select("*").single();
   if (error) throw new Error(error.message);
   return data as Run;
 }

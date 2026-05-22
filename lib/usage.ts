@@ -206,6 +206,15 @@ export type GatewayCredits = {
   error: string | null;
 };
 
+function coerceNumber(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string") {
+    const n = parseFloat(v);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+}
+
 /**
  * Consulta el endpoint de créditos del Vercel AI Gateway. La forma exacta
  * de la respuesta puede variar según el plan y versión; guardamos `raw` para
@@ -240,19 +249,17 @@ export async function getGatewayCredits(): Promise<GatewayCredits> {
     }
     const r = (raw ?? {}) as Record<string, unknown>;
     const balance =
-      typeof r.balance === "number"
-        ? r.balance
-        : typeof r.credits === "number"
-          ? r.credits
-          : typeof r.remaining === "number"
-            ? r.remaining
-            : null;
+      coerceNumber(r.balance) ??
+      coerceNumber(r.credits) ??
+      coerceNumber(r.remaining) ??
+      coerceNumber(r.creditBalance) ??
+      coerceNumber(r.available) ??
+      null;
     const totalUsed =
-      typeof r.total_used === "number"
-        ? r.total_used
-        : typeof r.used === "number"
-          ? r.used
-          : null;
+      coerceNumber(r.total_used) ??
+      coerceNumber(r.used) ??
+      coerceNumber(r.totalUsed) ??
+      null;
     return { ok: true, balance, totalUsed, raw, error: null };
   } catch (err) {
     return {

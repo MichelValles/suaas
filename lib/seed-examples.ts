@@ -68,18 +68,18 @@ export async function seedPricingExample(): Promise<{ offerId: string }> {
 // ============================================================
 
 const AB_DEFAULTS = {
-  name: "Landing hipoteca · BBVA vs ING",
+  name: "Landing banca digital · N26 vs Revolut",
   hypothesis:
-    "La landing de ING comunica más rápido el tipo de interés porque el CTA y el dato conviven en el hero. BBVA arrastra el ojo a la calculadora.",
+    "Revolut comunica más rápido la propuesta multicuenta y multidivisa. N26 hace foco en la cuenta principal sin fricción y delega el resto al onboarding.",
   a: {
-    name: "BBVA · hipoteca fija",
-    url: "https://www.bbva.es/personas/productos/hipotecas/hipoteca-fija.html",
-    promise: "Hipoteca a tipo fijo desde el 2,50% TIN sin comisiones de apertura.",
+    name: "N26 · cuenta digital",
+    url: "https://n26.com/es-es",
+    promise: "Cuenta 100% online sin comisiones de mantenimiento.",
   },
   b: {
-    name: "ING · hipoteca Naranja fija",
-    url: "https://www.ing.es/hipotecas/hipoteca-naranja",
-    promise: "Hipoteca Naranja Fija sin comisiones y con un proceso 100% online.",
+    name: "Revolut · banca y cambio de divisa",
+    url: "https://www.revolut.com/es-ES/",
+    promise: "Una cuenta para pagar, ahorrar e invertir en cualquier divisa.",
   },
 };
 
@@ -129,33 +129,33 @@ export async function seedAbExample(): Promise<{
 }
 
 // ============================================================
-// Funnel (4 pasos Filmin)
+// Funnel (4 pasos Notion)
 // ============================================================
 
 const FUNNEL_DEFAULTS = {
-  name: "Onboarding Filmin · descubrimiento a suscripción",
+  name: "Onboarding Notion · descubrir, evaluar, suscribirse",
   description:
-    "Recorrido típico de un nuevo visitante: aterriza, explora catálogo, evalúa una película y decide suscribirse.",
+    "Recorrido típico de un nuevo visitante a Notion: aterriza, evalúa el producto, compara precios y abre cuenta.",
   steps: [
     {
       name: "Home",
-      intent: "Entender qué es Filmin y por qué es distinto de Netflix/Prime.",
-      url: "https://www.filmin.es/",
+      intent: "Entender qué es Notion y a qué problema responde.",
+      url: "https://www.notion.com/",
     },
     {
-      name: "Colección destacada",
-      intent: "Descubrir contenido curado que diferencie a Filmin.",
-      url: "https://www.filmin.es/coleccion/lo-mejor",
+      name: "Producto",
+      intent: "Profundizar en capacidades concretas (docs, wikis, proyectos, IA).",
+      url: "https://www.notion.com/product",
     },
     {
-      name: "Ficha de película",
-      intent: "Evaluar interés concreto por una película disponible.",
-      url: "https://www.filmin.es/pelicula/el-fabuloso-destino-de-amelie-poulain",
+      name: "Precios",
+      intent: "Comparar planes y decidir si encaja en presupuesto.",
+      url: "https://www.notion.com/pricing",
     },
     {
-      name: "Página de suscripción",
-      intent: "Elegir plan y completar la suscripción.",
-      url: "https://www.filmin.es/registro",
+      name: "Registro",
+      intent: "Crear cuenta gratuita y completar el alta.",
+      url: "https://www.notion.com/signup",
     },
   ],
 };
