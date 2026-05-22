@@ -185,6 +185,7 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 ## v0.19.x — Sembrar como ruta de primer nivel + gate
 
 - [x] **v0.19.0**: entrada **Sembrar** (icono `Sprout`) en el sidebar (grupo Sistema) apuntando a `/seed-examples`. Antes la ruta sólo era accesible por URL directa. Doble gate de acceso: `/seed-examples` y `/api/seed/examples` exigen ahora una contraseña adicional (`michel101` por defecto, override con env `SEED_PASSWORD`) además del login global. Implementado con cookie httpOnly `seed_access` (8h), helper `lib/seed-auth.ts` con `timingSafeEqual` y endpoint `/api/seed/access` (POST/DELETE). Componente cliente `SeedGate` muestra el formulario cuando falta la cookie. Razón: sembrar consume tokens del gateway, conviene una segunda barrera intencional.
+- [x] **v0.19.1**: añadido el 5º seed faltante (Claridad 5s). `seedFiveSecondExample` crea un target individual (`Linear · purpose built for product development`) con `og:image` resuelto en runtime. Nuevo kind `"clarity"` en el endpoint, tarjeta dedicada en `/seed-examples` y link a `/experiments/five-second/[runId]` cuando se lanza con `launch > 0`. Antes el sembrador sólo cubría 4 de los 5 módulos (faltaba el más antiguo de todos).
 
 ## v0.18.x — Seeds por módulo
 

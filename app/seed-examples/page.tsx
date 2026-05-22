@@ -18,8 +18,8 @@ export default async function SeedExamplesPage() {
     <AppShell>
       <PageHeading
         eyebrow="Sembrar ejemplos"
-        title="Crea ejemplos en los 4 módulos."
-        description="Genera un copy deck, una oferta de pricing, un A/B test (Vercel vs Netlify) y un embudo de Stripe. Puedes sembrar los 4 a la vez o sólo uno desde cada tarjeta. Opcionalmente lanza un run sobre N perfiles aleatorios para ver resultados de inmediato."
+        title="Crea ejemplos en los 5 módulos."
+        description="Genera un test de claridad 5s (Linear), un copy deck, una oferta de pricing, un A/B test (Vercel vs Netlify) y un embudo de Stripe. Puedes sembrar los 5 a la vez o sólo uno desde cada tarjeta. Opcionalmente lanza un run sobre N perfiles aleatorios para ver resultados de inmediato."
         actions={
           <Link href="/" className="btn-pill">
             Volver al panel

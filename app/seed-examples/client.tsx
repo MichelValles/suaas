@@ -5,11 +5,12 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
-type Kind = "copy" | "pricing" | "ab" | "funnel";
+type Kind = "clarity" | "copy" | "pricing" | "ab" | "funnel";
 
 type ResultRow = {
   kind: string;
   ok: boolean;
+  targetId?: string;
   deckId?: string;
   offerId?: string;
   abTestId?: string;
@@ -120,12 +121,12 @@ export function SeedExamplesClient() {
         >
           {pending && pendingKind === "all" ? (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <Loader2 size={14} className="spin" /> Sembrando los 4…
+              <Loader2 size={14} className="spin" /> Sembrando los 5…
             </span>
           ) : launch > 0 ? (
-            `Crear los 4 y lanzar (${launch} perfiles)`
+            `Crear los 5 y lanzar (${launch} perfiles)`
           ) : (
-            "Crear los 4 (sin lanzar)"
+            "Crear los 5 (sin lanzar)"
           )}
         </button>
       </div>
@@ -140,6 +141,16 @@ export function SeedExamplesClient() {
           gap: 12,
         }}
       >
+        <li>
+          <Recipe
+            kind="clarity"
+            title="Claridad 5s"
+            body="Target Linear · landing del producto. Resolución de og:image en runtime."
+            onTrigger={trigger}
+            pending={pending}
+            pendingKind={pendingKind}
+          />
+        </li>
         <li>
           <Recipe
             kind="copy"
@@ -348,7 +359,10 @@ function ResultsBlock({ data }: { data: Response }) {
 
 function ResultLinks({ row }: { row: ResultRow }) {
   const links: { href: string; label: string }[] = [];
-  if (row.kind === "copy") {
+  if (row.kind === "clarity") {
+    if (row.targetId) links.push({ href: `/targets/${row.targetId}`, label: "Ver target" });
+    if (row.runId) links.push({ href: `/experiments/five-second/${row.runId}`, label: "Ver run" });
+  } else if (row.kind === "copy") {
     if (row.deckId) links.push({ href: `/copy/${row.deckId}`, label: "Ver deck" });
     if (row.runId) links.push({ href: `/experiments/copy/${row.runId}`, label: "Ver run" });
   } else if (row.kind === "pricing") {

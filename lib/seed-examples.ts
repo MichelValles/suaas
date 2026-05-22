@@ -6,10 +6,40 @@ import { listProfiles } from "@/lib/profiles";
 import { createTarget, resolveOgImage } from "@/lib/targets";
 
 /**
- * Construye ejemplos realistas en los 4 módulos para validar end-to-end
+ * Construye ejemplos realistas en los 5 módulos para validar end-to-end
  * la plataforma con los 50 perfiles ya sembrados. Cada función crea los
  * registros y devuelve los ids para que el endpoint pueda enlazar el run.
  */
+
+// ============================================================
+// Claridad 5s (target individual con og:image resuelto en runtime)
+// ============================================================
+
+const FIVE_SECOND_DEFAULTS = {
+  name: "Linear · purpose built for product development",
+  url: "https://linear.app/",
+  main_promise:
+    "Linear es la herramienta para equipos de producto: issues, proyectos y roadmaps a velocidad récord.",
+};
+
+export async function seedFiveSecondExample(): Promise<{ targetId: string }> {
+  const img = await resolveOgImage(FIVE_SECOND_DEFAULTS.url);
+  if (!img) {
+    throw new Error(
+      `No se pudo resolver og:image para ${FIVE_SECOND_DEFAULTS.url}.`,
+    );
+  }
+  const target = await createTarget({
+    name: FIVE_SECOND_DEFAULTS.name,
+    payload: {
+      kind: "5s_test",
+      main_promise: FIVE_SECOND_DEFAULTS.main_promise,
+      image_url: img,
+      source_url: FIVE_SECOND_DEFAULTS.url,
+    },
+  });
+  return { targetId: target.id };
+}
 
 // ============================================================
 // Copy (no requiere URLs)

@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 import { runAbTest } from "@/lib/experiments/ab";
 import { runCopyTest } from "@/lib/experiments/copy";
+import { runFiveSecondTest } from "@/lib/experiments/five-second";
 import { runFunnelTest } from "@/lib/experiments/funnel";
 import { runPricingTest } from "@/lib/experiments/pricing";
 import { isGatewayConfigured } from "@/lib/gateway";
@@ -10,15 +11,16 @@ import {
   pickRandomProfileIds,
   seedAbExample,
   seedCopyExample,
+  seedFiveSecondExample,
   seedFunnelExample,
   seedPricingExample,
 } from "@/lib/seed-examples";
 
 export const runtime = "nodejs";
-// 4 ejemplos + 4 runs paralelos (con 3 perfiles cada uno) → margen amplio.
+// 5 ejemplos + 5 runs paralelos (con 3 perfiles cada uno) → margen amplio.
 export const maxDuration = 300;
 
-const KIND_VALUES = ["copy", "pricing", "ab", "funnel"] as const;
+const KIND_VALUES = ["clarity", "copy", "pricing", "ab", "funnel"] as const;
 type Kind = (typeof KIND_VALUES)[number];
 
 const BodySchema = z.object({
@@ -27,6 +29,7 @@ const BodySchema = z.object({
 });
 
 type ExampleResult =
+  | { kind: "clarity"; ok: true; targetId: string; runId?: string; error?: undefined }
   | { kind: "copy"; ok: true; deckId: string; runId?: string; error?: undefined }
   | { kind: "pricing"; ok: true; offerId: string; runId?: string; error?: undefined }
   | { kind: "ab"; ok: true; abTestId: string; runIds?: string[]; error?: undefined }
@@ -65,6 +68,23 @@ export async function POST(request: Request) {
 
   const profileIds = launch > 0 ? await pickRandomProfileIds(launch) : [];
   const results: ExampleResult[] = [];
+
+  // ============================================================
+  // Claridad 5s
+  // ============================================================
+  if (selected.has("clarity")) {
+    try {
+      const { targetId } = await seedFiveSecondExample();
+      let runId: string | undefined;
+      if (launch > 0 && profileIds.length > 0) {
+        const { runId: rid } = await runFiveSecondTest({ targetId, profileIds });
+        runId = rid;
+      }
+      results.push({ kind: "clarity", ok: true, targetId, runId });
+    } catch (err) {
+      results.push({ kind: "clarity", ok: false, error: (err as Error).message });
+    }
+  }
 
   // ============================================================
   // Copy
