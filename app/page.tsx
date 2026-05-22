@@ -61,7 +61,7 @@ export default function HomePage() {
               title="Test de claridad 5 s"
               body="Cada perfil ve una pantalla 5 s y reporta recall y oferta percibida. Un LLM-as-judge compara contra la promesa principal y devuelve comprehension_rate."
               href="/targets"
-              cta="Ver targets"
+              cta="Ver tests"
             />
             <FeatureCard
               Icon={Filter}
@@ -73,7 +73,7 @@ export default function HomePage() {
             <FeatureCard
               Icon={Split}
               title="A/B tests"
-              body="Dos variantes del mismo target en paralelo. Compara comprensión, fricción y barreras emergentes con la misma cohorte de perfiles."
+              body="Dos variantes de pantalla en paralelo. Compara comprensión, fricción y barreras emergentes con la misma cohorte de perfiles."
               href="/ab"
               cta="Ver experimentos"
             />
@@ -192,7 +192,7 @@ export default function HomePage() {
               n={2}
               title="Elige qué evaluar"
               body="Una pantalla (test 5 s), un flujo (embudo), dos variantes (A/B), un deck de copies o niveles de precio. Sube URL pública (resolvemos og:image) o imagen directa."
-              cta={{ href: "/targets/new", label: "Crear target" }}
+              cta={{ href: "/targets/new", label: "Crear test" }}
             />
             <Step
               n={3}

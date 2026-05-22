@@ -12,7 +12,7 @@ export default async function TargetsPage() {
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Targets · qué se evalúa"
+          eyebrow="Claridad 5s · qué se evalúa"
           title="Supabase aún no está conectado."
           description="Provisiona Supabase desde el Marketplace de Vercel y aplica las migraciones."
         />
@@ -32,20 +32,20 @@ export default async function TargetsPage() {
     <AppShell>
       <PageHeading
         eyebrow="Targets · qué se evalúa"
-        title="Lo que ponemos delante de los usuarios sintéticos."
-        description="Cada target es una pantalla, una URL o un copy a evaluar. Por ahora arrancamos con tests de claridad de 5 segundos sobre una pantalla."
+        title="Pantallas que ponemos delante de los usuarios sintéticos."
+        description="Cada test enseña una pantalla durante 5 segundos a un set de perfiles y mide qué recuerdan, cómo perciben la oferta y qué fricciones detectan. La promesa principal se contrasta vía LLM-as-judge."
         actions={
           <Link href="/targets/new" className="btn-pill solid">
-            Crear target
+            Nuevo test
           </Link>
         }
       />
 
-      {err && <Notice tone="error">Error consultando targets: {err}</Notice>}
+      {err && <Notice tone="error">Error consultando tests: {err}</Notice>}
 
       {!err && targets.length === 0 && (
         <Notice>
-          Todavía no hay targets. Empieza creando uno desde "Crear target".
+          Todavía no hay tests de claridad. Empieza creando uno desde «Nuevo test».
         </Notice>
       )}
 

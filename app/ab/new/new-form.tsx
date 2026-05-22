@@ -87,7 +87,7 @@ function Select(props: {
       <Label>{props.label}</Label>
       <select name={props.name} required={props.required} style={inputStyle} defaultValue="">
         <option value="" disabled>
-          Elegir target…
+          Elegir test…
         </option>
         {props.options.map((o) => (
           <option key={o.value} value={o.value}>

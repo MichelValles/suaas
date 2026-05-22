@@ -10,7 +10,7 @@ export default function NewTargetPage() {
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Nuevo target"
+          eyebrow="Nuevo test de claridad"
           title="Supabase aún no está conectado."
         />
         <Link href="/targets" className="btn-pill">
@@ -22,7 +22,7 @@ export default function NewTargetPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Nuevo target · 5s_test"
+        eyebrow="Nuevo test de claridad · 5 s"
         title="Define qué van a ver durante 5 segundos."
         description="La promesa principal es lo que esperas que un usuario recuerde si la pantalla funciona. El test mide si ese recall se da o no."
         actions={

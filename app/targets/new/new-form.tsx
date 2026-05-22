@@ -48,7 +48,7 @@ export function NewTargetForm() {
       }}
     >
       <Field
-        label="Nombre del target"
+        label="Nombre del test"
         name="name"
         required
         defaultValue="Landing préstamo personal"
@@ -203,7 +203,7 @@ function Submit() {
       disabled={pending}
       style={{ alignSelf: "flex-start" }}
     >
-      {pending ? "Creando…" : "Crear target"}
+      {pending ? "Creando…" : "Crear test"}
     </button>
   );
 }
