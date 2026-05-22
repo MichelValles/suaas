@@ -102,17 +102,19 @@ export function PageHeading({
             color: "#fff",
             fontSize: "clamp(32px, 4vw, 56px)",
             lineHeight: 1.05,
-            maxWidth: 720,
+            flex: "1 1 320px",
+            minWidth: 0,
+            margin: 0,
           }}
         >
           {title}
         </h1>
-        {actions}
+        {actions && <div style={{ flexShrink: 0 }}>{actions}</div>}
       </div>
       {description && (
         <p
           className="body-lg"
-          style={{ color: "rgba(255,255,255,0.7)", maxWidth: 640 }}
+          style={{ color: "rgba(255,255,255,0.7)" }}
         >
           {description}
         </p>
