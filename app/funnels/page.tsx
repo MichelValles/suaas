@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { EntityCard } from "@/components/entity-card";
+import { EntityListView, type EntityListItem } from "@/components/entity-list";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { listFunnels } from "@/lib/funnels";
 
@@ -42,39 +42,27 @@ export default async function FunnelsPage() {
 
       {err && <Notice tone="error">Error consultando embudos: {err}</Notice>}
 
-      {!err && funnels.length === 0 && (
-        <Notice>
-          Todavía no hay embudos. Empieza creando uno desde «Crear embudo».
-        </Notice>
-      )}
 
-      {!err && funnels.length > 0 && (
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-            gap: 16,
-          }}
-        >
-          {funnels.map((f) => (
-            <EntityCard
-              key={f.id}
-              href={`/funnels/${f.id}`}
-              trash={{ type: "funnels", id: f.id, name: f.name }}
-              eyebrow={`${f.step_count} ${f.step_count === 1 ? "paso" : "pasos"}`}
-              title={f.name}
-              description={f.description}
-              createdAt={f.created_at}
-              stats={[
-                { label: "Runs", value: f.run_count },
-                { label: "Perfiles", value: f.user_count },
-              ]}
-            />
-          ))}
-        </ul>
+      {!err && (
+        <EntityListView
+          items={funnels.map<EntityListItem>((f) => ({
+            id: f.id,
+            href: `/funnels/${f.id}`,
+            trash: { type: "funnels", id: f.id, name: f.name },
+            title: f.name,
+            description: f.description,
+            createdAt: f.created_at,
+            runs: f.run_count,
+            users: f.user_count,
+            stats: [
+              { label: "Runs", value: f.run_count },
+              { label: "Perfiles", value: f.user_count },
+              { label: f.step_count === 1 ? "Paso" : "Pasos", value: f.step_count },
+            ],
+          }))}
+          emptyHint="Todavía no hay embudos. Empieza creando uno desde «Crear embudo»."
+          noMatchHint="Ningún embudo coincide con la búsqueda."
+        />
       )}
     </AppShell>
   );

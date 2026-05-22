@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { EntityCard } from "@/components/entity-card";
+import { EntityListView, type EntityListItem } from "@/components/entity-list";
 import { MigrationNeeded } from "@/components/migration-needed";
 import { listCopyDecks } from "@/lib/copy";
 import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
@@ -44,36 +44,29 @@ export default async function CopyListPage() {
         />
       )}
       {err && <Notice tone="error">Error: {err}</Notice>}
-      {!err && !missingMigration && decks.length === 0 && (
-        <Notice>Todavía no hay decks. Crea el primero.</Notice>
-      )}
-      {!err && !missingMigration && decks.length > 0 && (
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-            gap: 16,
-          }}
-        >
-          {decks.map((d) => (
-            <EntityCard
-              key={d.id}
-              href={`/copy/${d.id}`}
-              trash={{ type: "copy", id: d.id, name: d.name }}
-              eyebrow={`${d.block_count} ${d.block_count === 1 ? "versión" : "versiones"}${d.context ? ` · ${d.context}` : ""}`}
-              title={d.name}
-              description={d.description}
-              createdAt={d.created_at}
-              stats={[
-                { label: "Runs", value: d.run_count },
-                { label: "Perfiles", value: d.user_count },
-              ]}
-            />
-          ))}
-        </ul>
+      {!err && !missingMigration && (
+        <EntityListView
+          items={decks.map<EntityListItem>((d) => ({
+            id: d.id,
+            href: `/copy/${d.id}`,
+            trash: { type: "copy", id: d.id, name: d.name },
+            title: d.name,
+            description: d.description ?? d.context ?? null,
+            createdAt: d.created_at,
+            runs: d.run_count,
+            users: d.user_count,
+            stats: [
+              { label: "Runs", value: d.run_count },
+              { label: "Perfiles", value: d.user_count },
+              {
+                label: d.block_count === 1 ? "Versión" : "Versiones",
+                value: d.block_count,
+              },
+            ],
+          }))}
+          emptyHint="Todavía no hay decks. Crea el primero."
+          noMatchHint="Ningún deck coincide con la búsqueda."
+        />
       )}
     </AppShell>
   );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { EntityCard } from "@/components/entity-card";
+import { EntityListView, type EntityListItem } from "@/components/entity-list";
 import { MigrationNeeded } from "@/components/migration-needed";
 import { listAbTests } from "@/lib/ab";
 import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
@@ -44,36 +44,26 @@ export default async function AbListPage() {
         />
       )}
       {err && <Notice tone="error">Error: {err}</Notice>}
-      {!err && !missingMigration && tests.length === 0 && (
-        <Notice>Todavía no hay A/B tests. Crea el primero.</Notice>
-      )}
-      {!err && !missingMigration && tests.length > 0 && (
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-            gap: 16,
-          }}
-        >
-          {tests.map((t) => (
-            <EntityCard
-              key={t.id}
-              href={`/ab/${t.id}`}
-              trash={{ type: "ab", id: t.id, name: t.name }}
-              eyebrow="A/B · 2 variantes"
-              title={t.name}
-              description={t.hypothesis}
-              createdAt={t.created_at}
-              stats={[
-                { label: "Runs", value: t.run_count },
-                { label: "Perfiles", value: t.user_count },
-              ]}
-            />
-          ))}
-        </ul>
+      {!err && !missingMigration && (
+        <EntityListView
+          items={tests.map<EntityListItem>((t) => ({
+            id: t.id,
+            href: `/ab/${t.id}`,
+            trash: { type: "ab", id: t.id, name: t.name },
+            title: t.name,
+            description: t.hypothesis,
+            createdAt: t.created_at,
+            runs: t.run_count,
+            users: t.user_count,
+            stats: [
+              { label: "Runs", value: t.run_count },
+              { label: "Perfiles", value: t.user_count },
+              { label: "Variantes", value: 2 },
+            ],
+          }))}
+          emptyHint="Todavía no hay A/B tests. Crea el primero."
+          noMatchHint="Ningún A/B test coincide con la búsqueda."
+        />
       )}
     </AppShell>
   );

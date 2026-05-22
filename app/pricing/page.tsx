@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { EntityCard } from "@/components/entity-card";
+import { EntityListView, type EntityListItem } from "@/components/entity-list";
 import { MigrationNeeded } from "@/components/migration-needed";
 import { listPricingOffers } from "@/lib/pricing";
 import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
@@ -44,36 +44,29 @@ export default async function PricingListPage() {
         />
       )}
       {err && <Notice tone="error">Error: {err}</Notice>}
-      {!err && !missingMigration && offers.length === 0 && (
-        <Notice>Aún no hay ofertas. Crea la primera.</Notice>
-      )}
-      {!err && !missingMigration && offers.length > 0 && (
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-            gap: 16,
-          }}
-        >
-          {offers.map((o) => (
-            <EntityCard
-              key={o.id}
-              href={`/pricing/${o.id}`}
-              trash={{ type: "pricing", id: o.id, name: o.name }}
-              eyebrow={`${o.price_count} ${o.price_count === 1 ? "precio" : "precios"} · ${o.currency}`}
-              title={o.name}
-              description={o.description}
-              createdAt={o.created_at}
-              stats={[
-                { label: "Runs", value: o.run_count },
-                { label: "Perfiles", value: o.user_count },
-              ]}
-            />
-          ))}
-        </ul>
+      {!err && !missingMigration && (
+        <EntityListView
+          items={offers.map<EntityListItem>((o) => ({
+            id: o.id,
+            href: `/pricing/${o.id}`,
+            trash: { type: "pricing", id: o.id, name: o.name },
+            title: o.name,
+            description: o.description,
+            createdAt: o.created_at,
+            runs: o.run_count,
+            users: o.user_count,
+            stats: [
+              { label: "Runs", value: o.run_count },
+              { label: "Perfiles", value: o.user_count },
+              {
+                label: o.price_count === 1 ? "Precio" : "Precios",
+                value: `${o.price_count} ${o.currency}`,
+              },
+            ],
+          }))}
+          emptyHint="Aún no hay ofertas. Crea la primera."
+          noMatchHint="Ninguna oferta coincide con la búsqueda."
+        />
       )}
     </AppShell>
   );
