@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { InfoTooltip } from "@/components/info-tooltip";
-import { BIG_FIVE_TRAITS } from "@/lib/big-five";
-import { COM_B_BARRIERS } from "@/lib/com-b";
+import { BIG_FIVE_INTRO, BIG_FIVE_TRAITS } from "@/lib/big-five";
+import { COM_B_BARRIERS, COM_B_INTRO } from "@/lib/com-b";
 import { getProfile } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { ChatPanel } from "./chat-panel";
@@ -79,7 +79,7 @@ export default async function ProfileDetailPage({
           aria-label="Rasgos Big Five"
           style={{ display: "flex", flexDirection: "column", gap: 16 }}
         >
-          <SectionLabel>Big Five</SectionLabel>
+          <SectionLabel description={BIG_FIVE_INTRO}>Big Five</SectionLabel>
           <div
             style={{
               display: "grid",
@@ -99,7 +99,7 @@ export default async function ProfileDetailPage({
           aria-label="Barreras COM-B"
           style={{ display: "flex", flexDirection: "column", gap: 16 }}
         >
-          <SectionLabel>Barreras COM-B</SectionLabel>
+          <SectionLabel description={COM_B_INTRO}>Barreras COM-B</SectionLabel>
           <div
             style={{
               display: "grid",
@@ -131,20 +131,41 @@ export default async function ProfileDetailPage({
   );
 }
 
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({
+  children,
+  description,
+}: {
+  children: React.ReactNode;
+  description?: string;
+}) {
   return (
-    <h2
-      className="mono"
-      style={{
-        fontSize: 11,
-        letterSpacing: "0.28em",
-        textTransform: "uppercase",
-        color: "var(--accent-500)",
-        margin: 0,
-      }}
-    >
-      {children}
-    </h2>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <h2
+        className="mono"
+        style={{
+          fontSize: 11,
+          letterSpacing: "0.28em",
+          textTransform: "uppercase",
+          color: "var(--accent-500)",
+          margin: 0,
+        }}
+      >
+        {children}
+      </h2>
+      {description && (
+        <p
+          style={{
+            color: "rgba(255,255,255,0.6)",
+            fontSize: 13,
+            lineHeight: 1.55,
+            margin: 0,
+            maxWidth: 720,
+          }}
+        >
+          {description}
+        </p>
+      )}
+    </div>
   );
 }
 

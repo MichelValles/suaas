@@ -32,4 +32,7 @@ export const BIG_FIVE_TRAITS = {
   },
 } as const;
 
+export const BIG_FIVE_INTRO =
+  "El modelo Big Five (OCEAN) describe la personalidad en cinco rasgos continuos de 0 a 1: Apertura, Conciencia, Extraversión, Amabilidad y Neuroticismo. Cada perfil mezcla un nivel propio en cada eje, y esos niveles condicionan cómo razona y reacciona a lo que le pongas delante.";
+
 export type BigFiveTraitKey = keyof typeof BIG_FIVE_TRAITS;

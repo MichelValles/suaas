@@ -3,7 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { InfoTooltip } from "@/components/info-tooltip";
-import { BIG_FIVE_TRAITS } from "@/lib/big-five";
+import { BIG_FIVE_INTRO, BIG_FIVE_TRAITS } from "@/lib/big-five";
 import { COM_B_BARRIERS, COM_B_INTRO } from "@/lib/com-b";
 
 export type ProfileFormState = { ok: boolean; error?: string };
@@ -111,7 +111,7 @@ export function ProfileForm({
         </Row>
       </FieldGroup>
 
-      <FieldGroup title="Big Five (0..1)">
+      <FieldGroup title="Big Five (0..1)" hint={BIG_FIVE_INTRO}>
         <Row>
           <BigFive name="openness" label="Apertura" value={initial.openness} tooltip={BIG_FIVE_TRAITS.openness.description} />
           <BigFive name="conscientiousness" label="Conciencia" value={initial.conscientiousness} tooltip={BIG_FIVE_TRAITS.conscientiousness.description} />
