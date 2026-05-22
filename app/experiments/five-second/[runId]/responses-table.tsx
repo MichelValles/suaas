@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 type Row = {
@@ -137,49 +138,40 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                   style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
                 >
                   <Td>
-                    <button
-                      type="button"
-                      onClick={() => toggle(row.profileId)}
+                    <div
                       style={{
-                        background: "transparent",
-                        border: "none",
-                        color: "#fff",
-                        cursor: "pointer",
-                        padding: 0,
-                        textAlign: "left",
-                        fontFamily: "inherit",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 2,
+                        alignItems: "flex-start",
                       }}
                     >
-                      <span
+                      <Link
+                        href={`/profiles/${row.profileId}`}
+                        title={`Ver perfil de ${row.profileName}`}
                         style={{
-                          display: "flex",
-                          flexDirection: "column",
-                          gap: 2,
-                          alignItems: "flex-start",
+                          fontFamily: "var(--font-display)",
+                          fontStyle: "italic",
+                          fontSize: 16,
+                          color: "#fff",
+                          textDecoration: "none",
+                          borderBottom: "1px dotted rgba(255,255,255,0.25)",
                         }}
                       >
-                        <span
-                          style={{
-                            fontFamily: "var(--font-display)",
-                            fontStyle: "italic",
-                            fontSize: 16,
-                          }}
-                        >
-                          {row.profileName}
-                        </span>
-                        <span
-                          className="mono"
-                          style={{
-                            fontSize: 10,
-                            letterSpacing: "0.18em",
-                            textTransform: "uppercase",
-                            color: "rgba(255,255,255,0.5)",
-                          }}
-                        >
-                          {row.profileDemo}
-                        </span>
+                        {row.profileName}
+                      </Link>
+                      <span
+                        className="mono"
+                        style={{
+                          fontSize: 10,
+                          letterSpacing: "0.18em",
+                          textTransform: "uppercase",
+                          color: "rgba(255,255,255,0.5)",
+                        }}
+                      >
+                        {row.profileDemo}
                       </span>
-                    </button>
+                    </div>
                   </Td>
                   <Td>{fmtPct(row.clarity)}</Td>
                   <Td>

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Fragment, useState } from "react";
 
 type StepCell = {
@@ -111,7 +112,19 @@ export function FunnelResponsesTable({
                   >
                     <Td>
                       <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                        <span style={{ color: "#fff" }}>{row.profileName}</span>
+                        <Link
+                          href={`/profiles/${row.profileId}`}
+                          onClick={(e) => e.stopPropagation()}
+                          title={`Ver perfil de ${row.profileName}`}
+                          style={{
+                            color: "#fff",
+                            textDecoration: "none",
+                            borderBottom: "1px dotted rgba(255,255,255,0.25)",
+                            alignSelf: "flex-start",
+                          }}
+                        >
+                          {row.profileName}
+                        </Link>
                         <span
                           className="mono"
                           style={{

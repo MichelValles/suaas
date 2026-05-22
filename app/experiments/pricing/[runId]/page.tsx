@@ -229,9 +229,18 @@ export default async function PricingRunPage({
                           flexWrap: "wrap",
                         }}
                       >
-                        <span style={{ color: "#fff", fontSize: 13 }}>
+                        <Link
+                          href={`/profiles/${r.profileId}`}
+                          title={profile ? `Ver perfil de ${profile.name}` : undefined}
+                          style={{
+                            color: "#fff",
+                            fontSize: 13,
+                            textDecoration: "none",
+                            borderBottom: "1px dotted rgba(255,255,255,0.25)",
+                          }}
+                        >
                           {profile?.name ?? r.profileId.slice(0, 8)}
-                        </span>
+                        </Link>
                         <span
                           className="mono"
                           style={{
