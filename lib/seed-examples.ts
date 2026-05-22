@@ -68,18 +68,18 @@ export async function seedPricingExample(): Promise<{ offerId: string }> {
 // ============================================================
 
 const AB_DEFAULTS = {
-  name: "Landing banca digital · N26 vs Revolut",
+  name: "Landing plataformas dev · Vercel vs Netlify",
   hypothesis:
-    "Revolut comunica más rápido la propuesta multicuenta y multidivisa. N26 hace foco en la cuenta principal sin fricción y delega el resto al onboarding.",
+    "Vercel ancla la propuesta en velocidad y la integración con Next.js. Netlify se posiciona como plataforma horizontal con foco en team collaboration.",
   a: {
-    name: "N26 · cuenta digital",
-    url: "https://n26.com/es-es",
-    promise: "Cuenta 100% online sin comisiones de mantenimiento.",
+    name: "Vercel · platform for web devs",
+    url: "https://vercel.com/",
+    promise: "Despliega proyectos modernos a la frontera de la red con previews por commit.",
   },
   b: {
-    name: "Revolut · banca y cambio de divisa",
-    url: "https://www.revolut.com/es-ES/",
-    promise: "Una cuenta para pagar, ahorrar e invertir en cualquier divisa.",
+    name: "Netlify · build, deploy and scale",
+    url: "https://www.netlify.com/",
+    promise: "Plataforma para construir, desplegar y escalar webs modernas con un único workflow.",
   },
 };
 
@@ -129,33 +129,33 @@ export async function seedAbExample(): Promise<{
 }
 
 // ============================================================
-// Funnel (4 pasos Notion)
+// Funnel (4 pasos Stripe)
 // ============================================================
 
 const FUNNEL_DEFAULTS = {
-  name: "Onboarding Notion · descubrir, evaluar, suscribirse",
+  name: "Onboarding Stripe · descubrir, evaluar, decidir",
   description:
-    "Recorrido típico de un nuevo visitante a Notion: aterriza, evalúa el producto, compara precios y abre cuenta.",
+    "Recorrido típico de un nuevo visitante a Stripe: aterriza, profundiza en producto, valida con casos reales y decide entrar por la página de precios.",
   steps: [
     {
       name: "Home",
-      intent: "Entender qué es Notion y a qué problema responde.",
-      url: "https://www.notion.com/",
+      intent: "Entender qué hace Stripe y para quién es.",
+      url: "https://stripe.com/es-es",
     },
     {
-      name: "Producto",
-      intent: "Profundizar en capacidades concretas (docs, wikis, proyectos, IA).",
-      url: "https://www.notion.com/product",
+      name: "Producto · Pagos",
+      intent: "Evaluar la capacidad concreta de la plataforma de pagos.",
+      url: "https://stripe.com/es-es/payments",
+    },
+    {
+      name: "Casos de éxito",
+      intent: "Validar con prueba social que merece la pena confiar en Stripe.",
+      url: "https://stripe.com/es-es/customers",
     },
     {
       name: "Precios",
-      intent: "Comparar planes y decidir si encaja en presupuesto.",
-      url: "https://www.notion.com/pricing",
-    },
-    {
-      name: "Registro",
-      intent: "Crear cuenta gratuita y completar el alta.",
-      url: "https://www.notion.com/signup",
+      intent: "Decidir si los precios encajan y dar el siguiente paso.",
+      url: "https://stripe.com/es-es/pricing",
     },
   ],
 };
