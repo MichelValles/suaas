@@ -42,25 +42,6 @@ export default function HomePage() {
           }
         />
 
-        {/* KPI strip */}
-        <section
-          aria-label="Resumen del producto"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: 1,
-            background: "rgba(255,255,255,0.08)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            borderRadius: "var(--radius-md)",
-            overflow: "hidden",
-          }}
-        >
-          <Kpi label="Módulos de test" value="5" hint="5 s · Embudo · A/B · Copy · Pricing" />
-          <Kpi label="Perfiles en paralelo" value="20" hint="chunks de 5 en vuelo" />
-          <Kpi label="Arquitectura" value="Talker + Reasoner" hint="Sonnet sobre Opus" />
-          <Kpi label="Persistencia" value="Supabase" hint="runs · métricas · trazas" />
-        </section>
-
         {/* MÓDULOS DE TEST */}
         <section
           aria-label="Módulos de test"
@@ -259,60 +240,6 @@ export default function HomePage() {
 // ============================================================
 // Sub-componentes
 // ============================================================
-
-function Kpi({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint: string;
-}) {
-  return (
-    <div
-      style={{
-        background: "var(--ink-900)",
-        padding: "20px 24px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-      }}
-    >
-      <span
-        className="mono"
-        style={{
-          fontSize: 10,
-          letterSpacing: "0.24em",
-          textTransform: "uppercase",
-          color: "rgba(255,255,255,0.5)",
-        }}
-      >
-        {label}
-      </span>
-      <span
-        className="mono"
-        style={{
-          fontSize: 22,
-          color: "var(--accent-500)",
-          lineHeight: 1.1,
-          fontWeight: 700,
-        }}
-      >
-        {value}
-      </span>
-      <span
-        style={{
-          fontSize: 12,
-          color: "rgba(255,255,255,0.55)",
-          lineHeight: 1.45,
-        }}
-      >
-        {hint}
-      </span>
-    </div>
-  );
-}
 
 function SectionLabel({
   Icon,
