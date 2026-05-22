@@ -25,7 +25,11 @@ const CreativePayloadSchema = z.object({
 
 const PayloadSchema = z.object({
   name: z.string().min(1),
-  channel: z.enum(CHANNEL_VALUES).default("google"),
+  channels: z
+    .array(z.enum(CHANNEL_VALUES))
+    .min(1)
+    .max(5)
+    .default(["google"]),
   brief: z.string().optional().nullable(),
   final_url: z.string().url(),
   landing_mode: z.enum(["og", "upload"]),
@@ -178,7 +182,7 @@ export async function createCampaignAction(
 
   const input: CampaignInput = {
     name: payload.name.trim(),
-    channel: payload.channel,
+    channels: payload.channels,
     brief: payload.brief?.trim() || null,
     final_url: payload.final_url,
     landing_image_url: landingImageUrl,

@@ -1,6 +1,6 @@
 import { generateObject } from "ai";
 import { z } from "zod";
-import { type Campaign, getCampaign } from "@/lib/campaigns";
+import { type Campaign, type Channel, getCampaign } from "@/lib/campaigns";
 import { DEFAULT_MODEL, REASONER_MODEL } from "@/lib/gateway";
 import { resolveImageForApi } from "@/lib/image-source";
 import { buildSystemPrompt } from "@/lib/prompts";
@@ -89,6 +89,7 @@ export type IdealVersion = z.infer<typeof IdealVersionSchema>;
 
 export type CampaignResponse = {
   profileId: string;
+  channel: Channel;
   query: string;
   intent_to_click: number;
   perceived_offer: string;
@@ -117,6 +118,18 @@ export type CampaignByQuery = {
   top_barriers: { label: string; count: number }[];
 };
 
+export type CampaignByChannel = {
+  channel: Channel;
+  n: number;
+  mean_intent_to_click: number;
+  mean_clarity: number;
+  mean_credibility: number;
+  mean_differentiation: number;
+  mean_landing_match: number | null;
+  click_rate: number;
+  top_barriers: { label: string; count: number }[];
+};
+
 export type CampaignSummary = {
   n_profiles: number;
   n_responses: number;
@@ -127,6 +140,7 @@ export type CampaignSummary = {
   mean_landing_match: number | null;
   click_rate: number;
   byQuery: CampaignByQuery[];
+  byChannel: CampaignByChannel[];
   top_barriers: { label: string; count: number }[];
 };
 
@@ -134,8 +148,8 @@ export type CampaignSummary = {
 // 1) Snippet eval (multimodal con creatividades si hay)
 // ============================================================
 
-function renderSnippetText(campaign: Campaign): string {
-  switch (campaign.channel) {
+function renderSnippetText(campaign: Campaign, channel: Channel): string {
+  switch (channel) {
     case "meta":
       return renderFeedSnippet(campaign, "Instagram / Facebook");
     case "linkedin":
@@ -191,7 +205,7 @@ function displayUrl(url: string): string {
   }
 }
 
-function networkLabel(channel: Campaign["channel"]): string {
+function networkLabel(channel: Channel): string {
   switch (channel) {
     case "meta":
       return "Instagram / Facebook";
@@ -207,8 +221,8 @@ function networkLabel(channel: Campaign["channel"]): string {
   }
 }
 
-function framingByChannel(campaign: Campaign, query: string): string {
-  switch (campaign.channel) {
+function framingByChannel(channel: Channel, query: string): string {
+  switch (channel) {
     case "meta":
       return [
         `Estás pasando contenido en Instagram / Facebook. Tu interés general ahora mismo: «${query}».`,
@@ -242,6 +256,7 @@ function framingByChannel(campaign: Campaign, query: string): string {
 async function probeCampaignSnippet(
   profile: Profile,
   campaign: Campaign,
+  channel: Channel,
   query: string,
 ): Promise<{ output: SnippetEval; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
@@ -253,9 +268,9 @@ async function probeCampaignSnippet(
     {
       type: "text",
       text: [
-        framingByChannel(campaign, query),
+        framingByChannel(channel, query),
         "",
-        renderSnippetText(campaign),
+        renderSnippetText(campaign, channel),
         campaign.brief
           ? `\nNota del anunciante (no la verías tú, sólo contexto): ${campaign.brief}`
           : "",
@@ -317,17 +332,18 @@ async function probeCampaignSnippet(
 async function judgeLandingMatch(
   profile: Profile,
   campaign: Campaign,
+  channel: Channel,
   query: string,
   snippet: SnippetEval,
 ): Promise<{ output: LandingMatch; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const image = await resolveImageForApi(campaign.landing_image_url);
   const channelHook =
-    campaign.channel === "google"
+    channel === "google"
       ? "Acabas de hacer click en un anuncio de Paid Search"
-      : `Acabas de hacer click en el post patrocinado de ${networkLabel(campaign.channel)}`;
+      : `Acabas de hacer click en el post patrocinado de ${networkLabel(channel)}`;
   const queryFraming =
-    campaign.channel === "google"
+    channel === "google"
       ? `Tu búsqueda fue: «${query}».`
       : `Tu interés / contexto era: «${query}».`;
   const result = await generateObject({
@@ -373,17 +389,17 @@ async function judgeLandingMatch(
 
 async function proposeIdealVersion(
   profile: Profile,
-  campaign: Campaign,
+  channel: Channel,
   query: string,
   snippet: SnippetEval,
 ): Promise<{ output: IdealVersion; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const formatHint =
-    campaign.channel === "google"
+    channel === "google"
       ? "formato Google Ads RSA (titular máx 30 chars, descripción máx 90)"
-      : `formato ${networkLabel(campaign.channel)} (texto corto que pueda pararte en feed)`;
+      : `formato ${networkLabel(channel)} (texto corto que pueda pararte en feed)`;
   const queryFraming =
-    campaign.channel === "google"
+    channel === "google"
       ? `Tu búsqueda fue: «${query}».`
       : `Tu interés / contexto era: «${query}».`;
   const result = await generateObject({
@@ -428,6 +444,9 @@ export async function runCampaignTest(
   const campaign = await getCampaign(input.campaignId);
   if (!campaign) throw new Error("Campaign no encontrada.");
   if (campaign.queries.length === 0) throw new Error("La campaign no tiene queries.");
+  if (!campaign.channels || campaign.channels.length === 0) {
+    throw new Error("La campaign no tiene canales seleccionados.");
+  }
 
   const profiles: Profile[] = [];
   for (const pid of input.profileIds) {
@@ -438,6 +457,17 @@ export async function runCampaignTest(
   if (profiles.length === 0) throw new Error("Sin perfiles para evaluar.");
   if (profiles.length > 20) throw new Error("Máximo 20 perfiles por run.");
 
+  // Cap defensivo del techo combinatorio. 20 × 5 × 5 = 500 snippets en peor
+  // caso es demasiado para maxDuration=300. Bloqueamos por encima de 200
+  // combinaciones perfil-canal-query con un mensaje claro.
+  const combinations =
+    profiles.length * campaign.channels.length * campaign.queries.length;
+  if (combinations > 200) {
+    throw new Error(
+      `Combinatorial demasiado grande: ${profiles.length} perfiles × ${campaign.channels.length} canales × ${campaign.queries.length} queries = ${combinations}. Máximo 200. Reduce perfiles, canales o queries.`,
+    );
+  }
+
   const run = await createRun({
     profile_id: profiles[0].id,
     kind: "campaign",
@@ -446,6 +476,7 @@ export async function runCampaignTest(
       campaignId: campaign.id,
       profileIds: profiles.map((p) => p.id),
       queries: campaign.queries,
+      channels: campaign.channels,
     },
   });
 
@@ -507,99 +538,104 @@ async function probeProfileAllQueries(
 ): Promise<CampaignResponse[]> {
   const out: CampaignResponse[] = [];
   const supa = getServerClient();
-  for (const query of campaign.queries) {
-    const snippet = await probeCampaignSnippet(profile, campaign, query);
-    await recordUsage({
-      runId,
-      scope: "campaign_probe",
-      model: REASONER_MODEL,
-      usage: snippet.usage,
-      meta: { latency_ms: snippet.latencyMs, query },
-    }).catch(() => {});
+  for (const channel of campaign.channels) {
+    for (const query of campaign.queries) {
+      const snippet = await probeCampaignSnippet(profile, campaign, channel, query);
+      await recordUsage({
+        runId,
+        scope: "campaign_probe",
+        model: REASONER_MODEL,
+        usage: snippet.usage,
+        meta: { latency_ms: snippet.latencyMs, query, channel },
+      }).catch(() => {});
 
-    let landingEvaluated = false;
-    let landingMatch: number | null = null;
-    let landingCritique: string | null = null;
-    if (snippet.output.intent_to_click >= LANDING_THRESHOLD) {
-      try {
-        const landing = await judgeLandingMatch(
-          profile,
-          campaign,
-          query,
-          snippet.output,
-        );
-        landingEvaluated = true;
-        landingMatch = landing.output.landing_match;
-        landingCritique = landing.output.landing_critique;
-        await recordUsage({
-          runId,
-          scope: "campaign_landing",
-          model: REASONER_MODEL,
-          usage: landing.usage,
-          meta: { latency_ms: landing.latencyMs, query },
-        }).catch(() => {});
-      } catch {
-        // si falla la landing eval seguimos sin ella
+      let landingEvaluated = false;
+      let landingMatch: number | null = null;
+      let landingCritique: string | null = null;
+      if (snippet.output.intent_to_click >= LANDING_THRESHOLD) {
+        try {
+          const landing = await judgeLandingMatch(
+            profile,
+            campaign,
+            channel,
+            query,
+            snippet.output,
+          );
+          landingEvaluated = true;
+          landingMatch = landing.output.landing_match;
+          landingCritique = landing.output.landing_critique;
+          await recordUsage({
+            runId,
+            scope: "campaign_landing",
+            model: REASONER_MODEL,
+            usage: landing.usage,
+            meta: { latency_ms: landing.latencyMs, query, channel },
+          }).catch(() => {});
+        } catch {
+          // si falla la landing eval seguimos sin ella
+        }
       }
-    }
 
-    const ideal = await proposeIdealVersion(profile, campaign, query, snippet.output);
-    await recordUsage({
-      runId,
-      scope: "campaign_ideal",
-      model: DEFAULT_MODEL,
-      usage: ideal.usage,
-      meta: { latency_ms: ideal.latencyMs, query },
-    }).catch(() => {});
+      const ideal = await proposeIdealVersion(profile, channel, query, snippet.output);
+      await recordUsage({
+        runId,
+        scope: "campaign_ideal",
+        model: DEFAULT_MODEL,
+        usage: ideal.usage,
+        meta: { latency_ms: ideal.latencyMs, query, channel },
+      }).catch(() => {});
 
-    const row: CampaignResponse = {
-      profileId: profile.id,
-      query,
-      intent_to_click: snippet.output.intent_to_click,
-      perceived_offer: snippet.output.perceived_offer,
-      clarity: snippet.output.clarity,
-      credibility: snippet.output.credibility,
-      differentiation: snippet.output.differentiation,
-      barriers: snippet.output.barriers,
-      landing_evaluated: landingEvaluated,
-      landing_match: landingMatch,
-      landing_critique: landingCritique,
-      ideal_headline: ideal.output.ideal_headline,
-      ideal_description: ideal.output.ideal_description,
-      ideal_promise: ideal.output.ideal_promise,
-      ideal_free_text: ideal.output.ideal_free_text ?? null,
-    };
+      const row: CampaignResponse = {
+        profileId: profile.id,
+        channel,
+        query,
+        intent_to_click: snippet.output.intent_to_click,
+        perceived_offer: snippet.output.perceived_offer,
+        clarity: snippet.output.clarity,
+        credibility: snippet.output.credibility,
+        differentiation: snippet.output.differentiation,
+        barriers: snippet.output.barriers,
+        landing_evaluated: landingEvaluated,
+        landing_match: landingMatch,
+        landing_critique: landingCritique,
+        ideal_headline: ideal.output.ideal_headline,
+        ideal_description: ideal.output.ideal_description,
+        ideal_promise: ideal.output.ideal_promise,
+        ideal_free_text: ideal.output.ideal_free_text ?? null,
+      };
 
-    const { error } = await supa.from("campaign_responses").upsert(
-      {
-        run_id: runId,
-        profile_id: profile.id,
-        query: row.query,
-        intent_to_click: row.intent_to_click,
-        perceived_offer: row.perceived_offer,
-        clarity: row.clarity,
-        credibility: row.credibility,
-        differentiation: row.differentiation,
-        barriers: row.barriers,
-        landing_evaluated: row.landing_evaluated,
-        landing_match: row.landing_match,
-        landing_critique: row.landing_critique,
-        ideal_headline: row.ideal_headline,
-        ideal_description: row.ideal_description,
-        ideal_promise: row.ideal_promise,
-        ideal_free_text: row.ideal_free_text,
-        meta: {
-          model_snippet: REASONER_MODEL,
-          model_landing: REASONER_MODEL,
-          model_ideal: DEFAULT_MODEL,
-          latency_ms_snippet: snippet.latencyMs,
-          latency_ms_ideal: ideal.latencyMs,
+      const { error } = await supa.from("campaign_responses").upsert(
+        {
+          run_id: runId,
+          profile_id: profile.id,
+          channel: row.channel,
+          query: row.query,
+          intent_to_click: row.intent_to_click,
+          perceived_offer: row.perceived_offer,
+          clarity: row.clarity,
+          credibility: row.credibility,
+          differentiation: row.differentiation,
+          barriers: row.barriers,
+          landing_evaluated: row.landing_evaluated,
+          landing_match: row.landing_match,
+          landing_critique: row.landing_critique,
+          ideal_headline: row.ideal_headline,
+          ideal_description: row.ideal_description,
+          ideal_promise: row.ideal_promise,
+          ideal_free_text: row.ideal_free_text,
+          meta: {
+            model_snippet: REASONER_MODEL,
+            model_landing: REASONER_MODEL,
+            model_ideal: DEFAULT_MODEL,
+            latency_ms_snippet: snippet.latencyMs,
+            latency_ms_ideal: ideal.latencyMs,
+          },
         },
-      },
-      { onConflict: "run_id,profile_id,query" },
-    );
-    if (error) throw new Error(error.message);
-    out.push(row);
+        { onConflict: "run_id,profile_id,query,channel" },
+      );
+      if (error) throw new Error(error.message);
+      out.push(row);
+    }
   }
   return out;
 }
@@ -620,6 +656,7 @@ export async function listCampaignResponses(
   if (error) throw new Error(error.message);
   return (data ?? []).map((r) => ({
     profileId: r.profile_id as string,
+    channel: (r.channel as Channel) ?? "google",
     query: r.query as string,
     intent_to_click: Number(r.intent_to_click),
     perceived_offer: r.perceived_offer as string,
@@ -664,6 +701,7 @@ function summarize(
       mean_landing_match: null,
       click_rate: 0,
       byQuery: campaign.queries.map((q) => emptyByQuery(q)),
+      byChannel: campaign.channels.map((c) => emptyByChannel(c)),
       top_barriers: [],
     };
   }
@@ -683,22 +721,13 @@ function summarize(
   const byQuery: CampaignByQuery[] = campaign.queries.map((query) => {
     const subset = rs.filter((r) => r.query === query);
     if (subset.length === 0) return emptyByQuery(query);
-    const matchedQ = subset
-      .filter((r) => r.landing_evaluated && typeof r.landing_match === "number")
-      .map((r) => r.landing_match as number);
-    return {
-      query,
-      n: subset.length,
-      mean_intent_to_click: avg(subset.map((r) => r.intent_to_click)),
-      mean_clarity: avg(subset.map((r) => r.clarity)),
-      mean_credibility: avg(subset.map((r) => r.credibility)),
-      mean_differentiation: avg(subset.map((r) => r.differentiation)),
-      mean_landing_match: matchedQ.length === 0 ? null : avg(matchedQ),
-      click_rate:
-        subset.filter((r) => r.intent_to_click >= LANDING_THRESHOLD).length /
-        subset.length,
-      top_barriers: topBarriers(subset),
-    };
+    return aggregateBy(subset, "query", query) as CampaignByQuery;
+  });
+
+  const byChannel: CampaignByChannel[] = campaign.channels.map((channel) => {
+    const subset = rs.filter((r) => r.channel === channel);
+    if (subset.length === 0) return emptyByChannel(channel);
+    return aggregateBy(subset, "channel", channel) as CampaignByChannel;
   });
 
   return {
@@ -711,13 +740,54 @@ function summarize(
     mean_landing_match: meanMatch,
     click_rate: clickRate,
     byQuery,
+    byChannel,
     top_barriers: topBarriers(rs),
   };
+}
+
+function aggregateBy(
+  subset: CampaignResponse[],
+  field: "query" | "channel",
+  value: string,
+): CampaignByQuery | CampaignByChannel {
+  const matchedQ = subset
+    .filter((r) => r.landing_evaluated && typeof r.landing_match === "number")
+    .map((r) => r.landing_match as number);
+  const base = {
+    n: subset.length,
+    mean_intent_to_click: avg(subset.map((r) => r.intent_to_click)),
+    mean_clarity: avg(subset.map((r) => r.clarity)),
+    mean_credibility: avg(subset.map((r) => r.credibility)),
+    mean_differentiation: avg(subset.map((r) => r.differentiation)),
+    mean_landing_match: matchedQ.length === 0 ? null : avg(matchedQ),
+    click_rate:
+      subset.filter((r) => r.intent_to_click >= LANDING_THRESHOLD).length /
+      subset.length,
+    top_barriers: topBarriers(subset),
+  };
+  if (field === "channel") {
+    return { channel: value as Channel, ...base };
+  }
+  return { query: value, ...base };
 }
 
 function emptyByQuery(query: string): CampaignByQuery {
   return {
     query,
+    n: 0,
+    mean_intent_to_click: 0,
+    mean_clarity: 0,
+    mean_credibility: 0,
+    mean_differentiation: 0,
+    mean_landing_match: null,
+    click_rate: 0,
+    top_barriers: [],
+  };
+}
+
+function emptyByChannel(channel: Channel): CampaignByChannel {
+  return {
+    channel,
     n: 0,
     mean_intent_to_click: 0,
     mean_clarity: 0,

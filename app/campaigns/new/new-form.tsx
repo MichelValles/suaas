@@ -62,7 +62,7 @@ export function NewCampaignForm() {
   const [state, formAction] = useActionState(createCampaignAction, initial);
 
   const [name, setName] = useState("");
-  const [channel, setChannel] = useState<Channel>("google");
+  const [channels, setChannels] = useState<Channel[]>(["google"]);
   const [brief, setBrief] = useState("");
   const [finalUrl, setFinalUrl] = useState("");
   const [landingMode, setLandingMode] = useState<LandingMode>("og");
@@ -201,7 +201,7 @@ export function NewCampaignForm() {
 
   const payload = {
     name,
-    channel,
+    channels,
     brief: brief.trim() || null,
     final_url: finalUrl,
     landing_mode: landingMode,
@@ -245,7 +245,7 @@ export function NewCampaignForm() {
           value={JSON.stringify(payload)}
         />
 
-        <Section title="Canal">
+        <Section title={`Canales · ${channels.length} / 5`}>
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <span
               className="mono"
@@ -256,9 +256,9 @@ export function NewCampaignForm() {
                 color: "rgba(255,255,255,0.55)",
               }}
             >
-              ¿En qué red simulamos el anuncio?
+              ¿En qué redes simulamos el anuncio? Selecciona una o varias.
             </span>
-            <ChannelTabs value={channel} onChange={setChannel} />
+            <ChannelTabs value={channels} onChange={setChannels} />
             <p
               style={{
                 color: "rgba(255,255,255,0.55)",
@@ -267,9 +267,7 @@ export function NewCampaignForm() {
                 margin: 0,
               }}
             >
-              {channel === "google"
-                ? "Search activo: el perfil llega con intención de búsqueda. Las queries son keywords."
-                : "Feed pasivo: el perfil ve el anuncio mientras scrollea. Las queries pasan a ser intereses o contexto del usuario, no búsquedas literales."}
+              {channelsDisclaimer(channels)}
             </p>
           </div>
         </Section>
@@ -1083,13 +1081,22 @@ function ChannelTabs({
   value,
   onChange,
 }: {
-  value: Channel;
-  onChange: (v: Channel) => void;
+  value: Channel[];
+  onChange: (v: Channel[]) => void;
 }) {
+  function toggle(c: Channel) {
+    if (value.includes(c)) {
+      if (value.length <= 1) return; // mantener al menos 1
+      onChange(value.filter((v) => v !== c));
+    } else {
+      if (value.length >= 5) return;
+      onChange([...value, c]);
+    }
+  }
   return (
     <div
-      role="tablist"
-      aria-label="Canal publicitario"
+      role="group"
+      aria-label="Canales publicitarios"
       style={{
         display: "flex",
         gap: 0,
@@ -1098,14 +1105,14 @@ function ChannelTabs({
       }}
     >
       {CHANNEL_VALUES.map((c) => {
-        const active = value === c;
+        const active = value.includes(c);
         return (
           <button
             key={c}
             type="button"
-            role="tab"
-            aria-selected={active}
-            onClick={() => onChange(c)}
+            role="checkbox"
+            aria-checked={active}
+            onClick={() => toggle(c)}
             style={{
               background: "transparent",
               border: 0,
@@ -1117,7 +1124,7 @@ function ChannelTabs({
               display: "inline-flex",
               alignItems: "center",
               gap: 8,
-              color: active ? "var(--accent-500)" : "rgba(255,255,255,0.6)",
+              color: active ? "var(--accent-500)" : "rgba(255,255,255,0.55)",
               fontFamily: "var(--font-sans)",
               fontSize: 13,
               fontWeight: active ? 600 : 400,
@@ -1125,6 +1132,7 @@ function ChannelTabs({
               transition: "color var(--dur-short) var(--ease-out)",
             }}
           >
+            <CheckboxIcon checked={active} />
             <ChannelIcon channel={c} size={16} />
             <span>{CHANNEL_LABEL[c]}</span>
           </button>
@@ -1132,6 +1140,51 @@ function ChannelTabs({
       })}
     </div>
   );
+}
+
+function CheckboxIcon({ checked }: { checked: boolean }) {
+  return (
+    <span
+      aria-hidden
+      style={{
+        width: 14,
+        height: 14,
+        borderRadius: 3,
+        border: `1.5px solid ${checked ? "var(--accent-500)" : "rgba(255,255,255,0.35)"}`,
+        background: checked ? "var(--accent-500)" : "transparent",
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flexShrink: 0,
+        transition: "all var(--dur-short) var(--ease-out)",
+      }}
+    >
+      {checked && (
+        <svg width="10" height="10" viewBox="0 0 16 16" aria-hidden>
+          <path
+            d="M3.5 8.5 L7 12 L12.5 5"
+            fill="none"
+            stroke="var(--ink-900)"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      )}
+    </span>
+  );
+}
+
+function channelsDisclaimer(channels: Channel[]): string {
+  const hasSearch = channels.includes("google");
+  const hasFeed = channels.some((c) => c !== "google");
+  if (hasSearch && hasFeed) {
+    return "Mixto: las queries se interpretan como búsquedas literales en Google y como intereses / contexto en feed (Meta, LinkedIn, TikTok, X). El runner genera una respuesta por cada combinación perfil × canal × query.";
+  }
+  if (hasSearch) {
+    return "Search activo: el perfil llega con intención de búsqueda. Las queries son keywords.";
+  }
+  return "Feed pasivo: el perfil ve el anuncio mientras scrollea. Las queries pasan a ser intereses o contexto del usuario, no búsquedas literales.";
 }
 
 function CreativeThumb({ c }: { c: Creative }) {

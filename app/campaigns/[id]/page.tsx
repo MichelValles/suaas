@@ -111,8 +111,21 @@ export default async function CampaignDetailPage({
         description={campaign.brief ?? undefined}
         descriptionVariant="panel"
         actions={
-          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+          <Link href="/campaigns" className="btn-pill">
+            Volver
+          </Link>
+        }
+      />
+
+      {/* Canales */}
+      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <SectionLabel>
+          Canales · {campaign.channels.length}
+        </SectionLabel>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          {campaign.channels.map((ch) => (
             <span
+              key={ch}
               className="mono"
               style={{
                 display: "inline-flex",
@@ -128,15 +141,12 @@ export default async function CampaignDetailPage({
                 textTransform: "uppercase",
               }}
             >
-              <ChannelIcon channel={campaign.channel} size={14} />
-              {CHANNEL_LABEL[campaign.channel]}
+              <ChannelIcon channel={ch} size={14} />
+              {CHANNEL_LABEL[ch]}
             </span>
-            <Link href="/campaigns" className="btn-pill">
-              Volver
-            </Link>
-          </div>
-        }
-      />
+          ))}
+        </div>
+      </section>
 
       {/* Vista tipo SERP: el primer titular + primera descripción como snippet representativo. */}
       <section
@@ -358,7 +368,7 @@ export default async function CampaignDetailPage({
         title="Lanzar campaign test"
         endpoint="/api/runs/campaign"
         extraBody={{ campaignId: campaign.id }}
-        progressLabel={`Cada perfil evaluará el anuncio bajo las ${campaign.queries.length} queries (snippet + landing condicional + versión ideal). Estimado ~${Math.ceil(campaign.queries.length * 18)}s por perfil.`}
+        progressLabel={`Cada perfil evaluará el anuncio bajo ${campaign.channels.length} ${campaign.channels.length === 1 ? "canal" : "canales"} × ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} (snippet + landing condicional + versión ideal). Estimado ~${Math.ceil(campaign.channels.length * campaign.queries.length * 18)}s por perfil.`}
         kind="campaign"
         profiles={profiles}
       />

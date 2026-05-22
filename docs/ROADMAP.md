@@ -182,6 +182,11 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.24.x — Multi-canal por campaña
+
+- [x] **v0.24.0**: una misma campaña ahora puede simularse en varias redes a la vez. Migración `0011_campaigns_multichannel.sql` convierte `campaigns.channel` (text) en `channels text[]` (1..5 elementos, subconjunto del set de redes válidas), con backfill de las filas existentes. `campaign_responses` añade `channel` y el unique key pasa a `(run_id, profile_id, query, channel)`. El runner itera `profile × channel × query` (en serie por perfil, paralelo entre perfiles), con cap defensivo de 200 combinaciones para no exceder `maxDuration=300`. Persistencia con `onConflict: "run_id,profile_id,query,channel"`. El summary incorpora `byChannel` con las mismas métricas que `byQuery`. UI: form pasa de pestañas single-select a tabs con checkbox e icono por red (mínimo 1, máximo 5), disclaimer dinámico que se adapta según haya search, feed o mixto. Detalle muestra una row de chips por cada canal y el LaunchPanel estima tiempo como `channels × queries × 18s/perfil`. La página de resultados añade tabla «Métricas por canal» (sólo cuando la campaña tenía más de 1) y los chips de canal aparecen en cada response del drill-down y de la sección «como yo lo veo». Listado muestra el primer canal o "N redes" si son más de dos.
+   - Aplicar `0011_campaigns_multichannel.sql` en Supabase + `NOTIFY pgrst, 'reload schema';` antes de crear campañas multi-canal.
+
 ## v0.23.x — Campañas multi-canal (MVP)
 
 - [x] **v0.23.1**: selector de canal pasa de toggle buttons a **pestañas con iconos** (`components/channel-icon.tsx`). SVGs monocromos (`currentColor`) inline para Google · Meta · LinkedIn · TikTok · X, sin añadir dependencias. La pestaña activa lleva borde inferior accent y peso bold. El detalle de la campaña muestra un chip prominente con icono + nombre de la red junto al botón Volver. Sigue siendo single-select (modelo `channel: Channel` en la BD); si en el futuro queremos multi-canal por campaña, habría que pasar a `channels text[]` con migración.

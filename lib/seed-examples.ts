@@ -251,7 +251,7 @@ export async function seedCampaignExample(): Promise<{ campaignId: string }> {
   }
   const campaign = await createCampaign({
     name: CAMPAIGN_DEFAULTS.name,
-    channel: "google",
+    channels: ["google"],
     brief: CAMPAIGN_DEFAULTS.brief,
     final_url: CAMPAIGN_DEFAULTS.final_url,
     landing_image_url: img,

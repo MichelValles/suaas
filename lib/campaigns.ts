@@ -60,7 +60,12 @@ export function youtubeThumbnail(videoId: string): string {
 
 export const CampaignInputSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio."),
-  channel: z.enum(CHANNEL_VALUES).default("google"),
+  channels: z
+    .array(z.enum(CHANNEL_VALUES))
+    .min(1, "Selecciona al menos 1 canal.")
+    .max(5, "Máximo 5 canales por campaña.")
+    .default(["google"])
+    .transform((arr) => Array.from(new Set(arr))),
   brief: z.string().optional().nullable(),
   final_url: z.string().url("La URL final no es válida."),
   landing_image_url: z
@@ -100,7 +105,7 @@ export type Campaign = {
   id: string;
   created_at: string;
   name: string;
-  channel: Channel;
+  channels: Channel[];
   brief: string | null;
   final_url: string;
   landing_image_url: string;
@@ -170,7 +175,7 @@ export async function createCampaign(input: CampaignInput): Promise<Campaign> {
     .from("campaigns")
     .insert({
       name: parsed.name,
-      channel: parsed.channel,
+      channels: parsed.channels,
       brief: parsed.brief ?? null,
       final_url: parsed.final_url,
       landing_image_url: parsed.landing_image_url,

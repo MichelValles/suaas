@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { getCampaign } from "@/lib/campaigns";
+import { ChannelIcon } from "@/components/channel-icon";
+import { CHANNEL_LABEL, getCampaign } from "@/lib/campaigns";
 import {
   listCampaignResponses,
   summarizeCampaignResponses,
+  type CampaignByChannel,
   type CampaignByQuery,
   type CampaignResponse,
 } from "@/lib/experiments/campaign";
@@ -81,6 +83,35 @@ export default async function CampaignRunPage({
         <KpiCard label="Diferenciación" value={fmtPct(summary.mean_differentiation)} />
         <KpiCard label="Match landing" value={fmtPct(summary.mean_landing_match)} />
       </section>
+
+      {/* Por canal (sólo si la campaña tenía más de uno) */}
+      {summary.byChannel.length > 1 && (
+        <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionLabel>Métricas por canal</SectionLabel>
+          <div style={{ overflowX: "auto" }}>
+            <table style={tableStyle}>
+              <thead>
+                <tr>
+                  <Th>Canal</Th>
+                  <Th>N</Th>
+                  <Th>Intent</Th>
+                  <Th>CTR</Th>
+                  <Th>Claridad</Th>
+                  <Th>Credibilidad</Th>
+                  <Th>Diferenciación</Th>
+                  <Th>Match landing</Th>
+                  <Th>Top barreras</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.byChannel.map((c) => (
+                  <ChannelRow key={c.channel} c={c} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {/* Por query */}
       <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -172,7 +203,7 @@ export default async function CampaignRunPage({
             .slice(0, 24)
             .map((r) => (
               <IdealCard
-                key={`${r.profileId}-${r.query}`}
+                key={`${r.profileId}-${r.channel}-${r.query}`}
                 resp={r}
                 profile={profilesById.get(r.profileId)}
               />
@@ -198,6 +229,39 @@ export default async function CampaignRunPage({
         </div>
       </section>
     </AppShell>
+  );
+}
+
+function ChannelRow({ c }: { c: CampaignByChannel }) {
+  return (
+    <tr style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <Td>
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
+            color: "rgba(255,255,255,0.9)",
+            fontSize: 13,
+          }}
+        >
+          <ChannelIcon channel={c.channel} size={14} />
+          {CHANNEL_LABEL[c.channel]}
+        </span>
+      </Td>
+      <Td>{c.n}</Td>
+      <Td>{fmtPct(c.mean_intent_to_click)}</Td>
+      <Td>{fmtPct(c.click_rate)}</Td>
+      <Td>{fmtPct(c.mean_clarity)}</Td>
+      <Td>{fmtPct(c.mean_credibility)}</Td>
+      <Td>{fmtPct(c.mean_differentiation)}</Td>
+      <Td>{fmtPct(c.mean_landing_match)}</Td>
+      <Td>
+        <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
+          {c.top_barriers.map((b) => b.label).slice(0, 3).join(", ") || "—"}
+        </span>
+      </Td>
+    </tr>
   );
 }
 
@@ -275,16 +339,32 @@ function IdealCard({
           intent {fmtPct(resp.intent_to_click)}
         </span>
       </header>
-      <span
-        className="mono"
-        style={{
-          fontSize: 10,
-          letterSpacing: "0.18em",
-          color: "var(--accent-500)",
-        }}
-      >
-        {resp.query}
-      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <span
+          className="mono"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 5,
+            fontSize: 10,
+            letterSpacing: "0.18em",
+            color: "rgba(255,255,255,0.7)",
+          }}
+        >
+          <ChannelIcon channel={resp.channel} size={12} />
+          {CHANNEL_LABEL[resp.channel].split(" ")[0]}
+        </span>
+        <span
+          className="mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: "0.18em",
+            color: "var(--accent-500)",
+          }}
+        >
+          · {resp.query}
+        </span>
+      </div>
       <div>
         <p
           style={{
@@ -395,7 +475,7 @@ function ProfileBlock({
       >
         {responses.map((r) => (
           <li
-            key={`${r.profileId}-${r.query}`}
+            key={`${r.profileId}-${r.channel}-${r.query}`}
             style={{
               padding: "14px 16px",
               borderRadius: "var(--radius-sm)",
@@ -413,8 +493,19 @@ function ProfileBlock({
                 flexWrap: "wrap",
               }}
             >
-              <span className="mono" style={{ fontSize: 11, letterSpacing: "0.18em", color: "var(--accent-500)" }}>
-                {r.query}
+              <span
+                className="mono"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 11,
+                  letterSpacing: "0.18em",
+                  color: "var(--accent-500)",
+                }}
+              >
+                <ChannelIcon channel={r.channel} size={12} />
+                {CHANNEL_LABEL[r.channel].split(" ")[0]} · {r.query}
               </span>
               <span className="mono" style={{ fontSize: 10, color: "rgba(255,255,255,0.55)" }}>
                 intent {fmtPct(r.intent_to_click)} · claridad {fmtPct(r.clarity)} · credibilidad {fmtPct(r.credibility)} · diferenciación {fmtPct(r.differentiation)}

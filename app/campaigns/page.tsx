@@ -56,7 +56,13 @@ export default async function CampaignsListPage() {
             runs: c.run_count,
             users: c.user_count,
             stats: [
-              { label: "Canal", value: CHANNEL_LABEL[c.channel].split(" ")[0] },
+              {
+                label: c.channels.length === 1 ? "Canal" : "Canales",
+                value:
+                  c.channels.length <= 2
+                    ? c.channels.map((ch) => CHANNEL_LABEL[ch].split(" ")[0]).join(" + ")
+                    : `${c.channels.length} redes`,
+              },
               { label: "Runs", value: c.run_count },
               { label: "Perfiles", value: c.user_count },
               { label: "Titulares", value: c.headlines.length },
