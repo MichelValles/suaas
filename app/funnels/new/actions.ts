@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { uploadDataUrlToBlob } from "@/lib/blob";
 import {
   FunnelInputSchema,
   createFunnel,
@@ -72,7 +73,17 @@ export async function createFunnelAction(
           error: `Paso ${i + 1}: sube una imagen válida.`,
         };
       }
-      imageUrl = parsed.image_url_data;
+      try {
+        imageUrl = await uploadDataUrlToBlob({
+          dataUrl: parsed.image_url_data,
+          pathHint: `funnels/${slugify(name)}/step-${i + 1}`,
+        });
+      } catch (err) {
+        return {
+          ok: false,
+          error: `Paso ${i + 1}: error subiendo imagen: ${(err as Error).message}`,
+        };
+      }
     } else {
       if (!parsed.source_url) {
         return {
@@ -126,4 +137,14 @@ export async function createFunnelAction(
 
   revalidatePath("/funnels");
   redirect(`/funnels/${id}`);
+}
+
+function slugify(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40) || "untitled";
 }

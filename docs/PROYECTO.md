@@ -102,6 +102,7 @@ lib/
   targets.ts              <- TargetInputSchema, FiveSecondPayloadSchema + CRUD + resolveOgImage(url)
   funnels.ts              <- FunnelInputSchema, FunnelStepInputSchema + CRUD (server-only)
   usage.ts                <- recordUsage(), getUsageSummary(), getGatewayCredits() (telemetría tokens)
+  blob.ts                 <- uploadDataUrlToBlob() (sube data: URLs a Vercel Blob; fallback a data: si no hay token)
   experiments/
     five-second.ts        <- probeProfile, judgeComprehension, runFiveSecondTest, listFiveSecondResponses, summarizeResponses
     funnel.ts             <- probeFunnelStep, runFunnelTest, listFunnelStepResponses, summarizeFunnelResponses

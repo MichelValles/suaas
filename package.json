@@ -1,6 +1,6 @@
 {
   "name": "suaas",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "2.106.1",
+    "@vercel/blob": "^2.4.0",
     "ai": "6.0.189",
     "lucide-react": "^1.16.0",
     "motion": "12.40.0",

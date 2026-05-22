@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { uploadDataUrlToBlob } from "@/lib/blob";
 import {
   TargetInputSchema,
   createTarget,
@@ -40,7 +41,14 @@ export async function createTargetAction(
     if (!parsed.image_url_data || !parsed.image_url_data.startsWith("data:")) {
       return { ok: false, error: "Sube una imagen válida (formato data:image/*)." };
     }
-    imageUrl = parsed.image_url_data;
+    try {
+      imageUrl = await uploadDataUrlToBlob({
+        dataUrl: parsed.image_url_data,
+        pathHint: `targets/${slugify(parsed.name)}/screen`,
+      });
+    } catch (err) {
+      return { ok: false, error: `Error subiendo la imagen: ${(err as Error).message}` };
+    }
   } else {
     if (!parsed.source_url) {
       return { ok: false, error: "URL fuente obligatoria en modo URL." };
@@ -83,4 +91,14 @@ export async function createTargetAction(
 
   revalidatePath("/targets");
   redirect(`/targets/${id}`);
+}
+
+function slugify(s: string): string {
+  return s
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 40) || "untitled";
 }

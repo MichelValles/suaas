@@ -24,6 +24,7 @@ Ver `.env.example` para el listado completo. Esenciales:
 | `AI_GATEWAY_API_KEY` | Auto en Vercel | Gateway AI. |
 | `SUAAS_DEFAULT_MODEL` | Vercel + .env.local | Talker model. Default `anthropic/claude-sonnet-4-6`. |
 | `SUAAS_REASONER_MODEL` | Vercel + .env.local | Reasoner model. Default `anthropic/claude-opus-4-7`. |
+| `BLOB_READ_WRITE_TOKEN` | Auto al vincular Blob store | Subida de uploads a Vercel Blob. Si falta, `lib/blob.ts` hace fallback al `data:` URL. |
 
 Para sincronizar local con Vercel:
 
