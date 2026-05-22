@@ -10,18 +10,48 @@ import type { Profile } from "@/lib/profiles";
  * Usa ProfileExplorer (grid/tabla + filtros + selección + hover backstory)
  * en modo picker para que la selección sea consistente con /profiles.
  */
+export type LaunchKind =
+  | "five-second"
+  | "funnel"
+  | "ab"
+  | "copy"
+  | "pricing";
+
+type RunJson = { runId?: string; abTestId?: string; runs?: { runId: string }[] };
+
+function resolveRedirect(kind: LaunchKind, json: RunJson, fallback?: string): string {
+  switch (kind) {
+    case "five-second":
+      return `/experiments/five-second/${json.runId}`;
+    case "funnel":
+      return `/experiments/funnel/${json.runId}`;
+    case "ab":
+      return json.abTestId
+        ? `/experiments/ab/${json.abTestId}`
+        : (fallback ?? "/ab");
+    case "copy":
+      return `/experiments/copy/${json.runId}`;
+    case "pricing":
+      return `/experiments/pricing/${json.runId}`;
+  }
+}
+
 export function ProfileLaunchPanel({
   title,
   endpoint,
   extraBody,
-  redirectTo,
+  kind,
+  redirectFallback,
   profiles,
   progressLabel = "Lanzando run…",
 }: {
   title: string;
   endpoint: string;
   extraBody: Record<string, unknown>;
-  redirectTo: (json: { runId?: string; abTestId?: string; runs?: { runId: string }[] }) => string;
+  /** Tipo de experimento. Determina la URL de resultados tras el run. */
+  kind: LaunchKind;
+  /** Ruta a la que volver si el JSON de respuesta no incluye el id esperado. */
+  redirectFallback?: string;
   profiles: Profile[];
   progressLabel?: string;
 }) {
@@ -54,7 +84,7 @@ export function ProfileLaunchPanel({
           throw new Error(json.error ?? `HTTP ${res.status}`);
         }
         setProgress(null);
-        router.push(redirectTo(json));
+        router.push(resolveRedirect(kind, json, redirectFallback));
       } catch (e) {
         setError((e as Error).message);
         setProgress(null);

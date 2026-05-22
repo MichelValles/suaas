@@ -16,9 +16,8 @@ export function LaunchAbPanel({
       endpoint="/api/runs/ab"
       extraBody={{ abTestId }}
       progressLabel="Lanzando dos runs 5s en paralelo. Estimado 30-60 s."
-      redirectTo={(json) =>
-        json.abTestId ? `/experiments/ab/${json.abTestId}` : `/ab/${abTestId}`
-      }
+      kind="ab"
+      redirectFallback={`/ab/${abTestId}`}
       profiles={profiles}
     />
   );

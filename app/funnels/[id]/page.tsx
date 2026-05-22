@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
+import { RunsPreviousGrid } from "@/components/runs-previous";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { getFunnel } from "@/lib/funnels";
 import { listProfiles } from "@/lib/profiles";
@@ -124,14 +125,23 @@ export default async function FunnelDetailPage({
         ))}
       </ol>
 
-      <RunsSection runs={runsWithMetrics} />
+      <RunsPreviousGrid
+        runs={runsWithMetrics}
+        resultsBase="/experiments/funnel"
+        emptyHint="Sin runs todavía. Lanza el primer recorrido desde el panel de abajo."
+        metrics={[
+          { key: "completion_rate", label: "Completion" },
+          { key: "mean_effort", label: "Esfuerzo medio" },
+          { key: "mean_intent_match", label: "Claridad intent" },
+        ]}
+      />
 
       <ProfileLaunchPanel
         title="Lanzar recorrido del embudo"
         endpoint="/api/runs/funnel"
         extraBody={{ funnelId: funnel.id }}
         progressLabel={`Cada perfil recorrerá hasta ${funnel.steps.length} pasos. Estimado ~${Math.ceil(funnel.steps.length * 5)}s por perfil.`}
-        redirectTo={(json) => `/experiments/funnel/${json.runId}`}
+        kind="funnel"
         profiles={profiles}
       />
     </AppShell>
@@ -210,149 +220,3 @@ function Block({
   );
 }
 
-function RunsSection({
-  runs,
-}: {
-  runs: Array<{
-    run: { id: string; created_at: string; status: string; params: Record<string, unknown> | null };
-    metrics: Record<string, number>;
-  }>;
-}) {
-  return (
-    <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <h2
-        className="mono"
-        style={{
-          fontSize: 11,
-          letterSpacing: "0.28em",
-          textTransform: "uppercase",
-          color: "var(--accent-500)",
-          margin: 0,
-        }}
-      >
-        Runs previos
-      </h2>
-      {runs.length === 0 ? (
-        <div
-          style={{
-            padding: 16,
-            border: "1px dashed rgba(255,255,255,0.12)",
-            borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.55)",
-            fontSize: 13,
-          }}
-        >
-          Sin runs todavía. Lanza el primer recorrido desde el panel de abajo.
-        </div>
-      ) : (
-        <div style={{ overflowX: "auto" }}>
-          <table
-            style={{
-              width: "100%",
-              borderCollapse: "collapse",
-              fontSize: 13,
-              color: "rgba(255,255,255,0.85)",
-            }}
-          >
-            <thead>
-              <tr style={{ textAlign: "left", color: "rgba(255,255,255,0.55)" }}>
-                <Th>Fecha</Th>
-                <Th>N</Th>
-                <Th>Completion</Th>
-                <Th>Esfuerzo medio</Th>
-                <Th>Claridad intent</Th>
-                <Th>Estado</Th>
-                <Th></Th>
-              </tr>
-            </thead>
-            <tbody>
-              {runs.map(({ run, metrics }) => {
-                const ids = (run.params?.profileIds as string[] | undefined) ?? [];
-                return (
-                  <tr
-                    key={run.id}
-                    style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
-                  >
-                    <Td>{formatDate(run.created_at)}</Td>
-                    <Td>{ids.length || metrics.n || "—"}</Td>
-                    <Td>{fmtPct(metrics.completion_rate)}</Td>
-                    <Td>{fmtPct(metrics.mean_effort)}</Td>
-                    <Td>{fmtPct(metrics.mean_intent_match)}</Td>
-                    <Td>
-                      <span
-                        className="mono"
-                        style={{
-                          fontSize: 10,
-                          letterSpacing: "0.18em",
-                          textTransform: "uppercase",
-                          color:
-                            run.status === "done"
-                              ? "var(--accent-500)"
-                              : run.status === "error"
-                                ? "var(--error-500)"
-                                : "rgba(255,255,255,0.55)",
-                        }}
-                      >
-                        {run.status}
-                      </span>
-                    </Td>
-                    <Td>
-                      <Link
-                        href={`/experiments/funnel/${run.id}`}
-                        className="mono"
-                        style={{
-                          fontSize: 11,
-                          letterSpacing: "0.16em",
-                          textTransform: "uppercase",
-                          color: "var(--accent-500)",
-                        }}
-                      >
-                        ver →
-                      </Link>
-                    </Td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </section>
-  );
-}
-
-function Th({ children }: { children?: React.ReactNode }) {
-  return (
-    <th
-      className="mono"
-      style={{
-        padding: "8px 12px",
-        fontSize: 10,
-        letterSpacing: "0.22em",
-        textTransform: "uppercase",
-        fontWeight: 400,
-      }}
-    >
-      {children}
-    </th>
-  );
-}
-
-function Td({ children }: { children: React.ReactNode }) {
-  return <td style={{ padding: "10px 12px", verticalAlign: "middle" }}>{children}</td>;
-}
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  return d.toLocaleString("es-ES", {
-    day: "2-digit",
-    month: "short",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-function fmtPct(v: number | undefined): string {
-  if (typeof v !== "number") return "—";
-  return `${Math.round(v * 100)}%`;
-}
