@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 import { RunsPreviousGrid } from "@/components/runs-previous";
-import { getCampaign, type Creative } from "@/lib/campaigns";
+import { CHANNEL_LABEL, getCampaign, type Creative } from "@/lib/campaigns";
 import { listProfiles } from "@/lib/profiles";
 import { getMetricsForRun, listRunsByCampaign } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -105,7 +105,7 @@ export default async function CampaignDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Campaña · ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} · ${campaign.headlines.length} titulares`}
+        eyebrow={`Campaña · ${CHANNEL_LABEL[campaign.channel]} · ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} · ${campaign.headlines.length} titulares`}
         title={campaign.name}
         description={campaign.brief ?? undefined}
         descriptionVariant="panel"

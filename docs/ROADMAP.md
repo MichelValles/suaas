@@ -182,6 +182,11 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.23.x — Campañas multi-canal (MVP)
+
+- [x] **v0.23.0**: el módulo de Campañas deja de ser exclusivo de Google Ads. Nueva columna `channel` (`google | meta | linkedin | tiktok | x`) con default `google` añadida por la migración `0010_campaigns_channel.sql`. `lib/campaigns.ts` exporta `CHANNEL_VALUES` y `CHANNEL_LABEL` y `CampaignInputSchema` valida el nuevo campo. El runner adapta el framing del prompt según red: para Google sigue siendo SERP search activo, para Meta / LinkedIn / TikTok / X se reformula como feed pasivo y las `queries` pasan a interpretarse como intereses / contexto del usuario en lugar de keywords literales. `judgeLandingMatch` y `proposeIdealVersion` también ajustan el hook por red. El form de `/campaigns/new` añade un selector inicial de canal (5 pestañas con etiqueta humana) y muestra un disclaimer dinámico sobre cómo interpretar las queries. El detalle y el listado muestran el canal como chip / stat. Caps de caracteres por red llegarán en una iteración posterior (v0.24+): por ahora todas las redes comparten los caps RSA (30/90) por consistencia.
+   - Aplicar `0010_campaigns_channel.sql` en Supabase + `NOTIFY pgrst, 'reload schema';` antes de crear campañas en redes distintas a Google.
+
 ## v0.22.x — Campaign form UX + creatividades multimedia
 
 - [x] **v0.22.1**: home rediseñada como panel 3x3. Una sola sección «Panel» con 9 tarjetas (Claridad 5s, Embudos, A/B, Copy, Pricing, Campañas, Perfiles, Tokens, Diag) sustituye las antiguas secciones «Módulos de test», «Agentes y datos» y «Telemetría» finales. Elimina la card de «Talker · Reasoner» como tarjeta suelta (se sigue mencionando en el tutorial). Texto de los 4 pasos ajustado a «seis módulos».

@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { uploadDataUrlToBlob } from "@/lib/blob";
 import {
+  CHANNEL_VALUES,
   CampaignInputSchema,
   createCampaign,
   extractYouTubeId,
@@ -24,6 +25,7 @@ const CreativePayloadSchema = z.object({
 
 const PayloadSchema = z.object({
   name: z.string().min(1),
+  channel: z.enum(CHANNEL_VALUES).default("google"),
   brief: z.string().optional().nullable(),
   final_url: z.string().url(),
   landing_mode: z.enum(["og", "upload"]),
@@ -176,6 +178,7 @@ export async function createCampaignAction(
 
   const input: CampaignInput = {
     name: payload.name.trim(),
+    channel: payload.channel,
     brief: payload.brief?.trim() || null,
     final_url: payload.final_url,
     landing_image_url: landingImageUrl,

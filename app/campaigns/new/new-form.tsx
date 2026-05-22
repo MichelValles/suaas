@@ -3,7 +3,13 @@
 import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
-import { extractYouTubeId, youtubeThumbnail } from "@/lib/campaigns";
+import {
+  CHANNEL_LABEL,
+  CHANNEL_VALUES,
+  extractYouTubeId,
+  youtubeThumbnail,
+  type Channel,
+} from "@/lib/campaigns";
 import {
   createCampaignAction,
   type CreateCampaignState,
@@ -55,6 +61,7 @@ export function NewCampaignForm() {
   const [state, formAction] = useActionState(createCampaignAction, initial);
 
   const [name, setName] = useState("");
+  const [channel, setChannel] = useState<Channel>("google");
   const [brief, setBrief] = useState("");
   const [finalUrl, setFinalUrl] = useState("");
   const [landingMode, setLandingMode] = useState<LandingMode>("og");
@@ -193,6 +200,7 @@ export function NewCampaignForm() {
 
   const payload = {
     name,
+    channel,
     brief: brief.trim() || null,
     final_url: finalUrl,
     landing_mode: landingMode,
@@ -235,6 +243,44 @@ export function NewCampaignForm() {
           name="payload_json"
           value={JSON.stringify(payload)}
         />
+
+        <Section title="Canal">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <span
+              className="mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.55)",
+              }}
+            >
+              ¿En qué red simulamos el anuncio?
+            </span>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              {CHANNEL_VALUES.map((c) => (
+                <ToggleButton
+                  key={c}
+                  active={channel === c}
+                  onClick={() => setChannel(c)}
+                  label={CHANNEL_LABEL[c]}
+                />
+              ))}
+            </div>
+            <p
+              style={{
+                color: "rgba(255,255,255,0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              {channel === "google"
+                ? "Search activo: el perfil llega con intención de búsqueda. Las queries son keywords."
+                : "Feed pasivo: el perfil ve el anuncio mientras scrollea. Las queries pasan a ser intereses o contexto del usuario, no búsquedas literales."}
+            </p>
+          </div>
+        </Section>
 
         <Section title="Identidad">
           <Controlled

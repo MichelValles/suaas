@@ -135,6 +135,22 @@ export type CampaignSummary = {
 // ============================================================
 
 function renderSnippetText(campaign: Campaign): string {
+  switch (campaign.channel) {
+    case "meta":
+      return renderFeedSnippet(campaign, "Instagram / Facebook");
+    case "linkedin":
+      return renderFeedSnippet(campaign, "LinkedIn");
+    case "tiktok":
+      return renderFeedSnippet(campaign, "TikTok");
+    case "x":
+      return renderFeedSnippet(campaign, "X (Twitter)");
+    case "google":
+    default:
+      return renderSearchSnippet(campaign);
+  }
+}
+
+function renderSearchSnippet(campaign: Campaign): string {
   const lines: string[] = [];
   lines.push("Ves esta cabecera de resultado de búsqueda patrocinado:");
   lines.push("");
@@ -150,12 +166,76 @@ function renderSnippetText(campaign: Campaign): string {
   return lines.join("\n");
 }
 
+function renderFeedSnippet(campaign: Campaign, network: string): string {
+  const lines: string[] = [];
+  lines.push(`Ves este post patrocinado en tu feed de ${network}:`);
+  lines.push("");
+  lines.push("---");
+  lines.push(`Anunciante: ${displayUrl(campaign.final_url)}`);
+  lines.push("");
+  lines.push("Texto principal / titular(es):");
+  for (const h of campaign.headlines) lines.push(`- ${h}`);
+  lines.push("");
+  lines.push("Cuerpo / descripción(es):");
+  for (const d of campaign.descriptions) lines.push(`- ${d}`);
+  lines.push("---");
+  return lines.join("\n");
+}
+
 function displayUrl(url: string): string {
   try {
     const u = new URL(url);
     return u.host + (u.pathname === "/" ? "" : u.pathname);
   } catch {
     return url;
+  }
+}
+
+function networkLabel(channel: Campaign["channel"]): string {
+  switch (channel) {
+    case "meta":
+      return "Instagram / Facebook";
+    case "linkedin":
+      return "LinkedIn";
+    case "tiktok":
+      return "TikTok";
+    case "x":
+      return "X (Twitter)";
+    case "google":
+    default:
+      return "Google";
+  }
+}
+
+function framingByChannel(campaign: Campaign, query: string): string {
+  switch (campaign.channel) {
+    case "meta":
+      return [
+        `Estás pasando contenido en Instagram / Facebook. Tu interés general ahora mismo: «${query}».`,
+        "Aparece este post patrocinado entre stories de gente que sigues. Lo ves de pasada, en el sofá, no estás buscando comprar nada.",
+      ].join(" ");
+    case "linkedin":
+      return [
+        `Estás revisando LinkedIn entre reuniones. El algoritmo sabe que te interesa: «${query}».`,
+        "Aparece este post patrocinado en tu feed profesional. Lo lees con prisa pero con cierto criterio (es contexto laboral).",
+      ].join(" ");
+    case "tiktok":
+      return [
+        `Estás pasando vídeos en TikTok. Tu interés / nicho: «${query}».`,
+        "Aparece este anuncio entre vídeos orgánicos. Decides en menos de 2 segundos si paras o sigues deslizando.",
+      ].join(" ");
+    case "x":
+      return [
+        `Estás leyendo X (Twitter). Tu intención de búsqueda o intereses: «${query}».`,
+        "Aparece este post patrocinado entre tweets. Tiene formato tweet corto pero está marcado como Promoted.",
+      ].join(" ");
+    case "google":
+    default:
+      return [
+        `Acabas de buscar en Google: «${query}».`,
+        "En la primera página, este anuncio patrocinado es uno de los primeros resultados.",
+        "Imagina que es lo único que ves antes de decidir si haces click.",
+      ].join(" ");
   }
 }
 
@@ -173,9 +253,7 @@ async function probeCampaignSnippet(
     {
       type: "text",
       text: [
-        `Acabas de buscar en Google: «${query}».`,
-        "En la primera página, este anuncio patrocinado es uno de los primeros resultados.",
-        "Imagina que es lo único que ves antes de decidir si haces click.",
+        framingByChannel(campaign, query),
         "",
         renderSnippetText(campaign),
         campaign.brief
@@ -244,6 +322,14 @@ async function judgeLandingMatch(
 ): Promise<{ output: LandingMatch; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const image = await resolveImageForApi(campaign.landing_image_url);
+  const channelHook =
+    campaign.channel === "google"
+      ? "Acabas de hacer click en un anuncio de Paid Search"
+      : `Acabas de hacer click en el post patrocinado de ${networkLabel(campaign.channel)}`;
+  const queryFraming =
+    campaign.channel === "google"
+      ? `Tu búsqueda fue: «${query}».`
+      : `Tu interés / contexto era: «${query}».`;
   const result = await generateObject({
     model: REASONER_MODEL,
     schema: LandingMatchSchema,
@@ -251,8 +337,8 @@ async function judgeLandingMatch(
       buildSystemPrompt(profile),
       "",
       "## Tarea de este turno",
-      "- Acabas de hacer click en un anuncio de Paid Search y has aterrizado en la landing que ves.",
-      "- Tu búsqueda original era explícita; el anuncio prometía algo concreto.",
+      `- ${channelHook} y has aterrizado en la landing que ves.`,
+      "- El anuncio prometía algo concreto en tu interpretación.",
       "- Devuelve 'landing_match' 0..1: cuánto la landing cumple esa promesa.",
       "- 'landing_critique' 1-2 frases: qué encaja, qué chirría.",
       "- Sé honesto: si la landing parece otra cosa o te marea, dilo.",
@@ -264,7 +350,7 @@ async function judgeLandingMatch(
           {
             type: "text",
             text: [
-              `Tu búsqueda fue: «${query}».`,
+              queryFraming,
               `El anuncio te prometía (en tu interpretación): ${snippet.perceived_offer}`,
               "Esta es la landing donde aterrizaste:",
             ].join("\n"),
@@ -292,6 +378,14 @@ async function proposeIdealVersion(
   snippet: SnippetEval,
 ): Promise<{ output: IdealVersion; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
+  const formatHint =
+    campaign.channel === "google"
+      ? "formato Google Ads RSA (titular máx 30 chars, descripción máx 90)"
+      : `formato ${networkLabel(campaign.channel)} (texto corto que pueda pararte en feed)`;
+  const queryFraming =
+    campaign.channel === "google"
+      ? `Tu búsqueda fue: «${query}».`
+      : `Tu interés / contexto era: «${query}».`;
   const result = await generateObject({
     model: DEFAULT_MODEL,
     schema: IdealVersionSchema,
@@ -300,18 +394,18 @@ async function proposeIdealVersion(
       "",
       "## Tarea de este turno",
       "- Después de ver el anuncio, escribe TU versión ideal del mismo anuncio, en tu voz.",
-      "- 'ideal_headline' es un titular alternativo. Máximo 30 caracteres (formato Google Ads RSA).",
-      "- 'ideal_description' es una descripción alternativa. Máximo 90 caracteres (RSA).",
+      `- 'ideal_headline' es un titular alternativo. Máximo 30 caracteres (${formatHint}).`,
+      "- 'ideal_description' es una descripción alternativa. Máximo 90 caracteres.",
       "- 'ideal_promise' es la promesa central que TÚ querrías leer para hacer click.",
       "- 'ideal_free_text' es opcional, 1-2 frases sueltas con matiz extra. null si no añades nada.",
       "- Habla como tú: con tus dudas, tu sector, tu nivel de jerga. NO copies el anuncio original.",
     ].join("\n"),
     prompt: [
-      `Tu búsqueda fue: «${query}».`,
+      queryFraming,
       `El anuncio te decía (perceived offer): ${snippet.perceived_offer}.`,
       `Tu intent_to_click sobre el original fue ${snippet.intent_to_click.toFixed(2)} y tus barreras: ${snippet.barriers.join("; ") || "ninguna"}.`,
       "",
-      "Escribe tu versión ideal del anuncio para esa búsqueda.",
+      "Escribe tu versión ideal del anuncio para ese contexto.",
     ].join("\n"),
   });
   return {

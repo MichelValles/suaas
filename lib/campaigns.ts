@@ -6,6 +6,17 @@ import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 // Schemas con los caps RSA reales de Google Ads.
 // ============================================================
 
+export const CHANNEL_VALUES = ["google", "meta", "linkedin", "tiktok", "x"] as const;
+export type Channel = (typeof CHANNEL_VALUES)[number];
+
+export const CHANNEL_LABEL: Record<Channel, string> = {
+  google: "Google Ads",
+  meta: "Meta (Facebook · Instagram)",
+  linkedin: "LinkedIn Ads",
+  tiktok: "TikTok Ads",
+  x: "X (Twitter) Ads",
+};
+
 export const CreativeKindSchema = z.enum(["image", "video", "youtube"]);
 export type CreativeKind = z.infer<typeof CreativeKindSchema>;
 
@@ -49,6 +60,7 @@ export function youtubeThumbnail(videoId: string): string {
 
 export const CampaignInputSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio."),
+  channel: z.enum(CHANNEL_VALUES).default("google"),
   brief: z.string().optional().nullable(),
   final_url: z.string().url("La URL final no es válida."),
   landing_image_url: z
@@ -88,6 +100,7 @@ export type Campaign = {
   id: string;
   created_at: string;
   name: string;
+  channel: Channel;
   brief: string | null;
   final_url: string;
   landing_image_url: string;
@@ -157,6 +170,7 @@ export async function createCampaign(input: CampaignInput): Promise<Campaign> {
     .from("campaigns")
     .insert({
       name: parsed.name,
+      channel: parsed.channel,
       brief: parsed.brief ?? null,
       final_url: parsed.final_url,
       landing_image_url: parsed.landing_image_url,
