@@ -35,6 +35,11 @@ export type ProfileExplorerProps = {
   onSelectionChange?: (ids: string[]) => void;
   /** Acción de eliminación; sólo en modo manage. */
   onDelete?: (id: string) => Promise<void> | void;
+  /**
+   * Slot opcional a la derecha de la toolbar. Recibe el conjunto actual de
+   * perfiles visibles (tras filtros) y la selección, útil para exportar.
+   */
+  extraActions?: (ctx: { visible: Profile[]; selectedIds: string[] }) => React.ReactNode;
 };
 
 export function ProfileExplorer({
@@ -43,6 +48,7 @@ export function ProfileExplorer({
   initialView = "grid",
   onSelectionChange,
   onDelete,
+  extraActions,
 }: ProfileExplorerProps) {
   const [view, setView] = useState<ViewMode>(initialView);
   const [filters, setFilters] = useState<ProfileFilters>(DEFAULT_FILTERS);
@@ -97,6 +103,7 @@ export function ProfileExplorer({
         onClearSelection={selected.size > 0 ? clearSelection : undefined}
         allFilteredSelected={allFilteredSelected}
         onToggleAll={filtered.length > 0 ? selectAllVisible : undefined}
+        extras={extraActions?.({ visible: filtered, selectedIds: [...selected] })}
       />
       {filtersOpen && (
         <FiltersPanel
@@ -159,6 +166,7 @@ function Toolbar({
   onClearSelection,
   allFilteredSelected,
   onToggleAll,
+  extras,
 }: {
   view: ViewMode;
   onViewChange: (v: ViewMode) => void;
@@ -173,6 +181,7 @@ function Toolbar({
   onClearSelection?: () => void;
   allFilteredSelected: boolean;
   onToggleAll?: () => void;
+  extras?: React.ReactNode;
 }) {
   return (
     <div
@@ -286,20 +295,23 @@ function Toolbar({
         </span>
       </div>
 
-      <div
-        style={{
-          display: "inline-flex",
-          padding: 3,
-          border: "1px solid rgba(255,255,255,0.12)",
-          borderRadius: "var(--radius-pill)",
-        }}
-      >
-        <ViewToggle current={view} value="grid" onClick={() => onViewChange("grid")}>
-          <LayoutGrid size={14} /> Grid
-        </ViewToggle>
-        <ViewToggle current={view} value="table" onClick={() => onViewChange("table")}>
-          <Rows3 size={14} /> Tabla
-        </ViewToggle>
+      <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+        {extras}
+        <div
+          style={{
+            display: "inline-flex",
+            padding: 3,
+            border: "1px solid rgba(255,255,255,0.12)",
+            borderRadius: "var(--radius-pill)",
+          }}
+        >
+          <ViewToggle current={view} value="grid" onClick={() => onViewChange("grid")}>
+            <LayoutGrid size={14} /> Grid
+          </ViewToggle>
+          <ViewToggle current={view} value="table" onClick={() => onViewChange("table")}>
+            <Rows3 size={14} /> Tabla
+          </ViewToggle>
+        </div>
       </div>
     </div>
   );

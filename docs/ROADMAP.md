@@ -91,8 +91,16 @@ Refactor grande del módulo de perfiles para tratarlo como software (no como lis
 - [x] **ProfileLaunchPanel rehecho** sobre `<ProfileExplorer mode="picker">`: ahora todos los sitios donde se selecciona perfil (targets, funnels, copy, pricing, A/B) heredan filtros, vista grid/tabla y hover de backstory.
 
 Aplazadas a futuras subversiones (por alcance):
-- v0.8.1: importador/exportador CSV con validación fila a fila.
 - v0.8.2: generación automática de 48 perfiles vía LLM (alcanzar 50 totales).
+
+## v0.8.1 — Importador y exportador CSV de perfiles
+
+- [x] `lib/csv.ts`: parser/serializer CSV isomórfico sin dependencias (RFC 4180 simplificado, soporte `,` y `;`, comillas dobles, BOM, EOL `\n`/`\r\n`).
+- [x] `lib/profile-csv.ts`: schema CSV con 16 columnas (`PROFILE_CSV_HEADERS`), `profileToCsvRow` (export) y `validateCsvRow` (import, reutiliza `ProfileFormSchema` para que las reglas sean idénticas al formulario web).
+- [x] **Exportar**: botón en la toolbar de `/profiles`. Exporta los **seleccionados** si hay selección o los **visibles** según los filtros aplicados. Descarga client-side, UTF-8 + BOM (Excel lo respeta).
+- [x] **Importar**: `/profiles/import` con dropzone, detección automática de separador, parseo cliente, validación fila a fila con preview de estado (verde/rojo) y mensaje específico por fila errónea. Server action `importProfilesAction` inserta sólo las filas válidas; tope de 500 filas por import.
+- [x] Columnas desconocidas del CSV se ignoran con aviso, y faltantes generan un error claro en la validación (no se importa la fila).
+- [x] Listas COM-B (capability/opportunity/motivation) se serializan con `;` interno para sobrevivir al separador `,` del CSV.
 
 ## v0.6.0 — App shell tipo software
 

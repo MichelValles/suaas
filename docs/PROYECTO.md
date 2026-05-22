@@ -61,6 +61,10 @@ app/
         page.tsx
         edit-form.tsx     <- wrapper que usa <ProfileForm initial=<datos cargados> />
         actions.ts        <- updateProfileAction (lee __id de hidden input)
+    import/
+      page.tsx
+      import-client.tsx   <- dropzone + parser + preview por fila
+      actions.ts          <- importProfilesAction (inserta sólo válidas, max 500)
   api/
     profiles/[id]/route.ts <- DELETE: borra perfil (cascade a runs y respuestas)
   targets/
@@ -106,6 +110,8 @@ lib/
   profiles.ts             <- ProfileInputSchema (zod) + CRUD (server-only): create, update, delete, listProfilesByIds
   profile-form.ts         <- ProfileFormSchema + parseProfileForm (reusado por new y edit actions)
   profile-filters.ts      <- ProfileFilters (rangos + texto contiene) + filterProfiles
+  csv.ts                  <- parseCSV, stringifyCSV, detectSeparator (RFC 4180 simplificado)
+  profile-csv.ts          <- PROFILE_CSV_HEADERS, profileToCsvRow, validateCsvRow, reorderCsvRows
   runs.ts                 <- Run/Message types + createRun, appendMessage, upsertMetric, markRunFinished, listRunsByTarget, getMetricsForRun
   prompts.ts              <- buildSystemPrompt(profile) con negative prompts
   agents.ts               <- ReasonerPlanSchema, reason() (object), talkStream() (text)
