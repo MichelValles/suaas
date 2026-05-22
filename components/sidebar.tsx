@@ -47,11 +47,10 @@ export function Sidebar() {
         type="button"
         aria-label="Abrir menú"
         onClick={() => setOpen(true)}
-        className="sidebar-burger mono"
+        className="sidebar-burger"
         data-state={open ? "open" : "closed"}
       >
-        <Menu size={18} />
-        <span>SUAAS</span>
+        <Menu size={20} />
       </button>
 
       {open && (
