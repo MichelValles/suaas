@@ -21,10 +21,18 @@ Ver `.env.example` para el listado completo. Esenciales:
 | `NEXT_PUBLIC_SUPABASE_URL` | Marketplace | Cliente browser. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Marketplace | Cliente browser. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Marketplace | Cliente server. |
-| `AI_GATEWAY_API_KEY` | Auto en Vercel | Gateway AI. |
+| `AI_GATEWAY_API_KEY` | Vercel (manual o auto al enlazar AI Gateway) | Llamadas LLM + consulta de saldo en `/tokens`. En Vercel también funciona vía OIDC implícito si la key no está. |
 | `SUAAS_DEFAULT_MODEL` | Vercel + .env.local | Talker model. Default `anthropic/claude-sonnet-4-6`. |
 | `SUAAS_REASONER_MODEL` | Vercel + .env.local | Reasoner model. Default `anthropic/claude-opus-4-7`. |
-| `BLOB_READ_WRITE_TOKEN` | Auto al vincular Blob store | Subida de uploads a Vercel Blob. Si falta, `lib/blob.ts` hace fallback al `data:` URL. |
+| `BLOB_READ_WRITE_TOKEN` | Auto al vincular Blob store al proyecto | Subida de uploads a Vercel Blob. Si falta, `lib/blob.ts` hace fallback al `data:` URL. |
+| `BLOB_STORE_ID` | Auto al vincular Blob store | Identificador del store enlazado. |
+| `BLOB_WEBHOOK_PUBLIC_KEY` | Auto al vincular Blob store | Verificación de webhooks del Blob (no usado por SUAAS hoy). |
+
+### Notas de configuración
+
+- **Server Actions body limit**: por defecto Next 16 lo deja en 1MB. SUAAS lo sube a `10mb` en `next.config.ts` (`experimental.serverActions.bodySizeLimit`) para que los uploads de screenshot (data: URL base64) no salten en `/targets/new` ni en `/funnels/new`. Si subes imágenes > 10MB, conviene migrar al patrón **client upload directo a Vercel Blob** con `handleUpload`.
+- **Schema cache de PostgREST**: tras aplicar una migración con `ALTER TABLE`, PostgREST puede tardar en ver las columnas nuevas. Si ves errores tipo `Could not find the 'X' column of 'runs' in the schema cache`, ejecuta en el SQL editor: `NOTIFY pgrst, 'reload schema';`. `lib/runs.ts:createRun` es defensivo y sólo inserta columnas no-null para mitigar el efecto.
+- **Migraciones a aplicar en orden**: `0001_initial` → `0002_five_second` → `0003_funnels` → `0004_funnel_runs` → `0005_gateway_usage` → `0006_ab_copy_pricing` → `0007_trash`. Usa `/diag` o `/api/diag` para confirmar que todas las tablas + columnas críticas de `runs` están verdes.
 
 Para sincronizar local con Vercel:
 

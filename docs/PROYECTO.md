@@ -135,13 +135,19 @@ lib/
   utils.ts                <- cx() (concatenador de clases)
 
 components/
-  app-shell.tsx           <- AppShell (sidebar + main + footer con badges) + PageHeading
+  app-shell.tsx           <- AppShell (sidebar + main + footer con badges) + PageHeading (descriptionVariant inline|panel)
   sidebar.tsx             <- Sidebar (client, lateral izquierdo, colapsable en móvil) con iconos lucide
   console-banner.tsx      <- imprime SUAAS + versión en la consola del navegador
+  info-tooltip.tsx        <- Tooltip CSS-only (hover/focus) sobre el host
   result-bar.tsx          <- ResultBar (label + valor 0..1 + porcentaje + hint)
+  migration-needed.tsx    <- <MigrationNeeded /> mensaje estándar cuando faltan tablas/columnas
   profile-form.tsx        <- ProfileForm compartido entre new y edit (validación + colorScheme dark)
-  profile-explorer.tsx    <- Vista grid/tabla + filtros + selección + acciones + hover backstory
-  profile-launch-panel.tsx <- Panel reutilizable: ProfileExplorer mode="picker" + POST endpoint
+  profile-explorer.tsx    <- Vista grid/tabla + filtros + selección + sort + paginación + acciones
+  profile-launch-panel.tsx <- Panel reutilizable colapsable (CTA → ProfileExplorer picker + endpoint)
+  entity-card.tsx         <- Tarjeta unificada para los 5 listados (fecha · kind · stats)
+  entity-list.tsx         <- EntityListView: búsqueda + sort + grid de EntityCard
+  runs-previous.tsx       <- RunsPreviousGrid: cards de runs previos en las páginas de detalle
+  trash-button.tsx        <- SendToTrashButton (icono trash sobre cards) + acciones soft delete
 
 public/
   logos/flat101.svg       <- logo de marca
@@ -154,6 +160,7 @@ supabase/
     0004_funnel_runs.sql  <- runs.funnel_id + funnel_step_responses (run, profile, step)
     0005_gateway_usage.sql <- gateway_usage (telemetría de tokens por scope/modelo)
     0006_ab_copy_pricing.sql <- ab_tests + copy_decks/blocks/responses + pricing_offers/prices/responses + runs.{ab_test_id,copy_deck_id,pricing_offer_id}
+    0007_trash.sql        <- deleted_at en las 5 entidades (papelera con soft delete)
     0007_trash.sql        <- columna deleted_at en targets/funnels/ab_tests/copy_decks/pricing_offers (soft delete + papelera)
 
 proxy.ts                  <- middleware: bloquea todo lo no público sin cookie

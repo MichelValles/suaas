@@ -134,9 +134,66 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] Nueva ruta `/diag`: vista visual del estado del esquema y configuración (mismo dato que `/api/diag` pero renderizado).
 - [x] Nueva ruta `/tokens`: créditos del AI Gateway + acumulado interno por modelo y por scope. Soportada por migración `0005_gateway_usage.sql` y `lib/usage.ts`. Llamadas instrumentadas: probe_5s, judge_5s, probe_funnel, reasoner_chat, talker_chat.
 
+## v0.10.x — Pulido visual y layout
+
+- [x] **v0.10.0**: home rediseñada (presentación del software con feature cards + 3 pasos), cursiva display en backstory, grid uniforme en cards.
+- [x] **v0.10.1**: armonía visual en `/profiles/[id]` (detalle de perfil).
+- [x] **v0.10.2**: `PageHeading` deja de tener `maxWidth` interno; título y descripción ocupan todo el ancho del container.
+- [x] **v0.10.3**: botón hamburguesa del sidebar móvil pasa a círculo flotante sin texto, oculto cuando el menú está abierto.
+- [x] **v0.10.4**: tabla de perfiles oculta la columna OCEAN en mobile para no desbordar.
+- [x] **v0.10.5**: quitada la franja de KPI de la home (redundante con `/diag` y `/tokens`).
+
+## v0.11.x — Sembrador de ejemplos en los 4 módulos
+
+- [x] **v0.11.0**: `/seed-examples` con endpoint POST `/api/seed/examples`. Crea en una pasada: copy deck (4 variantes CRO de Flat 101), pricing offer (Flat 101 Lab con 4 niveles), A/B test y embudo de Stripe. Opcionalmente lanza runs sobre N perfiles aleatorios. `lib/seed-examples.ts` con funciones puras y `pickRandomProfileIds(n)`.
+- [x] **v0.11.1**: home con más respiro, nota redundante eliminada en `/profiles`.
+
+## v0.12.x — Resilencia frente a schema cache
+
+- [x] **v0.12.0**: `createRun` defensivo (sólo inserta columnas con valor no-null para sobrevivir a un schema cache de PostgREST desactualizado tras una migración). Defaults de seed corregidos (BBVA bloqueaba bots → N26+Revolut; ficha de Filmin sin og:image → Notion). `/tokens` reescrito con KPI grandes y desglose Prompt/Completion.
+- [x] **v0.12.1**: URLs definitivas para los seeds (Vercel vs Netlify para A/B, Stripe en 4 pasos para el embudo) tras probarlas desde el sandbox. Schema cache sigue requiriendo `NOTIFY pgrst, 'reload schema';` manual.
+- [x] **v0.12.1 (docs)**: simplificación del copy del hero de la home.
+
+## v0.13.x — Papelera con soft delete
+
+- [x] **v0.13.0**: migración `0007_trash.sql` añade `deleted_at timestamptz` a las 5 entidades (targets, funnels, ab_tests, copy_decks, pricing_offers). Botón papelera en cada card. Página `/trash` lista los elementos borrados con acciones "Restaurar" y "Eliminar definitivamente". `lib/trash.ts` orquesta soft delete / restore / hard delete.
+- [x] **v0.13.1**: fallback defensivo cuando la migración 0007 no está aplicada (las queries se reintentan sin `is("deleted_at", null)`).
+- [x] **v0.13.2**: fix en targets para que vuelvan a aparecer en la papelera.
+- [x] **v0.13.3**: detalle de funnels/ab/copy/pricing no rompe si faltan columnas `runs.X_id`.
+- [x] **v0.13.4**: descripción debajo de Big Five y Barreras COM-B en el detalle de perfil.
+- [x] **v0.13.5**: `/diag` y `/api/diag` auditan también las columnas críticas de `runs` (no sólo la existencia de tablas).
+
+## v0.14.x — Tablas más útiles y nomenclatura UI
+
+- [x] **v0.14.0**: runs previos como cards (componente `RunsPreviousGrid` en `components/runs-previous.tsx`) reemplazando el patrón tabla. Aplica en las 5 páginas de detalle.
+- [x] **v0.14.1**: nombres de perfil clicables en las tablas de resultados de experimentos.
+- [x] **v0.14.2**: renombrado UI **Targets → Claridad 5s**. Sidebar con icono `ScanEye`, copy actualizado en `/targets/*`, `/ab/*` y home. Rutas y tabla `targets` se mantienen como nombre técnico interno.
+
+## v0.15.x — Plantilla unificada de listado
+
+- [x] **v0.15.0**: nueva plantilla `EntityListView` + `EntityCard` para los 5 listados (claridad, embudos, ab, copy, pricing) con búsqueda + ordenación.
+- [x] **v0.15.1**: explorer de perfiles con sort ascendente/descendente al click en cabecera, paginación cada 30 items en grid y tabla, rediseño armonioso (Big Five sparkbars en vez de números crudos).
+
+## v0.16.x — UX y QA del formulario de perfil
+
+- [x] **v0.16.0**: `EntityCard` muestra fecha arriba y kind abajo. Filtros y ordenación en listados.
+- [x] **v0.16.1**: inputs Big Five aceptan 2 decimales (step 0.01) en `/profiles/new`, `/profiles/[id]/edit` y los filtros del explorer. Antes el navegador rechazaba `0,68` con "los más próximos son 0,65 y 0,70".
+- [x] **v0.16.2**: más aire en buscador, toolbar de listados y entity cards (padding/gap aumentados a través de `entity-list.tsx` y `globals.css`).
+- [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
+- [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
+
+## v0.17.x — Descripción destacada y relanzamiento de runs
+
+- [x] **v0.17.0**: nuevo `descriptionVariant="panel"` en `PageHeading`. La descripción se renderiza como caja destacada con borde-izquierdo accent. Aplicado en las 9 páginas que muestran copy descriptivo (4 detalle + 5 results). Eyebrows de results enriquecidas con metadata (status · N perfiles · contexto). Sweet spot de pricing en layout horizontal para coherencia.
+- [x] **v0.17.0 (feat)**: relanzar run desde la página de resultados (panel de lanzamiento de cohorte sobre la misma entidad).
+- [x] **v0.17.1**: fix en `/api/chat` aceptando `runId: null` además de `undefined` (cliente envía null al iniciar sesión).
+- [x] **v0.17.2**: `ProfileLaunchPanel` colapsado por defecto (CTA "Lanzar nueva Run"), botón arriba al expandir. Fuera de `/experiments/*` por defecto.
+- [x] **v0.17.3**: `next.config.ts` con `experimental.serverActions.bodySizeLimit = "10mb"` (default de Next era 1MB y rompía uploads de >700KB de imagen). Más aire en cards de bloques (copy), pasos (funnels) y variantes (ab). `RunsPreviousGrid` y `ProfileLaunchPanel` con padding/gap más generosos.
+
 ## Backlog / decisiones abiertas
 
 - ¿Auth por email (Supabase Auth) además del password global? Cuando se invite a clientes externos.
 - ¿Caché de respuestas LLM en Vercel Runtime Cache para abaratar iteración?
 - ¿Generación de perfiles desde datasets reales (LifeSnaps, Project Baseline)?
 - ¿Vercel Queues para encolar runs largos en background?
+- Migrar uploads de imagen a **client upload directo a Vercel Blob** (`handleUpload`) para evitar pasar por server actions, en caso de imágenes > 10MB.

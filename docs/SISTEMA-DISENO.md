@@ -183,6 +183,37 @@ Reglas:
 - ❌ Saturar con más de un accent. El amarillo `--accent-500` es el único color brand.
 - ❌ Aplicar `maxWidth: 1100` (u otros valores genéricos) a secciones de página: el container global del AppShell ya centra a 1280.
 
+## Patrón: descripción destacada (`descriptionVariant="panel"`)
+
+Desde v0.17.0, `PageHeading` acepta `descriptionVariant: "inline" | "panel"`. Cuando vale `"panel"` la descripción se renderiza como caja con borde-izquierdo accent (3px) + borde sutil arriba/derecha/abajo, padding 26/30 y fontSize `clamp(15-17)`. Usado en las 9 páginas que muestran copy descriptivo de una entidad (4 detalle + 5 results). Para metadata corta o URL fuente, mantener `inline` (default).
+
+```tsx
+<PageHeading
+  eyebrow="Oferta · 3 precios"
+  title={offer.name}
+  description={offer.description}
+  descriptionVariant="panel"
+  actions={<Link href="/pricing" className="btn-pill">Volver</Link>}
+/>
+```
+
+## Patrón: EntityCard + EntityListView
+
+Desde v0.15.0 los 5 listados (claridad, embudos, ab, copy, pricing) comparten:
+
+- `<EntityCard>` (`components/entity-card.tsx`): tarjeta con fecha arriba (eyebrow accent), título display italic, descripción clamp 2 líneas, stats al pie. Media opcional 16:9 (sólo claridad).
+- `<EntityListView>` (`components/entity-list.tsx`): wrapper con búsqueda (toolbar con padding generoso, ver v0.16.2) + sort (más reciente/antiguo/A-Z/Z-A/más runs/más perfiles) + grid `auto-fill` con `minmax(320, 1fr)` y gap 20.
+
+Cada listado mapea su entidad a `EntityListItem` (id, href, trash, title, description, createdAt, runs, users, stats, media?). El componente no conoce el modelo concreto.
+
+## Patrón: RunsPreviousGrid
+
+`components/runs-previous.tsx` muestra cards de runs previos en las 5 páginas de detalle. Cada card lleva fecha + status badge + grid de métricas (N perfiles + 1-3 métricas configurables por entidad) + enlace "Ver resultados →". Sustituyó al patrón tabla en v0.14.0.
+
+## Patrón: papelera (`SendToTrashButton` + `/trash`)
+
+Desde v0.13.0 las 5 entidades soportan soft delete vía `deleted_at` (migración 0007). En cada card hay un botón `<SendToTrashButton>` que envía a la papelera; en `/trash` aparecen los elementos borrados con "Restaurar" y "Eliminar definitivamente". `lib/trash.ts` orquesta soft delete / restore / hard delete por tipo.
+
 ## Cómo añadir un componente reutilizable
 
 1. Crearlo en `components/` con estilos via `style={{...}}` o CSS module.
