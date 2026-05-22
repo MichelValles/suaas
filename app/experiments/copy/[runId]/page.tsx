@@ -55,28 +55,28 @@ export default async function CopyRunPage({
         }
       />
 
-      <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <section style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {summary.byBlock
           .sort((a, b) => b.persuasion_mean - a.persuasion_mean)
           .map((b, idx) => (
-            <div
+            <article
               key={b.blockId}
               style={{
                 border: `1px solid ${idx === 0 ? "var(--accent-500)" : "rgba(255,255,255,0.08)"}`,
                 borderRadius: "var(--radius-md)",
-                padding: 20,
+                padding: "24px 28px",
                 background: idx === 0 ? "rgba(250,204,13,0.06)" : "rgba(255,255,255,0.02)",
                 display: "flex",
                 flexDirection: "column",
-                gap: 12,
+                gap: 18,
               }}
             >
-              <div
+              <header
                 style={{
                   display: "flex",
                   justifyContent: "space-between",
-                  alignItems: "baseline",
-                  gap: 12,
+                  alignItems: "center",
+                  gap: 16,
                   flexWrap: "wrap",
                 }}
               >
@@ -84,7 +84,7 @@ export default async function CopyRunPage({
                   className="mono"
                   style={{
                     fontSize: 10,
-                    letterSpacing: "0.22em",
+                    letterSpacing: "0.24em",
                     textTransform: "uppercase",
                     color: "var(--accent-500)",
                   }}
@@ -92,25 +92,34 @@ export default async function CopyRunPage({
                   Bloque {b.position} · {b.label}
                   {idx === 0 && " · ★ mejor"}
                 </span>
-                <div style={{ display: "flex", gap: 16 }}>
-                  <Stat label="Persuasión" value={fmtPct(b.persuasion_mean)} />
-                  <Stat label="Claridad" value={fmtPct(b.clarity_mean)} />
-                  <Stat label="CTR" value={fmtPct(b.click_rate)} />
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <Chip label="Persuasión" value={fmtPct(b.persuasion_mean)} />
+                  <Chip label="Claridad" value={fmtPct(b.clarity_mean)} />
+                  <Chip label="CTR" value={fmtPct(b.click_rate)} />
                 </div>
-              </div>
-              <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+              </header>
+              <p
+                style={{
+                  color: "rgba(255,255,255,0.85)",
+                  fontSize: 15,
+                  lineHeight: 1.65,
+                  margin: 0,
+                  paddingBlock: 4,
+                }}
+              >
                 «{b.text}»
               </p>
               <SentimentBar sentiment={b.sentiment} n={summary.n} />
-              <details>
+              <details style={{ marginTop: 4 }}>
                 <summary
                   className="mono"
                   style={{
                     fontSize: 11,
-                    letterSpacing: "0.18em",
+                    letterSpacing: "0.2em",
                     textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.55)",
+                    color: "rgba(255,255,255,0.6)",
                     cursor: "pointer",
+                    paddingBlock: 4,
                   }}
                 >
                   Críticas por perfil
@@ -119,10 +128,10 @@ export default async function CopyRunPage({
                   style={{
                     listStyle: "none",
                     padding: 0,
-                    margin: "12px 0 0",
+                    margin: "16px 0 0",
                     display: "flex",
                     flexDirection: "column",
-                    gap: 8,
+                    gap: 12,
                   }}
                 >
                   {responses
@@ -133,16 +142,19 @@ export default async function CopyRunPage({
                         <li
                           key={`${r.blockId}-${r.profileId}`}
                           style={{
-                            padding: 12,
+                            padding: "16px 18px",
                             borderRadius: "var(--radius-sm)",
                             background: "rgba(255,255,255,0.03)",
+                            display: "flex",
+                            flexDirection: "column",
+                            gap: 10,
                           }}
                         >
                           <div
                             style={{
                               display: "flex",
                               justifyContent: "space-between",
-                              gap: 8,
+                              gap: 12,
                               alignItems: "baseline",
                               flexWrap: "wrap",
                             }}
@@ -152,7 +164,7 @@ export default async function CopyRunPage({
                               title={profile ? `Ver perfil de ${profile.name}` : undefined}
                               style={{
                                 color: "#fff",
-                                fontSize: 13,
+                                fontSize: 14,
                                 textDecoration: "none",
                                 borderBottom: "1px dotted rgba(255,255,255,0.25)",
                               }}
@@ -163,7 +175,7 @@ export default async function CopyRunPage({
                               className="mono"
                               style={{
                                 fontSize: 10,
-                                letterSpacing: "0.18em",
+                                letterSpacing: "0.2em",
                                 textTransform: "uppercase",
                                 color:
                                   r.reaction.sentiment === "positivo"
@@ -173,10 +185,18 @@ export default async function CopyRunPage({
                                       : "rgba(255,255,255,0.55)",
                               }}
                             >
-                              {r.reaction.sentiment} · {r.reaction.would_click ? "↗ clickaría" : "✕ no clickaría"}
+                              {r.reaction.sentiment} ·{" "}
+                              {r.reaction.would_click ? "↗ clickaría" : "✕ no clickaría"}
                             </span>
                           </div>
-                          <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, margin: "6px 0 0", lineHeight: 1.5 }}>
+                          <p
+                            style={{
+                              color: "rgba(255,255,255,0.75)",
+                              fontSize: 14,
+                              margin: 0,
+                              lineHeight: 1.55,
+                            }}
+                          >
                             «{r.reaction.critique}»
                           </p>
                         </li>
@@ -184,29 +204,34 @@ export default async function CopyRunPage({
                     })}
                 </ul>
               </details>
-            </div>
+            </article>
           ))}
       </section>
     </AppShell>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Chip({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 2, alignItems: "flex-end" }}>
-      <span
-        className="mono"
-        style={{
-          fontSize: 9,
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          color: "rgba(255,255,255,0.5)",
-        }}
-      >
-        {label}
-      </span>
-      <span style={{ fontSize: 18, color: "#fff", fontFamily: "var(--font-display)" }}>{value}</span>
-    </div>
+    <span
+      className="mono"
+      style={{
+        display: "inline-flex",
+        alignItems: "baseline",
+        gap: 6,
+        padding: "4px 10px",
+        borderRadius: 999,
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        fontSize: 10,
+        letterSpacing: "0.18em",
+        textTransform: "uppercase",
+        color: "rgba(255,255,255,0.55)",
+      }}
+    >
+      <span>{label}</span>
+      <span style={{ color: "#fff", fontWeight: 700 }}>{value}</span>
+    </span>
   );
 }
 
@@ -217,10 +242,13 @@ function SentimentBar({
   sentiment: { positivo: number; negativo: number; neutro: number; escéptico: number };
   n: number;
 }) {
-  const total = Math.max(n, sentiment.positivo + sentiment.negativo + sentiment.neutro + sentiment.escéptico);
+  const total = Math.max(
+    n,
+    sentiment.positivo + sentiment.negativo + sentiment.neutro + sentiment.escéptico,
+  );
   const w = (v: number) => (total === 0 ? 0 : (v / total) * 100);
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div
         style={{
           height: 10,
@@ -239,16 +267,25 @@ function SentimentBar({
         className="mono"
         style={{
           display: "flex",
-          gap: 12,
+          gap: 18,
+          flexWrap: "wrap",
           fontSize: 10,
-          letterSpacing: "0.16em",
+          letterSpacing: "0.18em",
           color: "rgba(255,255,255,0.55)",
         }}
       >
-        <span>● positivo {sentiment.positivo}</span>
-        <span>● neutro {sentiment.neutro}</span>
-        <span>● escéptico {sentiment.escéptico}</span>
-        <span>● negativo {sentiment.negativo}</span>
+        <span>
+          <span style={{ color: "var(--success-500)" }}>●</span> positivo {sentiment.positivo}
+        </span>
+        <span>
+          <span style={{ color: "rgba(255,255,255,0.5)" }}>●</span> neutro {sentiment.neutro}
+        </span>
+        <span>
+          <span style={{ color: "var(--warning-500)" }}>●</span> escéptico {sentiment.escéptico}
+        </span>
+        <span>
+          <span style={{ color: "var(--error-500)" }}>●</span> negativo {sentiment.negativo}
+        </span>
       </div>
     </div>
   );

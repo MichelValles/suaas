@@ -75,8 +75,8 @@ export default async function FunnelRunPage({
       <section
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: 16,
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 20,
         }}
       >
         <SummaryCard
@@ -98,7 +98,7 @@ export default async function FunnelRunPage({
         <NumberCard label="Perfiles" value={summary.n} />
       </section>
 
-      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <section style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <h2
           className="mono"
           style={{
@@ -115,7 +115,7 @@ export default async function FunnelRunPage({
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 14,
           }}
         >
           {summary.dropoff_by_step.map((step) => {
@@ -125,29 +125,29 @@ export default async function FunnelRunPage({
                 key={step.position}
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "minmax(0, 1fr) 420px",
-                  gap: 16,
-                  padding: 16,
+                  gridTemplateColumns: "minmax(0, 1fr) minmax(260px, 420px)",
+                  gap: 24,
+                  padding: "22px 26px",
                   border: "1px solid rgba(255,255,255,0.08)",
                   borderRadius: "var(--radius-md)",
                   background: "rgba(255,255,255,0.02)",
                   alignItems: "center",
                 }}
               >
-                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   <span
                     className="mono"
                     style={{
                       fontSize: 10,
-                      letterSpacing: "0.22em",
+                      letterSpacing: "0.24em",
                       textTransform: "uppercase",
                       color: "rgba(255,255,255,0.5)",
                     }}
                   >
                     Paso {step.position} · {step.reached}/{summary.n} alcanzados
                   </span>
-                  <span style={{ fontSize: 15, color: "#fff" }}>{step.name}</span>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
+                  <span style={{ fontSize: 16, color: "#fff", lineHeight: 1.3 }}>{step.name}</span>
+                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
                     {step.continued} continuó · {dropped} abandonó
                     {step.top_friction.length > 0
                       ? ` · fricción: ${step.top_friction.map((f) => f.label).join(", ")}`
@@ -165,7 +165,7 @@ export default async function FunnelRunPage({
         </div>
       </section>
 
-      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <section style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <h2
           className="mono"
           style={{
@@ -181,11 +181,12 @@ export default async function FunnelRunPage({
         {summary.top_friction_overall.length === 0 ? (
           <div
             style={{
-              padding: 16,
+              padding: "28px 24px",
               border: "1px dashed rgba(255,255,255,0.12)",
               borderRadius: "var(--radius-md)",
               color: "rgba(255,255,255,0.55)",
-              fontSize: 13,
+              fontSize: 14,
+              lineHeight: 1.55,
             }}
           >
             Ningún perfil reportó fricciones explícitas.
@@ -195,7 +196,7 @@ export default async function FunnelRunPage({
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 16,
+              gap: 20,
             }}
           >
             {summary.top_friction_overall.map((f) => (

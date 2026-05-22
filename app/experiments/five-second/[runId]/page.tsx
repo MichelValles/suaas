@@ -74,7 +74,7 @@ export default async function FiveSecondRunPage({
           style={{
             display: "grid",
             gridTemplateColumns: "minmax(0, 1.1fr) minmax(0, 1fr)",
-            gap: 24,
+            gap: 28,
             alignItems: "start",
           }}
         >
@@ -82,8 +82,8 @@ export default async function FiveSecondRunPage({
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-              gap: 16,
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 20,
             }}
           >
             <SummaryCard
@@ -101,7 +101,7 @@ export default async function FiveSecondRunPage({
         </section>
       )}
 
-      <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <section style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <h2
           className="mono"
           style={{
@@ -117,11 +117,12 @@ export default async function FiveSecondRunPage({
         {summary.top_barriers.length === 0 ? (
           <div
             style={{
-              padding: 16,
+              padding: "28px 24px",
               border: "1px dashed rgba(255,255,255,0.12)",
               borderRadius: "var(--radius-md)",
               color: "rgba(255,255,255,0.55)",
-              fontSize: 13,
+              fontSize: 14,
+              lineHeight: 1.55,
             }}
           >
             Ningún perfil reportó barreras explícitas.
@@ -131,7 +132,7 @@ export default async function FiveSecondRunPage({
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 16,
+              gap: 20,
             }}
           >
             {summary.top_barriers.map((b) => (

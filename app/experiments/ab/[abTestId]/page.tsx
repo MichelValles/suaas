@@ -77,7 +77,7 @@ export default async function AbResultsPage({
         style={{
           display: "grid",
           gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
-          gap: 24,
+          gap: 28,
         }}
       >
         <VariantBlock
@@ -154,11 +154,11 @@ function VariantBlock({
       style={{
         border: `1px solid ${winner ? "var(--accent-500)" : "rgba(255,255,255,0.08)"}`,
         borderRadius: "var(--radius-md)",
-        padding: 24,
+        padding: "28px 32px",
         background: winner ? "rgba(250,204,13,0.06)" : "rgba(255,255,255,0.02)",
         display: "flex",
         flexDirection: "column",
-        gap: 12,
+        gap: 18,
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
@@ -178,7 +178,7 @@ function VariantBlock({
             className="mono"
             style={{
               fontSize: 10,
-              letterSpacing: "0.18em",
+              letterSpacing: "0.2em",
               textTransform: "uppercase",
               color: "var(--accent-500)",
             }}
@@ -187,21 +187,33 @@ function VariantBlock({
           </span>
         )}
       </div>
-      <h3
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <h3
+          style={{
+            fontFamily: "var(--font-display)",
+            fontStyle: "italic",
+            fontSize: 26,
+            color: "#fff",
+            margin: 0,
+            lineHeight: 1.15,
+          }}
+        >
+          {name}
+        </h3>
+        <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, margin: 0, lineHeight: 1.55 }}>
+          {promise}
+        </p>
+      </div>
+      <div
         style={{
-          fontFamily: "var(--font-display)",
-          fontStyle: "italic",
-          fontSize: 24,
-          color: "#fff",
-          margin: 0,
+          display: "flex",
+          gap: 28,
+          paddingTop: 6,
+          paddingBottom: 4,
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+          marginTop: 4,
         }}
       >
-        {name}
-      </h3>
-      <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, margin: 0, lineHeight: 1.5 }}>
-        {promise}
-      </p>
-      <div style={{ display: "flex", gap: 24, marginTop: 8 }}>
         <Metric label="Compr." value={fmtPct(comprehension)} />
         <Metric label="Claridad" value={fmtPct(clarity)} />
         <Metric label="N" value={String(n)} />
@@ -211,9 +223,10 @@ function VariantBlock({
         className="mono"
         style={{
           fontSize: 11,
-          letterSpacing: "0.16em",
+          letterSpacing: "0.18em",
           textTransform: "uppercase",
           color: "var(--accent-500)",
+          marginTop: 4,
         }}
       >
         Detalle del run →
@@ -224,19 +237,29 @@ function VariantBlock({
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 12 }}>
       <span
         className="mono"
         style={{
           fontSize: 9,
-          letterSpacing: "0.22em",
+          letterSpacing: "0.24em",
           textTransform: "uppercase",
           color: "rgba(255,255,255,0.5)",
         }}
       >
         {label}
       </span>
-      <span style={{ fontSize: 22, color: "#fff", fontFamily: "var(--font-display)" }}>{value}</span>
+      <span
+        style={{
+          fontSize: 26,
+          color: "#fff",
+          fontFamily: "var(--font-display)",
+          fontStyle: "italic",
+          lineHeight: 1,
+        }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -256,7 +279,7 @@ function DeltaBar({
 }) {
   const max = Math.max(valueA, valueB, 0.01);
   return (
-    <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+    <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       <h3
         className="mono"
         style={{
