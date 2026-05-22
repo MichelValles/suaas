@@ -2,13 +2,12 @@ import Link from "next/link";
 import {
   Activity,
   Coins,
-  Compass,
   Filter,
   FlaskConical,
   Gauge,
+  Megaphone,
   MessageSquareText,
   ScanEye,
-  Sparkles,
   Split,
   Tag,
   Users,
@@ -43,17 +42,17 @@ export default function HomePage() {
           }
         />
 
-        {/* MÓDULOS DE TEST */}
+        {/* PANEL 3x3: módulos + soporte */}
         <section
-          aria-label="Módulos de test"
+          aria-label="Módulos y soporte"
           style={{ display: "flex", flexDirection: "column", gap: 28 }}
         >
-          <SectionLabel Icon={FlaskConical}>Módulos de test</SectionLabel>
+          <SectionLabel Icon={FlaskConical}>Panel</SectionLabel>
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 24,
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 20,
             }}
           >
             <FeatureCard
@@ -91,40 +90,31 @@ export default function HomePage() {
               href="/pricing"
               cta="Ver ofertas"
             />
-          </div>
-        </section>
-
-        {/* AGENTES Y DATOS */}
-        <section
-          aria-label="Agentes y datos"
-          style={{ display: "flex", flexDirection: "column", gap: 28 }}
-        >
-          <SectionLabel Icon={Compass}>Agentes y datos</SectionLabel>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 24,
-            }}
-          >
+            <FeatureCard
+              Icon={Megaphone}
+              title="Campañas Paid Search"
+              body="Anuncio RSA bajo varias queries objetivo: intent-to-click, claridad, credibilidad, match landing y «como yo lo veo» (versión ideal del perfil). Soporta imagen, vídeo y YouTube."
+              href="/campaigns"
+              cta="Ver campañas"
+            />
             <FeatureCard
               Icon={Users}
               title="Perfiles grounded"
-              body="Demografía, Big Five (0..1) y barreras COM-B (capability, opportunity, motivation) con un backstory que humaniza los números. Importa CSV, genera con LLM o créalos a mano."
+              body="Demografía, Big Five (0..1) y barreras COM-B con backstory que humaniza los números. Importa CSV, genera con LLM o créalos a mano. Cada perfil tiene chat propio Talker · Reasoner."
               href="/profiles"
               cta="Ver perfiles"
             />
             <FeatureCard
-              Icon={Sparkles}
-              title="Arquitectura Talker · Reasoner"
-              body="Cada turno, un Reasoner (Opus) modela estado interno y plan, y un Talker (Sonnet) responde en voz del perfil. Trazas completas por turno disponibles desde el chat de cada perfil."
-              href="/profiles"
-              cta="Probar el chat"
+              Icon={Coins}
+              title="Telemetría de tokens"
+              body="Cada llamada al AI Gateway queda registrada (scope, modelo, tokens, latencia). Saldo del gateway y acumulado interno desde /tokens."
+              href="/tokens"
+              cta="Ver consumo"
             />
             <FeatureCard
               Icon={Activity}
-              title="Trazabilidad operativa"
-              body="Diagnóstico de esquema y conteo por tabla en /diag. Consumo de tokens del AI Gateway por scope y modelo en /tokens. Sin sorpresas en factura."
+              title="Estado del sistema"
+              body="Conteo por tabla, presencia de migraciones y badges de Supabase y AI Gateway. Cualquier desconexión se ve en /diag y en el footer."
               href="/diag"
               cta="Ver diagnóstico"
             />
@@ -169,7 +159,7 @@ export default function HomePage() {
             }}
           >
             El flujo es siempre el mismo: construir cohorte, elegir material, lanzar
-            simulación, leer fricción. Los cinco módulos de test comparten esta
+            simulación, leer fricción. Los seis módulos de test comparten esta
             estructura y son intercambiables.
           </p>
           <ol
@@ -209,30 +199,6 @@ export default function HomePage() {
           </ol>
         </section>
 
-        {/* CIERRE: telemetría */}
-        <section
-          aria-label="Telemetría"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: 24,
-          }}
-        >
-          <FeatureCard
-            Icon={Coins}
-            title="Telemetría de tokens"
-            body="Cada llamada al AI Gateway queda registrada (scope, modelo, tokens, latencia). Saldo del gateway y acumulado interno desde /tokens."
-            href="/tokens"
-            cta="Ver consumo"
-          />
-          <FeatureCard
-            Icon={Activity}
-            title="Estado del sistema"
-            body="Conteo por tabla, presencia de migraciones y badges de Supabase y AI Gateway. Cualquier desconexión se ve en /diag y en el footer."
-            href="/diag"
-            cta="Ver diagnóstico"
-          />
-        </section>
       </div>
     </AppShell>
   );

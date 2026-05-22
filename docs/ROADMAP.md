@@ -184,6 +184,7 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 
 ## v0.22.x — Campaign form UX + creatividades multimedia
 
+- [x] **v0.22.1**: home rediseñada como panel 3x3. Una sola sección «Panel» con 9 tarjetas (Claridad 5s, Embudos, A/B, Copy, Pricing, Campañas, Perfiles, Tokens, Diag) sustituye las antiguas secciones «Módulos de test», «Agentes y datos» y «Telemetría» finales. Elimina la card de «Talker · Reasoner» como tarjeta suelta (se sigue mencionando en el tutorial). Texto de los 4 pasos ajustado a «seis módulos».
 - [x] **v0.22.0**: ronda de mejoras tras feedback de uso del módulo Campañas.
    - **Preview en vivo del SERP** en `/campaigns/new`: panel lateral sticky que renderiza la primera combinación titular + descripción + URL display en formato Google Ads y se actualiza con cada keystroke. Incluye landing resuelta o subida y miniaturas de las creatividades.
    - **Sólo el primer titular es obligatorio** (antes RSA exigía 3 mínimos). Schema zod relajado a `min(1, "Al menos 1 titular.")` y migración `0009_campaigns_relax.sql` que reescribe el check de Postgres a `between 1 and 15`. Los demás titulares aparecen marcados como `opcional` en el form.
