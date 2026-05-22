@@ -148,8 +148,15 @@ export function ProfileForm({
         />
       </FieldGroup>
 
-      <FieldGroup title="Backstory" hint="Narrativa que conecta metas y miedos. Mínimo 20 caracteres.">
-        <TextArea name="backstory" rows={6} required minLength={20} defaultValue={initial.backstory} />
+      <FieldGroup title="Backstory" hint="Narrativa que conecta metas y miedos. Mínimo 20 caracteres. Se muestra en cursiva como cita del perfil.">
+        <TextArea
+          name="backstory"
+          rows={6}
+          required
+          minLength={20}
+          defaultValue={initial.backstory}
+          className="backstory-input"
+        />
       </FieldGroup>
 
       <input type="hidden" name="source" value={initial.source} />
@@ -315,7 +322,9 @@ function TextArea(props: {
   defaultValue?: string;
   minLength?: number;
   tooltip?: string;
+  className?: string;
 }) {
+  const useDefaultStyle = !props.className;
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {props.label && <FieldLabel label={props.label} tooltip={props.tooltip} />}
@@ -326,7 +335,12 @@ function TextArea(props: {
         required={props.required}
         defaultValue={props.defaultValue}
         minLength={props.minLength}
-        style={{ ...inputStyle, fontFamily: "var(--font-sans)", lineHeight: 1.5 }}
+        className={props.className}
+        style={
+          useDefaultStyle
+            ? { ...inputStyle, fontFamily: "var(--font-sans)", lineHeight: 1.5 }
+            : undefined
+        }
       />
     </label>
   );

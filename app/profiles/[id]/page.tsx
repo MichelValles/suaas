@@ -40,13 +40,29 @@ export default async function ProfileDetailPage({
       <PageHeading
         eyebrow={`${d.age} · ${d.gender} · ${d.occupation}`}
         title={profile.name}
-        description={profile.backstory}
         actions={
           <Link href="/profiles" className="btn-pill">
             Volver
           </Link>
         }
       />
+
+      {profile.backstory && (
+        <section className="backstory-box" aria-label="Backstory del perfil">
+          <span
+            className="mono"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.24em",
+              textTransform: "uppercase",
+              color: "var(--accent-500)",
+            }}
+          >
+            Backstory
+          </span>
+          <p>{profile.backstory}</p>
+        </section>
+      )}
 
       <section
         style={{

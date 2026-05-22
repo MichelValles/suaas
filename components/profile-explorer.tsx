@@ -526,7 +526,7 @@ function ProfileCard({
   onDelete?: (id: string) => Promise<void> | void;
 }) {
   return (
-    <li>
+    <li style={{ display: "flex" }}>
       <div
         className="profile-card"
         data-selected={selected ? "true" : "false"}
@@ -539,6 +539,8 @@ function ProfileCard({
           border: `1px solid ${selected ? "var(--accent-500)" : "rgba(255,255,255,0.08)"}`,
           background: selected ? "rgba(250,204,13,0.06)" : "rgba(255,255,255,0.02)",
           borderRadius: "var(--radius-md)",
+          width: "100%",
+          minHeight: 180,
         }}
       >
         <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
@@ -572,7 +574,15 @@ function ProfileCard({
         >
           {profile.name}
         </h3>
-        <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, margin: 0 }}>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.7)",
+            fontSize: 13,
+            margin: 0,
+            flex: 1,
+            lineHeight: 1.45,
+          }}
+        >
           {profile.demographics.occupation}
           {profile.demographics.geo ? ` · ${profile.demographics.geo}` : ""}
         </p>

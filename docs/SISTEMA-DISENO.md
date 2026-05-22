@@ -73,6 +73,9 @@ Por qué: SUAAS no es un deck editorial sino una herramienta de producto. El DS 
 | `.mono` | Tabular-nums Nunito para metadatos y HUD. |
 | `.btn-pill` | Pill outline con accent. Modificador `.solid` invierte. |
 | `.hl` | Highlight inline con fondo accent. |
+| `.feature-card` | Tarjeta clicable de módulo (icono + título + body + CTA). Altura uniforme `100%` para grids `auto-fit`. Hover-lift con borde accent. |
+| `.backstory-box` | Caja para mostrar el backstory de un perfil como cita en cursiva display. Glifo decorativo `"` en accent. Variante `.backstory-box--compact` para usos embebidos. |
+| `textarea.backstory-input` | Tratamiento cursiva display para el textarea de backstory en formularios. |
 | `.surface-feature` | Fondo `ink-900`, texto blanco, títulos accent. |
 | `.surface-paper` | Fondo `paper`. |
 | `.surface-tone` | Fondo `ink-50` neutro. |

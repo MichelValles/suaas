@@ -293,6 +293,106 @@ p {
   border-radius: var(--radius-xs);
 }
 
+/* ============================================================
+   Feature card (home, dashboards)
+   Tarjeta clicable con icono + título + body + CTA. Altura uniforme
+   en grid (height: 100%) y hover-lift sobre la accent.
+   ============================================================ */
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.02);
+  height: 100%;
+  transition:
+    border-color var(--dur-short) var(--ease-out),
+    transform var(--dur-short) var(--ease-out),
+    background var(--dur-short) var(--ease-out);
+}
+.feature-card:hover {
+  border-color: var(--accent-500);
+  background: rgba(250, 204, 13, 0.04);
+  transform: translateY(-2px);
+}
+.feature-card:hover svg {
+  color: var(--accent-500);
+}
+
+/* ============================================================
+   Backstory box: caja con cursiva display para narrativa de perfil
+   ============================================================ */
+.backstory-box {
+  position: relative;
+  border: 1px solid rgba(250, 204, 13, 0.22);
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(250, 204, 13, 0.05) 0%,
+      rgba(250, 204, 13, 0.015) 100%
+    );
+  padding: 24px 28px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.backstory-box::before {
+  content: "“";
+  position: absolute;
+  top: -8px;
+  left: 14px;
+  font-family: var(--font-display);
+  font-size: 64px;
+  line-height: 1;
+  color: var(--accent-500);
+  opacity: 0.55;
+}
+.backstory-box p {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: clamp(17px, 1.5vw, 22px);
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.92);
+  margin: 0;
+}
+
+/* Variante compacta para usar como hint embebido (lecturas dentro de grids) */
+.backstory-box--compact {
+  padding: 16px 20px 18px;
+}
+.backstory-box--compact p {
+  font-size: clamp(14px, 1.1vw, 16px);
+}
+.backstory-box--compact::before {
+  font-size: 44px;
+  top: -4px;
+  left: 10px;
+}
+
+/* Textarea con tratamiento cursiva display (backstory en formularios) */
+textarea.backstory-input {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.55;
+  color: rgba(255, 255, 255, 0.94);
+  background: rgba(250, 204, 13, 0.03);
+  border: 1px solid rgba(250, 204, 13, 0.22);
+  border-radius: var(--radius-md);
+  padding: 16px 18px;
+  outline: none;
+  resize: vertical;
+  color-scheme: dark;
+  transition: border-color var(--dur-short) var(--ease-out);
+}
+textarea.backstory-input:focus-visible {
+  border-color: var(--accent-500);
+  outline: none;
+}
+
 /* Tooltip */
 .tooltip-host {
   position: relative;
