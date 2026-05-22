@@ -149,6 +149,11 @@ export type CampaignSummary = {
 // ============================================================
 
 function renderSnippetText(campaign: Campaign, channel: Channel): string {
+  // Display Ads tienen render propio (banner con titular largo + CTA) que no
+  // depende del canal externo (siempre se ve dentro de Google Display Network).
+  if (campaign.strategy === "display") {
+    return renderDisplaySnippet(campaign);
+  }
   switch (channel) {
     case "meta":
       return renderFeedSnippet(campaign, "Instagram / Facebook");
@@ -176,6 +181,34 @@ function renderSearchSnippet(campaign: Campaign): string {
   lines.push("");
   lines.push("Descripciones:");
   for (const d of campaign.descriptions) lines.push(`- ${d}`);
+  lines.push("---");
+  return lines.join("\n");
+}
+
+function renderDisplaySnippet(campaign: Campaign): string {
+  const lines: string[] = [];
+  lines.push("Ves este banner patrocinado en una web mientras leías:");
+  lines.push("");
+  lines.push("---");
+  if (campaign.company_name) {
+    lines.push(`Anunciante: ${campaign.company_name} (${displayUrl(campaign.final_url)})`);
+  } else {
+    lines.push(`Anunciante: ${displayUrl(campaign.final_url)}`);
+  }
+  lines.push("");
+  if (campaign.long_headline) {
+    lines.push(`Titular largo: ${campaign.long_headline}`);
+  }
+  lines.push("");
+  lines.push("Titulares cortos (Google combina con el largo según el slot):");
+  for (const h of campaign.headlines) lines.push(`- ${h}`);
+  lines.push("");
+  lines.push("Descripciones:");
+  for (const d of campaign.descriptions) lines.push(`- ${d}`);
+  if (campaign.cta) {
+    lines.push("");
+    lines.push(`Botón CTA: [${campaign.cta}]`);
+  }
   lines.push("---");
   return lines.join("\n");
 }
@@ -221,7 +254,22 @@ function networkLabel(channel: Channel): string {
   }
 }
 
-function framingByChannel(channel: Channel, query: string): string {
+function framingByChannel(
+  channel: Channel,
+  query: string,
+  campaign: Campaign,
+): string {
+  if (campaign.strategy === "display") {
+    const context = query
+      ? `Tu interés / contexto actual: «${query}».`
+      : "Estás navegando sin un interés específico.";
+    return [
+      "Estás leyendo un artículo en una web cualquiera (medio digital, blog, foro).",
+      context,
+      "En medio del contenido aparece un banner patrocinado de la red de Display de Google.",
+      "Lo ves un instante mientras scrolleas. Decides en 1-2 segundos si te quedas mirando o sigues.",
+    ].join(" ");
+  }
   switch (channel) {
     case "meta":
       return [
@@ -268,7 +316,7 @@ async function probeCampaignSnippet(
     {
       type: "text",
       text: [
-        framingByChannel(channel, query),
+        framingByChannel(channel, query, campaign),
         "",
         renderSnippetText(campaign, channel),
         campaign.brief
@@ -443,7 +491,9 @@ export async function runCampaignTest(
 ): Promise<RunCampaignOutput> {
   const campaign = await getCampaign(input.campaignId);
   if (!campaign) throw new Error("Campaign no encontrada.");
-  if (campaign.queries.length === 0) throw new Error("La campaign no tiene queries.");
+  if (campaign.strategy === "search" && campaign.queries.length === 0) {
+    throw new Error("Search exige al menos 1 query.");
+  }
   if (!campaign.channels || campaign.channels.length === 0) {
     throw new Error("La campaign no tiene canales seleccionados.");
   }
@@ -457,14 +507,19 @@ export async function runCampaignTest(
   if (profiles.length === 0) throw new Error("Sin perfiles para evaluar.");
   if (profiles.length > 20) throw new Error("Máximo 20 perfiles por run.");
 
+  // Para estrategias sin queries (Display), usamos 1 placeholder de contexto
+  // general para que el runner genere al menos 1 respuesta por perfil × canal.
+  const queriesToUse =
+    campaign.queries.length > 0 ? campaign.queries : ["(contexto general)"];
+
   // Cap defensivo del techo combinatorio. 20 × 5 × 5 = 500 snippets en peor
   // caso es demasiado para maxDuration=300. Bloqueamos por encima de 200
   // combinaciones perfil-canal-query con un mensaje claro.
   const combinations =
-    profiles.length * campaign.channels.length * campaign.queries.length;
+    profiles.length * campaign.channels.length * queriesToUse.length;
   if (combinations > 200) {
     throw new Error(
-      `Combinatorial demasiado grande: ${profiles.length} perfiles × ${campaign.channels.length} canales × ${campaign.queries.length} queries = ${combinations}. Máximo 200. Reduce perfiles, canales o queries.`,
+      `Combinatorial demasiado grande: ${profiles.length} perfiles × ${campaign.channels.length} canales × ${queriesToUse.length} queries = ${combinations}. Máximo 200. Reduce perfiles, canales o queries.`,
     );
   }
 
@@ -475,7 +530,7 @@ export async function runCampaignTest(
     params: {
       campaignId: campaign.id,
       profileIds: profiles.map((p) => p.id),
-      queries: campaign.queries,
+      queries: queriesToUse,
       channels: campaign.channels,
     },
   });
@@ -484,7 +539,9 @@ export async function runCampaignTest(
     const collected: CampaignResponse[] = [];
     for (const chunk of chunks(profiles, PROFILE_CHUNK)) {
       const results = await Promise.all(
-        chunk.map((profile) => probeProfileAllQueries(run.id, campaign, profile)),
+        chunk.map((profile) =>
+          probeProfileAllQueries(run.id, campaign, profile, queriesToUse),
+        ),
       );
       for (const arr of results) collected.push(...arr);
     }
@@ -535,11 +592,12 @@ async function probeProfileAllQueries(
   runId: string,
   campaign: Campaign,
   profile: Profile,
+  queries: string[],
 ): Promise<CampaignResponse[]> {
   const out: CampaignResponse[] = [];
   const supa = getServerClient();
   for (const channel of campaign.channels) {
-    for (const query of campaign.queries) {
+    for (const query of queries) {
       const snippet = await probeCampaignSnippet(profile, campaign, channel, query);
       await recordUsage({
         runId,

@@ -6,17 +6,20 @@ import { z } from "zod";
 import { uploadDataUrlToBlob } from "@/lib/blob";
 import {
   CHANNEL_VALUES,
+  CREATIVE_ROLE_VALUES,
   CampaignInputSchema,
   STRATEGY_VALUES,
   createCampaign,
   extractYouTubeId,
   youtubeThumbnail,
   type CampaignInput,
+  type CreativeRole,
 } from "@/lib/campaigns";
 import { resolveOgImageDetailed } from "@/lib/targets";
 
 const CreativePayloadSchema = z.object({
   kind: z.enum(["image", "video", "youtube"]).default("image"),
+  role: z.enum(CREATIVE_ROLE_VALUES).default("generic"),
   url: z.string().optional().default(""),
   upload_data: z.string().optional().default(""),
   youtube_id: z.string().optional().nullable(),
@@ -33,6 +36,9 @@ const PayloadSchema = z.object({
     .default(["google"]),
   strategy: z.enum(STRATEGY_VALUES).default("search"),
   brief: z.string().optional().nullable(),
+  company_name: z.string().optional().nullable(),
+  long_headline: z.string().optional().nullable(),
+  cta: z.string().optional().nullable(),
   final_url: z.string().url(),
   landing_mode: z.enum(["og", "upload"]),
   landing_upload_data: z.string().optional().default(""),
@@ -115,6 +121,7 @@ export async function createCampaignAction(
   // Procesar creatividades por kind.
   const creatives: {
     kind: "image" | "video" | "youtube";
+    role: CreativeRole;
     url: string;
     youtube_id?: string | null;
     thumbnail_url?: string | null;
@@ -128,6 +135,7 @@ export async function createCampaignAction(
       if (!c.url || !id) continue;
       creatives.push({
         kind: "youtube",
+        role: c.role ?? "video_youtube",
         url: c.url.trim(),
         youtube_id: id,
         thumbnail_url: c.thumbnail_url || youtubeThumbnail(id),
@@ -153,6 +161,7 @@ export async function createCampaignAction(
       if (!finalUrl) continue;
       creatives.push({
         kind: "video",
+        role: c.role ?? "generic",
         url: finalUrl,
         thumbnail_url: c.thumbnail_url?.trim() || null,
         label,
@@ -177,6 +186,7 @@ export async function createCampaignAction(
     if (!finalUrl) continue;
     creatives.push({
       kind: "image",
+      role: c.role ?? "generic",
       url: finalUrl,
       label,
     });
@@ -194,6 +204,9 @@ export async function createCampaignAction(
     headlines: payload.headlines.map((h) => h.trim()).filter(Boolean),
     descriptions: payload.descriptions.map((d) => d.trim()).filter(Boolean),
     creatives,
+    company_name: payload.company_name?.trim() || null,
+    long_headline: payload.long_headline?.trim() || null,
+    cta: payload.cta?.trim() || null,
   };
 
   let id: string;

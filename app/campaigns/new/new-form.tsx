@@ -8,6 +8,8 @@ import { StrategyIcon } from "@/components/strategy-icon";
 import {
   CHANNEL_LABEL,
   CHANNEL_VALUES,
+  CREATIVE_ROLE_LABEL,
+  CTA_VALUES,
   STRATEGY_DESCRIPTION,
   STRATEGY_LABEL,
   STRATEGY_VALUES,
@@ -15,6 +17,7 @@ import {
   isStrategyImplemented,
   youtubeThumbnail,
   type Channel,
+  type CreativeRole,
   type Strategy,
 } from "@/lib/campaigns";
 import {
@@ -28,14 +31,19 @@ type LandingMode = "og" | "upload";
 type CreativeKind = "image" | "video" | "youtube";
 type Creative = {
   kind: CreativeKind;
+  role: CreativeRole;
   url: string;
   upload_data: string;
   label: string;
   youtube_id: string | null;
   thumbnail_url: string | null;
 };
-const emptyCreative = (kind: CreativeKind = "image"): Creative => ({
+const emptyCreative = (
+  kind: CreativeKind = "image",
+  role: CreativeRole = "generic",
+): Creative => ({
   kind,
+  role,
   url: "",
   upload_data: "",
   label: "",
@@ -83,6 +91,9 @@ export function NewCampaignForm() {
   const [headlines, setHeadlines] = useState<string[]>(["", "", ""]);
   const [descriptions, setDescriptions] = useState<string[]>(["", ""]);
   const [creatives, setCreatives] = useState<Creative[]>([]);
+  const [companyName, setCompanyName] = useState("");
+  const [longHeadline, setLongHeadline] = useState("");
+  const [cta, setCta] = useState<string>("");
 
   // Cuando el usuario cambia la URL final, invalidamos la imagen resuelta para
   // que vuelva a pulsar el botón explícitamente. Evita previews stale.
@@ -219,6 +230,9 @@ export function NewCampaignForm() {
     headlines,
     descriptions,
     creatives,
+    company_name: companyName.trim() || null,
+    long_headline: longHeadline.trim() || null,
+    cta: cta || null,
   };
 
   // Para el preview: muestra el snippet (headline 1 + description 1) y la
@@ -318,12 +332,22 @@ export function NewCampaignForm() {
         <>
         <Section title="Identidad">
           <Controlled
-            label="Nombre"
+            label="Nombre interno de la campaña"
             value={name}
             onChange={setName}
             required
             placeholder="Hipoteca fija agosto 2026"
           />
+          {strategy === "display" && (
+            <CharCountedInput
+              label="Nombre de empresa (visible en el anuncio)"
+              value={companyName}
+              onChange={setCompanyName}
+              max={25}
+              required
+              placeholder="BBVA"
+            />
+          )}
           <ControlledTextArea
             label="Brief interno (opcional, no se muestra al perfil)"
             rows={2}
@@ -446,9 +470,13 @@ export function NewCampaignForm() {
         </Section>
 
         <Section
-          title={`Queries · ${queries.length} / 5`}
+          title={
+            strategy === "display"
+              ? `Intereses / contexto · ${queries.length} / 5 (opcional)`
+              : `Queries · ${queries.length} / 5`
+          }
           onAdd={addQuery}
-          addLabel="+ Añadir query"
+          addLabel="+ Añadir"
           canAdd={queries.length < 5}
         >
           {queries.map((q, i) => (
@@ -458,21 +486,35 @@ export function NewCampaignForm() {
               onRemove={() => removeQuery(i)}
             >
               <Controlled
-                label={`Query ${i + 1}`}
+                label={
+                  strategy === "display"
+                    ? `Interés ${i + 1}`
+                    : `Query ${i + 1}`
+                }
                 value={q}
                 onChange={(v) => setQueries(updateAt(queries, i, v))}
-                required={i === 0}
-                placeholder="hipoteca fija madrid"
+                required={strategy === "search" && i === 0}
+                placeholder={
+                  strategy === "display"
+                    ? "lector de tech, edad 30-45"
+                    : "hipoteca fija madrid"
+                }
               />
             </RowWithRemove>
           ))}
         </Section>
 
         <Section
-          title={`Titulares · ${headlines.length} / 15`}
+          title={
+            strategy === "display"
+              ? `Titulares cortos · ${headlines.length} / 5`
+              : `Titulares · ${headlines.length} / 15`
+          }
           onAdd={addHeadline}
           addLabel="+ Añadir titular"
-          canAdd={headlines.length < 15}
+          canAdd={
+            headlines.length < (strategy === "display" ? 5 : 15)
+          }
         >
           {headlines.map((h, i) => (
             <RowWithRemove
@@ -492,16 +534,37 @@ export function NewCampaignForm() {
           ))}
         </Section>
 
+        {strategy === "display" && (
+          <Section title="Titular largo">
+            <CharCountedInput
+              label="Titular largo (visible en banners grandes)"
+              value={longHeadline}
+              onChange={setLongHeadline}
+              max={90}
+              required
+              placeholder="Hipoteca fija al 2,90% TAE sin comisiones de apertura"
+            />
+          </Section>
+        )}
+
         <Section
-          title={`Descripciones · ${descriptions.length} / 4`}
+          title={
+            strategy === "display"
+              ? `Descripciones · ${descriptions.length} / 5`
+              : `Descripciones · ${descriptions.length} / 4`
+          }
           onAdd={addDescription}
           addLabel="+ Añadir descripción"
-          canAdd={descriptions.length < 4}
+          canAdd={
+            descriptions.length < (strategy === "display" ? 5 : 4)
+          }
         >
           {descriptions.map((d, i) => (
             <RowWithRemove
               key={i}
-              canRemove={descriptions.length > 2}
+              canRemove={
+                descriptions.length > (strategy === "display" ? 1 : 2)
+              }
               onRemove={() => removeDescription(i)}
             >
               <CharCountedTextarea
@@ -509,25 +572,60 @@ export function NewCampaignForm() {
                 value={d}
                 onChange={(v) => setDescriptions(updateAt(descriptions, i, v))}
                 max={DESCRIPTION_MAX}
-                required
-                placeholder="Sin comisiones de apertura. Decisión en 48h. Trato personal en tu sucursal."
+                required={i === 0 || strategy === "search"}
+                placeholder="Sin comisiones de apertura. Decisión en 48h."
               />
             </RowWithRemove>
           ))}
         </Section>
 
+        {strategy === "display" && (
+          <Section title="CTA">
+            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label>Botón Call To Action (visible en el anuncio)</Label>
+              <select
+                value={cta}
+                onChange={(e) => setCta(e.currentTarget.value)}
+                style={{
+                  ...inputStyle,
+                  colorScheme: "dark",
+                }}
+              >
+                <option value="">— sin CTA —</option>
+                {CTA_VALUES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </Section>
+        )}
+
         <Section
-          title={`Creatividades · ${creatives.length} / 6 (opcional)`}
+          title={
+            strategy === "display"
+              ? `Imágenes y vídeos · ${creatives.length}`
+              : `Creatividades · ${creatives.length} / 6 (opcional)`
+          }
           onAdd={() => addCreative("image")}
-          addLabel="+ Añadir creatividad"
-          canAdd={creatives.length < 6}
+          addLabel="+ Añadir"
+          canAdd={creatives.length < 20}
         >
-          {creatives.length === 0 && (
-            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: 0 }}>
-              Imagen, vídeo o YouTube. El perfil sintético ve la imagen
-              directamente o el thumbnail si es vídeo / YouTube (los modelos
-              actuales no procesan vídeo).
+          {strategy === "display" ? (
+            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
+              Display exige al menos <strong>1 imagen landscape (1.91:1)</strong>,
+              <strong> 1 imagen square (1:1)</strong> y <strong>1 logo square (1:1)</strong>.
+              Recomendado: añade portrait (4:5) para mobile y vídeo YouTube si lo tienes.
             </p>
+          ) : (
+            creatives.length === 0 && (
+              <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: 0 }}>
+                Imagen, vídeo o YouTube. El perfil sintético ve la imagen
+                directamente o el thumbnail si es vídeo / YouTube (los modelos
+                actuales no procesan vídeo).
+              </p>
+            )
           )}
           {creatives.map((c, i) => (
             <fieldset key={i} style={fieldsetStyle}>
@@ -561,6 +659,38 @@ export function NewCampaignForm() {
                   label="YouTube"
                 />
               </div>
+              {strategy === "display" && (
+                <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <Label>Rol en el anuncio</Label>
+                  <select
+                    value={c.role}
+                    onChange={(e) =>
+                      patchCreative(i, { role: e.currentTarget.value as CreativeRole })
+                    }
+                    style={{ ...inputStyle, colorScheme: "dark" }}
+                  >
+                    <option value="generic">{CREATIVE_ROLE_LABEL.generic}</option>
+                    <option value="landscape_image">
+                      {CREATIVE_ROLE_LABEL.landscape_image} · obligatorio
+                    </option>
+                    <option value="square_image">
+                      {CREATIVE_ROLE_LABEL.square_image} · obligatorio
+                    </option>
+                    <option value="portrait_image">
+                      {CREATIVE_ROLE_LABEL.portrait_image}
+                    </option>
+                    <option value="logo_square">
+                      {CREATIVE_ROLE_LABEL.logo_square} · obligatorio
+                    </option>
+                    <option value="logo_landscape">
+                      {CREATIVE_ROLE_LABEL.logo_landscape}
+                    </option>
+                    <option value="video_youtube">
+                      {CREATIVE_ROLE_LABEL.video_youtube}
+                    </option>
+                  </select>
+                </label>
+              )}
 
               {c.kind === "image" && (
                 <CreativeImageInput

@@ -182,6 +182,17 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.26.x — Display Ads (RDA)
+
+- [x] **v0.26.0**: segunda estrategia implementada dentro de Google Ads, **Display (Responsive Display Ad)**. Modelo extendido con `company_name` (max 25c), `long_headline` (max 90c) y `cta` (de un set predefinido), columnas en `campaigns` añadidas por la migración `0014_campaigns_display.sql`. Cada `Creative` gana un campo `role` (`landscape_image | square_image | portrait_image | logo_square | logo_landscape | video_youtube | generic`) que la UI usa para validar los assets obligatorios de RDA.
+  - Schema zod ahora usa `superRefine` por strategy:
+    - **Search**: queries ≥1, headlines 1..15, descriptions 2..4 (igual que antes).
+    - **Display**: company_name y long_headline obligatorios, headlines 1..5 (30c), descriptions 1..5 (90c), creatives con al menos 1 landscape + 1 square + 1 logo_square. Queries opcionales (se interpretan como intereses).
+  - Form `/campaigns/new` con branch por strategy: si seleccionas Display, aparece el campo «Nombre de empresa» en Identidad, sección dedicada «Titular largo», sección «CTA» con select, y cada creatividad expone un selector de Rol con los 6 valores. Caps de las secciones de titulares y descripciones se adaptan automáticamente.
+  - Runner: `probeCampaignSnippet` renderiza un banner Display (titular largo + titulares cortos + descripciones + CTA + company name) en lugar del SERP cuando `campaign.strategy === "display"`. `framingByChannel` adopta un hook específico de Display («estás leyendo un artículo en una web cualquiera, aparece este banner patrocinado»). Si `queries` está vacío (display sin intereses definidos), el runner usa un placeholder de contexto general.
+  - Detalle de la campaña muestra un bloque «Empresa» con company_name, long_headline y CTA cuando es Display, y el eyebrow refleja la estrategia. Las secciones existentes (titulares, descripciones, creatividades, landing) siguen funcionando para los dos modos.
+  - Aplicar `0014_campaigns_display.sql` en Supabase + `NOTIFY pgrst, 'reload schema';` antes de crear campañas Display.
+
 ## v0.25.x — Estrategias dentro del canal
 
 - [x] **v0.25.0**: dentro de Google Ads aparecen las 7 estrategias publicitarias como sub-pestañas: **Search · Display · Performance Max · Demand Gen · Video / YouTube · App Campaigns · Shopping**. Sólo **Search (RSA)** está implementada; las otras 6 son sub-pestañas con su icono lucide propio (`Image`, `Sparkles`, `TrendingUp`, `Play`, `Smartphone`, `ShoppingBag`) y badge `Próx.`. Al seleccionarlas, el form muestra un panel `En construcción` con la descripción exhaustiva de los campos que tendrá cada una (URLs, caps de caracteres, formatos de imagen, vídeo, CTA, feeds, etc.) en vez de los campos RSA. Helper `isStrategyImplemented(s)` central para activar features futuras sin tocar el form.

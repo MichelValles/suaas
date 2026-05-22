@@ -112,7 +112,11 @@ export default async function CampaignDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Campaña · ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} · ${campaign.headlines.length} titulares`}
+        eyebrow={
+          campaign.strategy === "display"
+            ? `Campaña · Display · ${campaign.headlines.length} titulares cortos · ${campaign.creatives.length} assets`
+            : `Campaña · ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} · ${campaign.headlines.length} titulares`
+        }
         title={campaign.name}
         description={campaign.brief ?? undefined}
         descriptionVariant="panel"
@@ -171,6 +175,74 @@ export default async function CampaignDetailPage({
         </div>
       </section>
 
+      {/* Empresa y titular largo (sólo Display) */}
+      {campaign.strategy === "display" && (
+        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SectionLabel>Empresa</SectionLabel>
+          <div
+            style={{
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: "var(--radius-md)",
+              background: "rgba(255,255,255,0.02)",
+              padding: "16px 18px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            {campaign.company_name && (
+              <div>
+                <span className="mono" style={chipMonoStyle}>
+                  Nombre · {campaign.company_name.length}/25
+                </span>
+                <p
+                  style={{
+                    color: "rgba(255,255,255,0.9)",
+                    fontSize: 18,
+                    margin: "4px 0 0",
+                  }}
+                >
+                  {campaign.company_name}
+                </p>
+              </div>
+            )}
+            {campaign.long_headline && (
+              <div>
+                <span className="mono" style={chipMonoStyle}>
+                  Titular largo · {campaign.long_headline.length}/90
+                </span>
+                <p
+                  style={{
+                    color: "rgba(132, 192, 255, 0.95)",
+                    fontSize: 18,
+                    margin: "4px 0 0",
+                    lineHeight: 1.3,
+                  }}
+                >
+                  {campaign.long_headline}
+                </p>
+              </div>
+            )}
+            {campaign.cta && (
+              <div>
+                <span className="mono" style={chipMonoStyle}>
+                  CTA
+                </span>
+                <p
+                  style={{
+                    color: "rgba(255,255,255,0.85)",
+                    fontSize: 14,
+                    margin: "4px 0 0",
+                  }}
+                >
+                  [{campaign.cta}]
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
       {/* Vista tipo SERP: el primer titular + primera descripción como snippet representativo. */}
       <section
         style={{
@@ -225,9 +297,14 @@ export default async function CampaignDetailPage({
         </p>
       </section>
 
-      {/* Queries */}
+      {/* Queries / intereses */}
+      {campaign.queries.length > 0 && (
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <SectionLabel>Queries objetivo</SectionLabel>
+        <SectionLabel>
+          {campaign.strategy === "display"
+            ? "Intereses / contexto"
+            : "Queries objetivo"}
+        </SectionLabel>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {campaign.queries.map((q) => (
             <span
@@ -248,6 +325,7 @@ export default async function CampaignDetailPage({
           ))}
         </div>
       </section>
+      )}
 
       {/* Headlines */}
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>

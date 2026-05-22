@@ -63,14 +63,36 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
 };
 
 export function isStrategyImplemented(s: Strategy): boolean {
-  return s === "search";
+  return s === "search" || s === "display";
 }
 
 export const CreativeKindSchema = z.enum(["image", "video", "youtube"]);
 export type CreativeKind = z.infer<typeof CreativeKindSchema>;
 
+export const CREATIVE_ROLE_VALUES = [
+  "generic",
+  "landscape_image", // 1.91:1 · obligatorio en Display
+  "square_image", //    1:1   · obligatorio en Display
+  "portrait_image", //  4:5   · opcional
+  "logo_square", //     1:1   · obligatorio en Display
+  "logo_landscape", //  4:1   · opcional
+  "video_youtube", //   YouTube · opcional
+] as const;
+export type CreativeRole = (typeof CREATIVE_ROLE_VALUES)[number];
+
+export const CREATIVE_ROLE_LABEL: Record<CreativeRole, string> = {
+  generic: "Creatividad",
+  landscape_image: "Imagen landscape (1.91:1)",
+  square_image: "Imagen square (1:1)",
+  portrait_image: "Imagen portrait (4:5)",
+  logo_square: "Logo square (1:1)",
+  logo_landscape: "Logo landscape (4:1)",
+  video_youtube: "Vídeo YouTube",
+};
+
 export const CreativeSchema = z.object({
   kind: CreativeKindSchema.default("image"),
+  role: z.enum(CREATIVE_ROLE_VALUES).default("generic"),
   url: z
     .string()
     .refine(
@@ -80,12 +102,10 @@ export const CreativeSchema = z.object({
         /^data:video\//i.test(v),
       "Debe ser una URL http(s) o un data:image|video URL.",
     ),
-  // Para YouTube: id del vídeo (extraído de la URL). Permite mostrar embed y
-  // miniatura sin recargar otra vez.
+  // Para YouTube: id del vídeo (extraído de la URL).
   youtube_id: z.string().optional().nullable(),
   // Para los kinds que el modelo NO puede ver (video uploaded), guardamos una
-  // miniatura en `thumbnail_url` para mostrar al perfil sintético. Si no
-  // existe, el runner ignora la creatividad.
+  // miniatura en `thumbnail_url`. Si no existe, el runner ignora la creatividad.
   thumbnail_url: z
     .string()
     .url()
@@ -94,6 +114,23 @@ export const CreativeSchema = z.object({
   label: z.string().optional().nullable(),
 });
 export type Creative = z.infer<typeof CreativeSchema>;
+
+// CTAs predefinidos de Google Ads (Display / Demand Gen / etc.).
+export const CTA_VALUES = [
+  "Más información",
+  "Comprar",
+  "Reservar ahora",
+  "Suscribirse",
+  "Descargar",
+  "Instalar",
+  "Aprender más",
+  "Solicitar presupuesto",
+  "Inscribirse",
+  "Ver más",
+  "Contactar",
+  "Aplicar ahora",
+] as const;
+export type Cta = (typeof CTA_VALUES)[number];
 
 const YOUTUBE_REGEX =
   /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([A-Za-z0-9_-]{6,})/i;
@@ -107,48 +144,136 @@ export function youtubeThumbnail(videoId: string): string {
   return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 }
 
-export const CampaignInputSchema = z.object({
-  name: z.string().min(1, "El nombre es obligatorio."),
-  channels: z
-    .array(z.enum(CHANNEL_VALUES))
-    .min(1, "Selecciona al menos 1 canal.")
-    .max(5, "Máximo 5 canales por campaña.")
-    .default(["google"])
-    .transform((arr) => Array.from(new Set(arr))),
-  strategy: z.enum(STRATEGY_VALUES).default("search"),
-  brief: z.string().optional().nullable(),
-  final_url: z.string().url("La URL final no es válida."),
-  landing_image_url: z
-    .string()
-    .refine(
-      (v) => /^https?:\/\//i.test(v) || /^data:image\//i.test(v),
-      "La imagen de landing debe ser URL http(s) o data:image.",
-    ),
-  landing_source_url: z.string().url().optional().nullable(),
-  queries: z
-    .array(z.string().min(2, "Cada query tiene mínimo 2 caracteres.").max(120))
-    .min(1, "Define al menos 1 query.")
-    .max(5, "Máximo 5 queries por campaign."),
-  headlines: z
-    .array(
-      z
-        .string()
-        .min(1, "Titular vacío.")
-        .max(30, "Cada titular admite máximo 30 caracteres (RSA)."),
-    )
-    .min(1, "Al menos 1 titular.")
-    .max(15, "Máximo 15 titulares (RSA)."),
-  descriptions: z
-    .array(
-      z
-        .string()
-        .min(1, "Descripción vacía.")
-        .max(90, "Cada descripción admite máximo 90 caracteres (RSA)."),
-    )
-    .min(2, "Mínimo 2 descripciones (RSA).")
-    .max(4, "Máximo 4 descripciones (RSA)."),
-  creatives: z.array(CreativeSchema).max(6, "Máximo 6 creatividades.").optional().default([]),
-});
+export const CampaignInputSchema = z
+  .object({
+    name: z.string().min(1, "El nombre es obligatorio."),
+    channels: z
+      .array(z.enum(CHANNEL_VALUES))
+      .min(1, "Selecciona al menos 1 canal.")
+      .max(5, "Máximo 5 canales por campaña.")
+      .default(["google"])
+      .transform((arr) => Array.from(new Set(arr))),
+    strategy: z.enum(STRATEGY_VALUES).default("search"),
+    brief: z.string().optional().nullable(),
+    final_url: z.string().url("La URL final no es válida."),
+    landing_image_url: z
+      .string()
+      .refine(
+        (v) => /^https?:\/\//i.test(v) || /^data:image\//i.test(v),
+        "La imagen de landing debe ser URL http(s) o data:image.",
+      ),
+    landing_source_url: z.string().url().optional().nullable(),
+    queries: z
+      .array(z.string().min(2, "Cada query tiene mínimo 2 caracteres.").max(120))
+      .max(5, "Máximo 5 queries por campaign.")
+      .default([]),
+    headlines: z
+      .array(
+        z
+          .string()
+          .min(1, "Titular vacío.")
+          .max(30, "Cada titular admite máximo 30 caracteres."),
+      )
+      .min(1, "Al menos 1 titular.")
+      .max(15, "Máximo 15 titulares."),
+    descriptions: z
+      .array(
+        z
+          .string()
+          .min(1, "Descripción vacía.")
+          .max(90, "Cada descripción admite máximo 90 caracteres."),
+      )
+      .min(1, "Al menos 1 descripción.")
+      .max(5, "Máximo 5 descripciones."),
+    creatives: z
+      .array(CreativeSchema)
+      .max(20, "Máximo 20 creatividades.")
+      .optional()
+      .default([]),
+    company_name: z
+      .string()
+      .max(25, "Nombre de empresa máximo 25 caracteres.")
+      .optional()
+      .nullable(),
+    long_headline: z
+      .string()
+      .max(90, "Titular largo máximo 90 caracteres.")
+      .optional()
+      .nullable(),
+    cta: z.string().optional().nullable(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.strategy === "search") {
+      if (data.queries.length < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["queries"],
+          message: "Search exige al menos 1 query.",
+        });
+      }
+      if (data.descriptions.length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["descriptions"],
+          message: "Search exige mínimo 2 descripciones.",
+        });
+      }
+      if (data.descriptions.length > 4) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["descriptions"],
+          message: "Search admite máximo 4 descripciones.",
+        });
+      }
+    }
+    if (data.strategy === "display") {
+      if (!data.company_name || !data.company_name.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["company_name"],
+          message: "Display exige nombre de empresa (max 25c).",
+        });
+      }
+      if (!data.long_headline || !data.long_headline.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["long_headline"],
+          message: "Display exige titular largo (max 90c).",
+        });
+      }
+      if (data.headlines.length > 5) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["headlines"],
+          message: "Display admite máximo 5 titulares cortos.",
+        });
+      }
+      const creatives = data.creatives ?? [];
+      const has = (role: CreativeRole) =>
+        creatives.some((c) => c.role === role);
+      if (!has("landscape_image")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["creatives"],
+          message: "Display exige al menos 1 imagen landscape (1.91:1).",
+        });
+      }
+      if (!has("square_image")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["creatives"],
+          message: "Display exige al menos 1 imagen square (1:1).",
+        });
+      }
+      if (!has("logo_square")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["creatives"],
+          message: "Display exige al menos 1 logo square (1:1).",
+        });
+      }
+    }
+  });
 export type CampaignInput = z.infer<typeof CampaignInputSchema>;
 
 export type Campaign = {
@@ -165,6 +290,9 @@ export type Campaign = {
   headlines: string[];
   descriptions: string[];
   creatives: Creative[];
+  company_name: string | null;
+  long_headline: string | null;
+  cta: string | null;
 };
 
 // ============================================================
@@ -257,6 +385,9 @@ export async function createCampaign(input: CampaignInput): Promise<Campaign> {
     descriptions: parsed.descriptions,
     creatives: parsed.creatives ?? [],
     strategy: parsed.strategy,
+    company_name: parsed.company_name ?? null,
+    long_headline: parsed.long_headline ?? null,
+    cta: parsed.cta ?? null,
   };
   let { data, error } = await supa
     .from("campaigns")
