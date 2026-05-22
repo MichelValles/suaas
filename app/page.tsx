@@ -22,7 +22,8 @@ export default function HomePage() {
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "clamp(48px, 6vw, 80px)",
+          gap: "clamp(72px, 9vw, 128px)",
+          paddingBlock: "clamp(8px, 2vw, 24px)",
         }}
       >
         {/* HERO */}
@@ -45,14 +46,14 @@ export default function HomePage() {
         {/* MÓDULOS DE TEST */}
         <section
           aria-label="Módulos de test"
-          style={{ display: "flex", flexDirection: "column", gap: 20 }}
+          style={{ display: "flex", flexDirection: "column", gap: 28 }}
         >
           <SectionLabel Icon={FlaskConical}>Módulos de test</SectionLabel>
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 16,
+              gap: 24,
             }}
           >
             <FeatureCard
@@ -96,14 +97,14 @@ export default function HomePage() {
         {/* AGENTES Y DATOS */}
         <section
           aria-label="Agentes y datos"
-          style={{ display: "flex", flexDirection: "column", gap: 20 }}
+          style={{ display: "flex", flexDirection: "column", gap: 28 }}
         >
           <SectionLabel Icon={Compass}>Agentes y datos</SectionLabel>
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-              gap: 16,
+              gap: 24,
             }}
           >
             <FeatureCard
@@ -136,10 +137,10 @@ export default function HomePage() {
           style={{
             border: "1px solid rgba(255,255,255,0.08)",
             borderRadius: "var(--radius-lg)",
-            padding: "clamp(28px, 4vw, 44px)",
+            padding: "clamp(36px, 5vw, 64px)",
             display: "flex",
             flexDirection: "column",
-            gap: 28,
+            gap: 36,
             background: "rgba(255,255,255,0.02)",
           }}
         >
@@ -175,7 +176,7 @@ export default function HomePage() {
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-              gap: 24,
+              gap: 36,
               padding: 0,
               margin: 0,
               listStyle: "none",
@@ -214,7 +215,7 @@ export default function HomePage() {
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-            gap: 16,
+            gap: 24,
           }}
         >
           <FeatureCard
