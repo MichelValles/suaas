@@ -30,7 +30,7 @@ export default function HomePage() {
         <PageHeading
           eyebrow="Synthetic Users as a Service"
           title="Experimentación predictiva con agentes calibrados."
-          description="Construimos perfiles «grounded» (Big Five + barreras COM-B + backstory), los enfrentamos a tus pantallas, embudos, copys y precios, y devolvemos fricciones y abandono cuantificados. Iteras UX y mensaje en minutos, no en semanas."
+          description="Perfiles «grounded» (Big Five + barreras COM-B + backstory), los enfrentamos a pantallas, embudos, copys y precios, y devolvemos fricciones y abandono cuantificados."
           actions={
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
               <Link href="/profiles" className="btn-pill solid">
