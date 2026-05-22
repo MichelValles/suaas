@@ -96,6 +96,19 @@ export async function createProfile(input: ProfileInput): Promise<Profile> {
   return data as Profile;
 }
 
+export async function updateProfile(id: string, input: ProfileInput): Promise<Profile> {
+  const parsed = ProfileInputSchema.parse(input);
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("profiles")
+    .update(parsed)
+    .eq("id", id)
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return data as Profile;
+}
+
 export async function deleteProfile(id: string): Promise<void> {
   const supa = getServerClient();
   const { error } = await supa.from("profiles").delete().eq("id", id);

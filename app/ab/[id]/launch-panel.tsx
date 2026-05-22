@@ -1,13 +1,14 @@
 "use client";
 
 import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
+import type { Profile } from "@/lib/profiles";
 
 export function LaunchAbPanel({
   abTestId,
   profiles,
 }: {
   abTestId: string;
-  profiles: { id: string; name: string; demo: string }[];
+  profiles: Profile[];
 }) {
   return (
     <ProfileLaunchPanel

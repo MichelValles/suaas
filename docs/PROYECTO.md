@@ -47,14 +47,22 @@ app/
     page.tsx              <- pantalla de contraseña (Server)
     login-form.tsx        <- formulario HUD oscuro (Client)
   profiles/
-    page.tsx              <- lista de perfiles (Server)
+    page.tsx              <- lista (delegada a ProfilesManageView)
+    manage-view.tsx       <- Client: usa ProfileExplorer mode="manage" + delete fetch
+    actions.ts            <- Server Actions: deleteProfileAction, deleteProfileAndRedirect
     new/
       page.tsx
-      new-form.tsx        <- formulario con useActionState
-      actions.ts          <- Server Action createProfileAction
+      new-form.tsx        <- wrapper que usa <ProfileForm initial=DEFAULT_PROFILE_INITIAL />
+      actions.ts          <- createProfileAction (parseProfileForm + createProfile)
     [id]/
       page.tsx            <- detalle: traits + barreras + chat
       chat-panel.tsx      <- Client: ChatPanel
+      edit/
+        page.tsx
+        edit-form.tsx     <- wrapper que usa <ProfileForm initial=<datos cargados> />
+        actions.ts        <- updateProfileAction (lee __id de hidden input)
+  api/
+    profiles/[id]/route.ts <- DELETE: borra perfil (cascade a runs y respuestas)
   targets/
     page.tsx              <- lista de targets (Server)
     new/
@@ -95,7 +103,9 @@ lib/
   version.ts              <- APP_VERSION (espejo de package.json)
   supabase.ts             <- getBrowserClient(), getServerClient()
   gateway.ts              <- DEFAULT_MODEL, REASONER_MODEL, isGatewayConfigured()
-  profiles.ts             <- ProfileInputSchema (zod) + CRUD (server-only)
+  profiles.ts             <- ProfileInputSchema (zod) + CRUD (server-only): create, update, delete, listProfilesByIds
+  profile-form.ts         <- ProfileFormSchema + parseProfileForm (reusado por new y edit actions)
+  profile-filters.ts      <- ProfileFilters (rangos + texto contiene) + filterProfiles
   runs.ts                 <- Run/Message types + createRun, appendMessage, upsertMetric, markRunFinished, listRunsByTarget, getMetricsForRun
   prompts.ts              <- buildSystemPrompt(profile) con negative prompts
   agents.ts               <- ReasonerPlanSchema, reason() (object), talkStream() (text)
@@ -119,6 +129,9 @@ components/
   sidebar.tsx             <- Sidebar (client, lateral izquierdo, colapsable en móvil) con iconos lucide
   console-banner.tsx      <- imprime SUAAS + versión en la consola del navegador
   result-bar.tsx          <- ResultBar (label + valor 0..1 + porcentaje + hint)
+  profile-form.tsx        <- ProfileForm compartido entre new y edit (validación + colorScheme dark)
+  profile-explorer.tsx    <- Vista grid/tabla + filtros + selección + acciones + hover backstory
+  profile-launch-panel.tsx <- Panel reutilizable: ProfileExplorer mode="picker" + POST endpoint
 
 public/
   logos/flat101.svg       <- logo de marca

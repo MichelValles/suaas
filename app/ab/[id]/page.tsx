@@ -150,14 +150,7 @@ export default async function AbDetailPage({
         )}
       </section>
 
-      <LaunchAbPanel
-        abTestId={ab.id}
-        profiles={profiles.map((p) => ({
-          id: p.id,
-          name: p.name,
-          demo: `${p.demographics.age} · ${p.demographics.gender} · ${p.demographics.occupation}`,
-        }))}
-      />
+      <LaunchAbPanel abTestId={ab.id} profiles={profiles} />
     </AppShell>
   );
 }

@@ -2,11 +2,11 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { getFunnel } from "@/lib/funnels";
 import { listProfiles } from "@/lib/profiles";
 import { getMetricsForRun, listRunsByFunnel } from "@/lib/runs";
-import { LaunchPanel } from "./launch-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -126,14 +126,13 @@ export default async function FunnelDetailPage({
 
       <RunsSection runs={runsWithMetrics} />
 
-      <LaunchPanel
-        funnelId={funnel.id}
-        stepCount={funnel.steps.length}
-        profiles={profiles.map((p) => ({
-          id: p.id,
-          name: p.name,
-          demo: `${p.demographics.age} · ${p.demographics.gender} · ${p.demographics.occupation}`,
-        }))}
+      <ProfileLaunchPanel
+        title="Lanzar recorrido del embudo"
+        endpoint="/api/runs/funnel"
+        extraBody={{ funnelId: funnel.id }}
+        progressLabel={`Cada perfil recorrerá hasta ${funnel.steps.length} pasos. Estimado ~${Math.ceil(funnel.steps.length * 5)}s por perfil.`}
+        redirectTo={(json) => `/experiments/funnel/${json.runId}`}
+        profiles={profiles}
       />
     </AppShell>
   );

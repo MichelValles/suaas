@@ -563,6 +563,46 @@ p {
   }
 }
 
+/* Backstory hover (profile explorer) */
+.profile-hover {
+  position: relative;
+  display: inline-flex;
+}
+.profile-hover-panel {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  z-index: 50;
+  min-width: 240px;
+  max-width: 360px;
+  padding: 10px 12px;
+  background: var(--ink-900);
+  color: rgba(255, 255, 255, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  text-transform: none;
+  letter-spacing: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity var(--dur-short) var(--ease-out),
+    visibility 0s linear var(--dur-short);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+.profile-card:hover .profile-hover-panel,
+.profile-row:hover .profile-hover-panel,
+.profile-hover:hover .profile-hover-panel,
+.profile-hover:focus-within .profile-hover-panel {
+  opacity: 1;
+  visibility: visible;
+  transition-delay: 0s, 0s;
+}
+
 /* Focus */
 *:focus-visible {
   outline: 2px solid var(--accent-600);

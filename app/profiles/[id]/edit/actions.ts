@@ -3,27 +3,24 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseProfileForm } from "@/lib/profile-form";
-import { createProfile } from "@/lib/profiles";
+import { updateProfile } from "@/lib/profiles";
 
-export type CreateProfileState = {
-  ok: boolean;
-  error?: string;
-};
+export type EditProfileState = { ok: boolean; error?: string };
 
-export async function createProfileAction(
-  _prev: CreateProfileState,
+export async function updateProfileAction(
+  _prev: EditProfileState,
   formData: FormData,
-): Promise<CreateProfileState> {
+): Promise<EditProfileState> {
+  const id = String(formData.get("__id") ?? "").trim();
+  if (!id) return { ok: false, error: "Falta el id del perfil." };
   const parsed = parseProfileForm(formData);
   if (!parsed.ok) return { ok: false, error: parsed.error };
-
-  let id: string;
   try {
-    const created = await createProfile(parsed.input);
-    id = created.id;
+    await updateProfile(id, parsed.input);
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }
   revalidatePath("/profiles");
+  revalidatePath(`/profiles/${id}`);
   redirect(`/profiles/${id}`);
 }

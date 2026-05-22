@@ -88,11 +88,7 @@ export default async function CopyDeckDetailPage({
         extraBody={{ deckId: deck.id }}
         progressLabel={`Cada perfil reaccionará a los ${deck.blocks.length} bloques. Estimado ~${Math.ceil(deck.blocks.length * 6)}s por perfil.`}
         redirectTo={(json) => `/experiments/copy/${json.runId}`}
-        profiles={profiles.map((p) => ({
-          id: p.id,
-          name: p.name,
-          demo: `${p.demographics.age} · ${p.demographics.gender} · ${p.demographics.occupation}`,
-        }))}
+        profiles={profiles}
       />
     </AppShell>
   );

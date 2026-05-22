@@ -2,15 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-
-type ProfileLite = { id: string; name: string; demo: string };
+import { ProfileExplorer } from "@/components/profile-explorer";
+import type { Profile } from "@/lib/profiles";
 
 /**
- * Panel reutilizable de multi-select de perfiles + botón "Lanzar".
- * - `endpoint`: ruta POST que recibe { ...extraBody, profileIds }.
- * - `extraBody`: claves extras (p.ej. { targetId } o { funnelId }).
- * - `redirectTo`: función que recibe el JSON de respuesta y devuelve la URL a navegar.
- * - `progressLabel`: texto opcional para el estado "lanzando".
+ * Panel reutilizable de selección de perfiles + botón "Lanzar".
+ * Usa ProfileExplorer (grid/tabla + filtros + selección + hover backstory)
+ * en modo picker para que la selección sea consistente con /profiles.
  */
 export function ProfileLaunchPanel({
   title,
@@ -24,46 +22,32 @@ export function ProfileLaunchPanel({
   endpoint: string;
   extraBody: Record<string, unknown>;
   redirectTo: (json: { runId?: string; abTestId?: string; runs?: { runId: string }[] }) => string;
-  profiles: ProfileLite[];
+  profiles: Profile[];
   progressLabel?: string;
 }) {
   const router = useRouter();
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, startSubmit] = useTransition();
   const [progress, setProgress] = useState<string | null>(null);
 
-  function toggle(id: string) {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-  function toggleAll() {
-    setSelected((prev) =>
-      prev.size === profiles.length ? new Set() : new Set(profiles.map((p) => p.id)),
-    );
-  }
   function launch() {
     setError(null);
-    if (selected.size === 0) {
+    if (selected.length === 0) {
       setError("Selecciona al menos un perfil.");
       return;
     }
-    if (selected.size > 20) {
+    if (selected.length > 20) {
       setError("Máximo 20 perfiles por run.");
       return;
     }
-    const ids = [...selected];
     setProgress(progressLabel);
     startSubmit(async () => {
       try {
         const res = await fetch(endpoint, {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ ...extraBody, profileIds: ids }),
+          body: JSON.stringify({ ...extraBody, profileIds: selected }),
         });
         const json = await res.json();
         if (!res.ok || !json.ok) {
@@ -89,47 +73,18 @@ export function ProfileLaunchPanel({
         padding: 24,
       }}
     >
-      <div
+      <h2
+        className="mono"
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-          flexWrap: "wrap",
+          fontSize: 11,
+          letterSpacing: "0.28em",
+          textTransform: "uppercase",
+          color: "var(--accent-500)",
+          margin: 0,
         }}
       >
-        <h2
-          className="mono"
-          style={{
-            fontSize: 11,
-            letterSpacing: "0.28em",
-            textTransform: "uppercase",
-            color: "var(--accent-500)",
-            margin: 0,
-          }}
-        >
-          {title}
-        </h2>
-        <button
-          type="button"
-          onClick={toggleAll}
-          className="mono"
-          style={{
-            background: "transparent",
-            border: "1px solid rgba(255,255,255,0.12)",
-            borderRadius: "var(--radius-pill)",
-            color: "rgba(255,255,255,0.7)",
-            padding: "6px 14px",
-            fontSize: 10,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            cursor: "pointer",
-            fontFamily: "inherit",
-          }}
-        >
-          {selected.size === profiles.length ? "Deseleccionar todos" : "Seleccionar todos"}
-        </button>
-      </div>
+        {title}
+      </h2>
 
       {profiles.length === 0 ? (
         <div
@@ -144,66 +99,12 @@ export function ProfileLaunchPanel({
           No hay perfiles todavía. Crea al menos uno desde /profiles/new.
         </div>
       ) : (
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            margin: 0,
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-            gap: 8,
-          }}
-        >
-          {profiles.map((p) => {
-            const checked = selected.has(p.id);
-            return (
-              <li key={p.id}>
-                <label
-                  style={{
-                    display: "flex",
-                    alignItems: "flex-start",
-                    gap: 12,
-                    padding: 12,
-                    border: `1px solid ${checked ? "var(--accent-500)" : "rgba(255,255,255,0.08)"}`,
-                    borderRadius: "var(--radius-sm)",
-                    background: checked ? "rgba(255,230,0,0.06)" : "transparent",
-                    cursor: "pointer",
-                  }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggle(p.id)}
-                    style={{ marginTop: 2 }}
-                  />
-                  <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                    <span
-                      style={{
-                        fontSize: 14,
-                        color: "#fff",
-                        fontFamily: "var(--font-display)",
-                        fontStyle: "italic",
-                      }}
-                    >
-                      {p.name}
-                    </span>
-                    <span
-                      className="mono"
-                      style={{
-                        fontSize: 10,
-                        letterSpacing: "0.18em",
-                        textTransform: "uppercase",
-                        color: "rgba(255,255,255,0.5)",
-                      }}
-                    >
-                      {p.demo}
-                    </span>
-                  </span>
-                </label>
-              </li>
-            );
-          })}
-        </ul>
+        <ProfileExplorer
+          profiles={profiles}
+          mode="picker"
+          initialView="table"
+          onSelectionChange={setSelected}
+        />
       )}
 
       {error && (
@@ -244,7 +145,7 @@ export function ProfileLaunchPanel({
       >
         {submitting
           ? "Ejecutando…"
-          : `Lanzar sobre ${selected.size || "—"} perfil${selected.size === 1 ? "" : "es"}`}
+          : `Lanzar sobre ${selected.length || "—"} perfil${selected.length === 1 ? "" : "es"}`}
       </button>
     </section>
   );

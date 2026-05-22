@@ -88,11 +88,7 @@ export default async function PricingDetailPage({
         extraBody={{ offerId: offer.id }}
         progressLabel={`Cada perfil reaccionará a ${offer.prices.length} precios. Estimado ~${Math.ceil(offer.prices.length * 6)}s por perfil.`}
         redirectTo={(json) => `/experiments/pricing/${json.runId}`}
-        profiles={profiles.map((p) => ({
-          id: p.id,
-          name: p.name,
-          demo: `${p.demographics.age} · ${p.demographics.gender} · ${p.demographics.occupation}`,
-        }))}
+        profiles={profiles}
       />
     </AppShell>
   );

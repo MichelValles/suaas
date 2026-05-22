@@ -73,6 +73,27 @@ Tres módulos nuevos de experimentación en una sola release.
 
 Aplicar `0006_ab_copy_pricing.sql` en Supabase antes de crear el primer registro de cualquiera de los tres.
 
+## v0.8.0 — Explorador de perfiles + reutilización de selección
+
+Refactor grande del módulo de perfiles para tratarlo como software (no como lista web).
+
+- [x] **Vista grid/tabla** con toggle por comodidad. La tabla muestra demografía + Big Five compacto; el grid muestra nombre, ocupación, dots O·C·E·A·N y tag de hover. Cambio en `components/profile-explorer.tsx`.
+- [x] **Filtros**:
+   - Rangos numéricos por edad y por cada rasgo Big Five (0..1).
+   - Texto "contiene" multipalabra (AND, normalizado, sin acentos): busca en name, occupation, gender, income_band, geo, barreras COM-B y source. Explícitamente NO incluye backstory.
+   - Filtros activos resaltan el botón. Reset disponible.
+- [x] **Selección**: checkbox por fila, contador "X sel." en toolbar, "Seleccionar todos los visibles" y limpiar selección.
+- [x] **Acciones por fila** (modo manage): ver (`/profiles/[id]`), editar (`/profiles/[id]/edit`) y eliminar (con `confirm` + endpoint `DELETE /api/profiles/[id]`).
+- [x] **Backstory en hover**: tarjeta y fila tienen un tooltip absoluto con la backstory completa. No aparece en filtros ni columnas.
+- [x] **Validación robusta** en create + edit. `lib/profile-form.ts` con `ProfileFormSchema` reutilizable: edad entero 18-99, Big Five 0..1, género enum, backstory ≥20. Mensajes con etiquetas en castellano.
+- [x] **Fix selector género**: `colorScheme: dark` + `background: var(--ink-900)` en options. Antes se veía blanco sobre blanco según el SO/navegador.
+- [x] **Página de edición** `/profiles/[id]/edit` que reutiliza `<ProfileForm>` compartido.
+- [x] **ProfileLaunchPanel rehecho** sobre `<ProfileExplorer mode="picker">`: ahora todos los sitios donde se selecciona perfil (targets, funnels, copy, pricing, A/B) heredan filtros, vista grid/tabla y hover de backstory.
+
+Aplazadas a futuras subversiones (por alcance):
+- v0.8.1: importador/exportador CSV con validación fila a fila.
+- v0.8.2: generación automática de 48 perfiles vía LLM (alcanzar 50 totales).
+
 ## v0.6.0 — App shell tipo software
 
 - [x] Sidebar lateral izquierdo (240px en desktop, overlay colapsable en móvil con botón hamburguesa) reemplazando el header con nav. Iconos `lucide-react` por entrada.

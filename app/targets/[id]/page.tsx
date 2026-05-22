@@ -6,7 +6,7 @@ import { listProfiles } from "@/lib/profiles";
 import { getMetricsForRun, listRunsByTarget } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { getTarget } from "@/lib/targets";
-import { LaunchPanel } from "./launch-panel";
+import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 
 export const dynamic = "force-dynamic";
 
@@ -112,13 +112,13 @@ export default async function TargetDetailPage({
         emptyMsg="Sin runs todavía. Lanza el primer test desde el panel de abajo."
       />
 
-      <LaunchPanel
-        targetId={target.id}
-        profiles={profiles.map((p) => ({
-          id: p.id,
-          name: p.name,
-          demo: `${p.demographics.age} · ${p.demographics.gender} · ${p.demographics.occupation}`,
-        }))}
+      <ProfileLaunchPanel
+        title="Lanzar test 5s"
+        endpoint="/api/runs/five-second"
+        extraBody={{ targetId: target.id }}
+        progressLabel="Lanzando run, esto puede tardar 30-60 s para 5 perfiles."
+        redirectTo={(json) => `/experiments/five-second/${json.runId}`}
+        profiles={profiles}
       />
     </AppShell>
   );
