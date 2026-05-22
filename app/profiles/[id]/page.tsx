@@ -37,73 +37,114 @@ export default async function ProfileDetailPage({
 
   return (
     <AppShell>
-      <PageHeading
-        eyebrow={`${d.age} · ${d.gender} · ${d.occupation}`}
-        title={profile.name}
-        actions={
-          <Link href="/profiles" className="btn-pill">
-            Volver
-          </Link>
-        }
-      />
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "clamp(32px, 4vw, 56px)",
+        }}
+      >
+        <PageHeading
+          eyebrow={`${d.age} · ${d.gender} · ${d.occupation}`}
+          title={profile.name}
+          actions={
+            <Link href="/profiles" className="btn-pill">
+              Volver
+            </Link>
+          }
+        />
 
-      {profile.backstory && (
-        <section className="backstory-box" aria-label="Backstory del perfil">
-          <span
-            className="mono"
+        {profile.backstory && (
+          <section
+            className="backstory-box"
+            aria-label="Backstory del perfil"
+            style={{ maxWidth: 880 }}
+          >
+            <span
+              className="mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.24em",
+                textTransform: "uppercase",
+                color: "var(--accent-500)",
+              }}
+            >
+              Backstory
+            </span>
+            <p>{profile.backstory}</p>
+          </section>
+        )}
+
+        <section
+          aria-label="Rasgos Big Five"
+          style={{ display: "flex", flexDirection: "column", gap: 16 }}
+        >
+          <SectionLabel>Big Five</SectionLabel>
+          <div
             style={{
-              fontSize: 10,
-              letterSpacing: "0.24em",
-              textTransform: "uppercase",
-              color: "var(--accent-500)",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: 16,
             }}
           >
-            Backstory
-          </span>
-          <p>{profile.backstory}</p>
+            <Trait label="Apertura" value={b.openness} tooltip={BIG_FIVE_TRAITS.openness.description} />
+            <Trait label="Conciencia" value={b.conscientiousness} tooltip={BIG_FIVE_TRAITS.conscientiousness.description} />
+            <Trait label="Extraversión" value={b.extraversion} tooltip={BIG_FIVE_TRAITS.extraversion.description} />
+            <Trait label="Amabilidad" value={b.agreeableness} tooltip={BIG_FIVE_TRAITS.agreeableness.description} />
+            <Trait label="Neuroticismo" value={b.neuroticism} tooltip={BIG_FIVE_TRAITS.neuroticism.description} />
+          </div>
         </section>
-      )}
 
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-          gap: 16,
-        }}
-      >
-        <Trait label="Apertura" value={b.openness} tooltip={BIG_FIVE_TRAITS.openness.description} />
-        <Trait label="Conciencia" value={b.conscientiousness} tooltip={BIG_FIVE_TRAITS.conscientiousness.description} />
-        <Trait label="Extraversión" value={b.extraversion} tooltip={BIG_FIVE_TRAITS.extraversion.description} />
-        <Trait label="Amabilidad" value={b.agreeableness} tooltip={BIG_FIVE_TRAITS.agreeableness.description} />
-        <Trait label="Neuroticismo" value={b.neuroticism} tooltip={BIG_FIVE_TRAITS.neuroticism.description} />
-      </section>
+        <section
+          aria-label="Barreras COM-B"
+          style={{ display: "flex", flexDirection: "column", gap: 16 }}
+        >
+          <SectionLabel>Barreras COM-B</SectionLabel>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+              gap: 16,
+            }}
+          >
+            <BarrierCard
+              label="Capacidad"
+              items={profile.com_b_barriers.capability}
+              tooltip={COM_B_BARRIERS.capability.description}
+            />
+            <BarrierCard
+              label="Oportunidad"
+              items={profile.com_b_barriers.opportunity}
+              tooltip={COM_B_BARRIERS.opportunity.description}
+            />
+            <BarrierCard
+              label="Motivación"
+              items={profile.com_b_barriers.motivation}
+              tooltip={COM_B_BARRIERS.motivation.description}
+            />
+          </div>
+        </section>
 
-      <section
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
-          gap: 16,
-        }}
-      >
-        <BarrierCard
-          label="Capacidad"
-          items={profile.com_b_barriers.capability}
-          tooltip={COM_B_BARRIERS.capability.description}
-        />
-        <BarrierCard
-          label="Oportunidad"
-          items={profile.com_b_barriers.opportunity}
-          tooltip={COM_B_BARRIERS.opportunity.description}
-        />
-        <BarrierCard
-          label="Motivación"
-          items={profile.com_b_barriers.motivation}
-          tooltip={COM_B_BARRIERS.motivation.description}
-        />
-      </section>
-
-      <ChatPanel profileId={profile.id} />
+        <ChatPanel profileId={profile.id} />
+      </div>
     </AppShell>
+  );
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h2
+      className="mono"
+      style={{
+        fontSize: 11,
+        letterSpacing: "0.28em",
+        textTransform: "uppercase",
+        color: "var(--accent-500)",
+        margin: 0,
+      }}
+    >
+      {children}
+    </h2>
   );
 }
 

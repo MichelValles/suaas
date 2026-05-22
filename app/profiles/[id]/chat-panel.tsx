@@ -149,29 +149,30 @@ export function ChatPanel({ profileId }: { profileId: string }) {
 
   const busy = status === "reasoning" || status === "streaming";
 
+  const isEmpty = messages.length === 0 && status === "idle";
+
   return (
     <section
       style={{
         display: "flex",
         flexDirection: "column",
         gap: 16,
-        maxWidth: 880,
         width: "100%",
-        marginInline: "auto",
       }}
     >
       <header style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
-        <span
+        <h2
           className="mono"
           style={{
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
             color: "var(--accent-500)",
+            margin: 0,
           }}
         >
           Conversación · Talker-Reasoner
-        </span>
+        </h2>
         {runId && (
           <span
             className="mono"
@@ -193,16 +194,28 @@ export function ChatPanel({ profileId }: { profileId: string }) {
           borderRadius: "var(--radius-md)",
           background: "rgba(255,255,255,0.02)",
           padding: 20,
-          minHeight: 320,
+          minHeight: isEmpty ? 180 : 320,
           maxHeight: 540,
           overflowY: "auto",
           display: "flex",
           flexDirection: "column",
           gap: 14,
+          justifyContent: isEmpty ? "center" : "flex-start",
+          transition: "min-height var(--dur-short) var(--ease-out)",
         }}
       >
         {messages.length === 0 && (
-          <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 14, margin: 0 }}>
+          <p
+            style={{
+              color: "rgba(255,255,255,0.5)",
+              fontSize: 14,
+              lineHeight: 1.55,
+              margin: 0,
+              textAlign: "center",
+              maxWidth: 520,
+              alignSelf: "center",
+            }}
+          >
             Pídele algo concreto: una reacción a un copy, opinión sobre una
             promesa, qué haría tras ver una landing. El Reasoner planifica, el
             Talker responde en voz del perfil.
