@@ -36,6 +36,7 @@ export default async function CopyDeckDetailPage({
         eyebrow={`Deck · ${deck.blocks.length} ${deck.blocks.length === 1 ? "bloque" : "bloques"}`}
         title={deck.name}
         description={deck.description ?? deck.context ?? undefined}
+        descriptionVariant="panel"
         actions={
           <Link href="/copy" className="btn-pill">
             Volver

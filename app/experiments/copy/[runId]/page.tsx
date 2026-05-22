@@ -45,9 +45,10 @@ export default async function CopyRunPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Run · ${run.status}`}
+        eyebrow={`Run · ${run.status} · ${summary.n} ${summary.n === 1 ? "perfil" : "perfiles"}`}
         title={deck.name}
-        description={`Resonancia evaluada sobre ${summary.n} ${summary.n === 1 ? "perfil" : "perfiles"}.`}
+        description={deck.description ?? deck.context ?? undefined}
+        descriptionVariant="panel"
         actions={
           <Link href={`/copy/${deck.id}`} className="btn-pill">
             Volver al deck

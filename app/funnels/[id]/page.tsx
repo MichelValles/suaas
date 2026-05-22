@@ -46,6 +46,7 @@ export default async function FunnelDetailPage({
         eyebrow={`Embudo · ${funnel.steps.length} ${funnel.steps.length === 1 ? "paso" : "pasos"}`}
         title={funnel.name}
         description={funnel.description ?? undefined}
+        descriptionVariant="panel"
         actions={
           <Link href="/funnels" className="btn-pill">
             Volver

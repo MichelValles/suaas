@@ -53,17 +53,18 @@ export default async function FiveSecondRunPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Run · ${run.status}`}
-        title={target?.payload.main_promise ?? "Run de 5s_test"}
+        eyebrow={`Run · ${run.status} · ${summary.n} ${summary.n === 1 ? "perfil" : "perfiles"}${target ? ` · ${target.name}` : ""}`}
+        title={target?.payload.main_promise ?? "Run de claridad 5s"}
         description={
           target
-            ? `Sobre el target "${target.name}". ${summary.n} perfiles evaluados.`
+            ? "Cada perfil ve la pantalla durante 5 segundos y reporta recall, oferta percibida y barreras. Un LLM-as-judge contrasta el recuerdo contra la promesa principal."
             : undefined
         }
+        descriptionVariant="panel"
         actions={
           target && (
             <Link href={`/targets/${target.id}`} className="btn-pill">
-              Volver al target
+              Volver al test
             </Link>
           )
         }

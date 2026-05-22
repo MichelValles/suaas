@@ -48,6 +48,7 @@ export default async function AbDetailPage({
         eyebrow="A/B test"
         title={ab.name}
         description={ab.hypothesis ?? undefined}
+        descriptionVariant="panel"
         actions={
           <Link href="/ab" className="btn-pill">
             Volver

@@ -36,6 +36,7 @@ export default async function PricingDetailPage({
         eyebrow={`Oferta · ${offer.prices.length} ${offer.prices.length === 1 ? "precio" : "precios"}`}
         title={offer.name}
         description={offer.description}
+        descriptionVariant="panel"
         actions={
           <Link href="/pricing" className="btn-pill">
             Volver
@@ -46,8 +47,8 @@ export default async function PricingDetailPage({
       <section
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: 12,
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 16,
         }}
       >
         {offer.prices.map((p) => (
@@ -56,10 +57,10 @@ export default async function PricingDetailPage({
             style={{
               border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: "var(--radius-md)",
-              padding: 16,
+              padding: "22px 24px",
               display: "flex",
               flexDirection: "column",
-              gap: 6,
+              gap: 10,
               background: "rgba(255,255,255,0.02)",
             }}
           >
@@ -67,14 +68,22 @@ export default async function PricingDetailPage({
               className="mono"
               style={{
                 fontSize: 10,
-                letterSpacing: "0.22em",
+                letterSpacing: "0.24em",
                 textTransform: "uppercase",
                 color: "rgba(255,255,255,0.55)",
               }}
             >
               {p.label ?? `nivel ${p.position}`}
             </span>
-            <span style={{ fontFamily: "var(--font-display)", fontSize: 28, color: "#fff" }}>
+            <span
+              style={{
+                fontFamily: "var(--font-display)",
+                fontStyle: "italic",
+                fontSize: 30,
+                color: "#fff",
+                lineHeight: 1,
+              }}
+            >
               {p.price} {offer.currency}
             </span>
           </div>

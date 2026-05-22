@@ -59,11 +59,20 @@ export function PageHeading({
   eyebrow,
   title,
   description,
+  descriptionVariant = "inline",
   actions,
 }: {
   eyebrow?: string;
   title: string;
   description?: string;
+  /**
+   * "inline" (default): la descripción se renderiza como párrafo bajo el
+   *   título, igual que hasta ahora.
+   * "panel": la descripción se renderiza como una caja destacada con borde
+   *   sutil y padding amplio. Útil para páginas de detalle donde el copy
+   *   describe la entidad y merece su propio espacio visual.
+   */
+  descriptionVariant?: "inline" | "panel";
   actions?: React.ReactNode;
 }) {
   return (
@@ -111,14 +120,28 @@ export function PageHeading({
         </h1>
         {actions && <div style={{ flexShrink: 0 }}>{actions}</div>}
       </div>
-      {description && (
-        <p
-          className="body-lg"
-          style={{ color: "rgba(255,255,255,0.7)" }}
-        >
-          {description}
-        </p>
-      )}
+      {description &&
+        (descriptionVariant === "panel" ? (
+          <div
+            style={{
+              marginTop: 8,
+              padding: "26px 30px",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderLeft: "3px solid var(--accent-500)",
+              borderRadius: "var(--radius-md)",
+              background: "rgba(255,255,255,0.02)",
+              color: "rgba(255,255,255,0.85)",
+              fontSize: "clamp(15px, 1.15vw, 17px)",
+              lineHeight: 1.6,
+            }}
+          >
+            {description}
+          </div>
+        ) : (
+          <p className="body-lg" style={{ color: "rgba(255,255,255,0.7)" }}>
+            {description}
+          </p>
+        ))}
     </header>
   );
 }

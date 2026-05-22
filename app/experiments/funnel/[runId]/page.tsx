@@ -62,9 +62,10 @@ export default async function FunnelRunPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Run · ${run.status}`}
+        eyebrow={`Run · ${run.status} · ${funnel.steps.length} pasos · ${summary.n} ${summary.n === 1 ? "perfil" : "perfiles"}`}
         title={funnel.name}
-        description={`Recorrido de ${funnel.steps.length} pasos sobre ${summary.n} ${summary.n === 1 ? "perfil" : "perfiles"}.`}
+        description={funnel.description ?? undefined}
+        descriptionVariant="panel"
         actions={
           <Link href={`/funnels/${funnel.id}`} className="btn-pill">
             Volver al embudo

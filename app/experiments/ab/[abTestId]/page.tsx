@@ -66,6 +66,7 @@ export default async function AbResultsPage({
         eyebrow={`A/B · ${ab.name}`}
         title="Comparativa por variante."
         description={ab.hypothesis ?? undefined}
+        descriptionVariant="panel"
         actions={
           <Link href={`/ab/${ab.id}`} className="btn-pill">
             Volver al A/B

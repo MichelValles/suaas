@@ -49,9 +49,10 @@ export default async function PricingRunPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Run · ${run.status}`}
+        eyebrow={`Run · ${run.status} · ${summary.n} ${summary.n === 1 ? "perfil" : "perfiles"}`}
         title={offer.name}
-        description={`Elasticidad evaluada sobre ${summary.n} ${summary.n === 1 ? "perfil" : "perfiles"}. ${offer.description}`}
+        description={offer.description}
+        descriptionVariant="panel"
         actions={
           <Link href={`/pricing/${offer.id}`} className="btn-pill">
             Volver a la oferta
@@ -65,11 +66,13 @@ export default async function PricingRunPage({
           style={{
             border: "1px solid var(--accent-500)",
             borderRadius: "var(--radius-md)",
-            padding: "32px 36px",
+            padding: "28px 32px",
             background: "rgba(250,204,13,0.06)",
             display: "flex",
-            flexDirection: "column",
-            gap: 14,
+            justifyContent: "space-between",
+            alignItems: "baseline",
+            gap: 24,
+            flexWrap: "wrap",
           }}
         >
           <span
@@ -87,7 +90,7 @@ export default async function PricingRunPage({
             style={{
               fontFamily: "var(--font-display)",
               fontStyle: "italic",
-              fontSize: "clamp(28px, 3.5vw, 44px)",
+              fontSize: "clamp(26px, 3vw, 36px)",
               lineHeight: 1.05,
               color: "#fff",
             }}
