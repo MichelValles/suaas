@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 import { getCopyDeck } from "@/lib/copy";
 import {
   listCopyResponses,
   summarizeCopyResponses,
 } from "@/lib/experiments/copy";
-import { listProfiles, listProfilesByIds } from "@/lib/profiles";
+import { listProfilesByIds } from "@/lib/profiles";
 import { getRun } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
@@ -31,10 +30,9 @@ export default async function CopyRunPage({
   const deckId = run.copy_deck_id ?? (run.params?.deckId as string | undefined);
   if (!deckId) notFound();
 
-  const [deck, responses, allProfiles] = await Promise.all([
+  const [deck, responses] = await Promise.all([
     getCopyDeck(deckId),
     listCopyResponses(runId),
-    listProfiles(),
   ]);
   if (!deck) notFound();
 
@@ -210,15 +208,6 @@ export default async function CopyRunPage({
             </article>
           ))}
       </section>
-
-      <ProfileLaunchPanel
-        title="Lanzar otro copy test"
-        endpoint="/api/runs/copy"
-        extraBody={{ deckId: deck.id }}
-        progressLabel={`Cada perfil reaccionará a los ${deck.blocks.length} bloques. Estimado ~${Math.ceil(deck.blocks.length * 6)}s por perfil.`}
-        kind="copy"
-        profiles={allProfiles}
-      />
     </AppShell>
   );
 }

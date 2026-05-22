@@ -7,9 +7,15 @@ import type { Profile } from "@/lib/profiles";
 
 /**
  * Panel reutilizable de selección de perfiles + botón "Lanzar".
- * Usa ProfileExplorer (grid/tabla + filtros + selección + hover backstory)
- * en modo picker para que la selección sea consistente con /profiles.
+ *
+ * Por defecto está colapsado: sólo enseña un CTA «Lanzar nueva Run». Al
+ * pulsarlo se despliega el selector con el botón de lanzar arriba del
+ * listado (no abajo) y un enlace de cancelar.
+ *
+ * Pensado para vivir en las páginas de detalle de cada entidad (no en las
+ * páginas de resultados, donde sólo se ven los participantes del run).
  */
+
 export type LaunchKind =
   | "five-second"
   | "funnel"
@@ -19,7 +25,11 @@ export type LaunchKind =
 
 type RunJson = { runId?: string; abTestId?: string; runs?: { runId: string }[] };
 
-function resolveRedirect(kind: LaunchKind, json: RunJson, fallback?: string): string {
+function resolveRedirect(
+  kind: LaunchKind,
+  json: RunJson,
+  fallback?: string,
+): string {
   switch (kind) {
     case "five-second":
       return `/experiments/five-second/${json.runId}`;
@@ -56,6 +66,7 @@ export function ProfileLaunchPanel({
   progressLabel?: string;
 }) {
   const router = useRouter();
+  const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, startSubmit] = useTransition();
@@ -92,6 +103,65 @@ export function ProfileLaunchPanel({
     });
   }
 
+  function collapse() {
+    setExpanded(false);
+    setSelected([]);
+    setError(null);
+    setProgress(null);
+  }
+
+  // ------------------ vista colapsada ------------------
+  if (!expanded) {
+    return (
+      <section
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 14,
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "var(--radius-md)",
+          padding: 24,
+          background: "rgba(255,255,255,0.02)",
+        }}
+      >
+        <h2
+          className="mono"
+          style={{
+            fontSize: 11,
+            letterSpacing: "0.28em",
+            textTransform: "uppercase",
+            color: "var(--accent-500)",
+            margin: 0,
+          }}
+        >
+          {title}
+        </h2>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.6)",
+            fontSize: 13,
+            lineHeight: 1.55,
+            margin: 0,
+          }}
+        >
+          {profiles.length === 0
+            ? "No hay perfiles todavía. Crea al menos uno desde /profiles/new."
+            : `Selecciona perfiles del panel (${profiles.length} disponibles) y lanza un nuevo run.`}
+        </p>
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          className="btn-pill solid"
+          disabled={profiles.length === 0}
+          style={{ alignSelf: "flex-start" }}
+        >
+          Lanzar nueva Run
+        </button>
+      </section>
+    );
+  }
+
+  // ------------------ vista expandida ------------------
   return (
     <section
       style={{
@@ -101,41 +171,83 @@ export function ProfileLaunchPanel({
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "var(--radius-md)",
         padding: 24,
+        background: "rgba(255,255,255,0.02)",
       }}
     >
-      <h2
-        className="mono"
+      <header
         style={{
-          fontSize: 11,
-          letterSpacing: "0.28em",
-          textTransform: "uppercase",
-          color: "var(--accent-500)",
-          margin: 0,
+          display: "flex",
+          alignItems: "baseline",
+          justifyContent: "space-between",
+          gap: 16,
+          flexWrap: "wrap",
         }}
       >
-        {title}
-      </h2>
-
-      {profiles.length === 0 ? (
-        <div
+        <h2
+          className="mono"
           style={{
-            padding: 16,
-            border: "1px dashed rgba(255,255,255,0.12)",
-            borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.55)",
-            fontSize: 13,
+            fontSize: 11,
+            letterSpacing: "0.28em",
+            textTransform: "uppercase",
+            color: "var(--accent-500)",
+            margin: 0,
           }}
         >
-          No hay perfiles todavía. Crea al menos uno desde /profiles/new.
-        </div>
-      ) : (
-        <ProfileExplorer
-          profiles={profiles}
-          mode="picker"
-          initialView="table"
-          onSelectionChange={setSelected}
-        />
-      )}
+          {title}
+        </h2>
+        <button
+          type="button"
+          onClick={collapse}
+          disabled={submitting}
+          className="mono"
+          style={{
+            background: "transparent",
+            border: 0,
+            color: "rgba(255,255,255,0.55)",
+            cursor: submitting ? "wait" : "pointer",
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            padding: 0,
+          }}
+        >
+          Cancelar
+        </button>
+      </header>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+          flexWrap: "wrap",
+        }}
+      >
+        <button
+          type="button"
+          onClick={launch}
+          className="btn-pill solid"
+          disabled={submitting || profiles.length === 0}
+        >
+          {submitting
+            ? "Ejecutando…"
+            : `Lanzar sobre ${selected.length || "—"} perfil${
+                selected.length === 1 ? "" : "es"
+              }`}
+        </button>
+        <span
+          className="mono"
+          style={{
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            color: "rgba(255,255,255,0.5)",
+          }}
+        >
+          {selected.length === 0
+            ? "Marca al menos 1 perfil. Máx 20 por run."
+            : `${selected.length}/${Math.min(profiles.length, 20)} seleccionados.`}
+        </span>
+      </div>
 
       {error && (
         <div
@@ -166,17 +278,26 @@ export function ProfileLaunchPanel({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={launch}
-        className="btn-pill solid"
-        disabled={submitting || profiles.length === 0}
-        style={{ alignSelf: "flex-start" }}
-      >
-        {submitting
-          ? "Ejecutando…"
-          : `Lanzar sobre ${selected.length || "—"} perfil${selected.length === 1 ? "" : "es"}`}
-      </button>
+      {profiles.length === 0 ? (
+        <div
+          style={{
+            padding: 16,
+            border: "1px dashed rgba(255,255,255,0.12)",
+            borderRadius: "var(--radius-md)",
+            color: "rgba(255,255,255,0.55)",
+            fontSize: 13,
+          }}
+        >
+          No hay perfiles todavía. Crea al menos uno desde /profiles/new.
+        </div>
+      ) : (
+        <ProfileExplorer
+          profiles={profiles}
+          mode="picker"
+          initialView="table"
+          onSelectionChange={setSelected}
+        />
+      )}
     </section>
   );
 }

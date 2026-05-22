@@ -1,14 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 import { ResultBar } from "@/components/result-bar";
 import { getFunnel } from "@/lib/funnels";
 import {
   listFunnelStepResponses,
   summarizeFunnelResponses,
 } from "@/lib/experiments/funnel";
-import { listProfiles, listProfilesByIds } from "@/lib/profiles";
+import { listProfilesByIds } from "@/lib/profiles";
 import { getRun } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { FunnelResponsesTable } from "./responses-table";
@@ -42,10 +41,9 @@ export default async function FunnelRunPage({
   const funnelId = run.funnel_id ?? (run.params?.funnelId as string | undefined);
   if (!funnelId) notFound();
 
-  const [funnel, responses, allProfiles] = await Promise.all([
+  const [funnel, responses] = await Promise.all([
     getFunnel(funnelId),
     listFunnelStepResponses(runId),
-    listProfiles(),
   ]);
   if (!funnel) notFound();
 
@@ -240,15 +238,6 @@ export default async function FunnelRunPage({
               profileResponses.find((r) => !r.would_continue)?.position ?? null,
           };
         })}
-      />
-
-      <ProfileLaunchPanel
-        title="Lanzar otro recorrido del embudo"
-        endpoint="/api/runs/funnel"
-        extraBody={{ funnelId: funnel.id }}
-        progressLabel={`Cada perfil recorrerá hasta ${funnel.steps.length} pasos. Estimado ~${Math.ceil(funnel.steps.length * 5)}s por perfil.`}
-        kind="funnel"
-        profiles={allProfiles}
       />
     </AppShell>
   );

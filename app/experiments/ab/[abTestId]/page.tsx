@@ -1,13 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 import { getAbTest, listAbTestRuns } from "@/lib/ab";
 import {
   listFiveSecondResponses,
   summarizeResponses,
 } from "@/lib/experiments/five-second";
-import { listProfiles } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { getTarget } from "@/lib/targets";
 
@@ -51,12 +49,11 @@ export default async function AbResultsPage({
     );
   }
 
-  const [targetA, targetB, respA, respB, allProfiles] = await Promise.all([
+  const [targetA, targetB, respA, respB] = await Promise.all([
     getTarget(ab.target_a_id),
     getTarget(ab.target_b_id),
     listFiveSecondResponses(lastA.run_id),
     listFiveSecondResponses(lastB.run_id),
-    listProfiles(),
   ]);
   if (!targetA || !targetB) notFound();
 
@@ -119,16 +116,6 @@ export default async function AbResultsPage({
         valueA={sumA.mean_clarity}
         valueB={sumB.mean_clarity}
         title="Claridad subjetiva"
-      />
-
-      <ProfileLaunchPanel
-        title="Lanzar otro A/B (dos runs en paralelo)"
-        endpoint="/api/runs/ab"
-        extraBody={{ abTestId: ab.id }}
-        progressLabel="Lanzando dos runs 5s en paralelo sobre la nueva cohorte. Estimado 30-60 s."
-        kind="ab"
-        redirectFallback={`/ab/${ab.id}`}
-        profiles={allProfiles}
       />
     </AppShell>
   );

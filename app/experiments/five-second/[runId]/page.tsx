@@ -2,13 +2,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 import { ResultBar } from "@/components/result-bar";
 import {
   listFiveSecondResponses,
   summarizeResponses,
 } from "@/lib/experiments/five-second";
-import { listProfiles, listProfilesByIds } from "@/lib/profiles";
+import { listProfilesByIds } from "@/lib/profiles";
 import { getRun } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { getTarget } from "@/lib/targets";
@@ -40,10 +39,9 @@ export default async function FiveSecondRunPage({
   const run = await getRun(runId);
   if (!run || run.kind !== "5s_test") notFound();
 
-  const [target, responses, allProfiles] = await Promise.all([
+  const [target, responses] = await Promise.all([
     run.target_id ? getTarget(run.target_id) : Promise.resolve(null),
     listFiveSecondResponses(runId),
-    listProfiles(),
   ]);
 
   const profiles = await listProfilesByIds(responses.map((r) => r.profileId));
@@ -167,17 +165,6 @@ export default async function FiveSecondRunPage({
           };
         })}
       />
-
-      {target && (
-        <ProfileLaunchPanel
-          title="Lanzar otro run sobre este test"
-          endpoint="/api/runs/five-second"
-          extraBody={{ targetId: target.id }}
-          progressLabel="Lanzando run con la nueva cohorte. 30-60 s para 5 perfiles."
-          kind="five-second"
-          profiles={allProfiles}
-        />
-      )}
     </AppShell>
   );
 }
