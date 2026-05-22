@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 // ============================================================
 // Schemas (zod) — la fuente de verdad de la forma del dato.
@@ -41,23 +41,36 @@ export type Target = {
 
 export async function listTargets(): Promise<Target[]> {
   const supa = getServerClient();
-  const { data, error } = await supa
+  let { data, error } = await supa
     .from("targets")
     .select("*")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data, error } = await supa
+      .from("targets")
+      .select("*")
+      .order("created_at", { ascending: false }));
+  }
   if (error) throw new Error(error.message);
   return (data ?? []) as Target[];
 }
 
 export async function getTarget(id: string): Promise<Target | null> {
   const supa = getServerClient();
-  const { data, error } = await supa
+  let { data, error } = await supa
     .from("targets")
     .select("*")
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data, error } = await supa
+      .from("targets")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle());
+  }
   if (error) throw new Error(error.message);
   return (data ?? null) as Target | null;
 }

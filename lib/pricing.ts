@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 export const PricingLevelInputSchema = z.object({
   label: z.string().optional().nullable(),
@@ -43,11 +43,17 @@ export async function listPricingOffers(): Promise<
   Array<PricingOffer & { price_count: number }>
 > {
   const supa = getServerClient();
-  const { data: offers, error } = await supa
+  let { data: offers, error } = await supa
     .from("pricing_offers")
     .select("*")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data: offers, error } = await supa
+      .from("pricing_offers")
+      .select("*")
+      .order("created_at", { ascending: false }));
+  }
   if (error) throw new Error(error.message);
   if (!offers || offers.length === 0) return [];
   const ids = offers.map((o) => o.id);
@@ -70,12 +76,19 @@ export async function getPricingOffer(
   id: string,
 ): Promise<PricingOfferWithPrices | null> {
   const supa = getServerClient();
-  const { data: offer, error } = await supa
+  let { data: offer, error } = await supa
     .from("pricing_offers")
     .select("*")
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data: offer, error } = await supa
+      .from("pricing_offers")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle());
+  }
   if (error) throw new Error(error.message);
   if (!offer) return null;
   const { data: prices, error: pErr } = await supa

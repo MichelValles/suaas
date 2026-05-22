@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 // ============================================================
 // Schemas (zod)
@@ -61,11 +61,17 @@ export async function listFunnels(): Promise<
   Array<Funnel & { step_count: number }>
 > {
   const supa = getServerClient();
-  const { data: funnels, error } = await supa
+  let { data: funnels, error } = await supa
     .from("funnels")
     .select("*")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data: funnels, error } = await supa
+      .from("funnels")
+      .select("*")
+      .order("created_at", { ascending: false }));
+  }
   if (error) throw new Error(error.message);
   if (!funnels || funnels.length === 0) return [];
 
@@ -88,12 +94,19 @@ export async function listFunnels(): Promise<
 
 export async function getFunnel(id: string): Promise<FunnelWithSteps | null> {
   const supa = getServerClient();
-  const { data: funnel, error } = await supa
+  let { data: funnel, error } = await supa
     .from("funnels")
     .select("*")
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data: funnel, error } = await supa
+      .from("funnels")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle());
+  }
   if (error) throw new Error(error.message);
   if (!funnel) return null;
 

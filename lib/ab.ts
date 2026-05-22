@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 export const AbTestInputSchema = z.object({
   name: z.string().min(1, "El nombre es obligatorio."),
@@ -31,23 +31,36 @@ export type AbTestRun = {
 
 export async function listAbTests(): Promise<AbTest[]> {
   const supa = getServerClient();
-  const { data, error } = await supa
+  let { data, error } = await supa
     .from("ab_tests")
     .select("*")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data, error } = await supa
+      .from("ab_tests")
+      .select("*")
+      .order("created_at", { ascending: false }));
+  }
   if (error) throw new Error(error.message);
   return (data ?? []) as AbTest[];
 }
 
 export async function getAbTest(id: string): Promise<AbTest | null> {
   const supa = getServerClient();
-  const { data, error } = await supa
+  let { data, error } = await supa
     .from("ab_tests")
     .select("*")
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data, error } = await supa
+      .from("ab_tests")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle());
+  }
   if (error) throw new Error(error.message);
   return (data ?? null) as AbTest | null;
 }

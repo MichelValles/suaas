@@ -45,3 +45,24 @@ export function isMissingTableError(err: unknown): boolean {
   }
   return false;
 }
+
+/**
+ * Detecta si un error proviene de una columna que no existe (Postgres
+ * code `42703` o PostgREST `PGRST204`, o mensaje "column ... does not
+ * exist"). Útil para hacer fallback cuando una migración aditiva todavía
+ * no se ha aplicado (ej. `deleted_at` antes de 0007_trash.sql).
+ */
+export function isMissingColumnError(err: unknown, column?: string): boolean {
+  if (!err) return false;
+  const e = err as { code?: string; message?: string };
+  if (e.code === "42703") {
+    return column
+      ? typeof e.message === "string" && e.message.includes(column)
+      : true;
+  }
+  if (e.code === "PGRST204") return true;
+  if (typeof e.message === "string" && /column .* does not exist/i.test(e.message)) {
+    return column ? e.message.includes(column) : true;
+  }
+  return false;
+}

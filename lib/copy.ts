@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 export const CopyBlockInputSchema = z.object({
   label: z.string().min(1, "El label del bloque es obligatorio."),
@@ -41,11 +41,17 @@ export async function listCopyDecks(): Promise<
   Array<CopyDeck & { block_count: number }>
 > {
   const supa = getServerClient();
-  const { data: decks, error } = await supa
+  let { data: decks, error } = await supa
     .from("copy_decks")
     .select("*")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data: decks, error } = await supa
+      .from("copy_decks")
+      .select("*")
+      .order("created_at", { ascending: false }));
+  }
   if (error) throw new Error(error.message);
   if (!decks || decks.length === 0) return [];
   const ids = decks.map((d) => d.id);
@@ -66,12 +72,19 @@ export async function listCopyDecks(): Promise<
 
 export async function getCopyDeck(id: string): Promise<CopyDeckWithBlocks | null> {
   const supa = getServerClient();
-  const { data: deck, error } = await supa
+  let { data: deck, error } = await supa
     .from("copy_decks")
     .select("*")
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data: deck, error } = await supa
+      .from("copy_decks")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle());
+  }
   if (error) throw new Error(error.message);
   if (!deck) return null;
   const { data: blocks, error: bErr } = await supa
