@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getRunsStatsByEntity } from "@/lib/runs";
 import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 // ============================================================
@@ -39,7 +40,9 @@ export type Target = {
 // CRUD (server only)
 // ============================================================
 
-export async function listTargets(): Promise<Target[]> {
+export async function listTargets(): Promise<
+  Array<Target & { run_count: number; user_count: number }>
+> {
   const supa = getServerClient();
   let { data, error } = await supa
     .from("targets")
@@ -53,7 +56,17 @@ export async function listTargets(): Promise<Target[]> {
       .order("created_at", { ascending: false }));
   }
   if (error) throw new Error(error.message);
-  return (data ?? []) as Target[];
+  const targets = (data ?? []) as Target[];
+  if (targets.length === 0) return [];
+  const stats = await getRunsStatsByEntity(
+    "target_id",
+    targets.map((t) => t.id),
+  );
+  return targets.map((t) => ({
+    ...t,
+    run_count: stats.get(t.id)?.runs ?? 0,
+    user_count: stats.get(t.id)?.users ?? 0,
+  }));
 }
 
 export async function getTarget(id: string): Promise<Target | null> {

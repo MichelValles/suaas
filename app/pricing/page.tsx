@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { EntityCard } from "@/components/entity-card";
 import { MigrationNeeded } from "@/components/migration-needed";
-import { SendToTrashButton } from "@/components/trash-button";
 import { listPricingOffers } from "@/lib/pricing";
 import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
 
@@ -59,60 +59,19 @@ export default async function PricingListPage() {
           }}
         >
           {offers.map((o) => (
-            <li key={o.id} style={{ position: "relative" }}>
-              <SendToTrashButton type="pricing" id={o.id} name={o.name} />
-              <Link
-                href={`/pricing/${o.id}`}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                  padding: 20,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "var(--radius-md)",
-                  background: "rgba(255,255,255,0.02)",
-                }}
-              >
-                <span
-                  className="mono"
-                  style={{
-                    fontSize: 10,
-                    letterSpacing: "0.22em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.5)",
-                  }}
-                >
-                  {o.price_count} {o.price_count === 1 ? "precio" : "precios"} · {o.currency}
-                </span>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontStyle: "italic",
-                    fontSize: 22,
-                    lineHeight: 1.15,
-                    color: "#fff",
-                    margin: 0,
-                  }}
-                >
-                  {o.name}
-                </h2>
-                {o.description && (
-                  <p
-                    style={{
-                      color: "rgba(255,255,255,0.65)",
-                      fontSize: 13,
-                      margin: 0,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {o.description}
-                  </p>
-                )}
-              </Link>
-            </li>
+            <EntityCard
+              key={o.id}
+              href={`/pricing/${o.id}`}
+              trash={{ type: "pricing", id: o.id, name: o.name }}
+              eyebrow={`${o.price_count} ${o.price_count === 1 ? "precio" : "precios"} · ${o.currency}`}
+              title={o.name}
+              description={o.description}
+              createdAt={o.created_at}
+              stats={[
+                { label: "Runs", value: o.run_count },
+                { label: "Perfiles", value: o.user_count },
+              ]}
+            />
           ))}
         </ul>
       )}

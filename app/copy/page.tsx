@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { EntityCard } from "@/components/entity-card";
 import { MigrationNeeded } from "@/components/migration-needed";
-import { SendToTrashButton } from "@/components/trash-button";
 import { listCopyDecks } from "@/lib/copy";
 import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
 
@@ -59,51 +59,19 @@ export default async function CopyListPage() {
           }}
         >
           {decks.map((d) => (
-            <li key={d.id} style={{ position: "relative" }}>
-              <SendToTrashButton type="copy" id={d.id} name={d.name} />
-              <Link
-                href={`/copy/${d.id}`}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                  padding: 20,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "var(--radius-md)",
-                  background: "rgba(255,255,255,0.02)",
-                }}
-              >
-                <span
-                  className="mono"
-                  style={{
-                    fontSize: 10,
-                    letterSpacing: "0.22em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.5)",
-                  }}
-                >
-                  {d.block_count} {d.block_count === 1 ? "bloque" : "bloques"}
-                  {d.context ? ` · ${d.context}` : ""}
-                </span>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontStyle: "italic",
-                    fontSize: 22,
-                    lineHeight: 1.15,
-                    color: "#fff",
-                    margin: 0,
-                  }}
-                >
-                  {d.name}
-                </h2>
-                {d.description && (
-                  <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, margin: 0 }}>
-                    {d.description}
-                  </p>
-                )}
-              </Link>
-            </li>
+            <EntityCard
+              key={d.id}
+              href={`/copy/${d.id}`}
+              trash={{ type: "copy", id: d.id, name: d.name }}
+              eyebrow={`${d.block_count} ${d.block_count === 1 ? "versión" : "versiones"}${d.context ? ` · ${d.context}` : ""}`}
+              title={d.name}
+              description={d.description}
+              createdAt={d.created_at}
+              stats={[
+                { label: "Runs", value: d.run_count },
+                { label: "Perfiles", value: d.user_count },
+              ]}
+            />
           ))}
         </ul>
       )}

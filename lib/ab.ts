@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getRunsStatsByEntity } from "@/lib/runs";
 import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 export const AbTestInputSchema = z.object({
@@ -29,7 +30,9 @@ export type AbTestRun = {
   variant: "A" | "B";
 };
 
-export async function listAbTests(): Promise<AbTest[]> {
+export async function listAbTests(): Promise<
+  Array<AbTest & { run_count: number; user_count: number }>
+> {
   const supa = getServerClient();
   let { data, error } = await supa
     .from("ab_tests")
@@ -43,7 +46,17 @@ export async function listAbTests(): Promise<AbTest[]> {
       .order("created_at", { ascending: false }));
   }
   if (error) throw new Error(error.message);
-  return (data ?? []) as AbTest[];
+  const tests = (data ?? []) as AbTest[];
+  if (tests.length === 0) return [];
+  const stats = await getRunsStatsByEntity(
+    "ab_test_id",
+    tests.map((t) => t.id),
+  );
+  return tests.map((t) => ({
+    ...t,
+    run_count: stats.get(t.id)?.runs ?? 0,
+    user_count: stats.get(t.id)?.users ?? 0,
+  }));
 }
 
 export async function getAbTest(id: string): Promise<AbTest | null> {

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getRunsStatsByEntity } from "@/lib/runs";
 import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 // ============================================================
@@ -58,7 +59,7 @@ export type FunnelWithSteps = Funnel & { steps: FunnelStep[] };
 // ============================================================
 
 export async function listFunnels(): Promise<
-  Array<Funnel & { step_count: number }>
+  Array<Funnel & { step_count: number; run_count: number; user_count: number }>
 > {
   const supa = getServerClient();
   let { data: funnels, error } = await supa
@@ -86,9 +87,12 @@ export async function listFunnels(): Promise<
   for (const row of steps ?? []) {
     counts.set(row.funnel_id, (counts.get(row.funnel_id) ?? 0) + 1);
   }
+  const stats = await getRunsStatsByEntity("funnel_id", ids);
   return funnels.map((f) => ({
     ...(f as Funnel),
     step_count: counts.get(f.id) ?? 0,
+    run_count: stats.get(f.id)?.runs ?? 0,
+    user_count: stats.get(f.id)?.users ?? 0,
   }));
 }
 

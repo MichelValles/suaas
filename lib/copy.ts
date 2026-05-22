@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getRunsStatsByEntity } from "@/lib/runs";
 import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 export const CopyBlockInputSchema = z.object({
@@ -38,7 +39,7 @@ export type CopyDeck = {
 export type CopyDeckWithBlocks = CopyDeck & { blocks: CopyBlock[] };
 
 export async function listCopyDecks(): Promise<
-  Array<CopyDeck & { block_count: number }>
+  Array<CopyDeck & { block_count: number; run_count: number; user_count: number }>
 > {
   const supa = getServerClient();
   let { data: decks, error } = await supa
@@ -64,9 +65,12 @@ export async function listCopyDecks(): Promise<
   for (const row of blocks ?? []) {
     counts.set(row.deck_id, (counts.get(row.deck_id) ?? 0) + 1);
   }
+  const stats = await getRunsStatsByEntity("copy_deck_id", ids);
   return decks.map((d) => ({
     ...(d as CopyDeck),
     block_count: counts.get(d.id) ?? 0,
+    run_count: stats.get(d.id)?.runs ?? 0,
+    user_count: stats.get(d.id)?.users ?? 0,
   }));
 }
 

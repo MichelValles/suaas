@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { EntityCard } from "@/components/entity-card";
 import { MigrationNeeded } from "@/components/migration-needed";
-import { SendToTrashButton } from "@/components/trash-button";
 import { listAbTests } from "@/lib/ab";
 import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
 
@@ -59,50 +59,19 @@ export default async function AbListPage() {
           }}
         >
           {tests.map((t) => (
-            <li key={t.id} style={{ position: "relative" }}>
-              <SendToTrashButton type="ab" id={t.id} name={t.name} />
-              <Link
-                href={`/ab/${t.id}`}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 8,
-                  padding: 20,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "var(--radius-md)",
-                  background: "rgba(255,255,255,0.02)",
-                }}
-              >
-                <span
-                  className="mono"
-                  style={{
-                    fontSize: 10,
-                    letterSpacing: "0.22em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.5)",
-                  }}
-                >
-                  A/B
-                </span>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontStyle: "italic",
-                    fontSize: 22,
-                    lineHeight: 1.15,
-                    color: "#fff",
-                    margin: 0,
-                  }}
-                >
-                  {t.name}
-                </h2>
-                {t.hypothesis && (
-                  <p style={{ color: "rgba(255,255,255,0.65)", fontSize: 13, margin: 0 }}>
-                    {t.hypothesis}
-                  </p>
-                )}
-              </Link>
-            </li>
+            <EntityCard
+              key={t.id}
+              href={`/ab/${t.id}`}
+              trash={{ type: "ab", id: t.id, name: t.name }}
+              eyebrow="A/B · 2 variantes"
+              title={t.name}
+              description={t.hypothesis}
+              createdAt={t.created_at}
+              stats={[
+                { label: "Runs", value: t.run_count },
+                { label: "Perfiles", value: t.user_count },
+              ]}
+            />
           ))}
         </ul>
       )}

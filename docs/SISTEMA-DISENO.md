@@ -74,6 +74,7 @@ Por qué: SUAAS no es un deck editorial sino una herramienta de producto. El DS 
 | `.btn-pill` | Pill outline con accent. Modificador `.solid` invierte. |
 | `.hl` | Highlight inline con fondo accent. |
 | `.feature-card` | Tarjeta clicable de módulo (icono + título + body + CTA). Altura uniforme `100%` para grids `auto-fit`. Hover-lift con borde accent. |
+| `.entity-card` | Plantilla de los 5 listados (targets, funnels, ab, copy, pricing). Cabecera (eyebrow + trash overlay), body (título italic + descripción) y pie de stats (runs · perfiles · característica · fecha). Vive en `components/entity-card.tsx`. |
 | `.backstory-box` | Caja para mostrar el backstory de un perfil como cita en cursiva display. Glifo decorativo `"` en accent. Variante `.backstory-box--compact` para usos embebidos. |
 | `textarea.backstory-input` | Tratamiento cursiva display para el textarea de backstory en formularios. |
 | `.surface-feature` | Fondo `ink-900`, texto blanco, títulos accent. |

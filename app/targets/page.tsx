@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { SendToTrashButton } from "@/components/trash-button";
+import { EntityCard } from "@/components/entity-card";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { listTargets } from "@/lib/targets";
 
@@ -56,66 +56,25 @@ export default async function TargetsPage() {
             padding: 0,
             margin: 0,
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
             gap: 16,
           }}
         >
           {targets.map((t) => (
-            <li key={t.id} style={{ position: "relative" }}>
-              <SendToTrashButton type="targets" id={t.id} name={t.name} />
-              <Link
-                href={`/targets/${t.id}`}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                  padding: 16,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "var(--radius-md)",
-                  background: "rgba(255,255,255,0.02)",
-                  overflow: "hidden",
-                }}
-              >
-                <Thumb src={t.payload.image_url} alt={t.name} />
-                <span
-                  className="mono"
-                  style={{
-                    fontSize: 10,
-                    letterSpacing: "0.22em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.5)",
-                  }}
-                >
-                  {t.kind}
-                </span>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontStyle: "italic",
-                    fontSize: 22,
-                    lineHeight: 1.15,
-                    color: "#fff",
-                    margin: 0,
-                  }}
-                >
-                  {t.name}
-                </h2>
-                <p
-                  style={{
-                    color: "rgba(255,255,255,0.65)",
-                    fontSize: 13,
-                    lineHeight: 1.5,
-                    margin: 0,
-                    display: "-webkit-box",
-                    WebkitLineClamp: 2,
-                    WebkitBoxOrient: "vertical",
-                    overflow: "hidden",
-                  }}
-                >
-                  {t.payload.main_promise}
-                </p>
-              </Link>
-            </li>
+            <EntityCard
+              key={t.id}
+              href={`/targets/${t.id}`}
+              trash={{ type: "targets", id: t.id, name: t.name }}
+              eyebrow={t.kind === "5s_test" ? "Test 5 s" : t.kind}
+              title={t.name}
+              description={t.payload.main_promise}
+              createdAt={t.created_at}
+              media={<Thumb src={t.payload.image_url} alt={t.name} />}
+              stats={[
+                { label: "Runs", value: t.run_count },
+                { label: "Perfiles", value: t.user_count },
+              ]}
+            />
           ))}
         </ul>
       )}

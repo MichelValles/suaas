@@ -121,6 +121,61 @@ export async function listRunsByCopyDeck(deckId: string): Promise<Run[]> {
   return (data ?? []) as Run[];
 }
 
+/**
+ * Devuelve, para un conjunto de ids de entidades (funnels, targets, ab_tests,
+ * copy_decks, pricing_offers), un mapa con número de runs registrados y
+ * número de perfiles únicos que han participado en cada uno.
+ *
+ * - "runs" = filas en la tabla runs con esa FK.
+ * - "users" = unión de runs.profile_id ∪ runs.params.profileIds[] deduplicada.
+ *
+ * Si la columna FK aún no existe en la BD (migración 0004 o 0006 pendientes),
+ * devuelve un Map vacío en vez de tirar la página.
+ */
+export async function getRunsStatsByEntity(
+  fkColumn:
+    | "target_id"
+    | "funnel_id"
+    | "ab_test_id"
+    | "copy_deck_id"
+    | "pricing_offer_id",
+  entityIds: string[],
+): Promise<Map<string, { runs: number; users: number }>> {
+  const out = new Map<string, { runs: number; users: number }>();
+  if (entityIds.length === 0) return out;
+
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("runs")
+    .select(`${fkColumn}, profile_id, params`)
+    .in(fkColumn, entityIds);
+  if (isMissingColumnError(error, fkColumn)) return out;
+  if (error) throw new Error(error.message);
+
+  type Row = {
+    [k: string]: unknown;
+    profile_id: string | null;
+    params: Record<string, unknown> | null;
+  };
+  const buckets = new Map<string, { runs: number; profiles: Set<string> }>();
+  for (const row of (data ?? []) as Row[]) {
+    const id = row[fkColumn];
+    if (typeof id !== "string") continue;
+    const b = buckets.get(id) ?? { runs: 0, profiles: new Set<string>() };
+    b.runs += 1;
+    if (row.profile_id) b.profiles.add(row.profile_id);
+    const pids = row.params?.profileIds;
+    if (Array.isArray(pids)) {
+      for (const p of pids) if (typeof p === "string") b.profiles.add(p);
+    }
+    buckets.set(id, b);
+  }
+  for (const [id, b] of buckets) {
+    out.set(id, { runs: b.runs, users: b.profiles.size });
+  }
+  return out;
+}
+
 export async function listRunsByPricingOffer(offerId: string): Promise<Run[]> {
   const supa = getServerClient();
   const { data, error } = await supa

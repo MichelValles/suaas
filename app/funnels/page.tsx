@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { SendToTrashButton } from "@/components/trash-button";
+import { EntityCard } from "@/components/entity-card";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { listFunnels } from "@/lib/funnels";
 
@@ -60,61 +60,19 @@ export default async function FunnelsPage() {
           }}
         >
           {funnels.map((f) => (
-            <li key={f.id} style={{ position: "relative" }}>
-              <SendToTrashButton type="funnels" id={f.id} name={f.name} />
-              <Link
-                href={`/funnels/${f.id}`}
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: 12,
-                  padding: 20,
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: "var(--radius-md)",
-                  background: "rgba(255,255,255,0.02)",
-                }}
-              >
-                <span
-                  className="mono"
-                  style={{
-                    fontSize: 10,
-                    letterSpacing: "0.22em",
-                    textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.5)",
-                  }}
-                >
-                  {f.step_count} {f.step_count === 1 ? "paso" : "pasos"}
-                </span>
-                <h2
-                  style={{
-                    fontFamily: "var(--font-display)",
-                    fontStyle: "italic",
-                    fontSize: 24,
-                    lineHeight: 1.15,
-                    color: "#fff",
-                    margin: 0,
-                  }}
-                >
-                  {f.name}
-                </h2>
-                {f.description && (
-                  <p
-                    style={{
-                      color: "rgba(255,255,255,0.65)",
-                      fontSize: 13,
-                      lineHeight: 1.5,
-                      margin: 0,
-                      display: "-webkit-box",
-                      WebkitLineClamp: 2,
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
-                    }}
-                  >
-                    {f.description}
-                  </p>
-                )}
-              </Link>
-            </li>
+            <EntityCard
+              key={f.id}
+              href={`/funnels/${f.id}`}
+              trash={{ type: "funnels", id: f.id, name: f.name }}
+              eyebrow={`${f.step_count} ${f.step_count === 1 ? "paso" : "pasos"}`}
+              title={f.name}
+              description={f.description}
+              createdAt={f.created_at}
+              stats={[
+                { label: "Runs", value: f.run_count },
+                { label: "Perfiles", value: f.user_count },
+              ]}
+            />
           ))}
         </ul>
       )}

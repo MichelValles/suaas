@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getRunsStatsByEntity } from "@/lib/runs";
 import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 export const PricingLevelInputSchema = z.object({
@@ -40,7 +41,7 @@ export type PricingOffer = {
 export type PricingOfferWithPrices = PricingOffer & { prices: PricingPrice[] };
 
 export async function listPricingOffers(): Promise<
-  Array<PricingOffer & { price_count: number }>
+  Array<PricingOffer & { price_count: number; run_count: number; user_count: number }>
 > {
   const supa = getServerClient();
   let { data: offers, error } = await supa
@@ -66,9 +67,12 @@ export async function listPricingOffers(): Promise<
   for (const row of prices ?? []) {
     counts.set(row.offer_id, (counts.get(row.offer_id) ?? 0) + 1);
   }
+  const stats = await getRunsStatsByEntity("pricing_offer_id", ids);
   return offers.map((o) => ({
     ...(o as PricingOffer),
     price_count: counts.get(o.id) ?? 0,
+    run_count: stats.get(o.id)?.runs ?? 0,
+    user_count: stats.get(o.id)?.users ?? 0,
   }));
 }
 
