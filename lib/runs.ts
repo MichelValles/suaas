@@ -1,6 +1,6 @@
 import { getServerClient } from "@/lib/supabase";
 
-export type RunKind = "5s_test" | "funnel" | "pricing" | "copy_resonance" | "chat";
+export type RunKind = "5s_test" | "funnel" | "pricing" | "copy_resonance" | "ab_test" | "chat";
 export type RunStatus = "queued" | "running" | "done" | "error";
 export type MessageRole = "reasoner" | "talker" | "system" | "human";
 
@@ -11,6 +11,9 @@ export type Run = {
   profile_id: string;
   target_id: string | null;
   funnel_id: string | null;
+  ab_test_id: string | null;
+  copy_deck_id: string | null;
+  pricing_offer_id: string | null;
   kind: RunKind;
   status: RunStatus;
   params: Record<string, unknown> | null;
@@ -31,6 +34,9 @@ export async function createRun(input: {
   kind: RunKind;
   target_id?: string | null;
   funnel_id?: string | null;
+  ab_test_id?: string | null;
+  copy_deck_id?: string | null;
+  pricing_offer_id?: string | null;
   params?: Record<string, unknown> | null;
 }): Promise<Run> {
   const supa = getServerClient();
@@ -40,6 +46,9 @@ export async function createRun(input: {
       profile_id: input.profile_id,
       target_id: input.target_id ?? null,
       funnel_id: input.funnel_id ?? null,
+      ab_test_id: input.ab_test_id ?? null,
+      copy_deck_id: input.copy_deck_id ?? null,
+      pricing_offer_id: input.pricing_offer_id ?? null,
       kind: input.kind,
       params: input.params ?? null,
       status: "running",
@@ -78,6 +87,39 @@ export async function listRunsByFunnel(funnelId: string): Promise<Run[]> {
     .from("runs")
     .select("*")
     .eq("funnel_id", funnelId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Run[];
+}
+
+export async function listRunsByAbTest(abTestId: string): Promise<Run[]> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("runs")
+    .select("*")
+    .eq("ab_test_id", abTestId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Run[];
+}
+
+export async function listRunsByCopyDeck(deckId: string): Promise<Run[]> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("runs")
+    .select("*")
+    .eq("copy_deck_id", deckId)
+    .order("created_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Run[];
+}
+
+export async function listRunsByPricingOffer(offerId: string): Promise<Run[]> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("runs")
+    .select("*")
+    .eq("pricing_offer_id", offerId)
     .order("created_at", { ascending: false });
   if (error) throw new Error(error.message);
   return (data ?? []) as Run[];

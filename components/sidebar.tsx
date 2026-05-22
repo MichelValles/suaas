@@ -10,6 +10,9 @@ import {
   Filter,
   LayoutDashboard,
   Menu,
+  MessageSquareText,
+  Split,
+  Tag,
   Target,
   Users,
   X,
@@ -20,6 +23,9 @@ const MAIN_ITEMS = [
   { href: "/profiles", label: "Perfiles", icon: Users, exact: false },
   { href: "/targets", label: "Targets", icon: Target, exact: false },
   { href: "/funnels", label: "Embudos", icon: Filter, exact: false },
+  { href: "/ab", label: "A/B tests", icon: Split, exact: false },
+  { href: "/copy", label: "Copy", icon: MessageSquareText, exact: false },
+  { href: "/pricing", label: "Pricing", icon: Tag, exact: false },
 ];
 
 const SYSTEM_ITEMS = [

@@ -59,6 +59,20 @@ Decisiones aplicadas: LLM-as-judge para fuzzy-match (no embeddings), batch sync 
 - [x] **Detección de fricción**: cada respuesta de paso captura `effort` 0..1, `intent_match` 0..1 y un array de `friction` textual. Las métricas agregadas (`completion_rate`, `mean_effort`, `mean_intent_match`) y el dropoff por paso permiten ver dónde se rompe el embudo.
 - [x] **Almacenamiento de uploads en Vercel Blob** (v0.6.1): `lib/blob.ts` con `uploadDataUrlToBlob` (helper que sube `data:` URLs a Blob con sufijo aleatorio y devuelve la URL pública). Acciones de creación de target y de funnel convierten los uploads en URLs https permanentes en lugar de meter el `data:` URL en jsonb (la base no se llena de blobs base64). Store `suaas-uploads · store_1yLEHreMdAwe3V6D` creado en `iad1`. Si `BLOB_READ_WRITE_TOKEN` no está disponible, hace fallback al `data:` URL para no romper desarrollo local.
 
+## v0.7.0 — A/B tests, Copy resonance, Pricing
+
+Tres módulos nuevos de experimentación en una sola release.
+
+- [x] **A/B tests**: tabla `ab_tests` (target_a_id, target_b_id, hypothesis), tabla puente `ab_test_runs` (variant A|B) + columna `runs.ab_test_id`. Lanzar un A/B dispara DOS runs 5s en paralelo con el mismo set de perfiles vía `runAbTest` (reutiliza `runFiveSecondTest`). Rutas: `/ab` lista, `/ab/new`, `/ab/[id]` detalle + LaunchPanel, `/experiments/ab/[abTestId]` con comparativa lado a lado + ganador.
+- [x] **Copy resonance**: tablas `copy_decks` + `copy_blocks` + `copy_responses` + `runs.copy_deck_id`. `lib/experiments/copy.ts` con `reactToBlock` (Sonnet via `generateObject`, sin imagen). Cada perfil reacciona a 2..10 bloques con sentiment, clarity 0..1, persuasion 0..1, would_click y critique. Rutas: `/copy`, `/copy/new`, `/copy/[id]`, `/experiments/copy/[runId]` (bloques ordenados por persuasión + barra de sentimiento + drill-down por perfil).
+- [x] **Pricing**: tablas `pricing_offers` + `pricing_prices` (2..8 niveles) + `pricing_responses` + `runs.pricing_offer_id`. `lib/experiments/pricing.ts` con `reactToPrice`. Cada perfil reacciona a cada precio con would_buy, willingness_to_pay 0..1, perceived_value 0..1, critique. Métricas: curva de demanda, sweet_spot por revenue esperado (price × buy_rate). Rutas: `/pricing`, `/pricing/new`, `/pricing/[id]`, `/experiments/pricing/[runId]`.
+- [x] Componente reutilizable `components/profile-launch-panel.tsx` para multi-select de perfiles + lanzamiento. Reemplazará progresivamente los LaunchPanel específicos en futuras iteraciones.
+- [x] Sidebar con 3 entradas nuevas: A/B tests (`Split`), Copy (`MessageSquareText`), Pricing (`Tag`).
+- [x] `/diag` y `/api/diag` añaden las 8 tablas nuevas.
+- [x] Telemetría de tokens extendida a `copy_resonance` y `pricing_react` scopes.
+
+Aplicar `0006_ab_copy_pricing.sql` en Supabase antes de crear el primer registro de cualquiera de los tres.
+
 ## v0.6.0 — App shell tipo software
 
 - [x] Sidebar lateral izquierdo (240px en desktop, overlay colapsable en móvil con botón hamburguesa) reemplazando el header con nav. Iconos `lucide-react` por entrada.

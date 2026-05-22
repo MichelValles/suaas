@@ -16,6 +16,14 @@ const TABLES = [
   "funnel_steps",
   "funnel_step_responses",
   "gateway_usage",
+  "ab_tests",
+  "ab_test_runs",
+  "copy_decks",
+  "copy_blocks",
+  "copy_responses",
+  "pricing_offers",
+  "pricing_prices",
+  "pricing_responses",
 ] as const;
 
 type TableStatus = {

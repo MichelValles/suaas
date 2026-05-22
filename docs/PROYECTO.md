@@ -103,9 +103,15 @@ lib/
   funnels.ts              <- FunnelInputSchema, FunnelStepInputSchema + CRUD (server-only)
   usage.ts                <- recordUsage(), getUsageSummary(), getGatewayCredits() (telemetría tokens)
   blob.ts                 <- uploadDataUrlToBlob() (sube data: URLs a Vercel Blob; fallback a data: si no hay token)
+  ab.ts                   <- AbTestInputSchema, CRUD + linkAbTestRun
+  copy.ts                 <- CopyDeckInputSchema (deck + bloques) + CRUD
+  pricing.ts              <- PricingOfferInputSchema (oferta + precios) + CRUD
   experiments/
     five-second.ts        <- probeProfile, judgeComprehension, runFiveSecondTest, listFiveSecondResponses, summarizeResponses
     funnel.ts             <- probeFunnelStep, runFunnelTest, listFunnelStepResponses, summarizeFunnelResponses
+    ab.ts                 <- runAbTest (dos runs 5s en paralelo + link a ab_test_runs)
+    copy.ts               <- reactToBlock, runCopyTest, listCopyResponses, summarizeCopyResponses
+    pricing.ts            <- reactToPrice, runPricingTest, listPricingResponses, summarizePricingResponses
   utils.ts                <- cx() (concatenador de clases)
 
 components/
@@ -124,6 +130,7 @@ supabase/
     0003_funnels.sql      <- funnels + funnel_steps (secuencia ordenada de pantallas)
     0004_funnel_runs.sql  <- runs.funnel_id + funnel_step_responses (run, profile, step)
     0005_gateway_usage.sql <- gateway_usage (telemetría de tokens por scope/modelo)
+    0006_ab_copy_pricing.sql <- ab_tests + copy_decks/blocks/responses + pricing_offers/prices/responses + runs.{ab_test_id,copy_deck_id,pricing_offer_id}
 
 proxy.ts                  <- middleware: bloquea todo lo no público sin cookie
 next.config.ts
@@ -161,9 +168,15 @@ Migración inicial en `supabase/migrations/0001_initial.sql`. Sin RLS: el acceso
 | `funnels` | Cabecera del embudo: `name`, `description`. |
 | `funnel_steps` | Pasos ordenados del embudo: `funnel_id`, `position` (único por embudo), `name`, `intent` (qué debería hacer el usuario), `payload` jsonb `{kind, image_url, source_url?}`. |
 | `funnel_step_responses` | Respuesta normalizada por `(run_id, profile_id, step_id)`: `position`, `perception`, `intent_match` 0..1, `effort` 0..1, `friction` text[], `would_continue`, `reasoning`, `meta`. Sólo hay fila para los pasos que el perfil llegó a evaluar (el dropoff corta el recorrido). |
-| `gateway_usage` | Telemetría por llamada al AI Gateway: `run_id` (nullable), `scope` (`probe_5s` / `judge_5s` / `probe_funnel` / `reasoner_chat` / `talker_chat`), `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Alimenta `/tokens`. |
+| `gateway_usage` | Telemetría por llamada al AI Gateway: `run_id` (nullable), `scope` (`probe_5s` / `judge_5s` / `probe_funnel` / `reasoner_chat` / `talker_chat` / `copy_resonance` / `pricing_react`), `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Alimenta `/tokens`. |
+| `ab_tests` | Comparativa de dos targets: `name`, `hypothesis`, `target_a_id`, `target_b_id`. |
+| `ab_test_runs` | Vincula run con variant (A/B). |
+| `copy_decks` + `copy_blocks` | Deck de copies a evaluar. `copy_blocks.text` es el contenido a juzgar. |
+| `copy_responses` | Reacción `(run, profile, block)`: `sentiment`, `clarity`, `persuasion`, `would_click`, `critique`. |
+| `pricing_offers` + `pricing_prices` | Oferta común + niveles de precio a testear. |
+| `pricing_responses` | Reacción `(run, profile, price)`: `would_buy`, `willingness_to_pay`, `perceived_value`, `critique`. |
 
-Aplicar las migraciones por orden en el SQL editor del proyecto Supabase (`0001_initial.sql`, `0002_five_second.sql`, `0003_funnels.sql`, `0004_funnel_runs.sql`, `0005_gateway_usage.sql`). Ver `ROADMAP.md` para evolución.
+Aplicar las migraciones por orden en el SQL editor del proyecto Supabase (`0001_initial.sql`, `0002_five_second.sql`, `0003_funnels.sql`, `0004_funnel_runs.sql`, `0005_gateway_usage.sql`, `0006_ab_copy_pricing.sql`). Ver `ROADMAP.md` para evolución.
 
 ## Por qué importa este proyecto
 

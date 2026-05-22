@@ -5,7 +5,9 @@ export type UsageScope =
   | "judge_5s"
   | "probe_funnel"
   | "reasoner_chat"
-  | "talker_chat";
+  | "talker_chat"
+  | "copy_resonance"
+  | "pricing_react";
 
 type RawUsage = {
   promptTokens?: number;
