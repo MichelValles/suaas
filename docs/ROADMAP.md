@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.19.x — Sembrar como ruta de primer nivel + gate
+
+- [x] **v0.19.0**: entrada **Sembrar** (icono `Sprout`) en el sidebar (grupo Sistema) apuntando a `/seed-examples`. Antes la ruta sólo era accesible por URL directa. Doble gate de acceso: `/seed-examples` y `/api/seed/examples` exigen ahora una contraseña adicional (`michel101` por defecto, override con env `SEED_PASSWORD`) además del login global. Implementado con cookie httpOnly `seed_access` (8h), helper `lib/seed-auth.ts` con `timingSafeEqual` y endpoint `/api/seed/access` (POST/DELETE). Componente cliente `SeedGate` muestra el formulario cuando falta la cookie. Razón: sembrar consume tokens del gateway, conviene una segunda barrera intencional.
+
 ## v0.18.x — Seeds por módulo
 
 - [x] **v0.18.0**: `/api/seed/examples` acepta `kinds: ('copy'|'pricing'|'ab'|'funnel')[]` opcional para sembrar sólo un subconjunto (sin `kinds` o vacío sigue sembrando los 4, compatible con consumidores previos). `/seed-examples` muestra un botón "Sembrar sólo este" en cada tarjeta (Copy / Pricing / A/B / Embudo) además del botón global "Crear los 4". Útil para regenerar un ejemplo concreto sin tocar los demás.

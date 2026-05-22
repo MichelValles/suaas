@@ -1,14 +1,19 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { isGatewayConfigured } from "@/lib/gateway";
+import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { SeedExamplesClient } from "./client";
+import { SeedGate } from "./seed-gate";
 
 export const dynamic = "force-dynamic";
 
-export default function SeedExamplesPage() {
+export default async function SeedExamplesPage() {
   const supaOk = isSupabaseConfigured();
   const gwOk = isGatewayConfigured();
+  const jar = await cookies();
+  const unlocked = jar.get(SEED_COOKIE)?.value === SEED_VALUE;
   return (
     <AppShell>
       <PageHeading
@@ -28,7 +33,8 @@ export default function SeedExamplesPage() {
           pero "lanzar runs" requiere gateway activo.
         </Notice>
       )}
-      {supaOk && <SeedExamplesClient />}
+      {supaOk && !unlocked && <SeedGate />}
+      {supaOk && unlocked && <SeedExamplesClient />}
     </AppShell>
   );
 }

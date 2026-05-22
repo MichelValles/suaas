@@ -18,6 +18,7 @@ Ver `.env.example` para el listado completo. Esenciales:
 | Var | Dónde | Para qué |
 |---|---|---|
 | `ACCESS_PASSWORD` | Vercel + .env.local | Login global. |
+| `SEED_PASSWORD` | Vercel + .env.local (opcional) | Pass adicional para `/seed-examples` y `/api/seed/examples`. Default `michel101` si no se define. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Marketplace | Cliente browser. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Marketplace | Cliente browser. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Marketplace | Cliente server. |

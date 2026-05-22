@@ -13,6 +13,7 @@ import {
   MessageSquareText,
   ScanEye,
   Split,
+  Sprout,
   Tag,
   Trash2,
   Users,
@@ -33,6 +34,7 @@ const SYSTEM_ITEMS = [
   { href: "/diag", label: "Diagnóstico", icon: Activity, exact: false },
   { href: "/tokens", label: "Tokens", icon: Coins, exact: false },
   { href: "/trash", label: "Papelera", icon: Trash2, exact: false },
+  { href: "/seed-examples", label: "Sembrar", icon: Sprout, exact: false },
 ];
 
 export function Sidebar() {

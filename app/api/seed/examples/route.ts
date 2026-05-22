@@ -1,9 +1,11 @@
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { runAbTest } from "@/lib/experiments/ab";
 import { runCopyTest } from "@/lib/experiments/copy";
 import { runFunnelTest } from "@/lib/experiments/funnel";
 import { runPricingTest } from "@/lib/experiments/pricing";
 import { isGatewayConfigured } from "@/lib/gateway";
+import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
 import {
   pickRandomProfileIds,
   seedAbExample,
@@ -32,6 +34,14 @@ type ExampleResult =
   | { kind: string; ok: false; error: string };
 
 export async function POST(request: Request) {
+  const jar = await cookies();
+  if (jar.get(SEED_COOKIE)?.value !== SEED_VALUE) {
+    return Response.json(
+      { ok: false, error: "Acceso a /seed-examples no autorizado." },
+      { status: 401 },
+    );
+  }
+
   let body: z.infer<typeof BodySchema>;
   try {
     body = BodySchema.parse(await request.json().catch(() => ({})));
