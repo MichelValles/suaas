@@ -2,6 +2,14 @@ import { NextResponse } from "next/server";
 import { getServerClient, isSupabaseConfigured } from "@/lib/supabase";
 import { APP_VERSION } from "@/lib/version";
 
+const RUNS_REQUIRED_COLUMNS = [
+  "target_id",
+  "funnel_id",
+  "ab_test_id",
+  "copy_deck_id",
+  "pricing_offer_id",
+] as const;
+
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
@@ -56,13 +64,29 @@ export async function GET() {
     }),
   );
 
-  const allOk = results.every((r) => r.ok);
+  // Auditar columnas críticas de `runs` (no basta con que la tabla
+  // exista; algunas migraciones alteran columnas y pueden quedarse
+  // parcialmente aplicadas).
+  const runsColumns: { name: string; present: boolean }[] = await Promise.all(
+    RUNS_REQUIRED_COLUMNS.map(async (col) => {
+      const { error } = await supa
+        .from("runs")
+        .select(col, { head: true, count: "exact" })
+        .limit(1);
+      return { name: col, present: !error };
+    }),
+  );
+  const missingRunsColumns = runsColumns.filter((c) => !c.present).map((c) => c.name);
+
+  const allOk = results.every((r) => r.ok) && missingRunsColumns.length === 0;
   return NextResponse.json(
     {
       version: APP_VERSION,
       supabase: "configurado",
       schema_ok: allOk,
       tables: results,
+      runs_columns: runsColumns,
+      missing_runs_columns: missingRunsColumns,
     },
     { status: allOk ? 200 : 500 },
   );

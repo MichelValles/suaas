@@ -38,6 +38,7 @@ export default async function DiagPage() {
   const gatewayConfigured = isGatewayConfigured();
 
   let results: TableStatus[] = [];
+  const runsColumns: { name: string; present: boolean }[] = [];
   if (supabaseConfigured) {
     const supa = getServerClient();
     results = await Promise.all(
@@ -53,9 +54,29 @@ export default async function DiagPage() {
         };
       }),
     );
+
+    const RUNS_COLS = [
+      "target_id",
+      "funnel_id",
+      "ab_test_id",
+      "copy_deck_id",
+      "pricing_offer_id",
+    ] as const;
+    const cols = await Promise.all(
+      RUNS_COLS.map(async (col) => {
+        const { error } = await supa
+          .from("runs")
+          .select(col, { head: true, count: "exact" })
+          .limit(1);
+        return { name: col, present: !error };
+      }),
+    );
+    runsColumns.push(...cols);
   }
 
-  const schemaOk = results.every((r) => r.ok);
+  const missingRunsCols = runsColumns.filter((c) => !c.present).map((c) => c.name);
+  const schemaOk =
+    results.every((r) => r.ok) && missingRunsCols.length === 0;
 
   return (
     <AppShell>
@@ -170,6 +191,61 @@ export default async function DiagPage() {
           </div>
         )}
       </section>
+
+      {supabaseConfigured && (
+        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <h2
+            className="mono"
+            style={{
+              fontSize: 11,
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color: "var(--accent-500)",
+              margin: 0,
+            }}
+          >
+            Columnas críticas de `runs`
+          </h2>
+          {missingRunsCols.length > 0 && (
+            <Notice tone="warn">
+              Faltan columnas en <code className="mono">runs</code>:{" "}
+              <strong>{missingRunsCols.join(", ")}</strong>. Aplica los ALTER
+              TABLE pendientes (ver migraciones 0004 / 0006) o ejecuta el
+              snippet idempotente que dejé en el chat.
+            </Notice>
+          )}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+              gap: 8,
+            }}
+          >
+            {runsColumns.map((c) => (
+              <div
+                key={c.name}
+                style={{
+                  padding: "10px 12px",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: "var(--radius-sm)",
+                  background: "rgba(255,255,255,0.02)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: 8,
+                }}
+              >
+                <span className="mono" style={{ fontSize: 12 }}>
+                  {c.name}
+                </span>
+                <span className="status-badge" data-status={c.present ? "ok" : "warn"}>
+                  {c.present ? "ok" : "missing"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <h2
