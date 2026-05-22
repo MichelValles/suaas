@@ -170,11 +170,12 @@ function VariantCard({
       style={{
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "var(--radius-md)",
-        padding: 24,
+        padding: "28px 30px",
         background: "rgba(255,255,255,0.02)",
         display: "flex",
         flexDirection: "column",
-        gap: 8,
+        gap: 14,
+        minHeight: 180,
       }}
     >
       <span
@@ -192,7 +193,8 @@ function VariantCard({
         style={{
           fontFamily: "var(--font-display)",
           fontStyle: "italic",
-          fontSize: 24,
+          fontSize: 26,
+          lineHeight: 1.15,
           color: "#fff",
           margin: 0,
         }}

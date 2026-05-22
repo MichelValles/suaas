@@ -21,7 +21,9 @@ export const maxDuration = 120;
 const BodySchema = z.object({
   profileId: z.string().uuid(),
   message: z.string().min(1).max(8000),
-  runId: z.string().uuid().optional(),
+  // Acepta string UUID, undefined o null. El cliente envía null antes de
+  // que exista el primer run; convertirlo aquí evita un 400 innecesario.
+  runId: z.string().uuid().nullish(),
 });
 
 type Frame =

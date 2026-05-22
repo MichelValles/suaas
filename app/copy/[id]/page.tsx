@@ -48,7 +48,7 @@ export default async function CopyDeckDetailPage({
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-          gap: 16,
+          gap: 20,
         }}
       >
         {deck.blocks.map((b) => (
@@ -57,25 +57,33 @@ export default async function CopyDeckDetailPage({
             style={{
               border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: "var(--radius-md)",
-              padding: 20,
+              padding: "26px 28px",
               background: "rgba(255,255,255,0.02)",
               display: "flex",
               flexDirection: "column",
-              gap: 8,
+              gap: 16,
+              minHeight: 180,
             }}
           >
             <span
               className="mono"
               style={{
                 fontSize: 10,
-                letterSpacing: "0.22em",
+                letterSpacing: "0.24em",
                 textTransform: "uppercase",
                 color: "var(--accent-500)",
               }}
             >
               {b.position} · {b.label}
             </span>
-            <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+            <p
+              style={{
+                color: "rgba(255,255,255,0.85)",
+                fontSize: 15,
+                lineHeight: 1.65,
+                margin: 0,
+              }}
+            >
               {b.text}
             </p>
           </div>

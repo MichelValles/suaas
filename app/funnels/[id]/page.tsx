@@ -70,8 +70,8 @@ export default async function FunnelDetailPage({
             style={{
               display: "grid",
               gridTemplateColumns: "minmax(0, 420px) minmax(0, 1fr)",
-              gap: 20,
-              padding: 20,
+              gap: 28,
+              padding: "26px 28px",
               border: "1px solid rgba(255,255,255,0.08)",
               borderRadius: "var(--radius-md)",
               background: "rgba(255,255,255,0.02)",
@@ -80,7 +80,7 @@ export default async function FunnelDetailPage({
           >
             <Hero src={step.payload.image_url} alt={`${step.name} · paso ${idx + 1}`} />
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <span
                 className="mono"
                 style={{

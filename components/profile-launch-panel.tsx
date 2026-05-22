@@ -117,10 +117,10 @@ export function ProfileLaunchPanel({
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: 14,
+          gap: 20,
           border: "1px solid rgba(255,255,255,0.08)",
           borderRadius: "var(--radius-md)",
-          padding: 24,
+          padding: "32px 32px 30px",
           background: "rgba(255,255,255,0.02)",
         }}
       >
@@ -138,10 +138,11 @@ export function ProfileLaunchPanel({
         </h2>
         <p
           style={{
-            color: "rgba(255,255,255,0.6)",
-            fontSize: 13,
-            lineHeight: 1.55,
+            color: "rgba(255,255,255,0.65)",
+            fontSize: 14,
+            lineHeight: 1.6,
             margin: 0,
+            maxWidth: 640,
           }}
         >
           {profiles.length === 0
@@ -153,7 +154,7 @@ export function ProfileLaunchPanel({
           onClick={() => setExpanded(true)}
           className="btn-pill solid"
           disabled={profiles.length === 0}
-          style={{ alignSelf: "flex-start" }}
+          style={{ alignSelf: "flex-start", marginTop: 4 }}
         >
           Lanzar nueva Run
         </button>
@@ -167,10 +168,10 @@ export function ProfileLaunchPanel({
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: 16,
+        gap: 22,
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "var(--radius-md)",
-        padding: 24,
+        padding: "32px 32px 30px",
         background: "rgba(255,255,255,0.02)",
       }}
     >

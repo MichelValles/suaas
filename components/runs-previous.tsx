@@ -41,7 +41,7 @@ export function RunsPreviousGrid({
   emptyHint?: string;
 }) {
   return (
-    <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+    <section style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <h2
         className="mono"
         style={{
@@ -58,11 +58,12 @@ export function RunsPreviousGrid({
       {runs.length === 0 ? (
         <div
           style={{
-            padding: 16,
+            padding: "26px 24px",
             border: "1px dashed rgba(255,255,255,0.12)",
             borderRadius: "var(--radius-md)",
             color: "rgba(255,255,255,0.55)",
-            fontSize: 13,
+            fontSize: 14,
+            lineHeight: 1.55,
           }}
         >
           {emptyHint ??
@@ -76,7 +77,7 @@ export function RunsPreviousGrid({
             margin: 0,
             display: "grid",
             gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-            gap: 12,
+            gap: 16,
           }}
         >
           {runs.map((r) => (
@@ -112,8 +113,8 @@ function RunCard({
       style={{
         display: "flex",
         flexDirection: "column",
-        gap: 14,
-        padding: "16px 18px 14px",
+        gap: 18,
+        padding: "22px 22px 20px",
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "var(--radius-md)",
         background: "rgba(255,255,255,0.02)",
@@ -124,14 +125,14 @@ function RunCard({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          gap: 8,
+          gap: 10,
         }}
       >
         <span
           className="mono"
           style={{
             fontSize: 11,
-            letterSpacing: "0.16em",
+            letterSpacing: "0.18em",
             color: "rgba(255,255,255,0.7)",
           }}
         >
@@ -143,8 +144,8 @@ function RunCard({
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(96px, 1fr))",
-          gap: 12,
+          gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
+          gap: "14px 18px",
         }}
       >
         <MetricCell label="N perfiles" value={n > 0 ? String(n) : "—"} />
@@ -166,6 +167,7 @@ function RunCard({
           letterSpacing: "0.22em",
           textTransform: "uppercase",
           color: "var(--accent-500)",
+          paddingTop: 4,
         }}
       >
         Ver resultados →
@@ -176,12 +178,12 @@ function RunCard({
 
 function MetricCell({ label, value }: { label: string; value: string }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <span
         className="mono"
         style={{
           fontSize: 9,
-          letterSpacing: "0.22em",
+          letterSpacing: "0.24em",
           textTransform: "uppercase",
           color: "rgba(255,255,255,0.45)",
         }}
@@ -191,7 +193,7 @@ function MetricCell({ label, value }: { label: string; value: string }) {
       <span
         className="mono"
         style={{
-          fontSize: 15,
+          fontSize: 16,
           color: "#fff",
           fontWeight: 700,
           lineHeight: 1.1,
