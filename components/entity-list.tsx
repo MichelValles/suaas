@@ -100,7 +100,7 @@ export function EntityListView({
   }, [filtered, sort]);
 
   return (
-    <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <section style={{ display: "flex", flexDirection: "column", gap: 28 }}>
       <Toolbar
         query={query}
         onQuery={setQuery}
@@ -122,7 +122,7 @@ export function EntityListView({
             margin: 0,
             display: "grid",
             gridTemplateColumns: `repeat(auto-fill, minmax(${minCardWidth}px, 1fr))`,
-            gap: 16,
+            gap: 20,
           }}
         >
           {sorted.map((item) => (
@@ -166,26 +166,26 @@ function Toolbar({
     <div
       style={{
         display: "flex",
-        gap: 12,
+        gap: 20,
         flexWrap: "wrap",
         alignItems: "center",
         justifyContent: "space-between",
       }}
     >
-      <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 20, alignItems: "center", flexWrap: "wrap" }}>
         <label
           style={{
             display: "inline-flex",
             alignItems: "center",
-            gap: 8,
+            gap: 12,
             background: "rgba(255,255,255,0.03)",
             border: "1px solid rgba(255,255,255,0.12)",
             borderRadius: "var(--radius-pill)",
-            padding: "8px 14px",
-            minWidth: 260,
+            padding: "14px 22px",
+            minWidth: 380,
           }}
         >
-          <Search size={14} color="rgba(255,255,255,0.5)" />
+          <Search size={16} color="rgba(255,255,255,0.5)" />
           <input
             type="search"
             value={query}
@@ -197,9 +197,9 @@ function Toolbar({
               border: 0,
               outline: "none",
               color: "#fff",
-              fontSize: 13,
+              fontSize: 14,
               fontFamily: "var(--font-sans)",
-              minWidth: 180,
+              minWidth: 220,
               colorScheme: "dark",
             }}
           />
@@ -208,7 +208,7 @@ function Toolbar({
           className="mono"
           style={{
             fontSize: 11,
-            letterSpacing: "0.18em",
+            letterSpacing: "0.22em",
             textTransform: "uppercase",
             color: "rgba(255,255,255,0.5)",
           }}
@@ -222,13 +222,13 @@ function Toolbar({
         style={{
           display: "inline-flex",
           alignItems: "center",
-          gap: 10,
+          gap: 14,
           background: "rgba(255,255,255,0.03)",
           border: "1px solid rgba(255,255,255,0.12)",
           borderRadius: "var(--radius-pill)",
-          padding: "6px 14px",
+          padding: "12px 22px",
           fontSize: 11,
-          letterSpacing: "0.18em",
+          letterSpacing: "0.22em",
           textTransform: "uppercase",
           color: "rgba(255,255,255,0.55)",
         }}
@@ -243,7 +243,7 @@ function Toolbar({
             outline: "none",
             color: "#fff",
             fontFamily: "var(--font-sans)",
-            fontSize: 12,
+            fontSize: 13,
             letterSpacing: "0.06em",
             textTransform: "none",
             colorScheme: "dark",
@@ -269,11 +269,12 @@ function EmptyState({ children }: { children: React.ReactNode }) {
   return (
     <div
       style={{
-        padding: 24,
+        padding: "36px 32px",
         border: "1px dashed rgba(255,255,255,0.12)",
         borderRadius: "var(--radius-md)",
         color: "rgba(255,255,255,0.55)",
-        fontSize: 13,
+        fontSize: 14,
+        lineHeight: 1.55,
       }}
     >
       {children}
