@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
+import { resolveImageForApi } from "@/lib/image-source";
 import { buildSystemPrompt } from "@/lib/prompts";
 import { type FunnelStep, type FunnelWithSteps, getFunnel } from "@/lib/funnels";
 import { type Profile, getProfile } from "@/lib/profiles";
@@ -115,6 +116,7 @@ export async function probeFunnelStep(
         .join("\n")
     : "(este es el primer paso del recorrido)";
 
+  const image = await resolveImageForApi(step.payload.image_url);
   const result = await generateObject({
     model: DEFAULT_MODEL,
     schema: StepReasoningSchema,
@@ -136,7 +138,7 @@ export async function probeFunnelStep(
               "Ahora ves esta pantalla. Reacciona con honestidad: ¿qué crees que es, qué se espera de ti, te supone esfuerzo, hay fricciones, continuarías?",
             ].join("\n"),
           },
-          { type: "image", image: step.payload.image_url },
+          { type: "image", image },
         ],
       },
     ],

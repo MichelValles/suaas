@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
+import { resolveImageForApi } from "@/lib/image-source";
 import { buildSystemPrompt } from "@/lib/prompts";
 import { type Profile, getProfile } from "@/lib/profiles";
 import {
@@ -98,6 +99,7 @@ export async function probeProfile(
   usage: unknown;
 }> {
   const startedAt = Date.now();
+  const image = await resolveImageForApi(target.payload.image_url);
   const result = await generateObject({
     model: DEFAULT_MODEL,
     schema: ProbeOutputSchema,
@@ -113,7 +115,7 @@ export async function probeProfile(
               "No la puedes mirar de nuevo. Sé honesto sobre lo que recuerdas (puede ser poco). No completes lo que no viste.",
             ].join(" "),
           },
-          { type: "image", image: target.payload.image_url },
+          { type: "image", image },
         ],
       },
     ],

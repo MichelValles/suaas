@@ -132,35 +132,88 @@ export async function createTarget(input: TargetInput): Promise<Target> {
 // Helper: resolver og:image de una URL pública
 // ============================================================
 
-export async function resolveOgImage(sourceUrl: string): Promise<string | null> {
-  let html: string;
+export type OgImageResolution =
+  | { ok: true; url: string }
+  | { ok: false; reason: "fetch" | "status" | "not-found"; detail: string };
+
+/**
+ * Sondea el HTML de `sourceUrl` y devuelve la primera imagen Open Graph /
+ * Twitter Card que encuentre. Acepta atributos en cualquier orden, tags
+ * multilínea y los alias más comunes (og:image, og:image:url, twitter:image,
+ * twitter:image:src). Como último recurso lee `<link rel="image_src">`.
+ *
+ * Para entornos donde sólo necesitamos saber «¿hay imagen?», la versión legacy
+ * `resolveOgImage()` mantiene el contrato anterior (string | null).
+ */
+export async function resolveOgImageDetailed(
+  sourceUrl: string,
+): Promise<OgImageResolution> {
+  let res: Response;
   try {
-    const res = await fetch(sourceUrl, {
+    res = await fetch(sourceUrl, {
       redirect: "follow",
       headers: {
-        // UA realista para evitar bloqueos a bots básicos.
+        // UA de Chrome real: muchas landings corporativas (BBVA, ING…)
+        // sirven HTML distinto a UAs marcadas como bot.
         "User-Agent":
-          "Mozilla/5.0 (compatible; SUAAS/0.4; +https://suaas.flat101.business)",
-        Accept: "text/html,application/xhtml+xml",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "es-ES,es;q=0.9,en;q=0.8",
       },
     });
-    if (!res.ok) return null;
-    html = await res.text();
-  } catch {
-    return null;
+  } catch (err) {
+    return { ok: false, reason: "fetch", detail: (err as Error).message };
   }
+  if (!res.ok) {
+    return {
+      ok: false,
+      reason: "status",
+      detail: `HTTP ${res.status} al pedir la URL.`,
+    };
+  }
+  const html = await res.text();
 
-  // Cogemos el primer match razonable de og:image (con cualquier orden de atributos).
-  const candidates = [
-    /<meta[^>]+property=["']og:image(?::secure_url)?["'][^>]+content=["']([^"']+)["']/i,
-    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url)?["']/i,
-    /<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']+)["']/i,
+  // Sólo nos quedamos con el <head> si lo encontramos: las landings grandes
+  // tienen MB de body que ralentizan el regex.
+  const headMatch = html.match(/<head[\s\S]*?<\/head>/i);
+  const haystack = headMatch ? headMatch[0] : html;
+
+  // Lista de patrones por orden de preferencia.
+  const patterns: RegExp[] = [
+    // og:image / og:image:url / og:image:secure_url (property antes que content)
+    /<meta[^>]+property=["']og:image(?::secure_url|:url)?["'][^>]+content=["']([^"']+)["']/i,
+    // Atributos invertidos: content antes que property
+    /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image(?::secure_url|:url)?["']/i,
+    // twitter:image / twitter:image:src
+    /<meta[^>]+name=["']twitter:image(?::src)?["'][^>]+content=["']([^"']+)["']/i,
+    /<meta[^>]+content=["']([^"']+)["'][^>]+name=["']twitter:image(?::src)?["']/i,
+    // Itemprop image (Schema.org básico)
+    /<meta[^>]+itemprop=["']image["'][^>]+content=["']([^"']+)["']/i,
+    // Link rel="image_src" (fallback histórico)
+    /<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["']/i,
   ];
-  for (const re of candidates) {
-    const m = html.match(re);
-    if (m?.[1]) return absolutize(m[1], sourceUrl);
+
+  for (const re of patterns) {
+    const m = haystack.match(re);
+    if (m?.[1]) {
+      return { ok: true, url: absolutize(m[1].trim(), sourceUrl) };
+    }
   }
-  return null;
+  return {
+    ok: false,
+    reason: "not-found",
+    detail:
+      "La página respondió pero no incluye og:image, twitter:image ni link rel=image_src en el HTML.",
+  };
+}
+
+/**
+ * Versión simple para compatibilidad: devuelve la URL o null.
+ */
+export async function resolveOgImage(sourceUrl: string): Promise<string | null> {
+  const out = await resolveOgImageDetailed(sourceUrl);
+  return out.ok ? out.url : null;
 }
 
 function absolutize(href: string, base: string): string {

@@ -7,7 +7,7 @@ import { uploadDataUrlToBlob } from "@/lib/blob";
 import {
   TargetInputSchema,
   createTarget,
-  resolveOgImage,
+  resolveOgImageDetailed,
 } from "@/lib/targets";
 
 const FormSchema = z.object({
@@ -60,15 +60,20 @@ export async function createTargetAction(
       return { ok: false, error: "La URL fuente no es válida." };
     }
     sourceUrl = parsed.source_url;
-    const og = await resolveOgImage(parsed.source_url);
-    if (!og) {
+    const og = await resolveOgImageDetailed(parsed.source_url);
+    if (!og.ok) {
+      const intro =
+        og.reason === "fetch"
+          ? "No pudimos descargar la URL"
+          : og.reason === "status"
+            ? "La URL respondió con error"
+            : "La URL no expone una imagen Open Graph";
       return {
         ok: false,
-        error:
-          "No se pudo resolver og:image de esa URL. Prueba a subir un screenshot manualmente.",
+        error: `${intro}: ${og.detail} Sube un screenshot manualmente desde el modo «Upload».`,
       };
     }
-    imageUrl = og;
+    imageUrl = og.url;
   }
 
   const input = TargetInputSchema.parse({
