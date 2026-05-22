@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 import {
   listPricingResponses,
   summarizePricingResponses,
 } from "@/lib/experiments/pricing";
 import { getPricingOffer } from "@/lib/pricing";
-import { listProfilesByIds } from "@/lib/profiles";
+import { listProfiles, listProfilesByIds } from "@/lib/profiles";
 import { getRun } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
@@ -30,9 +31,10 @@ export default async function PricingRunPage({
   const offerId = run.pricing_offer_id ?? (run.params?.offerId as string | undefined);
   if (!offerId) notFound();
 
-  const [offer, responses] = await Promise.all([
+  const [offer, responses, allProfiles] = await Promise.all([
     getPricingOffer(offerId),
     listPricingResponses(runId),
+    listProfiles(),
   ]);
   if (!offer) notFound();
 
@@ -287,6 +289,15 @@ export default async function PricingRunPage({
           ))}
         </div>
       </Section>
+
+      <ProfileLaunchPanel
+        title="Lanzar otro test de pricing"
+        endpoint="/api/runs/pricing"
+        extraBody={{ offerId: offer.id }}
+        progressLabel={`Cada perfil reaccionará a ${offer.prices.length} precios. Estimado ~${Math.ceil(offer.prices.length * 6)}s por perfil.`}
+        kind="pricing"
+        profiles={allProfiles}
+      />
     </AppShell>
   );
 }
