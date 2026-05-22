@@ -1,4 +1,5 @@
 import { createAbTest } from "@/lib/ab";
+import { createCampaign } from "@/lib/campaigns";
 import { createCopyDeck } from "@/lib/copy";
 import { createFunnel } from "@/lib/funnels";
 import { createPricingOffer } from "@/lib/pricing";
@@ -6,7 +7,7 @@ import { listProfiles } from "@/lib/profiles";
 import { createTarget, resolveOgImage } from "@/lib/targets";
 
 /**
- * Construye ejemplos realistas en los 5 módulos para validar end-to-end
+ * Construye ejemplos realistas en los 6 módulos para validar end-to-end
  * la plataforma con los 50 perfiles ya sembrados. Cada función crea los
  * registros y devuelve los ids para que el endpoint pueda enlazar el run.
  */
@@ -212,6 +213,54 @@ export async function seedFunnelExample(): Promise<{ funnelId: string }> {
   });
 
   return { funnelId: funnel.id };
+}
+
+// ============================================================
+// Campaign Tester (RSA con landing real)
+// ============================================================
+
+const CAMPAIGN_DEFAULTS = {
+  name: "Vercel · Paid Search agosto",
+  brief:
+    "Diferencial vs Netlify: Next.js 16 nativo, edge global, previews por commit. Evitamos jerga interna (Fluid Compute, ISR) en titulares.",
+  final_url: "https://vercel.com/",
+  queries: [
+    "hosting next.js",
+    "deploy aplicación react",
+    "alternativa netlify",
+  ],
+  headlines: [
+    "Despliega Next.js en 30s",
+    "Vista previa por commit",
+    "Edge global, sin config",
+    "Free tier sin caducidad",
+    "Mejor que Netlify en Next",
+  ],
+  descriptions: [
+    "Conecta tu repo y deploya en segundos. Previews por PR, rollback con un clic.",
+    "Plataforma full-stack para Next.js: edge functions, AI Gateway y analytics nativos.",
+  ],
+};
+
+export async function seedCampaignExample(): Promise<{ campaignId: string }> {
+  const img = await resolveOgImage(CAMPAIGN_DEFAULTS.final_url);
+  if (!img) {
+    throw new Error(
+      `No se pudo resolver og:image para ${CAMPAIGN_DEFAULTS.final_url}.`,
+    );
+  }
+  const campaign = await createCampaign({
+    name: CAMPAIGN_DEFAULTS.name,
+    brief: CAMPAIGN_DEFAULTS.brief,
+    final_url: CAMPAIGN_DEFAULTS.final_url,
+    landing_image_url: img,
+    landing_source_url: CAMPAIGN_DEFAULTS.final_url,
+    queries: CAMPAIGN_DEFAULTS.queries,
+    headlines: CAMPAIGN_DEFAULTS.headlines,
+    descriptions: CAMPAIGN_DEFAULTS.descriptions,
+    creatives: [],
+  });
+  return { campaignId: campaign.id };
 }
 
 // ============================================================

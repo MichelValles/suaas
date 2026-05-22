@@ -21,7 +21,8 @@ export type LaunchKind =
   | "funnel"
   | "ab"
   | "copy"
-  | "pricing";
+  | "pricing"
+  | "campaign";
 
 type RunJson = { runId?: string; abTestId?: string; runs?: { runId: string }[] };
 
@@ -43,6 +44,8 @@ function resolveRedirect(
       return `/experiments/copy/${json.runId}`;
     case "pricing":
       return `/experiments/pricing/${json.runId}`;
+    case "campaign":
+      return `/experiments/campaign/${json.runId}`;
   }
 }
 

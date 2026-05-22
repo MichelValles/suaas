@@ -24,6 +24,8 @@ const TABLES = [
   "pricing_offers",
   "pricing_prices",
   "pricing_responses",
+  "campaigns",
+  "campaign_responses",
 ] as const;
 
 type TableStatus = {
@@ -61,6 +63,7 @@ export default async function DiagPage() {
       "ab_test_id",
       "copy_deck_id",
       "pricing_offer_id",
+      "campaign_id",
     ] as const;
     const cols = await Promise.all(
       RUNS_COLS.map(async (col) => {

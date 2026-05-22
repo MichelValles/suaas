@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
-type Kind = "clarity" | "copy" | "pricing" | "ab" | "funnel";
+type Kind = "clarity" | "copy" | "pricing" | "ab" | "funnel" | "campaign";
 
 type ResultRow = {
   kind: string;
@@ -15,6 +15,7 @@ type ResultRow = {
   offerId?: string;
   abTestId?: string;
   funnelId?: string;
+  campaignId?: string;
   runId?: string;
   runIds?: string[];
   error?: string;
@@ -121,12 +122,12 @@ export function SeedExamplesClient() {
         >
           {pending && pendingKind === "all" ? (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <Loader2 size={14} className="spin" /> Sembrando los 5…
+              <Loader2 size={14} className="spin" /> Sembrando los 6…
             </span>
           ) : launch > 0 ? (
-            `Crear los 5 y lanzar (${launch} perfiles)`
+            `Crear los 6 y lanzar (${launch} perfiles)`
           ) : (
-            "Crear los 5 (sin lanzar)"
+            "Crear los 6 (sin lanzar)"
           )}
         </button>
       </div>
@@ -186,6 +187,16 @@ export function SeedExamplesClient() {
             kind="funnel"
             title="Embudo"
             body="Onboarding Stripe · home → producto → casos → precios."
+            onTrigger={trigger}
+            pending={pending}
+            pendingKind={pendingKind}
+          />
+        </li>
+        <li>
+          <Recipe
+            kind="campaign"
+            title="Campaña Paid Search"
+            body="Anuncio RSA de Vercel con 5 titulares, 2 descripciones y 3 queries objetivo."
             onTrigger={trigger}
             pending={pending}
             pendingKind={pendingKind}
@@ -376,6 +387,9 @@ function ResultLinks({ row }: { row: ResultRow }) {
   } else if (row.kind === "funnel") {
     if (row.funnelId) links.push({ href: `/funnels/${row.funnelId}`, label: "Ver embudo" });
     if (row.runId) links.push({ href: `/experiments/funnel/${row.runId}`, label: "Ver run" });
+  } else if (row.kind === "campaign") {
+    if (row.campaignId) links.push({ href: `/campaigns/${row.campaignId}`, label: "Ver campaña" });
+    if (row.runId) links.push({ href: `/experiments/campaign/${row.runId}`, label: "Ver run" });
   }
   if (links.length === 0) return null;
   return (

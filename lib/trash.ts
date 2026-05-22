@@ -15,6 +15,11 @@ import {
   softDeleteAbTest,
 } from "@/lib/ab";
 import {
+  hardDeleteCampaign,
+  restoreCampaign,
+  softDeleteCampaign,
+} from "@/lib/campaigns";
+import {
   hardDeleteCopyDeck,
   restoreCopyDeck,
   softDeleteCopyDeck,
@@ -35,6 +40,7 @@ export const TRASH_TYPES = [
   "ab",
   "copy",
   "pricing",
+  "campaign",
 ] as const;
 
 export type TrashType = (typeof TRASH_TYPES)[number];
@@ -58,6 +64,7 @@ const TYPE_TO_TABLE: Record<TrashType, string> = {
   ab: "ab_tests",
   copy: "copy_decks",
   pricing: "pricing_offers",
+  campaign: "campaigns",
 };
 
 export const TRASH_TYPE_LABEL: Record<TrashType, string> = {
@@ -66,6 +73,7 @@ export const TRASH_TYPE_LABEL: Record<TrashType, string> = {
   ab: "A/B test",
   copy: "Copy deck",
   pricing: "Oferta de pricing",
+  campaign: "Campaña",
 };
 
 // ============================================================
@@ -84,6 +92,8 @@ export async function sendToTrash(type: TrashType, id: string): Promise<void> {
       return softDeleteCopyDeck(id);
     case "pricing":
       return softDeletePricingOffer(id);
+    case "campaign":
+      return softDeleteCampaign(id);
   }
 }
 
@@ -102,6 +112,8 @@ export async function restoreFromTrash(
       return restoreCopyDeck(id);
     case "pricing":
       return restorePricingOffer(id);
+    case "campaign":
+      return restoreCampaign(id);
   }
 }
 
@@ -117,6 +129,8 @@ export async function hardDelete(type: TrashType, id: string): Promise<void> {
       return hardDeleteCopyDeck(id);
     case "pricing":
       return hardDeletePricingOffer(id);
+    case "campaign":
+      return hardDeleteCampaign(id);
   }
 }
 
@@ -130,6 +144,7 @@ type Row = {
   description?: string | null;
   hypothesis?: string | null;
   kind?: string | null;
+  brief?: string | null;
   created_at: string;
   deleted_at: string;
 };
@@ -145,6 +160,7 @@ const SELECT_BY_TYPE: Record<TrashType, string> = {
   ab: "id, name, hypothesis, created_at, deleted_at",
   copy: "id, name, description, created_at, deleted_at",
   pricing: "id, name, description, created_at, deleted_at",
+  campaign: "id, name, brief, created_at, deleted_at",
 };
 
 function hintFor(type: TrashType, row: Row): string | null {
@@ -153,6 +169,8 @@ function hintFor(type: TrashType, row: Row): string | null {
       return row.hypothesis ?? null;
     case "targets":
       return row.kind ?? null;
+    case "campaign":
+      return row.brief ?? null;
     default:
       return row.description ?? null;
   }

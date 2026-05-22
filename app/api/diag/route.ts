@@ -8,6 +8,7 @@ const RUNS_REQUIRED_COLUMNS = [
   "ab_test_id",
   "copy_deck_id",
   "pricing_offer_id",
+  "campaign_id",
 ] as const;
 
 export const runtime = "nodejs";
@@ -32,6 +33,8 @@ const TABLES = [
   "pricing_offers",
   "pricing_prices",
   "pricing_responses",
+  "campaigns",
+  "campaign_responses",
 ] as const;
 
 type TableStatus = {

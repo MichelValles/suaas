@@ -9,6 +9,7 @@ import {
   Coins,
   Filter,
   LayoutDashboard,
+  Megaphone,
   Menu,
   MessageSquareText,
   ScanEye,
@@ -28,6 +29,7 @@ const MAIN_ITEMS = [
   { href: "/ab", label: "A/B tests", icon: Split, exact: false },
   { href: "/copy", label: "Copy", icon: MessageSquareText, exact: false },
   { href: "/pricing", label: "Pricing", icon: Tag, exact: false },
+  { href: "/campaigns", label: "Campañas", icon: Megaphone, exact: false },
 ];
 
 const SYSTEM_ITEMS = [

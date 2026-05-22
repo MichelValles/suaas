@@ -34,7 +34,7 @@ export default async function TrashPage() {
       acc[t] = grouped[t]?.length ?? 0;
       return acc;
     },
-    { targets: 0, funnels: 0, ab: 0, copy: 0, pricing: 0 },
+    { targets: 0, funnels: 0, ab: 0, copy: 0, pricing: 0, campaign: 0 },
   );
 
   return (

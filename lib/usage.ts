@@ -7,7 +7,10 @@ export type UsageScope =
   | "reasoner_chat"
   | "talker_chat"
   | "copy_resonance"
-  | "pricing_react";
+  | "pricing_react"
+  | "campaign_probe"
+  | "campaign_landing"
+  | "campaign_ideal";
 
 type RawUsage = {
   promptTokens?: number;

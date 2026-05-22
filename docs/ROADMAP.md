@@ -182,6 +182,13 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.21.x — Campaign Tester (Paid Search RSA)
+
+- [x] **v0.21.0**: nuevo módulo `Campaign Tester`. Migración `0008_campaigns.sql` añade `campaigns` (name, brief, final_url, landing_image_url, queries[], headlines[], descriptions[], creatives jsonb) y `campaign_responses` (snippet eval + landing match condicional + versión ideal estructurada y libre) más `runs.campaign_id`. `lib/campaigns.ts` valida con zod los caps RSA reales de Google Ads (3..15 titulares de 30 chars, 2..4 descripciones de 90 chars, 1..5 queries, 0..6 creatividades). `lib/experiments/campaign.ts` orquesta para cada `perfil × query`: `probeCampaignSnippet` (Reasoner multimodal con la SERP simulada y creatividades anexas) → `judgeLandingMatch` (sólo si `intent_to_click >= 0.5`, Reasoner multimodal con la landing) → `proposeIdealVersion` (Sonnet, propuesta del perfil con misma estructura RSA + texto libre opcional). Caps: 5 queries × 20 perfiles = 100 evals snippet + ~60 landing + 100 ideal en `maxDuration=300`. Telemetría con scopes `campaign_probe`, `campaign_landing`, `campaign_ideal`.
+   - **Rutas**: `/campaigns` (lista), `/campaigns/new` (form con preview-RSA en vivo, contador de caracteres y modo URL/upload para landing y creatividades), `/campaigns/[id]` (detalle con snippet preview, queries en chips, titulares, descripciones, creatividades, landing y `ProfileLaunchPanel`), `/experiments/campaign/[runId]` (KPIs globales: intent click / click rate / claridad / credibilidad / diferenciación / match landing; tabla por query; top barreras agregadas; ranking de versiones ideales; drill-down por perfil con su `como yo lo veo`).
+   - **Integraciones**: nueva entrada `Campañas` (icono `Megaphone`) en sidebar grupo Producto; `campaign` añadido a `TRASH_TYPES` (papelera), `/diag` audita `campaigns`, `campaign_responses` y `runs.campaign_id`. `lib/seed-examples.ts` incluye `seedCampaignExample` (campaña Vercel · Paid Search agosto con 5 titulares, 2 descripciones y 3 queries reales `hosting next.js / deploy aplicación react / alternativa netlify`); kind `campaign` en `/api/seed/examples` y tarjeta dedicada en `/seed-examples`.
+   - Aplicar `0008_campaigns.sql` en Supabase + `NOTIFY pgrst, 'reload schema';` antes de crear la primera campaña.
+
 ## v0.20.x — Hardening de seguridad
 
 - [x] **v0.20.0**: paquete de seguridad crítica tras auditoría completa de la app.

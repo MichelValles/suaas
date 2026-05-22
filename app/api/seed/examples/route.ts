@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
 import { runAbTest } from "@/lib/experiments/ab";
+import { runCampaignTest } from "@/lib/experiments/campaign";
 import { runCopyTest } from "@/lib/experiments/copy";
 import { runFiveSecondTest } from "@/lib/experiments/five-second";
 import { runFunnelTest } from "@/lib/experiments/funnel";
@@ -10,6 +11,7 @@ import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
 import {
   pickRandomProfileIds,
   seedAbExample,
+  seedCampaignExample,
   seedCopyExample,
   seedFiveSecondExample,
   seedFunnelExample,
@@ -17,10 +19,10 @@ import {
 } from "@/lib/seed-examples";
 
 export const runtime = "nodejs";
-// 5 ejemplos + 5 runs paralelos (con 3 perfiles cada uno) → margen amplio.
+// 6 ejemplos + 6 runs paralelos (con 3 perfiles cada uno) → margen amplio.
 export const maxDuration = 300;
 
-const KIND_VALUES = ["clarity", "copy", "pricing", "ab", "funnel"] as const;
+const KIND_VALUES = ["clarity", "copy", "pricing", "ab", "funnel", "campaign"] as const;
 type Kind = (typeof KIND_VALUES)[number];
 
 const BodySchema = z.object({
@@ -34,6 +36,7 @@ type ExampleResult =
   | { kind: "pricing"; ok: true; offerId: string; runId?: string; error?: undefined }
   | { kind: "ab"; ok: true; abTestId: string; runIds?: string[]; error?: undefined }
   | { kind: "funnel"; ok: true; funnelId: string; runId?: string; error?: undefined }
+  | { kind: "campaign"; ok: true; campaignId: string; runId?: string; error?: undefined }
   | { kind: string; ok: false; error: string };
 
 export async function POST(request: Request) {
@@ -151,6 +154,23 @@ export async function POST(request: Request) {
       results.push({ kind: "funnel", ok: true, funnelId, runId });
     } catch (err) {
       results.push({ kind: "funnel", ok: false, error: (err as Error).message });
+    }
+  }
+
+  // ============================================================
+  // Campaign
+  // ============================================================
+  if (selected.has("campaign")) {
+    try {
+      const { campaignId } = await seedCampaignExample();
+      let runId: string | undefined;
+      if (launch > 0 && profileIds.length > 0) {
+        const { runId: rid } = await runCampaignTest({ campaignId, profileIds });
+        runId = rid;
+      }
+      results.push({ kind: "campaign", ok: true, campaignId, runId });
+    } catch (err) {
+      results.push({ kind: "campaign", ok: false, error: (err as Error).message });
     }
   }
 

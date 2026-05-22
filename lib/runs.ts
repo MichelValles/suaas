@@ -1,6 +1,13 @@
 import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
-export type RunKind = "5s_test" | "funnel" | "pricing" | "copy_resonance" | "ab_test" | "chat";
+export type RunKind =
+  | "5s_test"
+  | "funnel"
+  | "pricing"
+  | "copy_resonance"
+  | "ab_test"
+  | "campaign"
+  | "chat";
 export type RunStatus = "queued" | "running" | "done" | "error";
 export type MessageRole = "reasoner" | "talker" | "system" | "human";
 
@@ -14,6 +21,7 @@ export type Run = {
   ab_test_id: string | null;
   copy_deck_id: string | null;
   pricing_offer_id: string | null;
+  campaign_id: string | null;
   kind: RunKind;
   status: RunStatus;
   params: Record<string, unknown> | null;
@@ -37,6 +45,7 @@ export async function createRun(input: {
   ab_test_id?: string | null;
   copy_deck_id?: string | null;
   pricing_offer_id?: string | null;
+  campaign_id?: string | null;
   params?: Record<string, unknown> | null;
 }): Promise<Run> {
   // Sólo incluimos en el INSERT las columnas con valor real. Si PostgREST
@@ -57,6 +66,7 @@ export async function createRun(input: {
   if (input.ab_test_id) row.ab_test_id = input.ab_test_id;
   if (input.copy_deck_id) row.copy_deck_id = input.copy_deck_id;
   if (input.pricing_offer_id) row.pricing_offer_id = input.pricing_offer_id;
+  if (input.campaign_id) row.campaign_id = input.campaign_id;
 
   const { data, error } = await supa.from("runs").insert(row).select("*").single();
   if (error) throw new Error(error.message);
@@ -138,7 +148,8 @@ export async function getRunsStatsByEntity(
     | "funnel_id"
     | "ab_test_id"
     | "copy_deck_id"
-    | "pricing_offer_id",
+    | "pricing_offer_id"
+    | "campaign_id",
   entityIds: string[],
 ): Promise<Map<string, { runs: number; users: number }>> {
   const out = new Map<string, { runs: number; users: number }>();
@@ -184,6 +195,18 @@ export async function listRunsByPricingOffer(offerId: string): Promise<Run[]> {
     .eq("pricing_offer_id", offerId)
     .order("created_at", { ascending: false });
   if (isMissingColumnError(error, "pricing_offer_id")) return [];
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Run[];
+}
+
+export async function listRunsByCampaign(campaignId: string): Promise<Run[]> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("runs")
+    .select("*")
+    .eq("campaign_id", campaignId)
+    .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "campaign_id")) return [];
   if (error) throw new Error(error.message);
   return (data ?? []) as Run[];
 }
