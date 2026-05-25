@@ -109,6 +109,32 @@ const STEPS: StepId[] = [
   "review",
 ];
 
+// Labels humanos para los huecos detectados en el review.
+function stepLabel(step: StepId): string {
+  if (step === "name") return "Nombre";
+  if (step === "age") return "Edad";
+  if (step === "gender") return "Género";
+  if (step === "geo") return "Lugar donde vives";
+  if (step === "income") return "Rango de ingresos";
+  if (step === "open_routine") return "Ocupación y día típico";
+  if (step === "open_friction") return "Frustraciones online";
+  if (step.startsWith("hexaco:")) {
+    const id = step.slice("hexaco:".length);
+    const item = HEXACO_ITEMS.find((it) => it.id === id);
+    if (!item) return "Pregunta de personalidad";
+    return item.statement;
+  }
+  return step;
+}
+
+// Número de pregunta visible (1..31). welcome y review no cuentan.
+function stepQuestionNumber(step: StepId): number | null {
+  const idx = STEPS.indexOf(step);
+  if (idx <= 0) return null;
+  if (step === "review") return null;
+  return idx; // welcome es 0, así name=1, age=2, ...
+}
+
 // ============================================================
 // Componente
 // ============================================================
@@ -133,12 +159,28 @@ export function OnboardClient() {
     otherCountry,
   ]);
 
+  const missing = useMemo(
+    () => findMissing(state, otherCountry),
+    [state, otherCountry],
+  );
+
+  function jumpTo(target: StepId) {
+    const i = STEPS.indexOf(target);
+    if (i >= 0) setIndex(i);
+  }
+
   function goNext() {
-    if (!canAdvance) return;
     if (currentStep === "review") {
+      // En review, si falta algo saltamos al primer paso incompleto en lugar
+      // de mandar el formulario a medias.
+      if (missing.length > 0) {
+        jumpTo(missing[0].step);
+        return;
+      }
       submit();
       return;
     }
+    if (!canAdvance) return;
     if (index < STEPS.length - 1) setIndex(index + 1);
   }
 
@@ -300,6 +342,7 @@ export function OnboardClient() {
               onPatch={patch}
               onAnswer={setAnswer}
               onOtherCountry={setOtherCountry}
+              onJumpTo={jumpTo}
             />
             {/* Honeypot oculto */}
             <input
@@ -343,6 +386,7 @@ export function OnboardClient() {
         total={STEPS.length}
         currentStep={currentStep}
         canAdvance={canAdvance}
+        missingCount={missing.length}
         onBack={goBack}
         onNext={goNext}
       />
@@ -428,6 +472,7 @@ function Footer({
   total,
   currentStep,
   canAdvance,
+  missingCount,
   onBack,
   onNext,
 }: {
@@ -435,12 +480,24 @@ function Footer({
   total: number;
   currentStep: StepId;
   canAdvance: boolean;
+  missingCount: number;
   onBack: () => void;
   onNext: () => void;
 }) {
   const isWelcome = currentStep === "welcome";
   const isReview = currentStep === "review";
   const isHexaco = currentStep.startsWith("hexaco:");
+  // En review siempre permitimos pulsar: si falta algo el handler salta al
+  // primer hueco; si no, envía.
+  const reviewIncomplete = isReview && missingCount > 0;
+  const enabled = isReview ? true : canAdvance;
+  const label = isWelcome
+    ? "Empezar"
+    : isReview
+      ? reviewIncomplete
+        ? `Tienes ${missingCount} pregunta${missingCount === 1 ? "" : "s"} sin responder`
+        : "Crear mi gemelo"
+      : `Siguiente (${index}/${total - 1})`;
   // En HEXACO no mostramos botón "Siguiente" (avance automático). Sí "Atrás".
   return (
     <footer
@@ -475,21 +532,125 @@ function Footer({
         <button
           type="button"
           onClick={onNext}
-          disabled={!canAdvance}
+          disabled={!enabled}
           className="btn-pill solid"
           style={{
-            opacity: canAdvance ? 1 : 0.4,
-            cursor: canAdvance ? "pointer" : "not-allowed",
+            opacity: enabled ? 1 : 0.4,
+            cursor: enabled ? "pointer" : "not-allowed",
+            background: reviewIncomplete
+              ? "rgba(255,255,255,0.08)"
+              : undefined,
+            color: reviewIncomplete ? "#fff" : undefined,
+            borderColor: reviewIncomplete
+              ? "rgba(255,255,255,0.2)"
+              : undefined,
           }}
         >
-          {isWelcome
-            ? "Empezar"
-            : isReview
-              ? "Crear mi gemelo"
-              : `Siguiente (${index}/${total - 1})`}
+          {label}
         </button>
       )}
     </footer>
+  );
+}
+
+function MissingPanel({
+  missing,
+  onJumpTo,
+}: {
+  missing: MissingStep[];
+  onJumpTo: (step: StepId) => void;
+}) {
+  return (
+    <div
+      role="alert"
+      style={{
+        background: "rgba(255, 220, 60, 0.06)",
+        border: "1px solid rgba(255, 220, 60, 0.3)",
+        borderLeft: "3px solid var(--accent-500)",
+        borderRadius: "var(--radius-md)",
+        padding: "18px 22px",
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+      }}
+    >
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <strong style={{ color: "#fff", fontSize: 15 }}>
+          Te {missing.length === 1 ? "falta 1 pregunta" : `faltan ${missing.length} preguntas`} por contestar
+        </strong>
+        <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 13 }}>
+          Toca cada una para ir directo a esa pantalla.
+        </span>
+      </div>
+      <ul
+        style={{
+          listStyle: "none",
+          margin: 0,
+          padding: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+          maxHeight: 220,
+          overflowY: "auto",
+        }}
+      >
+        {missing.map((m) => (
+          <li key={m.step}>
+            <button
+              type="button"
+              onClick={() => onJumpTo(m.step)}
+              style={{
+                width: "100%",
+                textAlign: "left",
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: "var(--radius-md)",
+                color: "rgba(255,255,255,0.9)",
+                padding: "10px 14px",
+                cursor: "pointer",
+                fontFamily: "inherit",
+                fontSize: 14,
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+              }}
+            >
+              <span
+                className="mono"
+                style={{
+                  fontSize: 10,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: "var(--accent-500)",
+                  minWidth: 56,
+                }}
+              >
+                {m.questionNumber ? `Pregunta ${m.questionNumber}` : "Final"}
+              </span>
+              <span
+                style={{
+                  flex: 1,
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {m.label}
+              </span>
+              <span
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontSize: 16,
+                  flexShrink: 0,
+                }}
+              >
+                ›
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
   );
 }
 
@@ -569,6 +730,7 @@ function StepBody({
   onPatch,
   onAnswer,
   onOtherCountry,
+  onJumpTo,
 }: {
   step: StepId;
   state: State;
@@ -576,6 +738,7 @@ function StepBody({
   onPatch: <K extends keyof State>(key: K, value: State[K]) => void;
   onAnswer: (itemId: string, value: number) => void;
   onOtherCountry: (v: string) => void;
+  onJumpTo: (step: StepId) => void;
 }) {
   if (step === "welcome") {
     return (
@@ -767,6 +930,7 @@ function StepBody({
   }
 
   if (step === "review") {
+    const missing = findMissing(state, otherCountry);
     return (
       <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         <h1
@@ -778,15 +942,21 @@ function StepBody({
             margin: 0,
           }}
         >
-          Listo, {state.name.split(" ")[0]}.
+          {missing.length === 0
+            ? `Listo, ${state.name.split(" ")[0] || "ya casi"}.`
+            : `Casi listo, ${state.name.split(" ")[0] || "ya casi"}.`}
         </h1>
-        <p
-          className="body-lg"
-          style={{ color: "rgba(255,255,255,0.7)", margin: 0 }}
-        >
-          Cuando le des al botón, calcularemos tus rasgos y compondremos tu
-          gemelo sintético. Toma entre 15 y 30 segundos.
-        </p>
+        {missing.length === 0 ? (
+          <p
+            className="body-lg"
+            style={{ color: "rgba(255,255,255,0.7)", margin: 0 }}
+          >
+            Cuando le des al botón, calcularemos tus rasgos y compondremos tu
+            gemelo sintético. Toma entre 15 y 30 segundos.
+          </p>
+        ) : (
+          <MissingPanel missing={missing} onJumpTo={onJumpTo} />
+        )}
         <div
           style={{
             border: "1px solid rgba(255,255,255,0.08)",
@@ -1067,6 +1237,27 @@ function LikertGroup({
 // ============================================================
 // Validación por paso
 // ============================================================
+
+export type MissingStep = {
+  step: StepId;
+  label: string;
+  questionNumber: number | null;
+};
+
+function findMissing(state: State, otherCountry: string): MissingStep[] {
+  const out: MissingStep[] = [];
+  for (const step of STEPS) {
+    if (step === "welcome" || step === "review") continue;
+    if (!stepIsValid(step, state, otherCountry)) {
+      out.push({
+        step,
+        label: stepLabel(step),
+        questionNumber: stepQuestionNumber(step),
+      });
+    }
+  }
+  return out;
+}
 
 function stepIsValid(step: StepId, state: State, otherCountry: string): boolean {
   if (step === "welcome") return true;
