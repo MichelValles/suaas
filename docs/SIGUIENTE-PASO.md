@@ -1,55 +1,106 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-05-22 tras v0.4.0 (Test de claridad de 5 segundos).
+> Última actualización: 2026-05-25 tras v0.26.4 (refresco del handoff).
 
-## Estado actual (v0.4.0 desplegada)
+## Estado actual (v0.26.3 desplegada)
 
-- Producción: https://suaas.flat101.business (login con `michel101`, cookie `auth_suaas`).
-- Supabase activado en la org separada del Marketplace de Vercel (proyecto `supabase-erin-mirror`). Migraciones aplicadas: `0001_initial.sql` y `0002_five_second.sql`.
-- Vercel AI Gateway con créditos cargados.
-- **Chat Talker-Reasoner** funcionando en `/profiles/[id]`. Runs cerrados correctamente (`status='done'`, `finished_at` poblado).
-- **Test de claridad de 5 segundos** funcionando end-to-end:
-  - `/targets` lista, `/targets/new` (modo URL con resolución de `og:image` server-side o subida de imagen a `data:` URL), `/targets/[id]` (hero + runs previos + multi-select de perfiles + botón "Lanzar test 5s").
-  - `/api/runs/five-second` orquesta probe (Opus multimodal) + judge (Sonnet) sobre N perfiles en chunks de 5 en flight, con `maxDuration=300`.
-  - `/experiments/five-second/[runId]` muestra summary (mean_clarity, mean_comprehension, n), top 3 barreras agregadas y tabla sortable por perfil (expandible para ver recall + perceived_offer + barreras).
-  - Métricas persistidas en `metrics`: `mean_clarity`, `mean_comprehension`, `n`.
-- Perfiles sembrados: **Marta Cebrián** y **Joaquín Espinosa** (origen `manual`). Suficiente para validar el contraste, pero conviene ampliar para sprints siguientes.
+- **Producción**: https://suaas.flat101.business
+- **Login global**: cookie `auth_suaas`, env `ACCESS_PASSWORD`.
+- **Segundo gate** para sembrar: cookie `seed_access`, env `SEED_PASSWORD` (obligatoria en producción desde v0.20.0).
+- **Supabase**: proyecto `supabase-erin-mirror` (org propia, no la del Marketplace de Vercel).
+- **Migraciones aplicadas**: 0001 a 0014 (la última, Display Ads `0014_campaigns_display.sql`).
+- **Vercel AI Gateway**: configurado, créditos cargados, scopes instrumentados (`probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `seed_profile`).
+- **Vercel Blob**: store `suaas-uploads · store_1yLEHreMdAwe3V6D` en `iad1`. Uploads de imagen, vídeo y audio.
 
-## v0.5.0 — Simulación de embudo (planteamiento)
+## Módulos productivos
 
-Objetivo: pasar del test atómico (una pantalla) a una secuencia (un embudo). Un mismo perfil recorre N pantallas y se mide su recall + esfuerzo paso a paso, detectando dónde se cae.
+| Módulo | Ruta | Estado |
+|---|---|---|
+| Claridad 5s | `/targets` | Estable desde v0.4.0 |
+| Embudos | `/funnels` | Estable desde v0.5.2 |
+| A/B tests | `/ab` | Estable desde v0.7.0 |
+| Copy resonance | `/copy` | Estable desde v0.7.0 |
+| Pricing | `/pricing` | Estable desde v0.7.0 |
+| Campañas · Google Ads | `/campaigns` | **Search RSA** (v0.21.0) + **Display RDA** (v0.26.0). Otras 5 estrategias (Performance Max, Demand Gen, Video / YouTube, App Campaigns, Shopping) están como sub-pestañas `Próx.` desde v0.25.0. |
+| Perfiles | `/profiles` | Explorer con grid/tabla, filtros, CSV import/export, generación LLM (50 seeds). |
 
-### Decisiones provisionales (revisar al empezar)
+Sistemas auxiliares: `/diag`, `/tokens`, `/trash` (soft delete con `deleted_at`), `/seed-examples` (siembra los 6 módulos en una pasada con gate).
 
-- **Granularidad del embudo**: cada paso es un `target` independiente. El embudo es una lista ordenada de `target_id`s + un nombre. Persistencia: nueva tabla `funnels(id, name, steps jsonb)` donde `steps = [{target_id, label}]`.
-- **Modelo conversacional intra-funnel**: el perfil mantiene memoria entre pasos. Pasamos por cada paso el historial previo (recall + perceived_offer del paso anterior) en el `messages` del Reasoner. Decisión abierta: ¿reusamos `runs` con un `step_index` adicional o creamos `funnel_runs` separada? Sugerencia: una sola `runs` con `kind='funnel'` y los detalles por paso en `messages` con `meta.step_index`.
-- **Métrica clave**: `friction_curve` = vector `effort` por paso. Y `dropoff_step`: índice del primer paso con `effort > 0.7` o cuando el perfil declara abandono.
-- **UI mínima**:
-  - `/funnels` lista.
-  - `/funnels/new` form con drag-and-drop de targets existentes (orden importa).
-  - `/funnels/[id]` detalle con multi-select de perfiles + "Lanzar simulación".
-  - `/experiments/funnel/[runId]` con timeline horizontal: una columna por paso, cada columna con thumbnail del target + ResultBar de `effort` + el recall corto.
+## Últimos sprints relevantes
 
-### Pre-trabajo (no bloquea v0.4.0)
+- **v0.26.x · Display Ads (RDA)**: segunda estrategia dentro de Google Ads. Modelo extendido con `company_name`, `long_headline`, `cta`. Cada `Creative` gana `role` (`landscape_image | square_image | portrait_image | logo_square | logo_landscape | video_youtube | generic`). Schema `superRefine` por strategy. Form con branch UI por estrategia. Runner con framing «banner patrocinado». Preview en vivo adaptado (card landscape + logo + long_headline + CTA accent). Espaciado consistente tras `PageHeading` vía `display: flex; gap: clamp(32px, 4vw, 56px)` en `.app-shell-main`. Subtítulos eliminados de páginas índice y `/new`.
+- **v0.25.x · Estrategias dentro del canal**: las 7 estrategias publicitarias aparecen como sub-pestañas con iconos lucide y badge `Próx.` para las no implementadas.
+- **v0.24.x · Multi-canal por campaña**: a nivel BD (`channels text[]`). En UI sólo Google está habilitado, las otras 4 redes (Meta, LinkedIn, TikTok, X) están deshabilitadas con `Próx.`.
 
-- **Subir uploads a Vercel Blob**: las imágenes en `data:` URLs hinchan la DB y el bundle de las páginas de listado. v0.5.0 es buen momento para introducir `@vercel/blob`, migrar `payload.image_url` a URLs `https://...blob.vercel-storage.com/...` y dejar `data:` sólo como fallback offline.
-- **Generación de perfiles desde dataset**: el cuello actual es seguir teniendo sólo 2 perfiles. Antes de v0.5.0 conviene tener 6-10. Considerar `/profiles/generate-batch` con LLM bootstrap desde un brief.
+## Decisiones recientes a no romper
 
-## Decisiones de v0.4.0 a recordar (no romper)
+- **Strategy de Campaña** vive en `campaigns.strategy text not null` con check sobre 7 valores (`search | display | performance_max | demand_gen | video | app | shopping`). Helper `isStrategyImplemented(s)` central.
+- **Role de Creativity** es opcional en Search, obligatorio cumplir `1+ landscape & 1+ square & 1+ logo_square` en Display.
+- **Imagen multimodal**: para YouTube usamos `thumbnail_url` o el thumbnail jpg derivado de `youtube_id`. Los modelos actuales no procesan vídeo.
+- **Espaciado global**: el gap entre el `PageHeading` y el primer `<section>` lo da `.app-shell-main` (flex column con gap). No añadir márgenes manuales al body de cada página.
+- **Subtítulos**: el `description=` de `PageHeading` se reserva para páginas de detalle (donde el contenido es el brief de la entidad). Índices y `/new` no llevan subtítulo.
+- **Sin em-dash en copy**. Castellano con acentos. Sin Tailwind. Sin `data:` URLs en BD si Blob está disponible.
 
-- `targets.kind` se queda como `text` libre (no enum). El discriminator de `payload` es `payload.kind = "5s_test"`.
-- `five_second_responses` tiene `unique (run_id, profile_id)`: `upsert` con `onConflict='run_id,profile_id'` para idempotencia ante reintentos.
-- El orquestador de `runFiveSecondTest` marca el run como `done` o `error` siempre vía `markRunFinished`. Si el judge falla, dejamos `comprehension_rate=null` pero seguimos el run.
-- El judge usa `DEFAULT_MODEL` (Sonnet) con `prompt` simple. Si el coste sube o se quiere consistencia inter-target, probar Opus para judge en próximas iteraciones.
-- Sin Tailwind. Patrón `ResultBar` documentado en `SISTEMA-DISENO.md`.
+## Próximo paso candidato
+
+Tres opciones en orden de impacto:
+
+### A) Implementar la 3ª estrategia de Google Ads
+
+Las dos con más músculo son **Performance Max** y **Shopping** porque introducen tipos de input nuevos:
+
+- **Performance Max**: feed de assets multi-formato + audience signals + objetivos de conversión. Permite probar la lógica de un mismo conjunto de assets recombinados por el motor.
+- **Shopping**: feed de productos (title, price, image, GTIN, brand). Encaja con el módulo de Pricing existente.
+
+**Demand Gen** y **Video / YouTube** son más visuales y dependen de un buen reproductor de vídeo en el preview.
+
+### B) Activar multi-canal real (Meta / LinkedIn / TikTok / X)
+
+El esquema `channels text[]` ya está. Falta:
+
+1. Caps de caracteres reales por red en `lib/campaigns.ts` (hoy todas usan 30/90 de Search RSA).
+2. Framing por red en el runner (Meta-feed, LinkedIn-newsfeed, etc.).
+3. Roles de creatividad específicos (Stories 9:16, Reels, carousels...).
+4. Habilitar las 4 pestañas en `/campaigns/new` retirando los badges `Próx.`.
+
+### C) Generación de perfiles desde datasets reales
+
+LifeSnaps, Project Baseline u otros datasets de comportamiento real. Mejoraría la calibración VoC frente a la generación 100% LLM actual.
+
+## Backlog vivo
+
+- ¿Auth por email (Supabase Auth) además del password global? Cuando se invite a clientes externos.
+- ¿Caché de respuestas LLM en Vercel Runtime Cache para abaratar iteración?
+- ¿Vercel Queues para encolar runs largos (>300s) en background?
+- Migrar uploads grandes a **client upload directo a Vercel Blob** (`handleUpload`) para evitar `bodySizeLimit` en server actions con imágenes >10MB.
+- ¿Métrica de coste por run (tokens × precio) en `/tokens` con desglose por entidad?
 
 ## Comandos de emergencia
 
 ```bash
+# Logs en vivo
 vercel logs https://suaas.flat101.business --follow
+
+# Promover deployment anterior si hay regresión
 vercel promote <deployment-url>
+
+# Rollback al último prod estable
 vercel rollback
+
+# Env vars
 vercel env ls
 vercel env pull
+
+# Si Supabase devuelve PGRST205 tras migrar, recargar schema cache:
+#   NOTIFY pgrst, 'reload schema';
+# desde el SQL editor del dashboard.
 ```
+
+## Cómo retomar en frío
+
+1. Leer este archivo.
+2. Mirar `docs/ROADMAP.md` para confirmar que la última fila coincide con `lib/version.ts`.
+3. Comprobar `git status` y `git log --oneline -5`.
+4. Si vamos a crear entidades nuevas en un módulo, verificar en `/diag` que las tablas y columnas existen.
+5. Tras cada cambio funcional: ciclo completo cambio → docs → bump → `vercel --prod --yes` → commit → push (regla `CLAUDE.md`).
