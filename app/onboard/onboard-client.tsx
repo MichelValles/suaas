@@ -307,7 +307,9 @@ export function OnboardClient() {
         flex: 1,
         display: "flex",
         flexDirection: "column",
-        padding: "clamp(20px, 5vw, 48px) clamp(20px, 5vw, 48px) 32px",
+        // Padding reducido en móvil para que la pregunta + footer quepan
+        // dentro del viewport visible (small viewport, sin barras).
+        padding: "clamp(14px, 4vw, 48px) clamp(16px, 4vw, 48px) clamp(16px, 3vw, 32px)",
       }}
     >
       <ProgressHeader
@@ -322,8 +324,8 @@ export function OnboardClient() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          paddingTop: 24,
-          paddingBottom: 24,
+          paddingTop: "clamp(12px, 2vw, 24px)",
+          paddingBottom: "clamp(12px, 2vw, 24px)",
         }}
       >
         <AnimatePresence mode="wait">
@@ -665,7 +667,7 @@ function SubmittingScreen({ phase }: { phase: string }) {
     <div
       style={{
         flex: 1,
-        minHeight: "100vh",
+        minHeight: "100svh",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
