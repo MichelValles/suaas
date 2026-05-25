@@ -762,8 +762,9 @@ function StepBody({
         >
           Contesta unas preguntas durante 10 minutos. Convertiremos tus respuestas
           en un usuario sintético calibrado que reacciona como tú: con tus rasgos
-          de personalidad, tu contexto y tus frustraciones. Lo usamos en tests de
-          UX y CRO para anticipar cómo responderá un usuario real ante una idea.
+          de personalidad, tu contexto y tus frustraciones. Lo usamos en
+          estrategias de captación, creatividades y UX para anticipar cómo
+          responderá un usuario real ante una idea.
         </p>
         <ul
           style={{

@@ -61,7 +61,8 @@ export default async function OnboardResultPage({
           style={{ color: "rgba(255,255,255,0.7)", margin: 0 }}
         >
           Hemos convertido tus respuestas en este usuario sintético. Lo usaremos
-          en tests de UX y CRO para anticipar cómo reaccionarías ante una idea.
+          en estrategias de captación, creatividades y UX para anticipar cómo
+          reaccionarías ante una idea.
         </p>
       </header>
 
