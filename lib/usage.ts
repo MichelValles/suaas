@@ -10,7 +10,8 @@ export type UsageScope =
   | "pricing_react"
   | "campaign_probe"
   | "campaign_landing"
-  | "campaign_ideal";
+  | "campaign_ideal"
+  | "onboard_synthesize";
 
 type RawUsage = {
   promptTokens?: number;

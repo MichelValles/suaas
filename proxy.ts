@@ -12,6 +12,12 @@ function isPublic(pathname: string): boolean {
   if (PUBLIC_PATHS.has(pathname)) return true;
   if (pathname.startsWith("/_next/")) return true;
   if (pathname.startsWith("/logos/")) return true;
+  // Onboard público: cuestionario para convertir humanos reales en perfiles
+  // sintéticos. No requiere login porque se comparte con personas externas.
+  if (pathname === "/onboard") return true;
+  if (pathname.startsWith("/onboard/")) return true;
+  if (pathname.startsWith("/api/onboard/")) return true;
+  if (pathname === "/api/qr") return true;
   if (/^\/(icon|apple-icon)(-[a-z0-9]+)?\.(svg|png|ico)$/i.test(pathname)) return true;
   return false;
 }

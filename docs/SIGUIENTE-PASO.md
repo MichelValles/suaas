@@ -1,9 +1,18 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-05-25 tras v0.26.4 (refresco del handoff).
+> Última actualización: 2026-05-25 tras v0.27.0 (onboard público).
 
-## Estado actual (v0.26.3 desplegada)
+## Estado actual (v0.27.0 desplegada)
+
+- Ruta pública nueva `/onboard` para convertir humanos reales en gemelos sintéticos. Comparte el cuestionario desde la toolbar de `/profiles` (botón «Compartir cuestionario» con URL + QR).
+- Cuestionario: 5 demográficas + 24 HEXACO-24 Likert + 2 abiertas = 31 preguntas, ~10 min en móvil. Wizard step-by-step con `motion` y avance automático en HEXACO.
+- Big Five se calcula determinísticamente desde HEXACO. El LLM (Opus, scope `onboard_synthesize`) sólo extrae ocupación + COM-B + backstory, integrando frases TEXTUALES del usuario.
+- Resultado en `/onboard/result/[id]` con tarjeta visual + botón «Descargar mi gemelo» que pega contra `/api/onboard/og` (PNG 1200x630, `next/og`).
+- Anti-abuso: rate limit en memoria 5/h por IP, tope global 50/día, honeypot. Sin email, sin registro. Perfiles generados llevan `source='self_report'`.
+- Sin migración. Dep nueva: `qrcode`.
+
+## Estado anterior (v0.26.3)
 
 - **Producción**: https://suaas.flat101.business
 - **Login global**: cookie `auth_suaas`, env `ACCESS_PASSWORD`.

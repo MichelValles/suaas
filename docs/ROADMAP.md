@@ -182,6 +182,13 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.27.x — Onboard público: humano real → gemelo sintético
+
+- [x] **v0.27.0**: nueva ruta pública `/onboard` (fuera del gate de `auth_suaas` vía whitelist en `proxy.ts`). Cuestionario híbrido de 31 preguntas (5 demográficas + 24 HEXACO-24 Likert 1..5 + 2 abiertas) presentado como wizard step-by-step con `motion`, progress bar y avance automático en HEXACO. Mapeo determinista HEXACO → OCEAN (Honestidad-Humildad se pasa al LLM como contexto pero no se persiste). El LLM (Opus, scope `onboard_synthesize`) sólo extrae `occupation`, `com_b_barriers` y compone la `backstory` integrando frases TEXTUALES de las dos respuestas abiertas (fidelidad grounded). Pantalla de loading con frases narrativas rotativas vía stream NDJSON. Resultado en `/onboard/result/[id]` con tarjeta visual (avatar de iniciales, OCEAN sparkbars, top 3 barreras COM-B, backstory en cursiva). Botón «Descargar mi gemelo» que pega contra `/api/onboard/og` (PNG 1200x630 generado con `next/og ImageResponse`). Modal «Compartir cuestionario» en la toolbar de `/profiles` con URL + QR (server-side via `qrcode` package, nuevo endpoint `/api/qr`). Anti-abuso: rate-limit en memoria 5/h por IP + tope global 50/día, honeypot field, sin email. Perfiles generados se marcan con `source='self_report'` para distinguirlos del seed manual o `llm_seed`. Sin migración (todo encaja en el schema existente).
+  - Aprobar la base de conocimiento de [[hexaco-mapping]]: 5 dimensiones compartidas directas (O, C, E→X, A); Neuroticismo = Emocionalidad HEXACO (no inversa porque ambas miden la misma cosa con el signo correcto).
+  - Telemetría: scope nuevo `onboard_synthesize` añadido a `UsageScope`. Aparecerá en `/tokens`.
+  - Dep nueva: `qrcode` + `@types/qrcode`.
+
 ## v0.26.x — Display Ads (RDA)
 
 - [x] **v0.26.4**: `docs/SIGUIENTE-PASO.md` refrescado tras llevar congelado en v0.4.0 muchos sprints. Ahora refleja el estado real (v0.26.3, módulos productivos, decisiones recientes a no romper, próximos candidatos: 3ª estrategia de Google Ads / multi-canal real / datasets reales para perfiles).

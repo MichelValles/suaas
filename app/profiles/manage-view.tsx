@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useTransition } from "react";
 import { Download, Sparkles, Upload } from "lucide-react";
+import { OnboardShareModal } from "@/components/onboard-share-modal";
 import { ProfileExplorer } from "@/components/profile-explorer";
 import { stringifyCSV } from "@/lib/csv";
 import { PROFILE_CSV_HEADERS, profileToCsvRow } from "@/lib/profile-csv";
@@ -76,6 +77,7 @@ function ToolbarExtras({
 
   return (
     <>
+      <OnboardShareModal />
       <button
         type="button"
         onClick={exportCsv}
