@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { getGeoAnalysis, type GeoAnalysis, type SegmentResult } from "@/lib/geo";
+import { getGeoAnalysis, type GeoAnalysis, type SegmentInput, type SegmentResult } from "@/lib/geo";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { GeoRunButton } from "./run-button";
 
@@ -21,7 +21,7 @@ const TONE_LABEL: Record<string, string> = {
   positive: "Positivo",
   neutral: "Neutro",
   negative: "Negativo",
-  absent: "—",
+  absent: "Ausente",
 };
 
 export default async function GeoDetailPage({
@@ -54,7 +54,7 @@ export default async function GeoDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`GEO · ${analysis.brand_name}`}
+        eyebrow={`GEO Tester · ${analysis.brand_name}`}
         title={analysis.name}
         description={analysis.brand_description}
         descriptionVariant="panel"
@@ -131,7 +131,7 @@ export default async function GeoDetailPage({
               Resultados por segmento
             </h2>
             {analysis.results.map((r, i) => (
-              <SegmentCard key={i} result={r} />
+              <SegmentCard key={i} result={r} segment={analysis.segments[i]} />
             ))}
           </section>
         </>
@@ -212,7 +212,13 @@ function MetricCard({
   );
 }
 
-function SegmentCard({ result }: { result: SegmentResult }) {
+function SegmentCard({
+  result,
+  segment,
+}: {
+  result: SegmentResult;
+  segment: SegmentInput;
+}) {
   const posColor = POSITION_COLOR[result.brand_position] ?? "rgba(255,255,255,0.6)";
 
   return (
@@ -226,25 +232,19 @@ function SegmentCard({ result }: { result: SegmentResult }) {
         gap: 16,
       }}
     >
+      {/* Cabecera: etiqueta + badges */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-          <span
-            style={{
-              fontFamily: "var(--font-display)",
-              fontStyle: "italic",
-              fontSize: 18,
-              color: "#fff",
-            }}
-          >
-            {result.label}
-          </span>
-          <span
-            className="mono"
-            style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: "0.06em" }}
-          >
-            «{result.query}»
-          </span>
-        </div>
+        <span
+          style={{
+            fontFamily: "var(--font-display)",
+            fontStyle: "italic",
+            fontSize: 18,
+            color: "#fff",
+            lineHeight: 1.2,
+          }}
+        >
+          {result.label}
+        </span>
         <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
           <Badge label={POSITION_LABEL[result.brand_position] ?? result.brand_position} color={posColor} />
           {result.recommendation_tone !== "absent" && (
@@ -256,6 +256,24 @@ function SegmentCard({ result }: { result: SegmentResult }) {
         </div>
       </div>
 
+      {/* Parámetros del segmento */}
+      <div
+        style={{
+          background: "rgba(255,255,255,0.025)",
+          border: "1px solid rgba(255,255,255,0.07)",
+          borderRadius: "var(--radius-sm)",
+          padding: "12px 16px",
+          display: "flex",
+          flexDirection: "column",
+          gap: 10,
+        }}
+      >
+        <ParamRow label="Etiqueta" value={result.label} />
+        <ParamRow label="JTBD" value={segment.jtbd} />
+        <ParamRow label="Query" value={result.query} />
+      </div>
+
+      {/* Respuesta simulada del buscador */}
       <div
         style={{
           background: "rgba(255,255,255,0.02)",
@@ -271,14 +289,17 @@ function SegmentCard({ result }: { result: SegmentResult }) {
         {result.simulated_response}
       </div>
 
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-        }}
-      >
-        <span className="mono" style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
+      {/* Barra de visibilidad */}
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        <span
+          className="mono"
+          style={{
+            fontSize: 9,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,0.4)",
+          }}
+        >
           Visibilidad
         </span>
         <div
@@ -327,6 +348,30 @@ function SegmentCard({ result }: { result: SegmentResult }) {
           </ul>
         </Detail>
       )}
+    </div>
+  );
+}
+
+function ParamRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+      <span
+        className="mono"
+        style={{
+          fontSize: 9,
+          letterSpacing: "0.2em",
+          textTransform: "uppercase",
+          color: "rgba(255,255,255,0.35)",
+          minWidth: 60,
+          flexShrink: 0,
+          paddingTop: 2,
+        }}
+      >
+        {label}
+      </span>
+      <span style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>
+        {value}
+      </span>
     </div>
   );
 }

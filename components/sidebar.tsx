@@ -31,7 +31,7 @@ const MAIN_ITEMS = [
   { href: "/copy", label: "Copy", icon: MessageSquareText, exact: false },
   { href: "/pricing", label: "Pricing", icon: Tag, exact: false },
   { href: "/campaigns", label: "Campañas", icon: Megaphone, exact: false },
-  { href: "/geo", label: "GEO", icon: Bot, exact: false },
+  { href: "/geo", label: "GEO Tester", icon: Bot, exact: false },
 ];
 
 const SYSTEM_ITEMS = [
