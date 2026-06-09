@@ -182,6 +182,11 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.30.0 — Módulo Momentum (Intent Momentum ante-touchpoint)
+
+- [x] **v0.30.0**: nuevo módulo `Momentum`. Define **escenarios de activación** (retos JTBD) y simula cómo cada perfil abordaría ese reto en su vida real, antes de que ninguna marca entre en su radar. Para cada perfil extrae: narrativa en primera persona, intensidad (0-1), dirección (approaching/stable/drifting), velocidad (accelerating/steady/decelerating), primeros pasos ordenados, canales que usaría y barreras. El resumen agrega la distribución de dirección, intensidad media y top 5 canales más frecuentes. Migración `0016_momentum.sql` añade la tabla `momentum_challenges` con campos `trigger_scenario`, `brand_context` (opcional), `profile_ids[]` y `results` jsonb. Nuevo scope de telemetría `momentum_probe`. Entrada `Momentum` (icono Zap) en el sidebar.
+   - Aplicar `0016_momentum.sql` en Supabase antes de crear el primer reto.
+
 ## v0.29.0 — Gravity Model (4 funcionalidades)
 
 Cuatro nuevas funcionalidades inspiradas en el framework Gravity Model para modelar la intención de los usuarios como un vector (intensidad, dirección, velocidad).

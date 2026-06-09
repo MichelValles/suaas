@@ -20,6 +20,7 @@ import {
   Trash2,
   Users,
   X,
+  Zap,
 } from "lucide-react";
 
 const MAIN_ITEMS = [
@@ -32,6 +33,7 @@ const MAIN_ITEMS = [
   { href: "/pricing", label: "Pricing", icon: Tag, exact: false },
   { href: "/campaigns", label: "Campañas", icon: Megaphone, exact: false },
   { href: "/geo", label: "GEO Tester", icon: Bot, exact: false },
+  { href: "/momentum", label: "Momentum", icon: Zap, exact: false },
 ];
 
 const SYSTEM_ITEMS = [
