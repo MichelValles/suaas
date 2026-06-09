@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createMomentumChallenge } from "@/lib/momentum";
+import { updateProfileIntentContext } from "@/lib/profiles";
 
 export async function createMomentumChallengeAction(formData: FormData) {
   const name = (formData.get("name") as string)?.trim();
@@ -28,4 +29,12 @@ export async function createMomentumChallengeAction(formData: FormData) {
   });
 
   redirect(`/momentum/${challenge.id}`);
+}
+
+export async function saveProfileIntentAction(
+  profileId: string,
+  intent: string,
+): Promise<void> {
+  if (!profileId) throw new Error("Profile ID requerido.");
+  await updateProfileIntentContext(profileId, intent);
 }

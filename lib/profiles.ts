@@ -110,6 +110,18 @@ export async function updateProfile(id: string, input: ProfileInput): Promise<Pr
   return data as Profile;
 }
 
+export async function updateProfileIntentContext(
+  id: string,
+  intent_context: string,
+): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("profiles")
+    .update({ intent_context: intent_context.trim() || null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 export async function deleteProfile(id: string): Promise<void> {
   const supa = getServerClient();
   const { error } = await supa.from("profiles").delete().eq("id", id);
