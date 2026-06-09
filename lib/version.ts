@@ -4,4 +4,4 @@
 //   - minor (+0.1.0)  -> feat (nueva ruta, nuevo módulo, nueva integración)
 //   - major (+1.0.0)  -> cambio estructural / breaking
 // Mantener sincronizado con `version` en package.json.
-export const APP_VERSION = "0.30.3";
+export const APP_VERSION = "0.30.4";

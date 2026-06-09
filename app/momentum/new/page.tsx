@@ -4,6 +4,8 @@ import { listProfiles } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { NewChallengeForm } from "./new-challenge-form";
 
+export const dynamic = "force-dynamic";
+
 export default async function NewMomentumPage() {
   if (!isSupabaseConfigured()) {
     return (

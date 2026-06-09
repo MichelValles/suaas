@@ -128,7 +128,11 @@ function ProfileRow({
       }}
     >
       {/* Fila superior: checkbox + nombre + demografía */}
-      <label
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={onToggle}
+        onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); onToggle(); } }}
         style={{
           display: "flex",
           alignItems: "flex-start",
@@ -141,6 +145,7 @@ function ProfileRow({
           type="checkbox"
           checked={selected}
           onChange={onToggle}
+          onClick={(e) => e.stopPropagation()}
           style={{ marginTop: 3, accentColor: "var(--accent-500)", flexShrink: 0 }}
         />
         <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
@@ -152,7 +157,7 @@ function ProfileRow({
             {p.demographics.geo ? ` · ${p.demographics.geo}` : ""}
           </span>
         </div>
-      </label>
+      </div>
 
       {/* Franja de intent */}
       <div
