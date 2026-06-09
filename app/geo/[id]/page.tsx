@@ -23,6 +23,20 @@ const TONE_LABEL: Record<string, string> = {
   negative: "Negativo",
   absent: "Ausente",
 };
+const POSITION_TOOLTIP: Record<string, string> = {
+  primary:
+    "La marca aparece como primera o única recomendación del buscador IA para esta query.",
+  secondary:
+    "La marca aparece junto a otros resultados o competidores, no como protagonista.",
+  absent: "La marca no aparece en la respuesta del buscador IA para esta query.",
+};
+const TONE_TOOLTIP: Record<string, string> = {
+  positive: "El buscador menciona la marca con tono favorable o recomendatorio.",
+  neutral:
+    "El buscador menciona la marca de forma informativa, sin valorar ni recomendar.",
+  negative: "El buscador menciona la marca con tono desfavorable o con advertencias.",
+  absent: "La marca no aparece, por lo que no hay tono que analizar.",
+};
 
 export default async function GeoDetailPage({
   params,
@@ -246,11 +260,16 @@ function SegmentCard({
           {result.label}
         </span>
         <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
-          <Badge label={POSITION_LABEL[result.brand_position] ?? result.brand_position} color={posColor} />
+          <Badge
+            label={POSITION_LABEL[result.brand_position] ?? result.brand_position}
+            color={posColor}
+            tooltip={POSITION_TOOLTIP[result.brand_position]}
+          />
           {result.recommendation_tone !== "absent" && (
             <Badge
               label={TONE_LABEL[result.recommendation_tone] ?? result.recommendation_tone}
               color="rgba(255,255,255,0.5)"
+              tooltip={TONE_TOOLTIP[result.recommendation_tone]}
             />
           )}
         </div>
@@ -274,19 +293,50 @@ function SegmentCard({
       </div>
 
       {/* Respuesta simulada del buscador */}
-      <div
-        style={{
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.06)",
-          borderRadius: "var(--radius-sm)",
-          padding: 16,
-          fontSize: 14,
-          lineHeight: 1.6,
-          color: "rgba(255,255,255,0.8)",
-          fontStyle: "italic",
-        }}
-      >
-        {result.simulated_response}
+      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <span
+            className="mono"
+            style={{
+              fontSize: 9,
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.4)",
+            }}
+          >
+            Respuesta simulada
+          </span>
+          {result.source_engine && (
+            <span
+              className="mono"
+              style={{
+                fontSize: 9,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--accent-400)",
+                border: "1px solid rgba(255,255,255,0.12)",
+                padding: "2px 8px",
+                borderRadius: "var(--radius-pill)",
+              }}
+            >
+              {result.source_engine}
+            </span>
+          )}
+        </div>
+        <div
+          style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: "var(--radius-sm)",
+            padding: 16,
+            fontSize: 14,
+            lineHeight: 1.6,
+            color: "rgba(255,255,255,0.8)",
+            fontStyle: "italic",
+          }}
+        >
+          {result.simulated_response}
+        </div>
       </div>
 
       {/* Barra de visibilidad */}
@@ -376,10 +426,19 @@ function ParamRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function Badge({ label, color }: { label: string; color: string }) {
+function Badge({
+  label,
+  color,
+  tooltip,
+}: {
+  label: string;
+  color: string;
+  tooltip?: string;
+}) {
   return (
     <span
       className="mono"
+      data-tooltip={tooltip}
       style={{
         fontSize: 9,
         letterSpacing: "0.16em",
@@ -389,6 +448,7 @@ function Badge({ label, color }: { label: string; color: string }) {
         background: `${color}22`,
         color,
         border: `1px solid ${color}44`,
+        cursor: tooltip ? "help" : undefined,
       }}
     >
       {label}

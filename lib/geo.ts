@@ -24,6 +24,10 @@ export type SegmentInput = z.infer<typeof SegmentInputSchema>;
 export const SegmentResultSchema = z.object({
   label: z.string(),
   query: z.string(),
+  source_engine: z
+    .enum(["Perplexity", "Google AI Overview", "ChatGPT Search"])
+    .optional()
+    .describe("Motor de búsqueda IA simulado para esta query."),
   simulated_response: z
     .string()
     .describe("Respuesta simulada del motor de búsqueda IA para esta query."),
@@ -81,22 +85,28 @@ export async function analyzeSegment(
   const startedAt = Date.now();
 
   const system = [
-    "Eres un simulador de motores de búsqueda con IA (estilo Perplexity, Google AI Overview, ChatGPT Search).",
-    "Tu tarea es doble:",
-    "1. Simular la respuesta que daría un buscador IA cuando un usuario con la intención descrita hace esa query.",
-    "2. Analizar la presencia y visibilidad de la marca en esa respuesta.",
+    "Eres un simulador de motores de búsqueda con IA.",
+    "Tu tarea:",
+    "1. Elegir el motor mas adecuado para la query y perfil JTBD del segmento, e indicarlo en 'source_engine'.",
+    "2. Simular la respuesta que daria ese motor cuando el usuario hace esa query.",
+    "3. Analizar la presencia y visibilidad de la marca en esa respuesta.",
     "",
-    "Reglas de la simulación:",
-    "- Responde como lo haría el buscador: sintetiza fuentes, da una respuesta directa, menciona marcas si son relevantes.",
-    "- NO favorezcas artificialmente a la marca: si no es la más conocida o relevante para la query, puede no aparecer o aparecer en segundo plano.",
+    "Para elegir el motor ('source_engine'):",
+    "- 'Perplexity': queries informativas profundas, comparativas tecnicas, investigacion.",
+    "- 'Google AI Overview': queries con intencion comercial o transaccional directa.",
+    "- 'ChatGPT Search': queries conversacionales donde el usuario pide consejo o recomendaciones personalizadas.",
+    "",
+    "Reglas de la simulacion:",
+    "- Responde como lo haria el motor elegido: sintetiza fuentes, da una respuesta directa, menciona marcas si son relevantes.",
+    "- NO favorezcas artificialmente a la marca: si no es la mas conocida o relevante para la query, puede no aparecer o aparecer en segundo plano.",
     "- La respuesta simulada debe sonar natural, como texto de un resumen de buscador IA (2-4 frases).",
     "",
-    "Reglas del análisis:",
-    "- 'brand_mentioned': verdadero solo si el nombre de la marca aparece explícitamente en tu respuesta simulada.",
-    "- 'brand_position': 'primary' si es la primera o única recomendación, 'secondary' si aparece junto a otras, 'absent' si no aparece.",
-    "- 'visibility_score': combina posición y tono. 1.0 = primera recomendación positiva, 0.5 = mencionada de fondo, 0.0 = ausente.",
-    "- 'key_claims': solo afirmaciones positivas o informativas que el buscador haría sobre la marca.",
-    "- 'missing_attributes': qué cosas busca este segmento (según su JTBD) que la marca no comunica bien en fuentes públicas.",
+    "Reglas del analisis:",
+    "- 'brand_mentioned': verdadero solo si el nombre de la marca aparece explicitamente en tu respuesta simulada.",
+    "- 'brand_position': 'primary' si es la primera o unica recomendacion, 'secondary' si aparece junto a otras, 'absent' si no aparece.",
+    "- 'visibility_score': combina posicion y tono. 1.0 = primera recomendacion positiva, 0.5 = mencionada de fondo, 0.0 = ausente.",
+    "- 'key_claims': solo afirmaciones positivas o informativas que el buscador haria sobre la marca.",
+    "- 'missing_attributes': que cosas busca este segmento (segun su JTBD) que la marca no comunica bien en fuentes publicas.",
   ].join("\n");
 
   const prompt = [
@@ -112,7 +122,15 @@ export async function analyzeSegment(
     "Simula la respuesta del buscador y analiza la presencia de la marca.",
   ].join("\n");
 
-  const AnalysisOutputSchema = SegmentResultSchema.omit({ label: true, query: true });
+  const AnalysisOutputSchema = SegmentResultSchema
+    .omit({ label: true, query: true, source_engine: true })
+    .extend({
+      source_engine: z
+        .enum(["Perplexity", "Google AI Overview", "ChatGPT Search"])
+        .describe(
+          "Motor de busqueda IA elegido para esta query. Elige el mas adecuado segun el perfil JTBD del segmento.",
+        ),
+    });
 
   const res = await generateObject({
     model: DEFAULT_MODEL,
