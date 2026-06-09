@@ -42,6 +42,27 @@ export const ReasonerPlanSchema = z.object({
     .describe(
       "Esfuerzo percibido por el usuario en este turno: 0 = fluido, 1 = a punto de abandonar.",
     ),
+  momentum: z
+    .object({
+      intensity: z
+        .number()
+        .min(0)
+        .max(1)
+        .describe(
+          "Intensidad del intent: 0 = sin intención de avanzar hacia la acción, 1 = acción inminente.",
+        ),
+      direction: z
+        .enum(["approaching", "stable", "drifting"])
+        .describe(
+          "Dirección: 'approaching' = se acerca a la acción objetivo, 'stable' = sin cambio apreciable, 'drifting' = se aleja o desconecta.",
+        ),
+      velocity: z
+        .enum(["accelerating", "steady", "decelerating"])
+        .describe(
+          "Velocidad del cambio entre turnos: 'accelerating' = momentum creciendo, 'steady' = estable, 'decelerating' = disminuyendo.",
+        ),
+    })
+    .describe("Intent Momentum del usuario en este turno (Gravity Model)."),
   plan: z.string().describe(
     "Pauta concreta para el Talker: cómo debe responder en voz del perfil. 1-2 frases. No incluir el texto literal.",
   ),

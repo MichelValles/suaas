@@ -102,6 +102,32 @@ export default async function FiveSecondRunPage({
         </section>
       )}
 
+      <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <h2
+          className="mono"
+          style={{
+            fontSize: 11,
+            letterSpacing: "0.28em",
+            textTransform: "uppercase",
+            color: "var(--accent-500)",
+            margin: 0,
+          }}
+        >
+          Conducta predicha (Gravity Model)
+        </h2>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 16,
+          }}
+        >
+          <BehaviorCard label="Óptima" count={summary.behavior_counts.optima} total={summary.n} color="#4ade80" hint="Entendió el mensaje y seguiría hacia la acción." />
+          <BehaviorCard label="Repesca" count={summary.behavior_counts.repesca} total={summary.n} color="#facc15" hint="Dudas, pero la intención sigue viva: recuperable con el mensaje correcto." />
+          <BehaviorCard label="Fuga" count={summary.behavior_counts.fuga} total={summary.n} color="#f87171" hint="Carga cognitiva o promesa poco clara: abandonaría." />
+        </div>
+      </section>
+
       <section style={{ display: "flex", flexDirection: "column", gap: 18 }}>
         <h2
           className="mono"
@@ -162,6 +188,7 @@ export default async function FiveSecondRunPage({
             clarity: r.clarity,
             comprehension_rate: r.comprehension_rate,
             barriers_detected: r.barriers_detected,
+            behavior_class: r.behavior_class,
           };
         })}
       />
@@ -282,6 +309,58 @@ function NumberCard({ label, value }: { label: string; value: number }) {
         style={{ fontSize: 36, lineHeight: 1, color: "#fff" }}
       >
         {value}
+      </span>
+    </div>
+  );
+}
+
+function BehaviorCard({
+  label,
+  count,
+  total,
+  color,
+  hint,
+}: {
+  label: string;
+  count: number;
+  total: number;
+  color: string;
+  hint: string;
+}) {
+  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  return (
+    <div
+      style={{
+        border: `1px solid ${color}33`,
+        borderRadius: "var(--radius-md)",
+        padding: 20,
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        background: `${color}08`,
+      }}
+    >
+      <span
+        className="mono"
+        style={{
+          fontSize: 10,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          color,
+        }}
+      >
+        {label}
+      </span>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+        <span className="display" style={{ fontSize: 36, lineHeight: 1, color }}>
+          {count}
+        </span>
+        <span style={{ fontSize: 13, color: "rgba(255,255,255,0.45)" }}>
+          {pct}%
+        </span>
+      </div>
+      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>
+        {hint}
       </span>
     </div>
   );

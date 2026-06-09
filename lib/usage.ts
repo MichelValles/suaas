@@ -11,7 +11,8 @@ export type UsageScope =
   | "campaign_probe"
   | "campaign_landing"
   | "campaign_ideal"
-  | "onboard_synthesize";
+  | "onboard_synthesize"
+  | "geo_probe";
 
 type RawUsage = {
   promptTokens?: number;

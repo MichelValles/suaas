@@ -182,6 +182,17 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.29.0 — Gravity Model (4 funcionalidades)
+
+Cuatro nuevas funcionalidades inspiradas en el framework Gravity Model para modelar la intención de los usuarios como un vector (intensidad, dirección, velocidad).
+
+- [x] **Contexto JTBD en perfiles**: campo `intent_context` (texto libre) en `profiles`. Se inyecta en el system prompt de todas las llamadas que usan ese perfil. Permite segmentar por trabajo-a-hacer en lugar de por demografía. Visible en el formulario de creación y edición de perfiles bajo "Contexto de intención (JTBD)".
+- [x] **Intent Momentum en el chat**: el `ReasonerPlanSchema` gana un objeto `momentum` con tres dimensiones: `intensity` (0..1), `direction` (approaching / stable / drifting) y `velocity` (accelerating / steady / decelerating). El `ChatPanel` muestra un `MomentumIndicator` visual bajo el bloque de razonamiento colapsable.
+- [x] **Clasificación de conducta en el test de claridad 5s**: `ProbeOutputSchema` añade `behavior_class` (optima / fuga / repesca). El LLM clasifica su propia conducta durante el probe (sin llamada extra). Se persiste en `five_second_responses`, se muestra como badge en la tabla de respuestas y se añade un bloque de distribución en la página de resultados del run.
+- [x] **GEO tester (Generative Engine Optimization)**: módulo nuevo en `/geo`. Simula cómo un buscador IA (Perplexity / Google AI Overview / ChatGPT Search) describe la marca ante cada segmento de intención. Produce `visibility_score`, `brand_position`, `recommendation_tone`, `key_claims` y `missing_attributes` por segmento. Tabla `geo_analyses` (jsonb para segments y results). Rutas: `/geo` (lista), `/geo/new` (form con JSON de segmentos), `/geo/[id]` (resultados con resumen y detalle por segmento + botón Analizar). API: `POST /api/geo/run`.
+
+Aplicar migración `0015_gravity_model.sql` en Supabase antes de usar estas funcionalidades.
+
 ## v0.28.0 — Auditoría de seguridad y robustez
 
 - [x] **v0.28.0**: auditoría completa de seguridad (ver `docs/AUDITORIA-SEGURIDAD.md`). Cuatro correcciones críticas/altas:

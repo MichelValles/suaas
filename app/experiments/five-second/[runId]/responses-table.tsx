@@ -12,6 +12,18 @@ type Row = {
   clarity: number;
   comprehension_rate: number | null;
   barriers_detected: string[];
+  behavior_class: "optima" | "fuga" | "repesca" | null;
+};
+
+const BEHAVIOR_LABEL: Record<string, string> = {
+  optima: "Óptima",
+  fuga: "Fuga",
+  repesca: "Repesca",
+};
+const BEHAVIOR_COLOR: Record<string, string> = {
+  optima: "#4ade80",
+  repesca: "#facc15",
+  fuga: "#f87171",
 };
 
 type SortKey = "profile" | "clarity" | "comprehension";
@@ -125,6 +137,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
               <Th>{header("profile", "Perfil")}</Th>
               <Th>{header("clarity", "Claridad")}</Th>
               <Th>{header("comprehension", "Comprensión")}</Th>
+              <Th>Conducta</Th>
               <Th>Barreras</Th>
               <Th></Th>
             </tr>
@@ -180,6 +193,27 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                       : fmtPct(row.comprehension_rate)}
                   </Td>
                   <Td>
+                    {row.behavior_class ? (
+                      <span
+                        className="mono"
+                        style={{
+                          fontSize: 10,
+                          letterSpacing: "0.16em",
+                          textTransform: "uppercase",
+                          padding: "3px 8px",
+                          borderRadius: "var(--radius-pill)",
+                          background: `${BEHAVIOR_COLOR[row.behavior_class]}22`,
+                          color: BEHAVIOR_COLOR[row.behavior_class],
+                          border: `1px solid ${BEHAVIOR_COLOR[row.behavior_class]}55`,
+                        }}
+                      >
+                        {BEHAVIOR_LABEL[row.behavior_class]}
+                      </span>
+                    ) : (
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>—</span>
+                    )}
+                  </Td>
+                  <Td>
                     <span
                       style={{
                         fontSize: 12,
@@ -214,7 +248,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                   </Td>
                   {isOpen && (
                     <td
-                      colSpan={5}
+                      colSpan={6}
                       style={{
                         padding: 0,
                         background: "rgba(255,255,255,0.02)",

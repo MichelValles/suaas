@@ -45,6 +45,11 @@ export const ProbeOutputSchema = z.object({
   barriers_detected: z
     .array(z.string())
     .describe("Lista corta de fricciones percibidas. Array vacío si no hay."),
+  behavior_class: z
+    .enum(["optima", "fuga", "repesca"])
+    .describe(
+      "Clasifica TU propia conducta: 'optima' = entendiste el mensaje y seguirías hacia la acción; 'fuga' = carga cognitiva o promesa poco clara, abandonarías; 'repesca' = dudas o preguntas pero la intención sigue viva, podrías ser recuperado con el mensaje adecuado.",
+    ),
 });
 export type ProbeOutput = z.infer<typeof ProbeOutputSchema>;
 
@@ -71,6 +76,7 @@ export type FiveSecondResponse = {
   clarity: number;
   comprehension_rate: number | null;
   barriers_detected: string[];
+  behavior_class: "optima" | "fuga" | "repesca" | null;
 };
 
 export type FiveSecondSummary = {
@@ -78,6 +84,7 @@ export type FiveSecondSummary = {
   mean_clarity: number;
   mean_comprehension: number | null;
   top_barriers: { label: string; count: number }[];
+  behavior_counts: { optima: number; fuga: number; repesca: number };
 };
 
 // ============================================================
@@ -322,6 +329,7 @@ async function probeOne(
     clarity: probed.output.clarity,
     comprehension_rate: comprehension?.score ?? null,
     barriers_detected: probed.output.barriers_detected,
+    behavior_class: probed.output.behavior_class,
     meta: {
       model_probe: DEFAULT_MODEL,
       model_judge: DEFAULT_MODEL,
@@ -342,6 +350,7 @@ async function probeOne(
     clarity: probed.output.clarity,
     comprehension_rate: comprehension?.score ?? null,
     barriers_detected: probed.output.barriers_detected,
+    behavior_class: probed.output.behavior_class,
   };
 }
 
@@ -378,11 +387,19 @@ function summarize(responses: FiveSecondResponse[]): FiveSecondSummary {
     .slice(0, 3)
     .map(([label, count]) => ({ label, count }));
 
+  const behavior_counts = { optima: 0, fuga: 0, repesca: 0 };
+  for (const r of responses) {
+    if (r.behavior_class === "optima") behavior_counts.optima++;
+    else if (r.behavior_class === "fuga") behavior_counts.fuga++;
+    else if (r.behavior_class === "repesca") behavior_counts.repesca++;
+  }
+
   return {
     n,
     mean_clarity: meanClarity,
     mean_comprehension: meanComp,
     top_barriers: topBarriers,
+    behavior_counts,
   };
 }
 
@@ -411,6 +428,7 @@ export async function listFiveSecondResponses(
     clarity: r.clarity as number,
     comprehension_rate: (r.comprehension_rate as number | null) ?? null,
     barriers_detected: (r.barriers_detected as string[]) ?? [],
+    behavior_class: (r.behavior_class as "optima" | "fuga" | "repesca" | null) ?? null,
   }));
 }
 
@@ -418,7 +436,13 @@ export function summarizeResponses(
   responses: FiveSecondResponse[],
 ): FiveSecondSummary {
   if (responses.length === 0) {
-    return { n: 0, mean_clarity: 0, mean_comprehension: null, top_barriers: [] };
+    return {
+      n: 0,
+      mean_clarity: 0,
+      mean_comprehension: null,
+      top_barriers: [],
+      behavior_counts: { optima: 0, fuga: 0, repesca: 0 },
+    };
   }
   return summarize(responses);
 }

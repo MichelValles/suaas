@@ -1,0 +1,371 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { AppShell, PageHeading } from "@/components/app-shell";
+import { getGeoAnalysis, type GeoAnalysis, type SegmentResult } from "@/lib/geo";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { GeoRunButton } from "./run-button";
+
+export const dynamic = "force-dynamic";
+
+const POSITION_LABEL: Record<string, string> = {
+  primary: "Protagonista",
+  secondary: "Secundaria",
+  absent: "Ausente",
+};
+const POSITION_COLOR: Record<string, string> = {
+  primary: "#4ade80",
+  secondary: "#facc15",
+  absent: "#f87171",
+};
+const TONE_LABEL: Record<string, string> = {
+  positive: "Positivo",
+  neutral: "Neutro",
+  negative: "Negativo",
+  absent: "—",
+};
+
+export default async function GeoDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+
+  if (!isSupabaseConfigured()) {
+    return (
+      <AppShell>
+        <PageHeading eyebrow="GEO" title="Supabase aún no está conectado." />
+        <Link href="/geo" className="btn-pill">Volver</Link>
+      </AppShell>
+    );
+  }
+
+  const analysis = await getGeoAnalysis(id);
+  if (!analysis) notFound();
+
+  const visAvg =
+    analysis.results && analysis.results.length > 0
+      ? analysis.results.reduce((s, r) => s + r.visibility_score, 0) /
+        analysis.results.length
+      : null;
+
+  const canRun = analysis.status === "pending" || analysis.status === "error";
+
+  return (
+    <AppShell>
+      <PageHeading
+        eyebrow={`GEO · ${analysis.brand_name}`}
+        title={analysis.name}
+        description={analysis.brand_description}
+        descriptionVariant="panel"
+        actions={
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            {canRun && <GeoRunButton geoId={analysis.id} />}
+            <Link href="/geo" className="btn-pill">
+              Volver
+            </Link>
+          </div>
+        }
+      />
+
+      {analysis.status === "running" && (
+        <div
+          style={{
+            padding: 20,
+            border: "1px solid rgba(250,204,21,0.3)",
+            borderRadius: "var(--radius-md)",
+            background: "rgba(250,204,21,0.06)",
+            color: "#facc15",
+            fontSize: 14,
+          }}
+        >
+          Análisis en progreso. Recarga la página para ver los resultados cuando termine.
+        </div>
+      )}
+
+      {analysis.status === "error" && (
+        <div
+          style={{
+            padding: 20,
+            border: "1px solid rgba(248,113,113,0.3)",
+            borderRadius: "var(--radius-md)",
+            background: "rgba(248,113,113,0.06)",
+            color: "#f87171",
+            fontSize: 14,
+          }}
+        >
+          El análisis terminó con error. Puedes volver a lanzarlo con el botón de arriba.
+        </div>
+      )}
+
+      {analysis.status === "pending" && !analysis.results && (
+        <div
+          style={{
+            padding: 48,
+            border: "1px dashed rgba(255,255,255,0.12)",
+            borderRadius: "var(--radius-md)",
+            color: "rgba(255,255,255,0.5)",
+            textAlign: "center",
+            fontSize: 14,
+            lineHeight: 1.6,
+          }}
+        >
+          Pulsa «Analizar» para lanzar el análisis contra los {analysis.segments.length} segmentos.
+        </div>
+      )}
+
+      {analysis.results && analysis.results.length > 0 && (
+        <>
+          <SummaryStrip analysis={analysis} visAvg={visAvg} />
+          <section style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <h2
+              className="mono"
+              style={{
+                fontSize: 11,
+                letterSpacing: "0.28em",
+                textTransform: "uppercase",
+                color: "var(--accent-500)",
+                margin: 0,
+              }}
+            >
+              Resultados por segmento
+            </h2>
+            {analysis.results.map((r, i) => (
+              <SegmentCard key={i} result={r} />
+            ))}
+          </section>
+        </>
+      )}
+    </AppShell>
+  );
+}
+
+function SummaryStrip({
+  analysis,
+  visAvg,
+}: {
+  analysis: GeoAnalysis;
+  visAvg: number | null;
+}) {
+  const results = analysis.results ?? [];
+  const mentioned = results.filter((r) => r.brand_mentioned).length;
+  const primary = results.filter((r) => r.brand_position === "primary").length;
+
+  return (
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+        gap: 16,
+      }}
+    >
+      <MetricCard
+        label="Visibilidad media"
+        value={visAvg !== null ? `${Math.round(visAvg * 100)}%` : "—"}
+        color={visAvg !== null && visAvg >= 0.6 ? "#4ade80" : visAvg !== null && visAvg >= 0.3 ? "#facc15" : "#f87171"}
+      />
+      <MetricCard label="Segmentos mencionados" value={`${mentioned}/${results.length}`} />
+      <MetricCard label="Posición protagonista" value={`${primary}/${results.length}`} color={primary > 0 ? "#4ade80" : "rgba(255,255,255,0.6)"} />
+      <MetricCard label="Segmentos analizados" value={String(results.length)} />
+    </div>
+  );
+}
+
+function MetricCard({
+  label,
+  value,
+  color,
+}: {
+  label: string;
+  value: string;
+  color?: string;
+}) {
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "var(--radius-md)",
+        padding: 20,
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+      }}
+    >
+      <span
+        className="mono"
+        style={{
+          fontSize: 10,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          color: "rgba(255,255,255,0.5)",
+        }}
+      >
+        {label}
+      </span>
+      <span
+        className="display"
+        style={{ fontSize: 32, lineHeight: 1, color: color ?? "#fff" }}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+function SegmentCard({ result }: { result: SegmentResult }) {
+  const posColor = POSITION_COLOR[result.brand_position] ?? "rgba(255,255,255,0.6)";
+
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "var(--radius-md)",
+        padding: 24,
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}
+    >
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <span
+            style={{
+              fontFamily: "var(--font-display)",
+              fontStyle: "italic",
+              fontSize: 18,
+              color: "#fff",
+            }}
+          >
+            {result.label}
+          </span>
+          <span
+            className="mono"
+            style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: "0.06em" }}
+          >
+            «{result.query}»
+          </span>
+        </div>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+          <Badge label={POSITION_LABEL[result.brand_position] ?? result.brand_position} color={posColor} />
+          {result.recommendation_tone !== "absent" && (
+            <Badge
+              label={TONE_LABEL[result.recommendation_tone] ?? result.recommendation_tone}
+              color="rgba(255,255,255,0.5)"
+            />
+          )}
+        </div>
+      </div>
+
+      <div
+        style={{
+          background: "rgba(255,255,255,0.02)",
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: "var(--radius-sm)",
+          padding: 16,
+          fontSize: 14,
+          lineHeight: 1.6,
+          color: "rgba(255,255,255,0.8)",
+          fontStyle: "italic",
+        }}
+      >
+        {result.simulated_response}
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 16,
+        }}
+      >
+        <span className="mono" style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
+          Visibilidad
+        </span>
+        <div
+          style={{
+            flex: 1,
+            height: 4,
+            background: "rgba(255,255,255,0.08)",
+            borderRadius: 2,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              width: `${Math.round(result.visibility_score * 100)}%`,
+              height: "100%",
+              background: posColor,
+              borderRadius: 2,
+            }}
+          />
+        </div>
+        <span style={{ fontSize: 12, color: posColor, minWidth: 32, textAlign: "right" }}>
+          {Math.round(result.visibility_score * 100)}%
+        </span>
+      </div>
+
+      {result.key_claims.length > 0 && (
+        <Detail label="Lo que dice el buscador sobre la marca">
+          <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 }}>
+            {result.key_claims.map((c, i) => (
+              <li key={i} style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>
+                {c}
+              </li>
+            ))}
+          </ul>
+        </Detail>
+      )}
+
+      {result.missing_attributes.length > 0 && (
+        <Detail label="Huecos detectados (atributos ausentes)">
+          <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 }}>
+            {result.missing_attributes.map((a, i) => (
+              <li key={i} style={{ fontSize: 13, color: "#f87171", lineHeight: 1.5 }}>
+                {a}
+              </li>
+            ))}
+          </ul>
+        </Detail>
+      )}
+    </div>
+  );
+}
+
+function Badge({ label, color }: { label: string; color: string }) {
+  return (
+    <span
+      className="mono"
+      style={{
+        fontSize: 9,
+        letterSpacing: "0.16em",
+        textTransform: "uppercase",
+        padding: "3px 8px",
+        borderRadius: "var(--radius-pill)",
+        background: `${color}22`,
+        color,
+        border: `1px solid ${color}44`,
+      }}
+    >
+      {label}
+    </span>
+  );
+}
+
+function Detail({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <span
+        className="mono"
+        style={{
+          fontSize: 10,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          color: "rgba(255,255,255,0.45)",
+        }}
+      >
+        {label}
+      </span>
+      {children}
+    </div>
+  );
+}

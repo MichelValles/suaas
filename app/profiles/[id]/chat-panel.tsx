@@ -2,12 +2,19 @@
 
 import { useRef, useState, type FormEvent } from "react";
 
+type Momentum = {
+  intensity: number;
+  direction: "approaching" | "stable" | "drifting";
+  velocity: "accelerating" | "steady" | "decelerating";
+};
+
 type ReasonerPlan = {
   state: string;
   intent: string;
   barriers_detected: string[];
   tone: string;
   effort: number;
+  momentum?: Momentum;
   plan: string;
 };
 
@@ -328,6 +335,9 @@ function TalkerMessage({
               <span>· {msg.latencyMs} ms</span>
             )}
           </summary>
+          {msg.plan.momentum && (
+            <MomentumIndicator momentum={msg.plan.momentum} />
+          )}
           <dl
             style={{
               margin: "10px 0 0",
@@ -359,6 +369,70 @@ function TalkerMessage({
           </dl>
         </details>
       )}
+    </div>
+  );
+}
+
+const DIRECTION_LABEL: Record<string, string> = {
+  approaching: "acercándose",
+  stable: "estable",
+  drifting: "alejándose",
+};
+const DIRECTION_COLOR: Record<string, string> = {
+  approaching: "#4ade80",
+  stable: "rgba(255,255,255,0.6)",
+  drifting: "#f87171",
+};
+const VELOCITY_LABEL: Record<string, string> = {
+  accelerating: "acelerando",
+  steady: "constante",
+  decelerating: "frenando",
+};
+
+function MomentumIndicator({ momentum }: { momentum: Momentum }) {
+  const dirColor = DIRECTION_COLOR[momentum.direction] ?? "rgba(255,255,255,0.6)";
+  return (
+    <div
+      style={{
+        marginTop: 8,
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "6px 10px",
+        background: "rgba(255,255,255,0.03)",
+        borderRadius: "var(--radius-sm)",
+        border: "1px solid rgba(255,255,255,0.06)",
+      }}
+    >
+      <span className="mono" style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
+        momentum
+      </span>
+      <div
+        title={`Intensidad: ${Math.round(momentum.intensity * 100)}%`}
+        style={{
+          width: 48,
+          height: 4,
+          background: "rgba(255,255,255,0.1)",
+          borderRadius: 2,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${Math.round(momentum.intensity * 100)}%`,
+            height: "100%",
+            background: dirColor,
+            borderRadius: 2,
+            transition: "width 0.3s",
+          }}
+        />
+      </div>
+      <span style={{ fontSize: 11, color: dirColor }}>
+        {DIRECTION_LABEL[momentum.direction] ?? momentum.direction}
+      </span>
+      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+        {VELOCITY_LABEL[momentum.velocity] ?? momentum.velocity}
+      </span>
     </div>
   );
 }

@@ -51,6 +51,10 @@ export function buildSystemPrompt(profile: Profile): string {
     "- NO eres servicial ni complaciente: si algo no te interesa, lo dices.",
     "- NO inventes funcionalidades del producto que se está testando. Si no lo ves, no lo asumas.",
     "",
+    profile.intent_context
+      ? `## Contexto de intención (JTBD)\n${profile.intent_context}`
+      : null,
+    "",
     "## Antipatrones (evítalos siempre)",
     "- No suenes como ChatGPT.",
     "- No empieces con \"Como [perfil]...\".",

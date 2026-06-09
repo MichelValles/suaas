@@ -54,6 +54,7 @@ export default async function EditProfilePage({
           motivation: (profile.com_b_barriers.motivation ?? []).join("\n"),
           backstory: profile.backstory,
           source: profile.source ?? "manual",
+          intent_context: profile.intent_context ?? "",
         }}
       />
     </AppShell>

@@ -25,6 +25,7 @@ export type ProfileFormInitial = {
   motivation: string;
   backstory: string;
   source: string;
+  intent_context: string;
 };
 
 export const DEFAULT_PROFILE_INITIAL: ProfileFormInitial = {
@@ -45,6 +46,7 @@ export const DEFAULT_PROFILE_INITIAL: ProfileFormInitial = {
   backstory:
     "Trabaja como diseñadora freelance desde casa. Su última factura llegó tarde y arrastra estrés económico. Teme fallar a su familia y por eso no tolera procesos opacos: si una herramienta no le ahorra tiempo en los primeros 30 segundos, la abandona.",
   source: "manual",
+  intent_context: "",
 };
 
 export function ProfileForm({
@@ -156,6 +158,18 @@ export function ProfileForm({
           minLength={20}
           defaultValue={initial.backstory}
           className="backstory-input"
+        />
+      </FieldGroup>
+
+      <FieldGroup
+        title="Contexto de intención (JTBD)"
+        hint="Opcional. Describe el trabajo que quiere hacer: «Cuando [situación] quiero [motivación] para poder [resultado]». Se inyecta en el system prompt de todas las llamadas con este perfil."
+      >
+        <TextArea
+          name="intent_context"
+          rows={4}
+          defaultValue={initial.intent_context}
+          placeholder={"Cuando me llega una factura inesperada quiero entender si tengo margen para aplazarla para poder evitar el corte de suministro sin pedir prestado."}
         />
       </FieldGroup>
 

@@ -34,6 +34,7 @@ export const ProfileInputSchema = z.object({
   com_b_barriers: ComBBarriersSchema,
   backstory: z.string().min(20, "El backstory debe tener al menos 20 caracteres."),
   source: z.string().optional(),
+  intent_context: z.string().optional(),
 });
 
 export const ProfileSchema = ProfileInputSchema.extend({
