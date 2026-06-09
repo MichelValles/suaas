@@ -53,7 +53,7 @@ function SubmitButton({ disabled }: { disabled: boolean }) {
       disabled={pending || disabled}
       style={{ alignSelf: "flex-start", opacity: disabled ? 0.45 : 1 }}
     >
-      {pending ? "Guardando..." : "Crear reto"}
+      {pending ? "Guardando..." : "Crear Trigger"}
     </button>
   );
 }
@@ -83,7 +83,7 @@ export function NewChallengeForm({ profiles }: { profiles: Profile[] }) {
       action={createMomentumChallengeAction}
       style={{ display: "flex", flexDirection: "column", gap: 28, maxWidth: 720 }}
     >
-      <Field label="Nombre del reto" hint="Corto y descriptivo.">
+      <Field label="Nombre del Trigger" hint="Corto y descriptivo.">
         <input
           name="name"
           type="text"
@@ -95,7 +95,7 @@ export function NewChallengeForm({ profiles }: { profiles: Profile[] }) {
 
       <Field
         label="Escenario de activación"
-        hint="Describe el momento o situación que hace que este reto se vuelva relevante para el usuario. Cuanto más concreto, mejor simula el perfil."
+        hint="Describe el momento o situación que activa este Trigger para el usuario. Cuanto más concreto, mejor simula el perfil."
       >
         <textarea
           name="trigger_scenario"

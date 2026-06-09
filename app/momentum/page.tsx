@@ -32,7 +32,7 @@ export default async function MomentumPage() {
     }
     return (
       <AppShell>
-        <PageHeading eyebrow="Momentum" title="Error al cargar los retos." />
+        <PageHeading eyebrow="Momentum" title="Error al cargar los Triggers." />
         <p style={{ color: "#f87171", fontSize: 14, margin: 0 }}>Error interno.</p>
       </AppShell>
     );
@@ -43,10 +43,10 @@ export default async function MomentumPage() {
       <PageHeading
         eyebrow="Momentum"
         title="Intent Momentum"
-        description="Define escenarios de activación y descubre cómo tus perfiles iniciarían ese reto en su vida real, antes de que ninguna marca entre en su radar."
+        description="Define Triggers de activación y descubre cómo tus perfiles los abordarían en su vida real, antes de que ninguna marca entre en su radar."
         actions={
           <Link href="/momentum/new" className="btn-pill solid">
-            Nuevo reto
+            Nuevo Trigger
           </Link>
         }
       />

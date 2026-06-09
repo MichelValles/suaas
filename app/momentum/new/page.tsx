@@ -8,7 +8,7 @@ export default async function NewMomentumPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Momentum · Nuevo reto" title="Supabase no configurado." />
+        <PageHeading eyebrow="Momentum · Nuevo Trigger" title="Supabase no configurado." />
       </AppShell>
     );
   }
@@ -19,7 +19,7 @@ export default async function NewMomentumPage() {
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Momentum · Nuevo reto"
+          eyebrow="Momentum · Nuevo Trigger"
           title="No hay perfiles todavía."
           actions={<Link href="/momentum" className="btn-pill">Volver</Link>}
         />
@@ -37,9 +37,9 @@ export default async function NewMomentumPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Momentum · Nuevo reto"
+        eyebrow="Momentum · Nuevo Trigger"
         title="Define el escenario"
-        description="Describe el reto de activación que quieres explorar. Los perfiles seleccionados simularán cómo lo abordarían en su vida real."
+        description="Describe el Trigger de activación que quieres explorar. Los perfiles seleccionados simularán cómo lo abordarían en su vida real."
         descriptionVariant="panel"
         actions={<Link href="/momentum" className="btn-pill">Volver</Link>}
       />

@@ -39,7 +39,7 @@ export function MomentumList({ challenges }: { challenges: MomentumChallenge[] }
     return (
       <div style={{ textAlign: "center", padding: "60px 0", display: "flex", flexDirection: "column", gap: 16, alignItems: "center" }}>
         <p style={{ color: "rgba(255,255,255,0.4)", fontSize: 14, margin: 0 }}>
-          Todavía no hay retos de Momentum.
+          Todavía no hay Triggers de Momentum.
         </p>
         <Link href="/momentum/new" className="btn-pill solid" style={{ fontSize: 13 }}>
           Crear el primero
@@ -65,7 +65,7 @@ export function MomentumList({ challenges }: { challenges: MomentumChallenge[] }
           />
           <input
             type="text"
-            placeholder="Buscar retos..."
+            placeholder="Buscar Triggers..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
@@ -93,7 +93,7 @@ export function MomentumList({ challenges }: { challenges: MomentumChallenge[] }
 
       {filtered.length === 0 ? (
         <p style={{ color: "rgba(255,255,255,0.35)", fontSize: 13, textAlign: "center", padding: "32px 0", margin: 0 }}>
-          Ningún reto coincide con la búsqueda.
+          Ningún Trigger coincide con la búsqueda.
         </p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -135,7 +135,7 @@ function MomentumCard({ challenge: c }: { challenge: MomentumChallenge }) {
           <button
             type="submit"
             onClick={(e) => {
-              if (!window.confirm(`¿Eliminar el reto "${c.name}"?`)) e.preventDefault();
+              if (!window.confirm(`¿Eliminar el Trigger "${c.name}"?`)) e.preventDefault();
             }}
             style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.25)", padding: 4, display: "flex", alignItems: "center" }}
           >

@@ -53,7 +53,7 @@ const MomentumOutputSchema = z.object({
   intent_narrative: z
     .string()
     .describe(
-      "Cómo el perfil describiría en primera persona cómo asumiría este reto en su vida real. 3-5 frases concretas y naturales.",
+      "Cómo el perfil describiría en primera persona cómo asumiría este Trigger en su vida real. 3-5 frases concretas y naturales.",
     ),
   intensity: z
     .number()
@@ -113,7 +113,7 @@ export async function analyzeProfileMomentum(
       : "",
     "",
     "Se te presenta un escenario de activación. Simula cómo TÚ, como este perfil, responderías naturalmente en tu vida real:",
-    "- Qué pensarías al enfrentarte a ese reto",
+    "- Qué pensarías al enfrentarte a ese Trigger",
     "- Qué primeros pasos concretos darías (buscar en Google, preguntar a alguien, ir al médico, ignorarlo, etc.)",
     "- Qué canales usarías y en qué orden",
     "- Qué barreras o fricciones sentirías para actuar",
@@ -133,7 +133,7 @@ export async function analyzeProfileMomentum(
   if (challenge.brand_context) {
     promptLines.push("", "## Contexto de marca", challenge.brand_context);
   }
-  promptLines.push("", "Describe cómo asumirías este reto en tu vida.");
+  promptLines.push("", "Describe cómo asumirías este Trigger en tu vida.");
   const prompt = promptLines.join("\n");
 
   const res = await generateObject({
@@ -212,10 +212,10 @@ export async function runMomentumChallenge(
   const supa = getServerClient();
 
   const challenge = await getMomentumChallenge(id);
-  if (!challenge) throw new Error("Reto de Momentum no encontrado.");
+  if (!challenge) throw new Error("Trigger de Momentum no encontrado.");
   if (challenge.status === "running") throw new Error("El análisis ya está en marcha.");
   if (challenge.profile_ids.length === 0)
-    throw new Error("El reto no tiene perfiles asignados.");
+    throw new Error("El Trigger no tiene perfiles asignados.");
 
   await supa.from("momentum_challenges").update({ status: "running" }).eq("id", id);
 

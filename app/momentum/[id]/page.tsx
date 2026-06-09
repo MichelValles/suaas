@@ -23,7 +23,7 @@ const DIRECTION_COLOR: Record<string, string> = {
 };
 const DIRECTION_TOOLTIP: Record<string, string> = {
   approaching: "El perfil se mueve activamente hacia buscar una solución.",
-  stable: "El perfil es consciente del reto pero no toma acción todavía.",
+  stable: "El perfil es consciente del Trigger pero no toma acción todavía.",
   drifting: "El perfil lo pospone indefinidamente o lo descarta.",
 };
 const VELOCITY_LABEL: Record<string, string> = {
@@ -33,7 +33,7 @@ const VELOCITY_LABEL: Record<string, string> = {
 };
 const VELOCITY_TOOLTIP: Record<string, string> = {
   accelerating: "La urgencia crece con el tiempo: cada semana más activo.",
-  steady: "El ritmo de aproximación al reto se mantiene estable.",
+  steady: "El ritmo de aproximación al Trigger se mantiene estable.",
   decelerating: "La urgencia se disipa: pierde prioridad frente a otras cosas.",
 };
 
