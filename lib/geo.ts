@@ -163,6 +163,12 @@ export async function listGeoAnalyses(): Promise<GeoAnalysis[]> {
   return (data ?? []) as GeoAnalysis[];
 }
 
+export async function deleteGeoAnalysis(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa.from("geo_analyses").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
 export async function getGeoAnalysis(id: string): Promise<GeoAnalysis | null> {
   const supa = getServerClient();
   const { data, error } = await supa
