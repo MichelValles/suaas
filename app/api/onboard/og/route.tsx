@@ -20,7 +20,7 @@ export async function GET(req: NextRequest) {
   }
 
   const profile = await getProfile(id).catch(() => null);
-  if (!profile) {
+  if (!profile || profile.source !== "self_report") {
     return new Response("Not found", { status: 404 });
   }
 

@@ -1,9 +1,9 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-05-25 tras v0.27.0 (onboard público).
+> Última actualización: 2026-06-09 tras v0.28.0 (auditoría de seguridad).
 
-## Estado actual (v0.27.0 desplegada)
+## Estado actual (v0.28.0 desplegada)
 
 - Ruta pública nueva `/onboard` para convertir humanos reales en gemelos sintéticos. Comparte el cuestionario desde la toolbar de `/profiles` (botón «Compartir cuestionario» con URL + QR).
 - Cuestionario: 5 demográficas + 24 HEXACO-24 Likert + 2 abiertas = 31 preguntas, ~10 min en móvil. Wizard step-by-step con `motion` y avance automático en HEXACO.
@@ -19,7 +19,7 @@
 - **Segundo gate** para sembrar: cookie `seed_access`, env `SEED_PASSWORD` (obligatoria en producción desde v0.20.0).
 - **Supabase**: proyecto `supabase-erin-mirror` (org propia, no la del Marketplace de Vercel).
 - **Migraciones aplicadas**: 0001 a 0014 (la última, Display Ads `0014_campaigns_display.sql`).
-- **Vercel AI Gateway**: configurado, créditos cargados, scopes instrumentados (`probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `seed_profile`).
+- **Vercel AI Gateway**: configurado, créditos cargados, scopes instrumentados (`probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `onboard_synthesize`). Nota: `seed_profile` listado en versiones anteriores no es un scope real; `lib/seed-profiles.ts` usa `reasoner_chat` con `meta: { kind: "seed_profile" }`.
 - **Vercel Blob**: store `suaas-uploads · store_1yLEHreMdAwe3V6D` en `iad1`. Uploads de imagen, vídeo y audio.
 
 ## Módulos productivos

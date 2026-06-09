@@ -18,7 +18,7 @@ export default async function OnboardResultPage({
 }) {
   const { id } = await params;
   const profile = await getProfile(id).catch(() => null);
-  if (!profile) return notFound();
+  if (!profile || profile.source !== "self_report") return notFound();
 
   return (
     <div

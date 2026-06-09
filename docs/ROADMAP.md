@@ -182,6 +182,16 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.28.0 — Auditoría de seguridad y robustez
+
+- [x] **v0.28.0**: auditoría completa de seguridad (ver `docs/AUDITORIA-SEGURIDAD.md`). Cuatro correcciones críticas/altas:
+  - **VULN-01 (crítica)**: `isSupabaseConfigured()` reescrita para no depender de `NEXT_PUBLIC_SUPABASE_ANON_KEY`. La anon key ya no se incluye en el bundle del navegador, eliminando el vector de acceso directo a Supabase sin RLS desde el cliente.
+  - **VULN-02 (alta)**: `lib/image-source.ts:resolveImageForApi` llama a `assertPublicUrl` antes de hacer fetch de URLs http(s). Cierra el SSRF en descargas de imágenes multimodal (creatividades y landing de campañas, imágenes de targets y pasos de embudos).
+  - **VULN-03 (alta)**: `/onboard/result/[id]` y `/api/onboard/og?id=<uuid>` verifican `profile.source === 'self_report'`. Antes, cualquier perfil (manual, llm_seed) era accesible en esas rutas públicas conociendo su UUID.
+  - **VULN-04 (alta)**: `lib/onboard.ts` ya no filtra el mensaje de error del LLM al usuario no autenticado; emite `"Error al procesar. Inténtalo de nuevo."` y registra el detalle en `console.error`.
+  - Documentadas en el informe: sin rate limit en /api/auth (VULN-05), rate limit en memoria no cross-instance (VULN-06), /api/qr sin validar content (VULN-07), DNS TOCTOU (VULN-08), race condition en upsertMetric (VULN-09).
+  - Corregida discrepancia de scope `seed_profile` vs. `reasoner_chat` en docs (STAB-05).
+
 ## v0.27.x — Onboard público: humano real → gemelo sintético
 
 - [x] **v0.27.3**: copy de la portada y del resultado del onboard pasa de «Lo usamos en tests de UX y CRO» a «Lo usamos en estrategias de captación, creatividades y UX». Refleja mejor que los gemelos sirven para validar paid ads, copy y creatividades, no sólo tests de usabilidad.

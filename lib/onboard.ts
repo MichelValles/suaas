@@ -186,7 +186,8 @@ export async function* synthesizeProfile(
       },
     }).catch(() => {});
   } catch (err) {
-    yield { error: true, message: (err as Error).message };
+    console.error("[onboard/synthesize] LLM error", (err as Error).message);
+    yield { error: true, message: "Error al procesar. Inténtalo de nuevo." };
     return;
   }
 

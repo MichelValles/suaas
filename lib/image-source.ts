@@ -19,6 +19,8 @@
  * pasarla al AI SDK.
  */
 
+import { assertPublicUrl } from "@/lib/url-safety";
+
 const ALLOWED_MIME = new Set<string>([
   "image/jpeg",
   "image/png",
@@ -90,10 +92,11 @@ export async function resolveImageForApi(imageUrl: string): Promise<string> {
     return `data:${dataParts.mime};base64,${dataParts.base64}`;
   }
 
-  // Caso 2: http(s). Descargamos y construimos data URL saneada.
+  // Caso 2: http(s). Validar anti-SSRF antes de descargar.
   if (!/^https?:\/\//i.test(imageUrl)) {
     throw new UnsupportedImageError("");
   }
+  await assertPublicUrl(imageUrl);
 
   const res = await fetch(imageUrl, {
     redirect: "follow",

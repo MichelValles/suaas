@@ -8,7 +8,6 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
  */
 
 const URL = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 let server: SupabaseClient | null = null;
@@ -28,7 +27,7 @@ export function getServerClient(): SupabaseClient {
 }
 
 export function isSupabaseConfigured(): boolean {
-  return Boolean(URL && ANON_KEY);
+  return Boolean(URL && SERVICE_ROLE_KEY);
 }
 
 /**
