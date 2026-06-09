@@ -226,6 +226,51 @@ function MetricCard({
   );
 }
 
+const GEO_ENGINES = [
+  { id: "claude",      label: "Claude",      active: true  },
+  { id: "chatgpt",     label: "ChatGPT",     active: false },
+  { id: "perplexity",  label: "Perplexity",  active: false },
+  { id: "ai-overview", label: "AI Overview", active: false },
+  { id: "gemini",      label: "Gemini",      active: false },
+] as const;
+
+function EngineTabBar() {
+  return (
+    <div
+      style={{
+        display: "flex",
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        overflowX: "auto",
+        scrollbarWidth: "none",
+      }}
+    >
+      {GEO_ENGINES.map((engine) => (
+        <span
+          key={engine.id}
+          className="mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+            padding: "9px 14px",
+            color: engine.active ? "#fff" : "rgba(255,255,255,0.22)",
+            borderBottom: engine.active
+              ? "2px solid var(--accent-500)"
+              : "2px solid transparent",
+            marginBottom: -1,
+            cursor: engine.active ? "default" : "not-allowed",
+            userSelect: "none",
+            flexShrink: 0,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {engine.label}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 function SegmentCard({
   result,
   segment,
@@ -292,47 +337,24 @@ function SegmentCard({
         <ParamRow label="Query" value={result.query} />
       </div>
 
-      {/* Respuesta simulada del buscador */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span
-            className="mono"
-            style={{
-              fontSize: 9,
-              letterSpacing: "0.22em",
-              textTransform: "uppercase",
-              color: "rgba(255,255,255,0.4)",
-            }}
-          >
-            Respuesta simulada
-          </span>
-          {result.source_engine && (
-            <span
-              className="mono"
-              style={{
-                fontSize: 9,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-                color: "var(--accent-400)",
-                border: "1px solid rgba(255,255,255,0.12)",
-                padding: "2px 8px",
-                borderRadius: "var(--radius-pill)",
-              }}
-            >
-              {result.source_engine}
-            </span>
-          )}
-        </div>
+      {/* Respuesta por motor de busqueda IA */}
+      <div
+        style={{
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "var(--radius-sm)",
+        }}
+      >
+        <EngineTabBar />
         <div
           style={{
-            background: "rgba(255,255,255,0.02)",
-            border: "1px solid rgba(255,255,255,0.06)",
-            borderRadius: "var(--radius-sm)",
             padding: 16,
             fontSize: 14,
             lineHeight: 1.6,
             color: "rgba(255,255,255,0.8)",
             fontStyle: "italic",
+            background: "rgba(255,255,255,0.015)",
+            borderBottomLeftRadius: "var(--radius-sm)",
+            borderBottomRightRadius: "var(--radius-sm)",
           }}
         >
           {result.simulated_response}
