@@ -57,6 +57,7 @@ export function ProfileLaunchPanel({
   redirectFallback,
   profiles,
   progressLabel = "Lanzando run…",
+  initialSelected,
 }: {
   title: string;
   endpoint: string;
@@ -67,10 +68,14 @@ export function ProfileLaunchPanel({
   redirectFallback?: string;
   profiles: Profile[];
   progressLabel?: string;
+  /** Perfiles preseleccionados («Repetir con esta muestra»). El panel arranca expandido. */
+  initialSelected?: string[];
 }) {
   const router = useRouter();
-  const [expanded, setExpanded] = useState(false);
-  const [selected, setSelected] = useState<string[]>([]);
+  const [expanded, setExpanded] = useState(
+    Boolean(initialSelected && initialSelected.length > 0),
+  );
+  const [selected, setSelected] = useState<string[]>(initialSelected ?? []);
   const [error, setError] = useState<string | null>(null);
   const [submitting, startSubmit] = useTransition();
   const [progress, setProgress] = useState<string | null>(null);

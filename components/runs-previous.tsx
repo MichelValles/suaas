@@ -31,6 +31,7 @@ export function RunsPreviousGrid({
   metrics,
   resultsBase,
   emptyHint,
+  repeatSampleBase,
 }: {
   runs: RunWithMetrics[];
   /** Hasta 4 métricas a mostrar por tarjeta. */
@@ -39,6 +40,13 @@ export function RunsPreviousGrid({
   resultsBase: string;
   /** Texto en el placeholder cuando aún no hay runs. */
   emptyHint?: string;
+  /**
+   * URL del detalle de la entidad. Si se pasa y el run guarda profileIds,
+   * la tarjeta ofrece «Repetir con esta muestra» (mismos perfiles
+   * preseleccionados vía ?profiles=...). Iterar sobre muestras distintas
+   * invalida la comparación entre runs.
+   */
+  repeatSampleBase?: string;
 }) {
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 18 }}>
@@ -87,6 +95,7 @@ export function RunsPreviousGrid({
               metrics={r.metrics}
               fields={metrics}
               resultsHref={`${resultsBase}/${r.run.id}`}
+              repeatSampleBase={repeatSampleBase}
             />
           ))}
         </ul>
@@ -100,11 +109,13 @@ function RunCard({
   metrics,
   fields,
   resultsHref,
+  repeatSampleBase,
 }: {
   run: RunSummary;
   metrics: Record<string, number>;
   fields: RunMetricCell[];
   resultsHref: string;
+  repeatSampleBase?: string;
 }) {
   const ids = (run.params?.profileIds as string[] | undefined) ?? [];
   const n = ids.length || (typeof metrics.n === "number" ? metrics.n : 0);
@@ -158,20 +169,42 @@ function RunCard({
         ))}
       </div>
 
-      <Link
-        href={resultsHref}
-        className="mono"
+      <div
         style={{
-          alignSelf: "flex-start",
-          fontSize: 10,
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          color: "var(--accent-text)",
+          display: "flex",
+          flexWrap: "wrap",
+          gap: "6px 18px",
           paddingTop: 4,
         }}
       >
-        Ver resultados →
-      </Link>
+        <Link
+          href={resultsHref}
+          className="mono"
+          style={{
+            fontSize: 10,
+            letterSpacing: "0.22em",
+            textTransform: "uppercase",
+            color: "var(--accent-text)",
+          }}
+        >
+          Ver resultados →
+        </Link>
+        {repeatSampleBase && ids.length > 0 && (
+          <Link
+            href={`${repeatSampleBase}?profiles=${ids.join(",")}`}
+            className="mono"
+            title="Preselecciona los mismos perfiles de este run en el panel de lanzamiento"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              color: "rgba(var(--fg),0.55)",
+            }}
+          >
+            Repetir con esta muestra →
+          </Link>
+        )}
+      </div>
     </li>
   );
 }

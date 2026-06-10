@@ -119,7 +119,7 @@ Paso final `synthesizeRecommendations` en `lib/experiments/campaign.ts` con `DEF
 
 **Por qué**: para decidir, un equipo necesita recomendaciones, no 200 filas con medias. Coste marginal de una llamada Sonnet por run y convierte el output del módulo en entregable directo.
 
-### Duplicar campaña y repetir run con la misma muestra · M · sin SQL
+### Duplicar campaña y repetir run con la misma muestra · M · sin SQL · ✅ hecho en v0.36.0
 
 1. `app/campaigns/new/page.tsx`: leer `searchParams` (en Next 16 es Promise), si llega `?from=<id>` cargar `getCampaign` en servidor y pasar prop `initial` a `NewCampaignForm`.
 2. `app/campaigns/new/new-form.tsx`: sembrar los `useState` (líneas 78-96) desde `initial` (nombre con sufijo «(copia)», strategy, brief, queries, headlines, descriptions, companyName, longHeadline, cta); landing sin resubir nada: `landingMode` «og» con `resolvedLanding = initial.landing_image_url` (la action ya reutiliza `landing_resolved_url` tal cual, líneas 97-100); creatividades mapeadas por sus URLs http(s) existentes con `upload_data` vacío.

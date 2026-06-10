@@ -88,8 +88,10 @@ function displayUrl(url: string): string {
 
 export default async function CampaignDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ profiles?: string }>;
 }) {
   const { id } = await params;
   if (!isSupabaseConfigured()) {
@@ -109,6 +111,16 @@ export default async function CampaignDetailPage({
     runs.map(async (r) => ({ run: r, metrics: await getMetricsForRun(r.id) })),
   );
 
+  // ?profiles=id1,id2 («Repetir con esta muestra» desde un run previo):
+  // preselecciona esos perfiles en el panel de lanzamiento. Se filtra contra
+  // los perfiles vivos por si alguno fue borrado desde aquel run.
+  const { profiles: profilesParam } = await searchParams;
+  const aliveIds = new Set(profiles.map((p) => p.id));
+  const initialSelected = (profilesParam ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((pid) => aliveIds.has(pid));
+
   return (
     <AppShell>
       <PageHeading
@@ -121,9 +133,14 @@ export default async function CampaignDetailPage({
         description={campaign.brief ?? undefined}
         descriptionVariant="panel"
         actions={
-          <Link href="/campaigns" className="btn-pill">
-            Volver
-          </Link>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <Link href={`/campaigns/new?from=${campaign.id}`} className="btn-pill">
+              Duplicar
+            </Link>
+            <Link href="/campaigns" className="btn-pill">
+              Volver
+            </Link>
+          </div>
         }
       />
 
@@ -457,6 +474,7 @@ export default async function CampaignDetailPage({
       <RunsPreviousGrid
         runs={runsWithMetrics}
         resultsBase="/experiments/campaign"
+        repeatSampleBase={`/campaigns/${campaign.id}`}
         emptyHint="Sin runs todavía. Lanza el primer test desde el panel de abajo."
         metrics={[
           { key: "mean_intent_to_click", label: "Intent click medio" },
@@ -469,6 +487,7 @@ export default async function CampaignDetailPage({
         title="Lanzar campaign test"
         endpoint="/api/runs/campaign"
         extraBody={{ campaignId: campaign.id }}
+        initialSelected={initialSelected}
         progressLabel={`Cada perfil evaluará el anuncio bajo ${campaign.channels.length} ${campaign.channels.length === 1 ? "canal" : "canales"} × ${Math.max(1, campaign.queries.length)} ${campaign.queries.length > 1 ? "queries" : campaign.queries.length === 1 ? "query" : "contexto de interés"} (snippet + landing condicional + versión ideal). Estimado ~${Math.ceil(campaign.channels.length * Math.max(1, campaign.queries.length) * 18)}s por perfil.`}
         kind="campaign"
         profiles={profiles}

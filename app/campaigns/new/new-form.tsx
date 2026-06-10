@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 import { ChannelIcon } from "@/components/channel-icon";
@@ -16,6 +16,7 @@ import {
   extractYouTubeId,
   isStrategyImplemented,
   youtubeThumbnail,
+  type Campaign as CampaignEntity,
   type Channel,
   type CreativeRole,
   type Strategy,
@@ -72,32 +73,66 @@ function displayUrl(url: string): string {
   }
 }
 
-export function NewCampaignForm() {
+export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEntity }) {
   const [state, formAction] = useActionState(createCampaignAction, initial);
 
-  const [name, setName] = useState("");
-  const [channel, setChannel] = useState<Channel>("google");
-  const [strategy, setStrategy] = useState<Strategy>("search");
-  const [brief, setBrief] = useState("");
-  const [finalUrl, setFinalUrl] = useState("");
+  const src = duplicateFrom;
+  const [name, setName] = useState(src ? `${src.name} (copia)` : "");
+  const [channel, setChannel] = useState<Channel>(src?.channels[0] ?? "google");
+  const [strategy, setStrategy] = useState<Strategy>(src?.strategy ?? "search");
+  const [brief, setBrief] = useState(src?.brief ?? "");
+  const [finalUrl, setFinalUrl] = useState(src?.final_url ?? "");
   const [landingMode, setLandingMode] = useState<LandingMode>("og");
   const [landingUpload, setLandingUpload] = useState<string>("");
   const [landingPreviewName, setLandingPreviewName] = useState<string>("");
-  const [resolvedLanding, setResolvedLanding] = useState<string>("");
-  const [resolveStatus, setResolveStatus] =
-    useState<"idle" | "loading" | "ok" | "error">("idle");
+  // Al duplicar se reutiliza la imagen de landing ya resuelta/subida de la
+  // campaña original (la action acepta landing_resolved_url tal cual): no
+  // hay que resubir ni volver a resolver nada.
+  const [resolvedLanding, setResolvedLanding] = useState<string>(
+    src?.landing_image_url ?? "",
+  );
+  const [resolveStatus, setResolveStatus] = useState<
+    "idle" | "loading" | "ok" | "error"
+  >(src?.landing_image_url ? "ok" : "idle");
   const [resolveError, setResolveError] = useState<string | null>(null);
-  const [queries, setQueries] = useState<string[]>([""]);
-  const [headlines, setHeadlines] = useState<string[]>(["", "", ""]);
-  const [descriptions, setDescriptions] = useState<string[]>(["", ""]);
-  const [creatives, setCreatives] = useState<Creative[]>([]);
-  const [companyName, setCompanyName] = useState("");
-  const [longHeadline, setLongHeadline] = useState("");
-  const [cta, setCta] = useState<string>("");
+  const [queries, setQueries] = useState<string[]>(
+    src && src.queries.length > 0 ? src.queries : [""],
+  );
+  const [headlines, setHeadlines] = useState<string[]>(
+    src && src.headlines.length > 0 ? src.headlines : ["", "", ""],
+  );
+  const [descriptions, setDescriptions] = useState<string[]>(
+    src && src.descriptions.length > 0 ? src.descriptions : ["", ""],
+  );
+  const [creatives, setCreatives] = useState<Creative[]>(
+    src
+      ? src.creatives
+          .filter((c) => /^https?:\/\//i.test(c.url))
+          .map((c) => ({
+            kind: c.kind,
+            role: c.role,
+            url: c.url,
+            upload_data: "",
+            label: c.label ?? "",
+            youtube_id: c.youtube_id ?? null,
+            thumbnail_url: c.thumbnail_url ?? null,
+          }))
+      : [],
+  );
+  const [companyName, setCompanyName] = useState(src?.company_name ?? "");
+  const [longHeadline, setLongHeadline] = useState(src?.long_headline ?? "");
+  const [cta, setCta] = useState<string>(src?.cta ?? "");
 
   // Cuando el usuario cambia la URL final, invalidamos la imagen resuelta para
-  // que vuelva a pulsar el botón explícitamente. Evita previews stale.
+  // que vuelva a pulsar el botón explícitamente. Evita previews stale. Se
+  // salta el mount: al duplicar, finalUrl y resolvedLanding llegan sembrados
+  // y el primer pase no debe invalidarlos.
+  const skipFirstInvalidate = useRef(true);
   useEffect(() => {
+    if (skipFirstInvalidate.current) {
+      skipFirstInvalidate.current = false;
+      return;
+    }
     if (resolvedLanding) {
       setResolvedLanding("");
       setResolveStatus("idle");

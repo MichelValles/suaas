@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.36.x · Campañas: loop de iteración (plan CAMPANAS-PLAN-MEJORA, release 2 de 6)
+
+- [x] **v0.36.0 · Duplicar campaña y repetir run con la misma muestra**: `/campaigns/new?from=<id>` siembra el formulario con la campaña original (nombre con sufijo «(copia)», estrategia, brief, queries, headlines, descriptions, campos Display y creatividades reutilizadas por URL, sin resubir nada; la landing reutiliza `landing_image_url` vía `landing_resolved_url`). Botón «Duplicar» en el detalle. `RunsPreviousGrid` gana `repeatSampleBase`: cada run previo ofrece «Repetir con esta muestra» (`?profiles=id1,id2`), el detalle filtra los ids contra los perfiles vivos y `ProfileLaunchPanel` (prop `initialSelected` nueva) arranca expandido con esa selección. Cierra el flujo: duplicar, cambiar una cosa, relanzar sobre los mismos perfiles.
+
 ## v0.35.x · Campañas: fidelidad y honestidad (plan CAMPANAS-PLAN-MEJORA, release 1 de 6)
 
 Primera release del plan de mejora del módulo de campañas (`docs/CAMPANAS-PLAN-MEJORA.md`). Cada mejora se publica de una en una con su propio ciclo de deploy.
