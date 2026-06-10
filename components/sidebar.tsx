@@ -43,6 +43,38 @@ const SYSTEM_ITEMS = [
   { href: "/seed-examples", label: "Sembrar", icon: Sprout, exact: false },
 ];
 
+const GRAVITY_PLANES: Array<{
+  label: string;
+  color: string;
+  modules: Array<{ href: string; label: string; note: string }>;
+  pending?: string;
+}> = [
+  {
+    label: "Construction",
+    color: "#60a5fa",
+    modules: [
+      { href: "/profiles", label: "Perfiles", note: "Perfil comportamental · JTBD intent_context · Talker-Reasoner" },
+      { href: "/momentum", label: "Momentum", note: "Intent Momentum ante-touchpoint · Triggers" },
+      { href: "/targets", label: "Claridad 5s", note: "Conducta óptima · fuga · repesca" },
+      { href: "/funnels", label: "Embudos", note: "Certeza predictiva · fricción por paso" },
+    ],
+  },
+  {
+    label: "Acceleration",
+    color: "#fb923c",
+    modules: [
+      { href: "/geo", label: "GEO Tester", note: "Visibilidad en motores IA por JTBD" },
+      { href: "/campaigns", label: "Campañas", note: "Mensaje ideal por perfil e intención" },
+    ],
+  },
+  {
+    label: "Value",
+    color: "#a78bfa",
+    modules: [],
+    pending: "aha moment · capas de activación",
+  },
+];
+
 export function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -136,6 +168,8 @@ export function Sidebar() {
               />
             ))}
           </NavGroup>
+
+          <GravityModelSection pathname={pathname} />
         </nav>
       </aside>
     </>
@@ -197,4 +231,137 @@ function isActive(pathname: string, href: string, exact: boolean): boolean {
   if (exact) return pathname === href;
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function GravityModelSection({ pathname }: { pathname: string }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <span
+        className="mono"
+        style={{
+          padding: "0 12px",
+          fontSize: 9,
+          letterSpacing: "0.28em",
+          textTransform: "uppercase",
+          color: "rgba(255,255,255,0.35)",
+        }}
+      >
+        Gravity Model
+      </span>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, paddingTop: 4 }}>
+        {GRAVITY_PLANES.map((plane) => (
+          <div key={plane.label}>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                padding: "1px 12px 4px",
+              }}
+            >
+              <div
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: "50%",
+                  background: plane.color,
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                className="mono"
+                style={{
+                  fontSize: 8,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: plane.color,
+                  opacity: 0.85,
+                }}
+              >
+                {plane.label}
+              </span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              {plane.modules.length > 0 ? (
+                plane.modules.map((mod) => {
+                  const active = isActive(pathname, mod.href, false);
+                  return (
+                    <Link
+                      key={mod.href}
+                      href={mod.href}
+                      className="gm-link"
+                      style={{
+                        marginLeft: 10,
+                        borderLeft: `2px solid ${active ? plane.color : "transparent"}`,
+                        padding: "4px 12px 3px 12px",
+                      }}
+                    >
+                      <span
+                        className="mono"
+                        style={{
+                          display: "block",
+                          fontSize: 11,
+                          color: active ? plane.color : "rgba(255,255,255,0.6)",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {mod.label}
+                      </span>
+                      <span
+                        style={{
+                          display: "block",
+                          fontSize: 9,
+                          color: "rgba(255,255,255,0.28)",
+                          lineHeight: 1.4,
+                          marginTop: 2,
+                          fontFamily: "var(--font-sans)",
+                        }}
+                      >
+                        {mod.note}
+                      </span>
+                    </Link>
+                  );
+                })
+              ) : (
+                <div
+                  style={{
+                    marginLeft: 10,
+                    borderLeft: "2px solid transparent",
+                    padding: "4px 12px 3px 12px",
+                  }}
+                >
+                  <span
+                    className="mono"
+                    style={{
+                      display: "block",
+                      fontSize: 11,
+                      color: "rgba(255,255,255,0.2)",
+                      fontStyle: "italic",
+                      lineHeight: 1.3,
+                    }}
+                  >
+                    pendiente
+                  </span>
+                  {plane.pending && (
+                    <span
+                      style={{
+                        display: "block",
+                        fontSize: 9,
+                        color: "rgba(255,255,255,0.15)",
+                        lineHeight: 1.4,
+                        marginTop: 2,
+                        fontFamily: "var(--font-sans)",
+                      }}
+                    >
+                      {plane.pending}
+                    </span>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }

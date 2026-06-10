@@ -654,6 +654,16 @@ textarea.backstory-input:focus-visible {
   color: var(--accent-500);
 }
 
+.gm-link {
+  display: block;
+  text-decoration: none;
+  transition: background var(--dur-micro) var(--ease-out);
+}
+.gm-link:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-xs, 3px);
+}
+
 .sidebar-burger {
   display: none;
   position: fixed;
