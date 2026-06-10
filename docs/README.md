@@ -9,6 +9,7 @@
 | [`DESARROLLO.md`](./DESARROLLO.md) | Comandos, env vars, deploy a Vercel, subdominio, troubleshooting. |
 | [`ROADMAP.md`](./ROADMAP.md) | Estado actual, próximos hitos, decisiones abiertas. |
 | [`SIGUIENTE-PASO.md`](./SIGUIENTE-PASO.md) | **Handoff entre sesiones**. Por dónde empezar, qué verificar, plan concreto del próximo sprint. Actualizar al cerrar cada sprint. |
+| [`CAMPANAS-PLAN-MEJORA.md`](./CAMPANAS-PLAN-MEJORA.md) | Plan de mejora del módulo de campañas: diagnóstico, quick wins, releases mayores (v0.35 a v0.40), descartados y orden. Salido de investigación multiagente verificada contra el código. |
 | [`CONOCIMIENTO-USUARIOS-SINTETICOS.md`](./CONOCIMIENTO-USUARIOS-SINTETICOS.md) | Base teórica del **motor**: vignettes grounded, Talker-Reasoner, métricas, riesgos. Fuente fundacional de la plataforma. |
 | [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md) | Base teórica del **marco estratégico**: Intent Momentum, los tres planos de influencia, hipersegmentación JTBD, instancias, conductas óptima/fuga/repesca, GEO, propiedad psicológica. Incluye el mapa teoría → implementación y los huecos pendientes. |
 | [`AUDITORIA-SEGURIDAD.md`](./AUDITORIA-SEGURIDAD.md) | Auditorías de seguridad, estabilidad y robustez (acumulativo, la más reciente primero). |

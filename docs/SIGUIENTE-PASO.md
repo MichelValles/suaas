@@ -1,9 +1,16 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-10 tras v0.33.0 (capa de temas + limpieza anti-AI-slop).
+> Última actualización: 2026-06-11 tras v0.34.0 (papelera coherente en históricos + MigrationPendingError + diag de migraciones).
 
-## Estado actual (v0.33.0 desplegada)
+## Estado actual (v0.34.0 desplegada)
+
+- **Papelera coherente en históricos (v0.34)**: las vistas de resultados cargan entidades en papelera vía `getXWithTrashed` en `lib/{targets,ab,campaigns,copy,funnels,pricing}.ts` (un borrado ya no rompe runs antiguos). `/ab/[id]`, `/geo/[id]` y `/momentum/[id]` muestran aviso «En papelera» y bloquean el lanzamiento de runs nuevos (rechazo server-side incluido). Los enlaces de cabecera de las vistas históricas apuntan al listado si la entidad está en papelera (antes llevaban a un 404).
+- **`MigrationPendingError` (v0.34)**: clase nueva en `lib/supabase.ts`; softDelete/restore de geo, momentum y perfiles devuelven 409 con mensaje seguro si falta la migración `0017`.
+- **Diag ampliado (v0.34)**: auditoría de columnas críticas por migración (`CRITICAL_COLUMNS`) sobre varias tablas, `geo_analyses` y `momentum_challenges` incluidas, y `pending_migrations` en el JSON de `/api/diag` (incluye la migración creadora si falta la tabla entera).
+- **Próximo sprint recomendado**: el **plan de mejora del módulo de campañas** (`docs/CAMPANAS-PLAN-MEJORA.md`), resumido más abajo en «Próximo paso candidato».
+
+## Estado anterior (v0.33.0)
 
 - **Capa de temas (v0.33)**: oscuro por defecto con switch de modo claro al pie del sidebar (`components/theme-switch.tsx`, localStorage `suaas-theme`, script anti-FOUC en `app/layout.tsx`). Canal `--fg` + `--surface-app/panel`, `--text-strong`, `--accent-text` y semánticos `--{success,warning,error}-text` en `globals.css`. Codemod migró 791 `rgba(255,255,255,x)` en 64 archivos. Login y `/onboard` van con `.theme-dark-fixed` (siempre oscuros).
 - **Limpieza anti-AI-slop (v0.33)**: erradicado el arcoíris Tailwind (azul/naranja/violeta de los planos en home y `/gravity`, semáforo verde/amarillo/rojo en GEO/Momentum/chat/5s) y los glows neón. Planos ahora con numeración editorial `01·02·03` en accent y diagrama orbital monocromo con centro accent. Reglas nuevas documentadas en `docs/SISTEMA-DISENO.md → Tema` y `Antipatrones`.
@@ -67,7 +74,20 @@ Sistemas auxiliares: `/diag`, `/tokens`, `/trash` (soft delete con `deleted_at`,
 
 ## Próximo paso candidato
 
-Tres opciones en orden de impacto:
+**Recomendado: plan de mejora del módulo de campañas.** Detalle completo (diagnóstico, quick wins, releases mayores, descartados y orden) en [`CAMPANAS-PLAN-MEJORA.md`](./CAMPANAS-PLAN-MEJORA.md). Sale de una investigación multiagente del módulo (2026-06-11), verificada contra el código. Resumen del diagnóstico: cuatro frentes de deuda (fidelidad metodológica con el brief filtrado al persona, robustez del runner que cae entero ante un fallo y deja runs zombi, deuda de esquema con 8 migraciones y RLS apagado, y loop de producto roto sin duplicar/comparar/exportar). Plan en cinco releases:
+
+| Release | Contenido | SQL |
+|---|---|---|
+| **v0.35 · Fidelidad y honestidad** | Retirar brief del prompt, razonamiento antes del score, bugs latentes del runner, métricas honestas («Intent ≥ 0,5» en vez de «CTR»), frontera de BD tipada | No |
+| **v0.36 · Loop de iteración** | Duplicar campaña, repetir run con la misma muestra, export CSV/Ads Editor, comparativa run vs run | No |
+| **v0.37 · Consolidación de BD** | Migración `0019` (`suaas_migrations`, RLS, checks reales, drop `channel` legacy) + poda de fallbacks | Sí |
+| **v0.38 · Robustez operativa** | Runner tolerante a fallos con progreso y reanudación, presupuesto de tokens con estimación previa | No |
+| **v0.39 · Profundidad** | Juez neutral de comprensión, `behavior_class` del Gravity Model, tabla interactiva, síntesis «Qué cambiar» | Sí |
+| **v0.40 · Ranking por asset** | Muestreo de combinaciones RSA y rendimiento por titular | Sí |
+
+Empezar por v0.35: es lo más barato, no toca SQL y corrige el sesgo de fidelidad cuanto antes (menos histórico contaminado). En la sesión de SQL de v0.37, agrupar también las columnas de v0.39 y v0.40.
+
+## Otros candidatos (aplazados)
 
 ### A) Implementar la 3ª estrategia de Google Ads
 
@@ -80,7 +100,7 @@ Las dos con más músculo son **Performance Max** y **Shopping** porque introduc
 
 ### B) Activar multi-canal real (Meta / LinkedIn / TikTok / X)
 
-El esquema `channels text[]` ya está. Falta:
+El esquema `channels text[]` ya está, pero el plan de campañas lo deja explícitamente aplazado (fidelidad falsa sin caps por red). Falta:
 
 1. Caps de caracteres reales por red en `lib/campaigns.ts` (hoy todas usan 30/90 de Search RSA).
 2. Framing por red en el runner (Meta-feed, LinkedIn-newsfeed, etc.).
