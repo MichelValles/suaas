@@ -169,13 +169,29 @@ function SummaryStrip({ challenge }: { challenge: MomentumChallenge }) {
           gap: 12,
         }}
       >
-        <MetricCard label="Activos" value={String(approaching)} color="#4ade80" />
-        <MetricCard label="Latentes" value={String(stable)} color="#facc15" />
-        <MetricCard label="Inactivos" value={String(drifting)} color="#f87171" />
+        <MetricCard
+          label="Activos"
+          value={String(approaching)}
+          color="#4ade80"
+          tooltip="El perfil se mueve hacia una solución: el Trigger tiene suficiente peso para que actúe a corto plazo."
+        />
+        <MetricCard
+          label="Latentes"
+          value={String(stable)}
+          color="#facc15"
+          tooltip="El perfil es consciente del Trigger pero no actúa todavía: lo tiene en radar, frenado por fricciones o prioridades."
+        />
+        <MetricCard
+          label="Inactivos"
+          value={String(drifting)}
+          color="#f87171"
+          tooltip="El perfil pospone el Trigger indefinidamente o lo descarta: el peso gravitacional no es suficiente para moverle."
+        />
         <MetricCard
           label="Intensidad media"
           value={avgIntensity !== null ? `${Math.round(avgIntensity * 100)}%` : "-"}
           color={intensityColor}
+          tooltip="Fuerza promedio del intent de 0 a 100. A mayor intensidad, más probable que el perfil busque una solución próximamente."
         />
       </div>
 
@@ -215,13 +231,16 @@ function MetricCard({
   label,
   value,
   color,
+  tooltip,
 }: {
   label: string;
   value: string;
   color?: string;
+  tooltip?: string;
 }) {
   return (
     <div
+      data-tooltip={tooltip}
       style={{
         border: "1px solid rgba(255,255,255,0.08)",
         borderRadius: "var(--radius-md)",
@@ -229,6 +248,7 @@ function MetricCard({
         display: "flex",
         flexDirection: "column",
         gap: 10,
+        cursor: tooltip ? "help" : undefined,
       }}
     >
       <span
