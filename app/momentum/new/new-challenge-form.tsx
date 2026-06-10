@@ -125,6 +125,7 @@ function ProfileRow({
         background: selected ? "rgba(255,255,255,0.03)" : "transparent",
         transition: "border-color 0.15s, background 0.15s",
         overflow: "hidden",
+        flexShrink: 0,
       }}
     >
       {/* Fila superior: checkbox + nombre + demografía */}
