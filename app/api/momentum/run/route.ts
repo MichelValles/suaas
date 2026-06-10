@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { budgetGate } from "@/lib/budget";
 import { internalError, serviceUnavailable, validationError } from "@/lib/error-response";
 import { runMomentumChallenge } from "@/lib/momentum";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -21,6 +22,8 @@ export async function POST(req: Request) {
   if (!isSupabaseConfigured()) {
     return serviceUnavailable("Supabase no configurado.");
   }
+  const gate = await budgetGate();
+  if (gate) return gate;
   let body: unknown;
   try {
     body = await req.json();

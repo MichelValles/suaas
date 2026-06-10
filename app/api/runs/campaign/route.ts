@@ -1,5 +1,6 @@
 import { after } from "next/server";
 import { z } from "zod";
+import { budgetGate } from "@/lib/budget";
 import {
   internalError,
   serviceUnavailable,
@@ -35,6 +36,8 @@ export async function POST(request: Request) {
   if (!isGatewayConfigured()) {
     return serviceUnavailable("AI Gateway no configurado.");
   }
+  const gate = await budgetGate();
+  if (gate) return gate;
   let parsed: z.infer<typeof BodySchema>;
   try {
     parsed = BodySchema.parse(await request.json());

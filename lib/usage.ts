@@ -89,6 +89,88 @@ export async function recordUsage(input: {
 }
 
 // ============================================================
+// Presupuesto y estimación
+// ============================================================
+
+/** Tokens consumidos en las últimas 24 horas (todas las llamadas, todos los scopes). */
+export async function getTokensLast24h(): Promise<number> {
+  if (!isSupabaseConfigured()) return 0;
+  const supa = getServerClient();
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const { data, error } = await supa
+    .from("gateway_usage")
+    .select("prompt_tokens, completion_tokens, total_tokens")
+    .gte("created_at", since);
+  if (error) {
+    console.warn("[getTokensLast24h] select failed", error.message);
+    return 0;
+  }
+  return (data ?? []).reduce((acc, r) => {
+    const t =
+      (r.total_tokens as number | null) ??
+      ((r.prompt_tokens as number | null) ?? 0) +
+        ((r.completion_tokens as number | null) ?? 0);
+    return acc + t;
+  }, 0);
+}
+
+export type ScopeAverage = {
+  scope: UsageScope;
+  /** Media de tokens por llamada en la muestra. 0 si no hay histórico. */
+  avgTokens: number;
+  /** Media de latencia (ms) si las filas guardan meta.latency_ms. */
+  avgLatencyMs: number | null;
+  n: number;
+};
+
+/**
+ * Medias empíricas por scope sobre las últimas `sample` llamadas de cada uno.
+ * Alimenta la estimación de coste previa al lanzamiento de un run.
+ */
+export async function getScopeAverages(
+  scopes: UsageScope[],
+  sample = 200,
+): Promise<ScopeAverage[]> {
+  if (!isSupabaseConfigured()) {
+    return scopes.map((scope) => ({ scope, avgTokens: 0, avgLatencyMs: null, n: 0 }));
+  }
+  const supa = getServerClient();
+  return Promise.all(
+    scopes.map(async (scope) => {
+      const { data, error } = await supa
+        .from("gateway_usage")
+        .select("prompt_tokens, completion_tokens, total_tokens, meta")
+        .eq("scope", scope)
+        .order("created_at", { ascending: false })
+        .limit(sample);
+      if (error || !data || data.length === 0) {
+        return { scope, avgTokens: 0, avgLatencyMs: null, n: 0 };
+      }
+      let tokens = 0;
+      let latencySum = 0;
+      let latencyN = 0;
+      for (const r of data) {
+        tokens +=
+          (r.total_tokens as number | null) ??
+          ((r.prompt_tokens as number | null) ?? 0) +
+            ((r.completion_tokens as number | null) ?? 0);
+        const lat = (r.meta as Record<string, unknown> | null)?.latency_ms;
+        if (typeof lat === "number") {
+          latencySum += lat;
+          latencyN += 1;
+        }
+      }
+      return {
+        scope,
+        avgTokens: tokens / data.length,
+        avgLatencyMs: latencyN > 0 ? latencySum / latencyN : null,
+        n: data.length,
+      };
+    }),
+  );
+}
+
+// ============================================================
 // Lectura agregada (para la página /tokens)
 // ============================================================
 

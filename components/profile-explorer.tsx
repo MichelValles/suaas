@@ -36,6 +36,8 @@ export type ProfileExplorerProps = {
   profiles: Profile[];
   mode: "manage" | "picker";
   initialView?: ViewMode;
+  /** Ids preseleccionados al montar (p.ej. «Repetir con esta muestra»). */
+  initialSelected?: string[];
   onSelectionChange?: (ids: string[]) => void;
   onDelete?: (id: string) => Promise<void> | void;
   extraActions?: (ctx: { visible: Profile[]; selectedIds: string[] }) => React.ReactNode;
@@ -45,6 +47,7 @@ export function ProfileExplorer({
   profiles,
   mode,
   initialView = "grid",
+  initialSelected,
   onSelectionChange,
   onDelete,
   extraActions,
@@ -52,7 +55,9 @@ export function ProfileExplorer({
   const [view, setView] = useState<ViewMode>(initialView);
   const [filters, setFilters] = useState<ProfileFilters>(DEFAULT_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(
+    () => new Set(initialSelected ?? []),
+  );
   const [sort, setSort] = useState<SortState>(null);
   const [page, setPage] = useState(1);
 

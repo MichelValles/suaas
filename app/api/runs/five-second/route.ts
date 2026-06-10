@@ -4,6 +4,7 @@ import {
   serviceUnavailable,
   validationError,
 } from "@/lib/error-response";
+import { budgetGate } from "@/lib/budget";
 import { isGatewayConfigured } from "@/lib/gateway";
 import { runFiveSecondTest } from "@/lib/experiments/five-second";
 
@@ -20,6 +21,8 @@ export async function POST(request: Request) {
   if (!isGatewayConfigured()) {
     return serviceUnavailable("AI Gateway no configurado.");
   }
+  const gate = await budgetGate();
+  if (gate) return gate;
 
   let parsed: z.infer<typeof BodySchema>;
   try {

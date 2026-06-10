@@ -80,7 +80,7 @@ En `lib/experiments/campaign.ts`: aplanar a una cola perfil × canal × query co
 
 **Por qué**: los dos peores modos de fallo verificados. Un único error en 200 combinaciones tumba el run descartando trabajo ya pagado en Opus, y el cap de 200 combos (hasta 50 secuenciales por carril a 15-40s) no cabe en `maxDuration=300`, dejando runs zombi en «running» sin ruta hacia las respuestas que sí se persistieron. La persistencia incremental ya existe: solo falta exponerla.
 
-### Presupuesto diario de tokens y estimación de coste previa · M · sin SQL
+### Presupuesto diario de tokens y estimación de coste previa · M · sin SQL · ✅ hecho en v0.38.1 (la comparación Opus vs Sonnet queda como tarea operativa: lanzar dos runs idénticos y comparar con gateway_usage)
 
 1. `lib/usage.ts`: `getTokensLast24h()` con select agregado sobre `gateway_usage`.
 2. Nuevo `lib/budget.ts`: `assertBudget()` que lanza `BudgetExceededError` si se supera `SUAAS_DAILY_TOKEN_BUDGET` (env var), llamada al inicio de todos los runners y mapeada a 429 en las rutas.

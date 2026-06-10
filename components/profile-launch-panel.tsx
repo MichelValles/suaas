@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { ProfileExplorer } from "@/components/profile-explorer";
 import type { Profile } from "@/lib/profiles";
 
@@ -58,6 +58,8 @@ export function ProfileLaunchPanel({
   profiles,
   progressLabel = "Lanzando run…",
   initialSelected,
+  combosPerProfile,
+  estimateEndpoint,
 }: {
   title: string;
   endpoint: string;
@@ -70,6 +72,13 @@ export function ProfileLaunchPanel({
   progressLabel?: string;
   /** Perfiles preseleccionados («Repetir con esta muestra»). El panel arranca expandido. */
   initialSelected?: string[];
+  /**
+   * Combinaciones que genera cada perfil (canales × queries). Si se pasa,
+   * el cap de 200 combinaciones se valida en cliente antes del submit.
+   */
+  combosPerProfile?: number;
+  /** GET que estima coste; recibe &profiles=N. Se consulta al cambiar la selección. */
+  estimateEndpoint?: string;
 }) {
   const router = useRouter();
   const [expanded, setExpanded] = useState(
@@ -79,6 +88,37 @@ export function ProfileLaunchPanel({
   const [error, setError] = useState<string | null>(null);
   const [submitting, startSubmit] = useTransition();
   const [progress, setProgress] = useState<string | null>(null);
+  const [estimate, setEstimate] = useState<{
+    est_tokens: number | null;
+    est_seconds: number | null;
+    budget: { limit: number; spent_24h: number } | null;
+  } | null>(null);
+
+  // Estimación de coste previa: se consulta (con debounce) al cambiar la
+  // selección, si la página de detalle pasó un endpoint de estimación.
+  useEffect(() => {
+    if (!estimateEndpoint || selected.length === 0) {
+      setEstimate(null);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const sep = estimateEndpoint.includes("?") ? "&" : "?";
+        const res = await fetch(`${estimateEndpoint}${sep}profiles=${selected.length}`);
+        const json = await res.json();
+        if (res.ok && json.ok) {
+          setEstimate({
+            est_tokens: json.est_tokens ?? null,
+            est_seconds: json.est_seconds ?? null,
+            budget: json.budget ?? null,
+          });
+        }
+      } catch {
+        // la estimación es informativa: un fallo no bloquea nada
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [estimateEndpoint, selected.length]);
 
   function launch() {
     setError(null);
@@ -88,6 +128,12 @@ export function ProfileLaunchPanel({
     }
     if (selected.length > 20) {
       setError("Máximo 20 perfiles por run.");
+      return;
+    }
+    if (combosPerProfile && selected.length * combosPerProfile > 200) {
+      setError(
+        `${selected.length} perfiles × ${combosPerProfile} combinaciones por perfil = ${selected.length * combosPerProfile}. Máximo 200 por run: reduce la selección.`,
+      );
       return;
     }
     setProgress(progressLabel);
@@ -255,6 +301,14 @@ export function ProfileLaunchPanel({
           {selected.length === 0
             ? "Marca al menos 1 perfil. Máx 20 por run."
             : `${selected.length}/${Math.min(profiles.length, 20)} seleccionados.`}
+          {estimate?.est_tokens != null && selected.length > 0 && (
+            <>
+              {" "}· estimado ~{Math.round(estimate.est_tokens / 1000).toLocaleString("es-ES")}k tokens
+              {estimate.est_seconds != null && ` · ~${estimate.est_seconds}s`}
+              {estimate.budget &&
+                ` · presupuesto 24h: ${Math.round((estimate.budget.spent_24h / estimate.budget.limit) * 100)}% usado`}
+            </>
+          )}
         </span>
       </div>
 
@@ -304,6 +358,7 @@ export function ProfileLaunchPanel({
           profiles={profiles}
           mode="picker"
           initialView="table"
+          initialSelected={initialSelected}
           onSelectionChange={setSelected}
         />
       )}
