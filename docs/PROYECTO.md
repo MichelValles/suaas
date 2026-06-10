@@ -1,6 +1,6 @@
 # Proyecto
 
-> **Estado de este documento**: refleja el código a fecha de `v0.26.x` (2026-05). Si tocas estructura, schema o flujos, actualízalo en la misma sesión (regla `CLAUDE.md`).
+> **Estado de este documento**: refleja el código a fecha de `v0.30.4` (2026-06). Si tocas estructura, schema o flujos, actualízalo en la misma sesión (regla `CLAUDE.md`).
 
 ## Qué es
 
@@ -247,7 +247,7 @@ Login con **password global** `ACCESS_PASSWORD` (env), fallback dev `michel101`.
 
 Flujo:
 1. `proxy.ts` intercepta cada request (matcher excluye `_next/static`, `_next/image`).
-2. Si la ruta está en `PUBLIC_PATHS` (`/login`, `/api/auth`, `/robots.txt`, `/favicon.ico`, `/_next/*`, `/logos/*`, iconos) o cumple los regex de favicons, pasa sin auth.
+2. Si la ruta está en `PUBLIC_PATHS` (`/login`, `/api/auth`, `/robots.txt`, `/favicon.ico`), empieza por `/_next/` o `/logos/`, es del onboard público (`/onboard`, `/onboard/*`, `/api/onboard/*`), es `/api/qr`, o cumple los regex de favicons, pasa sin auth. **Toda ruta pública nueva amplía la superficie sin login: tratarla con el mismo rigor que el onboard** (rate limit, validación, errores genéricos).
 3. Si no, comprueba `auth_suaas` cookie. Si no es `"ok"`, redirige a `/login`.
 
 `verifyAccessPassword` usa `crypto.timingSafeEqual` y, en producción, sin `ACCESS_PASSWORD` definida devuelve `null` y rechaza todo intento.
@@ -270,22 +270,24 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 
 | Tabla | Propósito | Notas |
 |---|---|---|
-| `profiles` | Vignettes grounded: `demographics` jsonb (edad/género/ocupación/ingresos/geo), `big_five` jsonb (O/C/E/A/N 0..1), `com_b_barriers` jsonb (capability/opportunity/motivation arrays), `backstory` text, `source`. | Trigger `updated_at`. |
+| `profiles` | Vignettes grounded: `demographics` jsonb (edad/género/ocupación/ingresos/geo), `big_five` jsonb (O/C/E/A/N 0..1), `com_b_barriers` jsonb (capability/opportunity/motivation arrays), `backstory` text, `source`, `intent_context` text (JTBD, v0.29, se inyecta en todos los system prompts del perfil). | Trigger `updated_at`. |
 | `targets` | Pantalla evaluable. `kind` + `payload` jsonb (kind `5s_test` con `main_promise`, `image_url`, `source_url?`). | `deleted_at` desde 0007. |
 | `runs` | Sesión de simulación. `profile_id` (owner del run), `kind`, `status`, `params jsonb`, `created_at`, `finished_at`. FKs nullable: `target_id`, `funnel_id`, `ab_test_id`, `copy_deck_id`, `pricing_offer_id`, `campaign_id`. |
 | `messages` | Trazas por turno. `role`: `human | talker | reasoner | system`. `meta jsonb` con `model`, `tokens`, `latency`, `plan` (para reasoner). |
 | `metrics` | Resultados agregados por run: pares `(key, value, unit)`. |
-| `five_second_responses` | `(run_id, profile_id)` único. `recall`, `perceived_offer`, `clarity`, `comprehension_rate`, `barriers_detected text[]`, `meta jsonb`. |
+| `five_second_responses` | `(run_id, profile_id)` único. `recall`, `perceived_offer`, `clarity`, `comprehension_rate`, `barriers_detected text[]`, `behavior_class` (`optima`/`fuga`/`repesca`, v0.29, check nullable), `meta jsonb`. |
 | `funnels` | `name`, `description`, `deleted_at`. |
 | `funnel_steps` | `funnel_id`, `position` (único), `name`, `intent`, `payload jsonb {kind:"url", image_url, source_url?}`. |
 | `funnel_step_responses` | `(run_id, profile_id, step_id)` único. `position`, `perception`, `intent_match`, `effort`, `friction text[]`, `would_continue`, `reasoning`, `meta`. Sólo filas para pasos evaluados (dropoff corta). |
-| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy: `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`. |
+| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy: `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `onboard_synthesize`, `geo_probe`, `momentum_probe`. (`seed_profile` no es un scope: `lib/seed-profiles.ts` usa `reasoner_chat` con `meta.kind`. El JTBD de `batch-intent` no registra scope propio.) |
 | `ab_tests` | `target_a_id` ≠ `target_b_id` (check). `hypothesis`. `deleted_at`. |
 | `ab_test_runs` | Vincula `(ab_test_id, run_id, variant 'A'|'B')`. Unique. |
 | `copy_decks` + `copy_blocks` + `copy_responses` | Deck con 2..10 bloques. Reacción `(run, profile, block)` con sentiment/clarity/persuasion/would_click/critique. |
 | `pricing_offers` + `pricing_prices` + `pricing_responses` | Oferta + 2..8 precios. Reacción por (run, profile, price) con would_buy/willingness_to_pay/perceived_value/critique. |
 | `campaigns` | **Módulo Campañas** (ver sección dedicada). |
 | `campaign_responses` | `(run_id, profile_id, query, channel)` único (multichannel). |
+| `geo_analyses` | **GEO Tester** (v0.29, Gravity Model). `name`, `brand_name`, `brand_description`, `segments jsonb` (array de SegmentInput: label/jtbd/query), `results jsonb` (array de SegmentResult), `status` (`pending`/`running`/`done`/`error`). Índice `created_at DESC`. Sin tabla de runs: el análisis vive entero en la fila. |
+| `momentum_challenges` | **Momentum** (v0.30, Gravity Model). `name`, `trigger_scenario`, `brand_context` (nullable), `profile_ids uuid[]`, `results jsonb` (array de ProfileMomentumResult), `status` (`pending`/`running`/`done`/`error`). Sin índice extra. |
 
 ### Migraciones (orden estricto)
 
@@ -303,6 +305,8 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 12. `0012_campaigns_headlines_fix.sql` (idempotente, parche por si 0009 no se aplicó)
 13. `0013_campaigns_strategy.sql`
 14. `0014_campaigns_display.sql`
+15. `0015_gravity_model.sql` (Gravity Model v0.29: `profiles.intent_context`, `five_second_responses.behavior_class`, tabla `geo_analyses`)
+16. `0016_momentum.sql` (Momentum v0.30: tabla `momentum_challenges`)
 
 Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado.
 
@@ -408,6 +412,32 @@ Telemetría: `gateway_usage` con scopes `campaign_probe`, `campaign_landing`, `c
 `normalizeCampaign(row)` en `lib/campaigns.ts`: si la fila no tiene `channels` (BD pre-0011), lee el `channel` legacy y lo envuelve. Si no tiene `strategy` (pre-0013), cae a `"search"`. Esto evita 500 en `/campaigns` cuando se despliega código nuevo antes de aplicar la migración correspondiente.
 
 `createCampaign` intenta primero el shape moderno; si Postgres responde "columna no existe", hace fallback al shape anterior con `console.warn` accionable.
+
+## Módulos Gravity Model (v0.29-v0.30)
+
+Cuatro funcionalidades que modelan la intención del usuario como un vector (intensidad, dirección, velocidad) en lugar de como demografía estática.
+
+### 1. Contexto JTBD en perfiles (`intent_context`)
+
+Campo libre en `profiles`. Formato recomendado «Cuando [situación], quiero [motivación] para poder [resultado]». `buildSystemPrompt` lo inyecta como bloque «Contexto de intención (JTBD)» en TODAS las llamadas que usan ese perfil (chat, 5s, campaña, momentum, etc.). Editable en el form de perfil. Generable en lote por LLM vía `POST /api/profiles/batch-intent` (procesa los 10 perfiles más recientes; `force` regenera los que ya tienen contexto). Migración `0015`.
+
+### 2. Intent Momentum en el chat
+
+`ReasonerPlanSchema` (en `lib/agents.ts`) incluye un objeto `momentum` con `intensity` (0..1), `direction` (`approaching`/`stable`/`drifting`) y `velocity` (`accelerating`/`steady`/`decelerating`). El Reasoner lo rellena cada turno sin llamada extra. El `ChatPanel` lo pinta como `MomentumIndicator` bajo el razonamiento.
+
+### 3. Clasificación de conducta 5s (`behavior_class`)
+
+`ProbeOutputSchema` (en `lib/experiments/five-second.ts`) añade `behavior_class` (`optima` = comprende y avanza, `fuga` = carga cognitiva alta, abandona, `repesca` = duda pero intención viva). El LLM clasifica su propia conducta durante el probe (sin llamada extra). Se persiste en `five_second_responses` y la página de resultados muestra la distribución. Migración `0015`.
+
+### 4. GEO Tester (Generative Engine Optimization) — `lib/geo.ts`
+
+Simula cómo un buscador IA (Perplexity / Google AI Overview / ChatGPT Search) describe la marca ante cada segmento de intención (JTBD). Por segmento produce `source_engine`, `simulated_response`, `brand_mentioned`, `brand_position`, `visibility_score`, `recommendation_tone`, `key_claims`, `missing_attributes`. Runner serie por segmento (`runGeoAnalysis`), scope `geo_probe`. Rutas: `/geo` (lista), `/geo/new`, `/geo/[id]` (resultados + botón Analizar). API: `POST /api/geo/run` `{ geoId }`. Tabla `geo_analyses`. Migración `0015`.
+
+### 5. Momentum (Intent Momentum ante-touchpoint) — `lib/momentum.ts`
+
+Define **Triggers** (escenarios de activación JTBD) y simula cómo cada perfil los abordaría en su vida real, antes de que ninguna marca entre en su radar. Por perfil: `intent_narrative` (1ª persona), `intensity`, `direction`, `velocity`, `first_steps`, `channels`, `barriers`, `jtbd_expressed`. Runner serie por perfil (`runMomentumChallenge`), scope `momentum_probe`. Rutas: `/momentum` (lista), `/momentum/new`, `/momentum/[id]`. API: `POST /api/momentum` (crear), `POST /api/momentum/run` `{ challengeId }`. Tabla `momentum_challenges`. Migración `0016`.
+
+> **Patrón de estado de GEO/Momentum**: el análisis vive entero en la fila (`status` + `results jsonb`), no usa la tabla `runs`. El runner marca `status='running'`, itera en serie y al final escribe `status='done'` con los resultados. Si la función se mata por timeout (sin excepción JS), el `catch` que pone `status='error'` no llega a ejecutarse y la fila queda en `running` (ver auditoría: deadlock sin reset). No hay cap combinacional como en Campañas.
 
 ## Telemetría
 

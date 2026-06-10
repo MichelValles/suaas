@@ -1,9 +1,16 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-09 tras v0.28.0 (auditoría de seguridad).
+> Última actualización: 2026-06-10 tras auditoría v0.30.4 (Gravity Model + Momentum).
 
-## Estado actual (v0.28.0 desplegada)
+## Estado actual (v0.30.4 desplegada)
+
+- **Gravity Model (v0.29)** y **Momentum (v0.30)** en producción. Ver `docs/PROYECTO.md → Módulos Gravity Model` para el detalle: `intent_context` (JTBD en perfiles), Intent Momentum en el chat, `behavior_class` en el test 5s, GEO Tester (`/geo`) y Momentum (`/momentum`).
+- **Migraciones aplicadas**: 0001 a 0016 (`0015_gravity_model.sql`, `0016_momentum.sql` incluidas).
+- **Scopes de telemetría nuevos**: `geo_probe`, `momentum_probe`, `onboard_synthesize`.
+- **Auditoría 2026-06-10 (`docs/AUDITORIA-SEGURIDAD.md`)**: 18 hallazgos consolidados, ninguno crítico. Pendientes de corrección (no aplicados todavía). Prioridad: A-01 (cookie de sesión eludible), A-02 (fuga de error en `/api/onboard/submit` público), B-01/B-02/B-03 (runners de GEO/Momentum: deadlock en `running`, sin cap de coste, guard no atómico). **Es el candidato natural al próximo sprint, antes de añadir más funcionalidad.**
+
+## Estado anterior (v0.28.0 desplegada)
 
 - Ruta pública nueva `/onboard` para convertir humanos reales en gemelos sintéticos. Comparte el cuestionario desde la toolbar de `/profiles` (botón «Compartir cuestionario» con URL + QR).
 - Cuestionario: 5 demográficas + 24 HEXACO-24 Likert + 2 abiertas = 31 preguntas, ~10 min en móvil. Wizard step-by-step con `motion` y avance automático en HEXACO.

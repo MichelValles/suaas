@@ -1,5 +1,191 @@
 # Auditoría de seguridad, estabilidad y robustez
 
+> Este documento acumula auditorías. La más reciente va primero. La anterior (v0.28.0) se conserva como histórico más abajo.
+
+---
+
+# Auditoría v0.30.4 (2026-06-10)
+
+> **Fecha:** 2026-06-10 · **Versión auditada:** v0.30.4  
+> **Alcance:** foco en el código no auditado antes (Gravity Model v0.29: `lib/geo.ts`, `intent_context`, `behavior_class`, `batch-intent`; Momentum v0.30: `lib/momentum.ts`, `app/api/momentum/*`) más reverificación de que las correcciones de v0.28.0 (VULN-01..04) siguen aplicándose en el código nuevo, y de los riesgos residuales documentados.  
+> **Metodología:** auditoría multi-agente (mapeo por subsistemas, hallazgos por dimensión y verificación adversarial de cada hallazgo, con descarte de falsos positivos).  
+> **Resultado:** 44 hallazgos confirmados, consolidados a 18 ítems únicos (el resto eran la misma causa vista desde varias dimensiones). Ninguno es crítico. Lo más relevante: un patrón de cookie de sesión que hace eludible el login, una regresión de la higiene de errores (VULN-04) en las rutas nuevas (una de ellas pública), y la falta de cap de coste y de recuperación de estado en los runners de GEO/Momentum.
+
+## Resumen ejecutivo (v0.30.4)
+
+| Severidad | Cantidad | Estado |
+|---|---|---|
+| Crítica | 0 | — |
+| Alta | 1 | Documentada (A-01, decisión de diseño a endurecer) |
+| Media | 5 | Documentadas (A-02, A-03, B-01, B-02, B-03) |
+| Baja | 8 | Documentadas |
+| Info / higiene | 4 | Documentadas |
+
+> Severidad atenuada de forma transversal por el modelo de la app: herramienta interna single-tenant, acceso por password global, Supabase sólo desde server con service role. Casi todos los vectores requieren login (la excepción es A-02, que es pública).
+
+---
+
+## A · Seguridad y control de acceso
+
+### A-01 · ALTA · El login es eludible: la cookie de sesión es un valor constante sin firma
+
+**Archivos:** `proxy.ts:48-49`, `lib/auth.ts` (`AUTH_VALUE = "ok"`)
+
+`proxy.ts` autoriza cualquier petición cuya cookie `auth_suaas` valga exactamente `"ok"`. Ese valor es una constante del código (`AUTH_VALUE`), no un token derivado de la contraseña ni firmado. La contraseña global sólo sirve para que el endpoint `/api/auth` te ponga esa misma cookie constante. Consecuencia: cualquiera que conozca o adivine el par `auth_suaas=ok` entra sin saber la contraseña.
+
+**Vector:** `curl -H "Cookie: auth_suaas=ok" https://suaas.flat101.business/profiles`. El `httpOnly` impide leer la cookie por JavaScript, pero no impide que el cliente la envíe con un valor elegido por él. `"ok"` es un valor extremadamente común y adivinable.
+
+**Impacto:** la contraseña deja de ser una barrera real frente a quien pruebe ese patrón. Es la base de todo el control de acceso de la app.
+
+**Atenuación:** seguridad por oscuridad (hay que acertar nombre y valor exactos de la cookie) y app interna de bajo perfil. Aun así, el coste de explotación es trivial si se descubre el patrón.
+
+**Recomendación:** que la cookie lleve un token impredecible y verificable en server: o bien un valor aleatorio por deploy guardado en env y comparado con `timingSafeEqual`, o bien una cookie firmada con HMAC (`payload.HMAC(secreto)`). Mismo tratamiento para `seed_access=ok`.
+
+### A-02 · MEDIA · Fuga de error crudo de base de datos en la ruta PÚBLICA `/api/onboard/submit`
+
+**Archivo:** `lib/onboard.ts:216` (rama `saving` de `synthesizeProfile`)
+
+VULN-04 (v0.28.0) higienizó el error del LLM en este mismo archivo, pero dejó sin higienizar la rama de guardado: si `createProfile` falla (constraint, columna inexistente, schema cache desactualizado tras una migración), el `yield { error: true, message: (err as Error).message }` reenvía el mensaje crudo de PostgREST al stream NDJSON. Como `/api/onboard/*` es público (whitelist de `proxy.ts`), lo recibe un visitante anónimo: nombres de columnas, códigos de Postgres, estructura de `profiles`.
+
+**Recomendación:** mensaje genérico (`"Error al guardar el perfil. Inténtalo de nuevo."`) y `console.error` del detalle, igual que ya hace la rama del LLM unas líneas más arriba.
+
+### A-03 · MEDIA · Regresión de VULN-04: las rutas nuevas devuelven `err.message` crudo al cliente
+
+**Archivos:** `app/api/geo/run/route.ts:25`, `app/api/momentum/run/route.ts:26`, `app/api/momentum/route.ts` (parcial), `app/api/profiles/batch-intent/route.ts:101` (por perfil), `app/geo/page.tsx:62` (lo pinta en la UI server).
+
+El estándar del proyecto (`lib/error-response.ts → internalError`) devuelve sólo `"Error interno."` y deja el detalle en logs. Las rutas de v0.29-v0.30 no lo siguen: hacen `return NextResponse.json({ error: (err as Error).message }, { status: 500 })`. Están detrás del login (single-tenant), por eso es media-baja y no media-alta, pero rompe la disciplina que el resto de `/api/runs/*`, `/api/chat`, etc. sí mantienen. `app/geo/page.tsx` además renderiza el mensaje de Supabase tal cual en la página.
+
+**Recomendación:** migrar todas las rutas nuevas a `internalError(...)`; en `geo/page.tsx` mostrar texto genérico (como ya hace `momentum/page.tsx` con `"Error interno."`).
+
+---
+
+## B · Estabilidad y disponibilidad
+
+### B-01 · MEDIA · GEO y Momentum se quedan bloqueados en `status='running'` sin recuperación
+
+**Archivos:** `lib/geo.ts:201-244`, `lib/momentum.ts:209-259`, `app/api/geo/run/route.ts` (sin `maxDuration`).
+
+El runner marca `status='running'`, itera en serie y al final escribe `done`. Si la función se mata por timeout de plataforma (no por una excepción JS), el `catch` que pondría `status='error'` no llega a ejecutarse: la fila queda en `running` para siempre. Y `runGeoAnalysis`/`runMomentumChallenge` rechazan relanzar (`"El análisis ya está en marcha."`). No hay botón ni endpoint para resetear. Agravado porque `/api/geo/run` no declara `maxDuration` (hereda el default) mientras `/api/momentum/run` fija 300.
+
+**Recomendación:** guardar `started_at` y considerar caducado un `running` con más de N minutos (permitir relanzar), o exponer un reset manual. Fijar `maxDuration` también en `/api/geo/run`.
+
+### B-02 · MEDIA · Sin cap combinacional en GEO/Momentum: gasto de tokens sin techo
+
+**Archivos:** `lib/momentum.ts:222-238`, `lib/geo.ts:210-225`
+
+Campaign tiene un cap defensivo de 200 combinaciones (`lib/experiments/campaign.ts:518-524`). GEO y Momentum no tienen equivalente: `runMomentumChallenge` recorre todos los `profile_ids` que tenga el Trigger (sin tope; la API los acepta sin validar longitud), y `runGeoAnalysis` recorre todos los segmentos (el form limita a 10, pero el runner y la API no imponen ese límite). Un Trigger con 100-200 perfiles son 100-200 llamadas a Opus en serie: timeout garantizado, que además dispara el deadlock de B-01, y la factura de tokens correspondiente.
+
+**Recomendación:** cap explícito validado en runner y en la API (p.ej. ≤25 perfiles por Trigger, ≤10 segmentos por análisis), con mensaje claro como hace campaign.
+
+### B-03 · MEDIA · Guard de `running` no atómico (TOCTOU): doble ejecución y doble factura
+
+**Archivos:** `lib/geo.ts:204-208`, `lib/momentum.ts:214-220`
+
+`leer estado → comprobar !== 'running' → UPDATE a 'running'` son dos sentencias sin atomicidad. Dos POST casi simultáneos (doble clic, reintento de red, dos pestañas) pasan ambos la comprobación y lanzan el bucle LLM completo dos veces; ambos escriben `results` pisándose. El botón cliente sólo se deshabilita localmente. Misma clase que VULN-09/VULN-10 pero con coste directo en tokens.
+
+**Recomendación:** transición atómica con UPDATE condicional (`.eq("id", id).neq("status", "running").select()`) y abortar si no devuelve fila (otra ejecución ganó la carrera).
+
+### B-04 · BAJA · Momentum no detecta la tabla sin migrar (heurística de string incorrecta)
+
+**Archivo:** `app/momentum/page.tsx:22-32`
+
+Usa `message.includes("does not exist") || message.includes("relation")` en vez del helper central `isMissingTableError`. El error real de PostgREST cuando falta la tabla es `PGRST205` con mensaje `"Could not find the table public.momentum_challenges in the schema cache"`, que no contiene esas subcadenas: la rama de "aplica la migración 0016" nunca se activa y el usuario ve un error genérico. `app/geo/page.tsx` lo hace bien con `isMissingTableError` + `<MigrationNeeded>`.
+
+**Recomendación:** usar `isMissingTableError` y `<MigrationNeeded>` también en Momentum.
+
+### B-05 · BAJA · Server Actions de creación GEO/Momentum sin `try/catch` (extiende STAB-04)
+
+Un fallo de Supabase en `createGeoAnalysisAction` / `createMomentumChallengeAction` lanza una excepción no controlada y el usuario cae en la pantalla de error genérica de Next en vez de un mensaje accionable.
+
+### B-06 · BAJA · `listProfilesByIds` descarta perfiles borrados en silencio y no preserva orden
+
+**Archivos:** `lib/profiles.ts:66-75`, `lib/momentum.ts:223-238`
+
+`profile_ids` es `uuid[]` sin FK: un perfil borrado deja su id colgando en el array. `listProfilesByIds` usa `.in("id", ids)`, que devuelve sólo los existentes y en orden arbitrario. Si se borró 1 de 5, `results` tendrá 4 elementos mientras la UI sigue diciendo "5 perfiles", sin aviso. Si se borraron todos, se persiste `results: []` con `status='done'` (un análisis "completado" vacío).
+
+**Recomendación:** comparar `profiles.length` con `profile_ids.length` y avisar de los ausentes.
+
+---
+
+## C · Coste y LLM
+
+### C-01 · BAJA · Inyección de prompt (integridad del análisis, no ejecución)
+
+**Archivos:** `lib/geo.ts:112-123`, `lib/momentum.ts:105-137`, `app/api/profiles/batch-intent/route.ts:24-52`
+
+Todo el texto del operador entra al prompt por interpolación directa sin delimitar (la `query` incluso entre comillas, trivial de cerrar). La mitigación Talker-Reasoner del chat no aplica a estos runners de un solo paso. Hay un vector de segundo orden a vigilar: los campos abiertos del `/onboard` público acaban en `backstory`, que luego se inyecta en TODOS los prompts del perfil. `generateObject` + Zod y el auto-escape de React evitan XSS y corrupción de tipos; el riesgo real es de integridad (manipular el texto libre del output: `intent_narrative`, `simulated_response`, `key_claims`, forzar valoraciones).
+
+**Recomendación:** encerrar los inputs de usuario en delimitadores e instruir al modelo "lo delimitado son datos, no instrucciones".
+
+### C-02 · BAJA · `batch-intent` con `force=true` regenera 10 JTBD por POST sin rate limit ni idempotencia
+
+Cada POST con `force` dispara hasta 10 llamadas LLM. Detrás de login, pero sin freno propio.
+
+### C-03 · BAJA · Sin presupuesto ni circuit-breaker global de tokens
+
+`recordUsage` sólo observa, nunca corta. No hay tope diario que pare el gasto si un runner se desboca (ver B-02). Mejora de largo plazo.
+
+---
+
+## D · Residuos pre-existentes confirmados (siguen vigentes en v0.30.4)
+
+### D-01 · BAJA · SSRF por redirección no revalidada en `image-source.ts`
+
+**Archivo:** `lib/image-source.ts:99-108`
+
+`resolveImageForApi` valida la URL inicial con `assertPublicUrl` (fix de VULN-02) pero luego hace `fetch(url, { redirect: "follow" })`: si el host público responde 30x hacia `169.254.169.254` o una IP privada, `fetch` sigue la redirección sin revalidar el destino. `targets.ts → resolveOgImageDetailed` lo hace bien (`redirect: "manual"` + revalidar cada salto). Tampoco hay tope de bytes en la descarga (riesgo de OOM con un fichero enorme). Afecta a los flujos legacy (5s, funnel, campaign); el código nuevo no usa este módulo.
+
+**Recomendación:** alinear con `targets.ts`: `redirect: "manual"`, revalidar cada `Location`, y cap de tamaño.
+
+### D-02 · BAJA · `/api/qr` sigue siendo un proxy público de QR con contenido arbitrario (VULN-07 sin mitigar)
+
+Cualquiera puede generar un QR servido desde `suaas.flat101.business` apuntando a un destino arbitrario (phishing con apariencia de marca). **Recomendación:** validar que `data` sea una URL con host `suaas.flat101.business`, o servir el QR desde el server autenticado.
+
+### D-03 · BAJA · `bodySizeLimit: "10mb"` global (STAB-03 confirmado)
+
+Sigue aplicando a todas las Server Actions, incluidas las nuevas de GEO/Momentum que sólo reciben texto. Auto-DoS de bajo impacto (requiere login).
+
+### D-04 · INFO · Cabeceras de seguridad mínimas
+
+`proxy.ts` sólo añade `X-Robots-Tag`. Faltan `Content-Security-Policy`, `Strict-Transport-Security`, `X-Frame-Options` (o CSP `frame-ancestors`) y `X-Content-Type-Options`. Para una app interna es menor, pero `X-Frame-Options`/CSP cierran clickjacking y son baratas de añadir.
+
+---
+
+## Higiene de datos y UX (info)
+
+- **`geo_analyses` y `momentum_challenges` sin trigger `updated_at`**: dependen de que el código pase `updated_at` a mano (lo hace, pero es frágil).
+- **`momentum_challenges` sin índice en `created_at`** pese a que el listado ordena por `created_at DESC` (volúmenes pequeños, impacto nulo hoy).
+- **GEO alinea `segments[i]` con `results[i]` por índice**: acoplamiento frágil si el orden cambia.
+- **`intent_context` sin cap de longitud en el guardado manual** (`updateProfileIntentContext` sólo hace `.trim()`); el textarea tampoco tiene `maxLength`. Texto largo infla tokens al inyectarse en los prompts.
+- **`MomentumRunButton` maneja errores peor que `GeoRunButton`**: usa `alert()` y un `res.json()` sin `.catch(() => null)`, así que ante un 504 con cuerpo HTML muestra "Error de red" en vez del estado real. Alinear con el patrón de Geo.
+- **Validación de `profile_ids`**: la API y la action de Momentum aceptan el array casteando a `string[]` sin verificar que sean UUID; el `uuid[]` de Postgres es la última línea de defensa (devuelve 500 en vez de un 400 limpio). GEO sí valida con Zod.
+
+---
+
+## Confirmaciones positivas (qué se revisó y está bien)
+
+- **Sin XSS por HTML**: 0 usos de `dangerouslySetInnerHTML` en todo el repo; el contenido de LLM y de usuario se renderiza como children JSX (React lo auto-escapa). No hay render de markdown ni de HTML scrapeado.
+- **El código nuevo no abre SSRF nuevo**: `geo`, `momentum` y `batch-intent` no hacen `fetch` de URLs del usuario; sólo llaman al AI Gateway con texto.
+- **VULN-01 (anon key) y VULN-03 (perfil público) siguen cerradas**: no hay rutas públicas nuevas que filtren datos privados; el cliente sigue sin hablar con Supabase.
+- **`tsconfig` estricto** (`strict: true`); dependencias pinneadas con lockfile, sin CVE conocido a la fecha.
+- **Onboard público bien endurecido**: validación temprana con Zod, honeypot, rate limit (en memoria, ya documentado en VULN-06), y errores genéricos en la rama del LLM.
+- **Telemetría coherente**: `geo_probe` y `momentum_probe` están en `UsageScope`; `recordUsage` falla en silencio sin romper el flujo.
+
+---
+
+## Plan de remediación sugerido (orden de impacto)
+
+1. **A-01** (cookie firmada / token aleatorio): es el techo de seguridad de toda la app.
+2. **A-02** (fuga en ruta pública del onboard): único vector anónimo, fix de una línea.
+3. **B-02 + B-01 + B-03** (cap de coste + recuperación de `running` + guard atómico): los tres tocan los runners de GEO/Momentum y se arreglan juntos; evitan facturas inesperadas y análisis colgados.
+4. **A-03** (higiene de errores en rutas nuevas): aplicar `internalError` de forma consistente.
+5. **D-01, D-02** (SSRF por redirect, QR público): residuos conocidos, mitigación acotada.
+6. Resto: higiene de datos, validaciones Zod de `profile_ids`, cabeceras de seguridad.
+
+---
+
+# Auditoría v0.28.0 (histórica)
+
 > **Fecha:** 2026-06-09 · **Versión auditada:** v0.27.3  
 > **Alcance:** análisis estático completo de `lib/`, `app/api/`, `app/onboard/`, `proxy.ts`, migraciones SQL y configuración de infraestructura.  
 > **Metodología:** revisión de código + modelo de amenazas + comprobación OWASP Top 10 aplicable.  
@@ -328,3 +514,4 @@ Para minimizar la superficie de ataque en producción:
 |---|---|---|---|
 | 2026-05 | v0.9.0 | Michel Valles (con Claude) | Login constant-time, SEED_PASSWORD obligatoria, no filtrar e.message, anti-SSRF og:image |
 | 2026-06-09 | v0.28.0 | Michel Valles (con Claude) | VULN-01 (anon key), VULN-02 (SSRF imagen), VULN-03 (perfil público), VULN-04 (error leak) |
+| 2026-06-10 | v0.30.4 | Michel Valles (con Claude, auditoría multi-agente) | Hallazgos en el código nuevo Gravity Model/Momentum (A-01 cookie eludible, A-02 fuga en onboard público, A-03 regresión VULN-04, B-01..B-03 runners de GEO/Momentum). Documentados, pendientes de corrección. |
