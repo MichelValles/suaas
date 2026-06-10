@@ -10,7 +10,6 @@ import {
   Coins,
   Filter,
   Layers,
-  LayoutDashboard,
   Megaphone,
   Menu,
   MessageSquareText,
@@ -37,7 +36,6 @@ const ACCELERATION_ITEMS = [
 ];
 
 const KNOWLEDGE_ITEMS = [
-  { href: "/", label: "Panel", icon: LayoutDashboard, exact: true },
   { href: "/ab", label: "A/B tests", icon: Split, exact: false },
   { href: "/copy", label: "Copy", icon: MessageSquareText, exact: false },
   { href: "/pricing", label: "Pricing", icon: Tag, exact: false },
