@@ -121,11 +121,11 @@ export default function HomePage() {
           }
         />
 
-        {/* INTENT MOMENTUM */}
-        <IntentMomentumSection />
-
         {/* GRAVITY MODEL VISUAL */}
         <GravityVisual />
+
+        {/* INTENT MOMENTUM */}
+        <IntentMomentumSection />
 
         {/* CONSTRUCTION PLANE */}
         <PlaneSection
