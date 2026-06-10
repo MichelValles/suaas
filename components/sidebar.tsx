@@ -21,6 +21,7 @@ import {
   Users,
   X,
   Zap,
+  Clock,
 } from "lucide-react";
 
 const CONSTRUCTION_ITEMS = [
@@ -143,6 +144,10 @@ export function Sidebar() {
             ))}
           </NavGroup>
 
+          <NavGroup label="Value">
+            <NavLinkDisabled label="Work in progress" Icon={Clock} />
+          </NavGroup>
+
           <NavGroup label="Knowledge Tools">
             {KNOWLEDGE_ITEMS.map((item) => (
               <NavLink
@@ -220,6 +225,25 @@ function NavLink({
       <Icon size={16} />
       <span>{label}</span>
     </Link>
+  );
+}
+
+function NavLinkDisabled({
+  label,
+  Icon,
+}: {
+  label: string;
+  Icon: React.ComponentType<{ size?: number }>;
+}) {
+  return (
+    <div
+      className="sidebar-link mono"
+      aria-disabled="true"
+      style={{ opacity: 0.3, cursor: "default", pointerEvents: "none" }}
+    >
+      <Icon size={16} />
+      <span>{label}</span>
+    </div>
   );
 }
 
