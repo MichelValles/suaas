@@ -1,10 +1,15 @@
 import { generateObject } from "ai";
 import { z } from "zod";
-import { type Campaign, type Channel, getCampaign } from "@/lib/campaigns";
+import {
+  type Campaign,
+  type Channel,
+  getCampaign,
+  getCampaignWithTrashed,
+} from "@/lib/campaigns";
 import { DEFAULT_MODEL, REASONER_MODEL } from "@/lib/gateway";
 import { resolveImageForApi } from "@/lib/image-source";
 import { buildSystemPrompt } from "@/lib/prompts";
-import { type Profile, getProfile } from "@/lib/profiles";
+import { type Profile, getProfile, listProfilesByIds } from "@/lib/profiles";
 import { createRun, markRunFinished, upsertMetric } from "@/lib/runs";
 import { getServerClient } from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
@@ -25,7 +30,6 @@ import { recordUsage } from "@/lib/usage";
  */
 
 const LANDING_THRESHOLD = 0.5;
-const PROFILE_CHUNK = 4;
 
 /**
  * Query placeholder para estrategias sin queries (Display): el runner genera
@@ -529,14 +533,35 @@ async function proposeIdealVersion(
 
 // ============================================================
 // Orquestador
+//
+// Arquitectura en dos fases para sobrevivir a maxDuration:
+//  - prepareCampaignRun / prepareCampaignResume: validación + creación o
+//    rehidratación del run. Rápido, dentro del request.
+//  - executeCampaignRun: cola perfil × canal × query con worker pool,
+//    tolerante a fallos parciales, con deadline interno y cierre
+//    GARANTIZADO (summarize sobre lo persistido + markRunFinished).
+//    Pensado para correr en after() del route handler.
 // ============================================================
+
+const RUNNER_CONCURRENCY = 5;
+/** Pasado este margen no se arrancan combinaciones nuevas: el cierre
+ * (summarize + métricas + estado) debe caber dentro de maxDuration=300. */
+const RUNNER_DEADLINE_MS = 270_000;
 
 export type RunCampaignInput = { campaignId: string; profileIds: string[] };
 export type RunCampaignOutput = { runId: string; summary: CampaignSummary };
 
-export async function runCampaignTest(
+export type PreparedCampaignRun = {
+  runId: string;
+  campaign: Campaign;
+  profiles: Profile[];
+  queries: string[];
+  expected: number;
+};
+
+export async function prepareCampaignRun(
   input: RunCampaignInput,
-): Promise<RunCampaignOutput> {
+): Promise<PreparedCampaignRun> {
   const campaign = await getCampaign(input.campaignId);
   if (!campaign) throw new Error("Campaign no encontrada.");
   if (campaign.strategy === "search" && campaign.queries.length === 0) {
@@ -560,9 +585,7 @@ export async function runCampaignTest(
   const queriesToUse =
     campaign.queries.length > 0 ? campaign.queries : [GENERAL_CONTEXT_QUERY];
 
-  // Cap defensivo del techo combinatorio. 20 × 5 × 5 = 500 snippets en peor
-  // caso es demasiado para maxDuration=300. Bloqueamos por encima de 200
-  // combinaciones perfil-canal-query con un mensaje claro.
+  // Cap defensivo del techo combinatorio (20 × 5 × 5 = 500 en el peor caso).
   const combinations =
     profiles.length * campaign.channels.length * queriesToUse.length;
   if (combinations > 200) {
@@ -583,205 +606,328 @@ export async function runCampaignTest(
     },
   });
 
-  try {
-    const collected: CampaignResponse[] = [];
-    const imageCache: ImageCache = new Map();
-    for (const chunk of chunks(profiles, PROFILE_CHUNK)) {
-      const results = await Promise.all(
-        chunk.map((profile) =>
-          probeProfileAllQueries(run.id, campaign, profile, queriesToUse, imageCache),
-        ),
-      );
-      for (const arr of results) collected.push(...arr);
-    }
+  return {
+    runId: run.id,
+    campaign,
+    profiles,
+    queries: queriesToUse,
+    expected: combinations,
+  };
+}
 
-    const summary = summarize(campaign, profiles.length, collected);
+/**
+ * Rehidrata un run interrumpido (zombi en «running» o «error» parcial) para
+ * retomarlo: las combinaciones ya persistidas se saltan en executeCampaignRun.
+ */
+export async function prepareCampaignResume(
+  runId: string,
+): Promise<PreparedCampaignRun> {
+  const supa = getServerClient();
+  const { data: run, error } = await supa
+    .from("runs")
+    .select("*")
+    .eq("id", runId)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!run || run.kind !== "campaign") throw new Error("Run no encontrado.");
+
+  const params = (run.params ?? {}) as Record<string, unknown>;
+  const campaignId =
+    (run.campaign_id as string | null) ?? (params.campaignId as string | undefined);
+  if (!campaignId) throw new Error("El run no referencia ninguna campaña.");
+  const campaign = await getCampaignWithTrashed(campaignId);
+  if (!campaign) throw new Error("Campaign no encontrada.");
+
+  const profileIds = (params.profileIds as string[] | undefined) ?? [];
+  if (profileIds.length === 0) throw new Error("El run no guarda perfiles.");
+  // Sin filtrar papelera: la muestra original debe respetarse.
+  const profiles = await listProfilesByIds(profileIds);
+  if (profiles.length === 0) throw new Error("Los perfiles del run ya no existen.");
+
+  const queries =
+    (params.queries as string[] | undefined) ??
+    (campaign.queries.length > 0 ? campaign.queries : [GENERAL_CONTEXT_QUERY]);
+
+  // Reabrir el run: vuelve a «running» mientras se completa.
+  const { error: updErr } = await supa
+    .from("runs")
+    .update({ status: "running", finished_at: null })
+    .eq("id", runId);
+  if (updErr) throw new Error(updErr.message);
+
+  return {
+    runId,
+    campaign,
+    profiles,
+    queries,
+    expected: profiles.length * campaign.channels.length * queries.length,
+  };
+}
+
+/**
+ * Procesa la cola completa del run. No lanza: los fallos por combinación se
+ * registran (1 reintento cada una) y el run SIEMPRE se cierra con summarize
+ * sobre lo persistido. Con deadline interno: lo que no quepa queda saltado
+ * y puede retomarse con prepareCampaignResume.
+ */
+export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<void> {
+  const { runId, campaign, profiles, queries } = prep;
+  const startedAt = Date.now();
+  const supa = getServerClient();
+  const imageCache: ImageCache = new Map();
+
+  let failedCount = 0;
+  let skippedByDeadline = 0;
+
+  try {
+    // Combinaciones ya persistidas (resume): se saltan. El upsert es
+    // idempotente, pero repetirlas costaría tokens.
+    const { data: existing } = await supa
+      .from("campaign_responses")
+      .select("profile_id, channel, query")
+      .eq("run_id", runId);
+    const already = new Set(
+      (existing ?? []).map(
+        (r) => `${r.profile_id}|${(r.channel as string) ?? "google"}|${r.query}`,
+      ),
+    );
+
+    const combos = profiles
+      .flatMap((profile) =>
+        campaign.channels.flatMap((channel) =>
+          queries.map((query) => ({ profile, channel, query })),
+        ),
+      )
+      .filter((c) => !already.has(`${c.profile.id}|${c.channel}|${c.query}`));
+
+    let cursor = 0;
+    const worker = async () => {
+      for (;;) {
+        const i = cursor;
+        cursor += 1;
+        if (i >= combos.length) return;
+        if (Date.now() - startedAt > RUNNER_DEADLINE_MS) {
+          skippedByDeadline += 1;
+          continue;
+        }
+        const combo = combos[i];
+        try {
+          await processCombo(runId, campaign, combo, imageCache);
+        } catch {
+          try {
+            await processCombo(runId, campaign, combo, imageCache);
+          } catch (err) {
+            failedCount += 1;
+            console.error(
+              `[campaign] combinación falló tras reintento (profile=${combo.profile.id}, channel=${combo.channel}, query=${combo.query}):`,
+              (err as Error).message,
+            );
+          }
+        }
+      }
+    };
+    await Promise.all(
+      Array.from(
+        { length: Math.min(RUNNER_CONCURRENCY, Math.max(combos.length, 1)) },
+        () => worker(),
+      ),
+    );
+  } catch (err) {
+    console.error(`[campaign] el pool del run ${runId} reventó:`, (err as Error).message);
+  }
+
+  // Cierre garantizado: summarize con TODO lo persistido (lo de antes del
+  // resume incluido) y estado final según haya datos o no.
+  try {
+    const responses = await listCampaignResponses(runId);
+    const summary = summarize(campaign, profiles.length, responses);
     await upsertMetric({
-      run_id: run.id,
+      run_id: runId,
       key: "mean_intent_to_click",
       value: summary.mean_intent_to_click,
       unit: "0..1",
     });
     await upsertMetric({
-      run_id: run.id,
+      run_id: runId,
       key: "mean_clarity",
       value: summary.mean_clarity,
       unit: "0..1",
     });
     await upsertMetric({
-      run_id: run.id,
+      run_id: runId,
       key: "mean_credibility",
       value: summary.mean_credibility,
       unit: "0..1",
     });
     await upsertMetric({
-      run_id: run.id,
+      run_id: runId,
       key: "mean_differentiation",
       value: summary.mean_differentiation,
       unit: "0..1",
     });
     await upsertMetric({
-      run_id: run.id,
+      run_id: runId,
       key: "intent_stddev",
       value: summary.intent_stddev,
       unit: "0..1",
     });
     if (summary.mean_landing_match !== null) {
       await upsertMetric({
-        run_id: run.id,
+        run_id: runId,
         key: "mean_landing_match",
         value: summary.mean_landing_match,
         unit: "0..1",
       });
     }
     await upsertMetric({
-      run_id: run.id,
+      run_id: runId,
       key: "click_rate",
       value: summary.click_rate,
       unit: "0..1",
     });
     await upsertMetric({
-      run_id: run.id,
+      run_id: runId,
       key: "n",
       value: summary.n_profiles,
       unit: "count",
     });
-
-    await markRunFinished(run.id, "done");
-    return { runId: run.id, summary };
+    await upsertMetric({
+      run_id: runId,
+      key: "n_failed",
+      value: failedCount,
+      unit: "count",
+    });
+    await upsertMetric({
+      run_id: runId,
+      key: "n_skipped_deadline",
+      value: skippedByDeadline,
+      unit: "count",
+    });
+    await markRunFinished(runId, responses.length > 0 ? "done" : "error");
   } catch (err) {
-    await markRunFinished(run.id, "error").catch(() => {});
-    throw err;
+    console.error(`[campaign] cierre del run ${runId} falló:`, (err as Error).message);
+    await markRunFinished(runId, "error").catch(() => {});
   }
 }
 
-async function probeProfileAllQueries(
+/**
+ * Wrapper síncrono (lo usa el sembrador): prepara, ejecuta y devuelve el
+ * summary final calculado sobre lo persistido.
+ */
+export async function runCampaignTest(
+  input: RunCampaignInput,
+): Promise<RunCampaignOutput> {
+  const prep = await prepareCampaignRun(input);
+  await executeCampaignRun(prep);
+  const responses = await listCampaignResponses(prep.runId);
+  return {
+    runId: prep.runId,
+    summary: summarize(prep.campaign, prep.profiles.length, responses),
+  };
+}
+
+type Combo = { profile: Profile; channel: Channel; query: string };
+
+/** Una combinación completa: probe → landing condicional → ideal → upsert. */
+async function processCombo(
   runId: string,
   campaign: Campaign,
-  profile: Profile,
-  queries: string[],
+  { profile, channel, query }: Combo,
   imageCache: ImageCache,
-): Promise<CampaignResponse[]> {
-  const out: CampaignResponse[] = [];
+): Promise<void> {
   const supa = getServerClient();
-  for (const channel of campaign.channels) {
-    for (const query of queries) {
-      const snippet = await probeCampaignSnippet(
+  const snippet = await probeCampaignSnippet(
+    profile,
+    campaign,
+    channel,
+    query,
+    imageCache,
+  );
+  await recordUsage({
+    runId,
+    scope: "campaign_probe",
+    model: REASONER_MODEL,
+    usage: snippet.usage,
+    meta: { latency_ms: snippet.latencyMs, query, channel, profile_id: profile.id },
+  }).catch(() => {});
+
+  let landingEvaluated = false;
+  let landingMatch: number | null = null;
+  let landingCritique: string | null = null;
+  let landingError: string | null = null;
+  if (snippet.output.intent_to_click >= LANDING_THRESHOLD) {
+    try {
+      const landing = await judgeLandingMatch(
         profile,
         campaign,
         channel,
         query,
+        snippet.output,
         imageCache,
       );
+      landingEvaluated = true;
+      landingMatch = landing.output.landing_match;
+      landingCritique = landing.output.landing_critique;
       await recordUsage({
         runId,
-        scope: "campaign_probe",
+        scope: "campaign_landing",
         model: REASONER_MODEL,
-        usage: snippet.usage,
-        meta: { latency_ms: snippet.latencyMs, query, channel, profile_id: profile.id },
+        usage: landing.usage,
+        meta: { latency_ms: landing.latencyMs, query, channel, profile_id: profile.id },
       }).catch(() => {});
-
-      let landingEvaluated = false;
-      let landingMatch: number | null = null;
-      let landingCritique: string | null = null;
-      let landingError: string | null = null;
-      if (snippet.output.intent_to_click >= LANDING_THRESHOLD) {
-        try {
-          const landing = await judgeLandingMatch(
-            profile,
-            campaign,
-            channel,
-            query,
-            snippet.output,
-            imageCache,
-          );
-          landingEvaluated = true;
-          landingMatch = landing.output.landing_match;
-          landingCritique = landing.output.landing_critique;
-          await recordUsage({
-            runId,
-            scope: "campaign_landing",
-            model: REASONER_MODEL,
-            usage: landing.usage,
-            meta: { latency_ms: landing.latencyMs, query, channel, profile_id: profile.id },
-          }).catch(() => {});
-        } catch (err) {
-          // El run sigue sin landing eval, pero el fallo queda trazado:
-          // landing_error en meta distingue fallo técnico de gating por intent.
-          landingError = (err as Error).message;
-          console.error(
-            `[campaign] landing eval falló (profile=${profile.id}, channel=${channel}, query=${query}):`,
-            landingError,
-          );
-        }
-      }
-
-      const ideal = await proposeIdealVersion(profile, channel, query, snippet.output);
-      await recordUsage({
-        runId,
-        scope: "campaign_ideal",
-        model: DEFAULT_MODEL,
-        usage: ideal.usage,
-        meta: { latency_ms: ideal.latencyMs, query, channel, profile_id: profile.id },
-      }).catch(() => {});
-
-      const row: CampaignResponse = {
-        profileId: profile.id,
-        channel,
-        query,
-        intent_to_click: snippet.output.intent_to_click,
-        perceived_offer: snippet.output.perceived_offer,
-        reasoning: snippet.output.reasoning,
-        clarity: snippet.output.clarity,
-        credibility: snippet.output.credibility,
-        differentiation: snippet.output.differentiation,
-        barriers: snippet.output.barriers,
-        landing_evaluated: landingEvaluated,
-        landing_match: landingMatch,
-        landing_critique: landingCritique,
-        // El límite RSA (30/90) se instruye en el prompt; aquí se garantiza.
-        ideal_headline: ideal.output.ideal_headline.slice(0, 30),
-        ideal_description: ideal.output.ideal_description.slice(0, 90),
-        ideal_promise: ideal.output.ideal_promise,
-        ideal_free_text: ideal.output.ideal_free_text ?? null,
-      };
-
-      const { error } = await supa.from("campaign_responses").upsert(
-        {
-          run_id: runId,
-          profile_id: profile.id,
-          channel: row.channel,
-          query: row.query,
-          intent_to_click: row.intent_to_click,
-          perceived_offer: row.perceived_offer,
-          clarity: row.clarity,
-          credibility: row.credibility,
-          differentiation: row.differentiation,
-          barriers: row.barriers,
-          landing_evaluated: row.landing_evaluated,
-          landing_match: row.landing_match,
-          landing_critique: row.landing_critique,
-          ideal_headline: row.ideal_headline,
-          ideal_description: row.ideal_description,
-          ideal_promise: row.ideal_promise,
-          ideal_free_text: row.ideal_free_text,
-          meta: {
-            model_snippet: REASONER_MODEL,
-            model_landing: REASONER_MODEL,
-            model_ideal: DEFAULT_MODEL,
-            latency_ms_snippet: snippet.latencyMs,
-            latency_ms_ideal: ideal.latencyMs,
-            reasoning: row.reasoning,
-            landing_error: landingError,
-          },
-        },
-        { onConflict: "run_id,profile_id,query,channel" },
+    } catch (err) {
+      // El run sigue sin landing eval, pero el fallo queda trazado:
+      // landing_error en meta distingue fallo técnico de gating por intent.
+      landingError = (err as Error).message;
+      console.error(
+        `[campaign] landing eval falló (profile=${profile.id}, channel=${channel}, query=${query}):`,
+        landingError,
       );
-      if (error) throw new Error(error.message);
-      out.push(row);
     }
   }
-  return out;
+
+  const ideal = await proposeIdealVersion(profile, channel, query, snippet.output);
+  await recordUsage({
+    runId,
+    scope: "campaign_ideal",
+    model: DEFAULT_MODEL,
+    usage: ideal.usage,
+    meta: { latency_ms: ideal.latencyMs, query, channel, profile_id: profile.id },
+  }).catch(() => {});
+
+  const { error } = await supa.from("campaign_responses").upsert(
+    {
+      run_id: runId,
+      profile_id: profile.id,
+      channel,
+      query,
+      intent_to_click: snippet.output.intent_to_click,
+      perceived_offer: snippet.output.perceived_offer,
+      clarity: snippet.output.clarity,
+      credibility: snippet.output.credibility,
+      differentiation: snippet.output.differentiation,
+      barriers: snippet.output.barriers,
+      landing_evaluated: landingEvaluated,
+      landing_match: landingMatch,
+      landing_critique: landingCritique,
+      // El límite RSA (30/90) se instruye en el prompt; aquí se garantiza.
+      ideal_headline: ideal.output.ideal_headline.slice(0, 30),
+      ideal_description: ideal.output.ideal_description.slice(0, 90),
+      ideal_promise: ideal.output.ideal_promise,
+      ideal_free_text: ideal.output.ideal_free_text ?? null,
+      meta: {
+        model_snippet: REASONER_MODEL,
+        model_landing: REASONER_MODEL,
+        model_ideal: DEFAULT_MODEL,
+        latency_ms_snippet: snippet.latencyMs,
+        latency_ms_ideal: ideal.latencyMs,
+        reasoning: snippet.output.reasoning,
+        landing_error: landingError,
+      },
+    },
+    { onConflict: "run_id,profile_id,query,channel" },
+  );
+  if (error) throw new Error(error.message);
 }
 
 // ============================================================
@@ -971,10 +1117,4 @@ function topBarriers(rs: CampaignResponse[]): { label: string; count: number }[]
     .sort((a, b) => b[1] - a[1])
     .slice(0, 5)
     .map(([label, count]) => ({ label, count }));
-}
-
-function chunks<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
 }

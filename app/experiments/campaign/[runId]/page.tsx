@@ -15,6 +15,7 @@ import {
 import { listProfilesByIds, type Profile } from "@/lib/profiles";
 import { getRun } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { RunProgress } from "./run-progress";
 
 export const dynamic = "force-dynamic";
 
@@ -63,6 +64,11 @@ export default async function CampaignRunPage({
   const profiles = await listProfilesByIds(Array.from(uniqueProfiles));
   const profilesById = new Map(profiles.map((p) => [p.id, p]));
 
+  const expected =
+    totalProfiles *
+    ((run.params?.channels as string[] | undefined)?.length ?? 1) *
+    ((run.params?.queries as string[] | undefined)?.length ?? 1);
+
   return (
     <AppShell>
       <PageHeading
@@ -91,6 +97,15 @@ export default async function CampaignRunPage({
             </Link>
           </div>
         }
+      />
+
+      {/* Progreso del run (solo running o interrumpido con parciales) */}
+      <RunProgress
+        runId={runId}
+        initialStatus={run.status}
+        initialDone={responses.length}
+        expected={expected}
+        startedAt={run.created_at}
       />
 
       {/* Summary global */}
