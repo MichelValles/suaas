@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { ChannelIcon } from "@/components/channel-icon";
+import { InfoTooltip } from "@/components/info-tooltip";
 import { CHANNEL_LABEL, getCampaignWithTrashed } from "@/lib/campaigns";
 import {
   GENERAL_CONTEXT_QUERY,
@@ -88,12 +89,44 @@ export default async function CampaignRunPage({
         }}
       >
         <KpiCard label="Intent click" value={fmtPct(summary.mean_intent_to_click)} accent />
-        <KpiCard label="Click rate" value={fmtPct(summary.click_rate)} />
+        <KpiCard
+          label="Intent ≥ 0,5"
+          value={fmtPct(summary.click_rate)}
+          hint="Proporción de respuestas con intención de click ≥ 0,5. Umbral interno del test: no es comparable con el CTR real de la plataforma publicitaria."
+        />
         <KpiCard label="Claridad" value={fmtPct(summary.mean_clarity)} />
         <KpiCard label="Credibilidad" value={fmtPct(summary.mean_credibility)} />
         <KpiCard label="Diferenciación" value={fmtPct(summary.mean_differentiation)} />
-        <KpiCard label="Match landing" value={fmtPct(summary.mean_landing_match)} />
+        <KpiCard
+          label="Match landing"
+          value={fmtPct(summary.mean_landing_match)}
+          hint="Solo lo evalúan los perfiles cuya intención superó el umbral de 0,5 (los que habrían hecho click)."
+        />
       </section>
+
+      {/* Nota de fidelidad metodológica */}
+      <p
+        style={{
+          margin: 0,
+          fontSize: 12,
+          lineHeight: 1.6,
+          color: "rgba(var(--fg),0.5)",
+          maxWidth: 760,
+        }}
+      >
+        Nota metodológica: «Intent ≥ 0,5» mide la proporción de respuestas sintéticas
+        sobre un umbral interno, no una tasa de clics comparable con la plataforma.
+        El match de landing se juzga sobre{" "}
+        {campaign.landing_source_url
+          ? "la imagen og:image de la URL final (no sobre la landing real navegable)"
+          : "el screenshot de landing subido"}
+        .
+        {(campaign.creatives ?? []).some(
+          (c) => c.kind === "youtube" || c.kind === "video",
+        )
+          ? " Las creatividades de vídeo se evalúan por su miniatura (el modelo no procesa vídeo)."
+          : ""}
+      </p>
 
       {/* Por canal (sólo si la campaña tenía más de uno) */}
       {summary.byChannel.length > 1 && (
@@ -106,7 +139,7 @@ export default async function CampaignRunPage({
                   <Th>Canal</Th>
                   <Th>N</Th>
                   <Th>Intent</Th>
-                  <Th>CTR</Th>
+                  <Th>Intent ≥ 0,5</Th>
                   <Th>Claridad</Th>
                   <Th>Credibilidad</Th>
                   <Th>Diferenciación</Th>
@@ -135,7 +168,7 @@ export default async function CampaignRunPage({
                   <Th>Query</Th>
                   <Th>N</Th>
                   <Th>Intent</Th>
-                  <Th>CTR</Th>
+                  <Th>Intent ≥ 0,5</Th>
                   <Th>Claridad</Th>
                   <Th>Credibilidad</Th>
                   <Th>Diferenciación</Th>
@@ -579,7 +612,17 @@ function ProfileBlock({
   );
 }
 
-function KpiCard({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
+function KpiCard({
+  label,
+  value,
+  accent,
+  hint,
+}: {
+  label: string;
+  value: string;
+  accent?: boolean;
+  hint?: string;
+}) {
   return (
     <div
       style={{
@@ -599,9 +642,13 @@ function KpiCard({ label, value, accent }: { label: string; value: string; accen
           letterSpacing: "0.22em",
           textTransform: "uppercase",
           color: "rgba(var(--fg),0.55)",
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 6,
         }}
       >
         {label}
+        {hint && <InfoTooltip text={hint} label={`Qué significa ${label}`} />}
       </span>
       <span
         style={{

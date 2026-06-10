@@ -51,6 +51,14 @@ const PayloadSchema = z.object({
 
 export type CreateCampaignState = { ok: boolean; error?: string };
 
+/** Los mensajes de zod ya están redactados en castellano: se muestran tal cual. */
+function readableError(err: unknown): string {
+  if (err instanceof z.ZodError) {
+    return err.issues.map((i) => i.message).join(" · ");
+  }
+  return (err as Error).message;
+}
+
 function slugify(s: string): string {
   return s
     .normalize("NFD")
@@ -76,7 +84,72 @@ export async function createCampaignAction(
   try {
     payload = PayloadSchema.parse(raw);
   } catch (err) {
-    return { ok: false, error: (err as Error).message };
+    return { ok: false, error: readableError(err) };
+  }
+
+  // Pre-validación con URLs provisionales ANTES de subir nada a Blob: si los
+  // requisitos de la estrategia no se cumplen (p.ej. creatividades de Display),
+  // el error sale aquí y no quedan blobs huérfanos de un submit fallido.
+  {
+    const placeholder = "https://placeholder.invalid/pending-upload";
+    type ProvisionalCreative = {
+      kind: "image" | "video" | "youtube";
+      role: CreativeRole;
+      url: string;
+      youtube_id?: string | null;
+      thumbnail_url?: string | null;
+      label?: string | null;
+    };
+    const provisionalCreatives = payload.creatives.flatMap((c): ProvisionalCreative[] => {
+      if (c.kind === "youtube") {
+        const id = c.youtube_id || (c.url ? extractYouTubeId(c.url) : null);
+        if (!c.url || !id) return [];
+        return [
+          {
+            kind: "youtube" as const,
+            role: c.role ?? ("video_youtube" as CreativeRole),
+            url: c.url.trim(),
+            youtube_id: id,
+            thumbnail_url: c.thumbnail_url || youtubeThumbnail(id),
+            label: c.label?.trim() || null,
+          },
+        ];
+      }
+      const willUpload = c.upload_data?.startsWith("data:");
+      const finalUrl = willUpload ? placeholder : c.url?.trim() || "";
+      if (!finalUrl) return [];
+      return [
+        {
+          kind: c.kind,
+          role: c.role ?? ("generic" as CreativeRole),
+          url: finalUrl,
+          thumbnail_url: c.kind === "video" ? c.thumbnail_url?.trim() || null : null,
+          label: c.label?.trim() || null,
+        },
+      ];
+    });
+    const provisional = CampaignInputSchema.safeParse({
+      name: payload.name.trim(),
+      channels: payload.channels,
+      strategy: payload.strategy,
+      brief: payload.brief?.trim() || null,
+      final_url: payload.final_url,
+      landing_image_url:
+        payload.landing_mode === "upload"
+          ? placeholder
+          : payload.landing_resolved_url || placeholder,
+      landing_source_url: null,
+      queries: payload.queries.map((q) => q.trim()).filter(Boolean),
+      headlines: payload.headlines.map((h) => h.trim()).filter(Boolean),
+      descriptions: payload.descriptions.map((d) => d.trim()).filter(Boolean),
+      creatives: provisionalCreatives,
+      company_name: payload.company_name?.trim() || null,
+      long_headline: payload.long_headline?.trim() || null,
+      cta: payload.cta?.trim() || null,
+    });
+    if (!provisional.success) {
+      return { ok: false, error: readableError(provisional.error) };
+    }
   }
 
   // Resolver imagen de la landing.
@@ -215,7 +288,7 @@ export async function createCampaignAction(
     const created = await createCampaign(parsed);
     id = created.id;
   } catch (err) {
-    return { ok: false, error: (err as Error).message };
+    return { ok: false, error: readableError(err) };
   }
 
   revalidatePath("/campaigns");

@@ -51,7 +51,7 @@ Todo en `lib/experiments/campaign.ts` salvo lo indicado:
 
 **Por qué**: cuatro bugs confirmados que matan runs de forma no determinista o degradan datos en silencio, más dos fixes de un minuto. Cero migraciones.
 
-### 4. Honestidad de métricas y errores legibles (M)
+### 4. Honestidad de métricas y errores legibles (M) · ✅ hecho en v0.35.3
 
 1. En `app/experiments/campaign/[runId]/page.tsx` (KPI línea 85, cabeceras 103 y 131) y en la config de `RunsPreviousGrid` de `app/campaigns/[id]/page.tsx:463`, renombrar «CTR», «Click rate» y «Tasa click» a «Intent ≥ 0,5» con `components/info-tooltip.tsx` explicando el umbral; nota bajo «Match landing» indicando que solo lo evalúan los perfiles que superan el umbral y, leyendo `landing_source_url` (que gana su primer consumidor), que la imagen juzgada fue la og:image y no la landing real; badge en el drill-down cuando una creatividad vídeo/YouTube se evaluó por miniatura.
 2. Persistir `mean_credibility`, `mean_differentiation` y la desviación estándar del intent como `metrics` (hoy se calculan y se descartan).

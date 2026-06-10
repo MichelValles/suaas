@@ -460,7 +460,7 @@ export default async function CampaignDetailPage({
         emptyHint="Sin runs todavía. Lanza el primer test desde el panel de abajo."
         metrics={[
           { key: "mean_intent_to_click", label: "Intent click medio" },
-          { key: "click_rate", label: "Tasa click" },
+          { key: "click_rate", label: "Intent ≥ 0,5" },
           { key: "mean_landing_match", label: "Match landing" },
         ]}
       />

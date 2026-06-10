@@ -175,6 +175,8 @@ export type CampaignSummary = {
   n_profiles: number;
   n_responses: number;
   mean_intent_to_click: number;
+  /** Desviación estándar del intent entre respuestas: dispersión de la muestra. */
+  intent_stddev: number;
   mean_clarity: number;
   mean_credibility: number;
   mean_differentiation: number;
@@ -606,6 +608,24 @@ export async function runCampaignTest(
       value: summary.mean_clarity,
       unit: "0..1",
     });
+    await upsertMetric({
+      run_id: run.id,
+      key: "mean_credibility",
+      value: summary.mean_credibility,
+      unit: "0..1",
+    });
+    await upsertMetric({
+      run_id: run.id,
+      key: "mean_differentiation",
+      value: summary.mean_differentiation,
+      unit: "0..1",
+    });
+    await upsertMetric({
+      run_id: run.id,
+      key: "intent_stddev",
+      value: summary.intent_stddev,
+      unit: "0..1",
+    });
     if (summary.mean_landing_match !== null) {
       await upsertMetric({
         run_id: run.id,
@@ -823,6 +843,7 @@ function summarize(
       n_profiles: totalProfiles,
       n_responses: 0,
       mean_intent_to_click: 0,
+      intent_stddev: 0,
       mean_clarity: 0,
       mean_credibility: 0,
       mean_differentiation: 0,
@@ -874,6 +895,7 @@ function summarize(
     n_profiles: totalProfiles,
     n_responses: n,
     mean_intent_to_click: meanIntent,
+    intent_stddev: stdDev(rs.map((r) => r.intent_to_click)),
     mean_clarity: meanClarity,
     mean_credibility: meanCred,
     mean_differentiation: meanDiff,
@@ -928,6 +950,12 @@ function emptyByChannel(channel: Channel): CampaignByChannel {
 function avg(xs: number[]): number {
   if (xs.length === 0) return 0;
   return xs.reduce((a, b) => a + b, 0) / xs.length;
+}
+
+function stdDev(xs: number[]): number {
+  if (xs.length < 2) return 0;
+  const mean = avg(xs);
+  return Math.sqrt(avg(xs.map((x) => (x - mean) ** 2)));
 }
 
 function topBarriers(rs: CampaignResponse[]): { label: string; count: number }[] {

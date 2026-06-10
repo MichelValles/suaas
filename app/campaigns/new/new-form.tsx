@@ -737,6 +737,22 @@ export function NewCampaignForm() {
           </div>
         )}
 
+        {strategy === "display" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            Display exige: nombre de empresa (máx. 25c), titular largo (máx. 90c) y
+            creatividades con al menos 1 imagen landscape (1.91:1), 1 imagen square (1:1)
+            y 1 logo square (1:1). Máximo 5 titulares cortos.
+          </p>
+        )}
+
         <Submit />
         </>
         )}
