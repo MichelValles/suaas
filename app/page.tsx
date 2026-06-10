@@ -121,6 +121,9 @@ export default function HomePage() {
           }
         />
 
+        {/* INTENT MOMENTUM */}
+        <IntentMomentumSection />
+
         {/* GRAVITY MODEL VISUAL */}
         <GravityVisual />
 
@@ -149,6 +152,195 @@ export default function HomePage() {
         />
       </div>
     </AppShell>
+  );
+}
+
+// ── Intent Momentum section ───────────────────────────────────
+
+const DIMENSIONS = [
+  {
+    label: "Intensidad",
+    color: "var(--accent-500)",
+    description:
+      "Cuánta motivación hay para actuar ahora. A mayor valor, más probable la acción en el corto plazo.",
+    visual: (
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div
+          style={{
+            height: 3,
+            background: "rgba(255,255,255,0.08)",
+            borderRadius: 2,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: "72%",
+              background: "var(--accent-500)",
+              borderRadius: 2,
+            }}
+          />
+        </div>
+        <span
+          className="mono"
+          style={{ fontSize: 22, color: "var(--accent-500)", lineHeight: 1 }}
+        >
+          0 → 1
+        </span>
+      </div>
+    ),
+  },
+  {
+    label: "Dirección",
+    color: "#60a5fa",
+    description:
+      "Hacia dónde se mueve la intención respecto a una solución: se acerca, está inmóvil o se aleja.",
+    visual: (
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {[
+          { v: "approaching", color: "#4ade80", note: "activo" },
+          { v: "stable", color: "#facc15", note: "latente" },
+          { v: "drifting", color: "#f87171", note: "inactivo" },
+        ].map((s) => (
+          <div key={s.v} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span
+              className="mono"
+              style={{ fontSize: 11, color: s.color, letterSpacing: "0.08em" }}
+            >
+              {s.v}
+            </span>
+            <span
+              style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}
+            >
+              {s.note}
+            </span>
+          </div>
+        ))}
+      </div>
+    ),
+  },
+  {
+    label: "Velocidad",
+    color: "#fb923c",
+    description:
+      "Cómo cambia el momentum en el tiempo: si la urgencia crece, se mantiene o se disipa.",
+    visual: (
+      <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+        {[
+          { v: "accelerating", symbol: "↑" },
+          { v: "steady", symbol: "→" },
+          { v: "decelerating", symbol: "↓" },
+        ].map((s) => (
+          <div key={s.v} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span
+              className="mono"
+              style={{ fontSize: 13, color: "#fb923c", width: 14, textAlign: "center" }}
+            >
+              {s.symbol}
+            </span>
+            <span
+              className="mono"
+              style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: "0.08em" }}
+            >
+              {s.v}
+            </span>
+          </div>
+        ))}
+      </div>
+    ),
+  },
+];
+
+function IntentMomentumSection() {
+  return (
+    <section style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <span
+          className="mono"
+          style={{
+            fontSize: 9,
+            letterSpacing: "0.3em",
+            textTransform: "uppercase",
+            color: "var(--accent-500)",
+          }}
+        >
+          Intent Momentum
+        </span>
+        <h2
+          style={{
+            fontFamily: "var(--font-display)",
+            fontStyle: "italic",
+            fontSize: "clamp(22px, 3vw, 30px)",
+            lineHeight: 1.1,
+            color: "#fff",
+            margin: 0,
+          }}
+        >
+          La intención es un vector, no un estado.
+        </h2>
+        <p
+          style={{
+            fontSize: 13,
+            color: "rgba(255,255,255,0.5)",
+            lineHeight: 1.6,
+            margin: 0,
+            maxWidth: 560,
+          }}
+        >
+          Cada perfil emite un vector de tres dimensiones en cada interacción. Los módulos
+          de SUAAS lo calculan, lo agregan y lo cruzan para medir la fuerza gravitacional
+          real antes de lanzar cualquier campaña o experimento.
+        </p>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+          gap: 16,
+        }}
+      >
+        {DIMENSIONS.map((d) => (
+          <div
+            key={d.label}
+            style={{
+              border: "1px solid rgba(255,255,255,0.07)",
+              borderTop: `2px solid ${d.color}`,
+              borderRadius: "var(--radius-md)",
+              padding: "22px 22px 20px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+              background: "rgba(255,255,255,0.02)",
+            }}
+          >
+            <span
+              className="mono"
+              style={{
+                fontSize: 9,
+                letterSpacing: "0.24em",
+                textTransform: "uppercase",
+                color: "rgba(255,255,255,0.35)",
+              }}
+            >
+              {d.label}
+            </span>
+            {d.visual}
+            <p
+              style={{
+                fontSize: 12,
+                color: "rgba(255,255,255,0.45)",
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              {d.description}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
