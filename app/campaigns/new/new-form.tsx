@@ -591,7 +591,7 @@ export function NewCampaignForm() {
                   colorScheme: "dark",
                 }}
               >
-                <option value="">— sin CTA —</option>
+                <option value="">sin CTA</option>
                 {CTA_VALUES.map((c) => (
                   <option key={c} value={c}>
                     {c}

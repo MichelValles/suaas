@@ -235,7 +235,7 @@ export function ProfileLaunchPanel({
         >
           {submitting
             ? "Ejecutando…"
-            : `Lanzar sobre ${selected.length || "—"} perfil${
+            : `Lanzar sobre ${selected.length || 0} perfil${
                 selected.length === 1 ? "" : "es"
               }`}
         </button>

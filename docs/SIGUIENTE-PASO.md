@@ -1,13 +1,14 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-10 tras auditoría v0.30.4 (Gravity Model + Momentum).
+> Última actualización: 2026-06-10 tras v0.32.0 (consistencia papelera + seed con brief).
 
-## Estado actual (v0.30.4 desplegada)
+## Estado actual (v0.32.0 desplegada)
 
+- **Consistencia de funcionalidades menores (v0.32)**: papelera extendida a GEO, Momentum y Perfiles (9 tipos; migración `0017`), seed para los 8 módulos y **seed con brief** (genera el contenido de los ejemplos con IA a medida, `lib/seed-brief.ts`, scope `seed_brief`). Fix del check SQL de descriptions en campañas (`0018`). Endpoints de GEO/Momentum higienizados con `lib/error-response.ts`. Ver `docs/ROADMAP.md → v0.32.0` para los pendientes detectados por la auditoría (edición/duplicado, acoplamiento target↔A/B en papelera, runners síncronos).
 - **Gravity Model (v0.29)** y **Momentum (v0.30)** en producción. Ver `docs/PROYECTO.md → Módulos Gravity Model` para el detalle: `intent_context` (JTBD en perfiles), Intent Momentum en el chat, `behavior_class` en el test 5s, GEO Tester (`/geo`) y Momentum (`/momentum`).
-- **Migraciones aplicadas**: 0001 a 0016 (`0015_gravity_model.sql`, `0016_momentum.sql` incluidas).
-- **Scopes de telemetría nuevos**: `geo_probe`, `momentum_probe`, `onboard_synthesize`.
+- **Migraciones aplicadas**: 0001 a 0018 (`0017_trash_geo_momentum_profiles.sql` y `0018_campaigns_descriptions_fix.sql` incluidas).
+- **Scopes de telemetría nuevos**: `geo_probe`, `momentum_probe`, `onboard_synthesize`, `seed_brief`.
 - **Auditoría 2026-06-10 (`docs/AUDITORIA-SEGURIDAD.md`)**: 18 hallazgos consolidados, ninguno crítico. Pendientes de corrección (no aplicados todavía). Prioridad: A-01 (cookie de sesión eludible), A-02 (fuga de error en `/api/onboard/submit` público), B-01/B-02/B-03 (runners de GEO/Momentum: deadlock en `running`, sin cap de coste, guard no atómico). **Es el candidato natural al próximo sprint, antes de añadir más funcionalidad.**
 
 ## Estado anterior (v0.28.0 desplegada)
@@ -41,7 +42,7 @@
 | Campañas · Google Ads | `/campaigns` | **Search RSA** (v0.21.0) + **Display RDA** (v0.26.0). Otras 5 estrategias (Performance Max, Demand Gen, Video / YouTube, App Campaigns, Shopping) están como sub-pestañas `Próx.` desde v0.25.0. |
 | Perfiles | `/profiles` | Explorer con grid/tabla, filtros, CSV import/export, generación LLM (50 seeds). |
 
-Sistemas auxiliares: `/diag`, `/tokens`, `/trash` (soft delete con `deleted_at`), `/seed-examples` (siembra los 6 módulos en una pasada con gate).
+Sistemas auxiliares: `/diag`, `/tokens`, `/trash` (soft delete con `deleted_at`, 9 tipos desde v0.32: incluye geo, momentum y perfiles), `/seed-examples` (siembra los 8 módulos en una pasada con gate; acepta un brief opcional para generar el contenido con IA a medida).
 
 ## Últimos sprints relevantes
 

@@ -1,35 +1,40 @@
 import { NextResponse } from "next/server";
+import { internalError, serviceUnavailable, validationError } from "@/lib/error-response";
 import { createMomentumChallenge } from "@/lib/momentum";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { z } from "zod";
 
 export const dynamic = "force-dynamic";
 
+const CreateMomentumSchema = z.object({
+  name: z.string().min(1, "El nombre es obligatorio."),
+  trigger_scenario: z.string().min(1, "El escenario de activación es obligatorio."),
+  brand_context: z.string().optional(),
+  profile_ids: z
+    .array(z.string().uuid())
+    .min(1, "Selecciona al menos un perfil."),
+});
+
 export async function POST(req: Request) {
   if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: "Supabase no configurado." }, { status: 503 });
+    return serviceUnavailable("Supabase no configurado.");
   }
   let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "JSON inválido." }, { status: 400 });
+    return validationError("JSON inválido.");
   }
-  const b = body as Record<string, unknown>;
-  if (!b.name || !b.trigger_scenario || !Array.isArray(b.profile_ids)) {
-    return NextResponse.json(
-      { error: "name, trigger_scenario y profile_ids son requeridos." },
-      { status: 400 },
+  const parsed = CreateMomentumSchema.safeParse(body);
+  if (!parsed.success) {
+    return validationError(
+      parsed.error.issues.map((i) => i.message).join("; "),
     );
   }
   try {
-    const challenge = await createMomentumChallenge({
-      name: b.name as string,
-      trigger_scenario: b.trigger_scenario as string,
-      brand_context: typeof b.brand_context === "string" ? b.brand_context : undefined,
-      profile_ids: b.profile_ids as string[],
-    });
+    const challenge = await createMomentumChallenge(parsed.data);
     return NextResponse.json({ ok: true, challenge });
-  } catch {
-    return NextResponse.json({ error: "Error interno." }, { status: 500 });
+  } catch (err) {
+    return internalError(500, "/api/momentum:POST", err);
   }
 }

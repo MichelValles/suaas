@@ -182,6 +182,27 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.32.0 — Consistencia de funcionalidades menores (papelera + seed en todos los módulos, seed con brief)
+
+Auditoría de consistencia módulo a módulo (10 agentes) y cierre de los huecos de papelera y sembrador. Detalle de lo aplicado:
+
+- [x] **Papelera para GEO, Momentum y Perfiles**: migración `0017_trash_geo_momentum_profiles.sql` añade `deleted_at` + índice a `geo_analyses`, `momentum_challenges` y `profiles`. `lib/geo.ts` y `lib/momentum.ts` ganan el trío softDelete/restore/hardDelete y sus listados filtran `deleted_at is null` (con fallback `isMissingColumnError` si la migración no está aplicada). `lib/trash.ts` pasa de 6 a 9 `TRASH_TYPES`; `/trash` los agrupa y resume. Los botones de borrar de `/geo`, `/momentum` y `/profiles` ahora envían a papelera (antes borraban en duro) y sus confirms lo explican.
+- [x] **Perfiles: soft delete como red de seguridad**: el borrado duro de un perfil destruye en cascada todos sus runs y respuestas históricas (`on delete cascade`). Ahora `DELETE /api/profiles/[id]` hace soft delete; el borrado definitivo solo es posible desde `/trash`. `listProfilesByIds` NO filtra `deleted_at` a propósito: los resultados históricos siguen mostrando el perfil aunque esté en la papelera.
+- [x] **Seed para GEO y Momentum**: `seedGeoExample` (visibilidad de Flat 101 con 3 segmentos JTBD) y `seedMomentumExample` (Trigger de urgencia dental, asigna 3 perfiles aleatorios aunque no se lance). Kinds `geo` y `momentum` en `/api/seed/examples` y tarjetas en `/seed-examples` (ahora «los 8»). Con `launch > 0`, GEO ejecuta `runGeoAnalysis` y Momentum `runMomentumChallenge`.
+- [x] **Seed con brief**: campo opcional en `/seed-examples`. `lib/seed-brief.ts:generateSeedPlan(brief, kinds)` hace UNA llamada `generateObject` que produce contenido coherente (misma marca y sector) para todos los módulos seleccionados; cada `seedXxxExample` acepta ese plan en lugar de sus defaults estáticos. Los módulos con imagen piden al modelo URLs reales de marcas conocidas del sector (og:image se resuelve en runtime y el fallo queda aislado por módulo). Saneado de límites duros (headlines 30 chars, descriptions 90, arrays acotados) tras la generación. Scope de telemetría nuevo `seed_brief`. Sin brief, todo funciona exactamente como antes.
+- [x] **Fix drift zod↔SQL en campañas**: el check de `descriptions` exigía 2..4 en SQL pero zod permite 1..5 (Display). Migración `0018_campaigns_descriptions_fix.sql` (idempotente) lo corrige y añade el índice `campaigns_deleted_at_idx` que faltaba desde 0008.
+- [x] **Higiene de errores en GEO y Momentum**: `/api/geo`, `/api/geo/run`, `/api/momentum` y `/api/momentum/run` pasan a `lib/error-response.ts` (antes filtraban mensajes internos de Supabase al cliente). Los endpoints de run conservan una lista blanca de mensajes de negocio propios («El análisis ya está en marcha», etc.) que devuelven 409. `/api/momentum` ahora valida con zod (incluye `profile_ids` min 1, alineado con el form). `createGeoAnalysisAction` captura errores del insert en lugar de reventar el form.
+- [x] **CSV de perfiles conserva `intent_context`**: la columna se añade a `PROFILE_CSV_HEADERS` y a `profileToCsvRow`; el ciclo exportar → importar ya no pierde el JTBD (retrocompatible con CSVs antiguos: la columna ausente queda vacía).
+- [x] **Comentarios y avisos desactualizados**: entity-list/entity-card/trash-button ya no hablan de «5 entidades»; los avisos de `/trash` citan 0007 y 0017.
+
+Pendientes detectados por la auditoría y aplazados (candidatos a próximos sprints):
+- Edición/renombrado tras crear (solo profiles tiene update; duele especialmente en campañas y embudos) y duplicar/clonar entidades.
+- Acoplamiento papelera ↔ A/B: enviar a papelera un target usado como variante rompe el detalle del A/B (404) y el hard delete lo borra en cascada sin aviso. Falta chequeo de referencias.
+- Botón de papelera en las páginas de detalle (hoy solo en las cards de listado, en todos los módulos).
+- Factorizar el componente `Notice` de error duplicado en 7+ páginas.
+- Runners de GEO/Momentum síncronos dentro del POST (riesgo de timeout y status `running` huérfano; ya señalado en `AUDITORIA-SEGURIDAD.md` B-01/B-03).
+- Unificar los tres patrones de UI de borrado (SendToTrashButton vs server actions vs DELETE API).
+
 ## v0.30.0 — Módulo Momentum (Intent Momentum ante-touchpoint)
 
 - [x] **v0.30.0**: nuevo módulo `Momentum`. Define **escenarios de activación** (retos JTBD) y simula cómo cada perfil abordaría ese reto en su vida real, antes de que ninguna marca entre en su radar. Para cada perfil extrae: narrativa en primera persona, intensidad (0-1), dirección (approaching/stable/drifting), velocidad (accelerating/steady/decelerating), primeros pasos ordenados, canales que usaría y barreras. El resumen agrega la distribución de dirección, intensidad media y top 5 canales más frecuentes. Migración `0016_momentum.sql` añade la tabla `momentum_challenges` con campos `trigger_scenario`, `brand_context` (opcional), `profile_ids[]` y `results` jsonb. Nuevo scope de telemetría `momentum_probe`. Entrada `Momentum` (icono Zap) en el sidebar.

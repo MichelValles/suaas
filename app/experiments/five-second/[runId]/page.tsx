@@ -270,7 +270,7 @@ function SummaryCard({
         className="display"
         style={{ fontSize: 36, lineHeight: 1, color: "#fff" }}
       >
-        {value === null ? "—" : `${Math.round(value * 100)}%`}
+        {value === null ? "·" : `${Math.round(value * 100)}%`}
       </span>
       {hint && (
         <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>

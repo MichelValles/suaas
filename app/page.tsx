@@ -19,28 +19,28 @@ const CONSTRUCTION_MODULES: ModuleItem[] = [
     icon: Users,
     label: "Perfiles",
     body: "Demografía, Big Five, COM-B y backstory. Cada perfil tiene chat propio con arquitectura Talker · Reasoner y emite el vector Intent Momentum en cada turno.",
-    cta: "Ver perfiles",
+    cta: "Construir cohorte",
   },
   {
     href: "/momentum",
     icon: Zap,
     label: "Momentum",
-    body: "Simula cómo un perfil abordaría un Trigger antes de que ninguna marca entre en su radar: intensidad, dirección, velocidad y primeros pasos.",
-    cta: "Ver momentum",
+    body: "Antes de que la marca entre en la ecuación: cómo aborda cada perfil un Trigger real. Intensidad, dirección, velocidad y primeros pasos.",
+    cta: "Medir intent",
   },
   {
     href: "/targets",
     icon: ScanEye,
     label: "Claridad 5s",
     body: "El agente clasifica la conducta frente a la acción principal del flujo: óptima, fuga o repesca. Devuelve comprehension_rate y fricción percibida.",
-    cta: "Ver tests",
+    cta: "Testear claridad",
   },
   {
     href: "/funnels",
     icon: Filter,
     label: "Embudos",
     body: "El perfil recorre el flujo con su carga cognitiva real. Devuelve effort, intent_match y dropoff por paso antes del lanzamiento.",
-    cta: "Ver embudos",
+    cta: "Analizar flujo",
   },
 ];
 
@@ -49,15 +49,15 @@ const ACCELERATION_MODULES: ModuleItem[] = [
     href: "/geo",
     icon: Bot,
     label: "GEO Tester",
-    body: "Simula cómo construyen su respuesta los buscadores IA por segmento JTBD. Mide visibility_score, brand_position, recommendation_tone y missing_attributes.",
-    cta: "Ver GEO",
+    body: "Cómo construyen la respuesta Perplexity, Google AI Overview y ChatGPT Search según el JTBD del perfil. Mide visibility_score, brand_position, recommendation_tone y missing_attributes.",
+    cta: "Auditar visibilidad",
   },
   {
     href: "/campaigns",
     icon: Megaphone,
     label: "Campañas",
-    body: "Genera la versión ideal de un anuncio RSA o RDA por perfil y query. La intención segmenta el mensaje, no la demografía.",
-    cta: "Ver campañas",
+    body: "El anuncio que el usuario querría ver, ajustado a la query y al perfil. RSA o RDA: la intención segmenta el mensaje, no la demografía.",
+    cta: "Ajustar mensajes",
   },
 ];
 
@@ -67,21 +67,21 @@ const KNOWLEDGE_MODULES: ModuleItem[] = [
     icon: Split,
     label: "A/B tests",
     body: "Dos variantes en paralelo. Compara comprensión, fricción y barreras emergentes con la misma cohorte de perfiles.",
-    cta: "Ver A/B",
+    cta: "Comparar variantes",
   },
   {
     href: "/copy",
     icon: MessageSquareText,
     label: "Copy",
     body: "Deck de bloques de texto: claim, beneficios, CTA. Por bloque: sentiment, claridad, persuasión y willingness to click.",
-    cta: "Ver copys",
+    cta: "Evaluar copy",
   },
   {
     href: "/pricing",
     icon: Tag,
     label: "Pricing",
     body: "N niveles de precio. Por nivel: would_buy, willingness to pay y valor percibido. Detecta el umbral psicológico antes de tocar la web.",
-    cta: "Ver pricing",
+    cta: "Calibrar precio",
   },
 ];
 
@@ -494,14 +494,14 @@ function OrbitalDiagram() {
       {/* Center */}
       <div className="gm-center" />
 
-      {/* Orbiting dots — Construction (2 dots, slow) */}
+      {/* Orbiting dots:Construction (2 dots, slow) */}
       <Dot r={128} color="#60a5fa" dur="16s" delay="0s" />
       <Dot r={128} color="#60a5fa" dur="16s" delay="-8s" opacity={0.5} />
 
-      {/* Orbiting dot — Acceleration */}
+      {/* Orbiting dot:Acceleration */}
       <Dot r={84} color="#fb923c" dur="10s" delay="-3s" />
 
-      {/* Orbiting dot — Value (faint, pending) */}
+      {/* Orbiting dot:Value (faint, pending) */}
       <Dot r={44} color="#a78bfa" dur="6s" delay="-1.5s" opacity={0.25} />
     </div>
   );

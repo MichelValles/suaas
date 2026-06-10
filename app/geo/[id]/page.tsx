@@ -175,7 +175,7 @@ function SummaryStrip({
     >
       <MetricCard
         label="Visibilidad media"
-        value={visAvg !== null ? `${Math.round(visAvg * 100)}%` : "—"}
+        value={visAvg !== null ? `${Math.round(visAvg * 100)}%` : "·"}
         color={visAvg !== null && visAvg >= 0.6 ? "#4ade80" : visAvg !== null && visAvg >= 0.3 ? "#facc15" : "#f87171"}
       />
       <MetricCard label="Segmentos mencionados" value={`${mentioned}/${results.length}`} />

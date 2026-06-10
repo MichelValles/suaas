@@ -33,7 +33,7 @@ Ver `.env.example` para el listado completo. Esenciales:
 
 - **Server Actions body limit**: por defecto Next 16 lo deja en 1MB. SUAAS lo sube a `10mb` en `next.config.ts` (`experimental.serverActions.bodySizeLimit`) para que los uploads de screenshot (data: URL base64) no salten en `/targets/new` ni en `/funnels/new`. Si subes imágenes > 10MB, conviene migrar al patrón **client upload directo a Vercel Blob** con `handleUpload`.
 - **Schema cache de PostgREST**: tras aplicar una migración con `ALTER TABLE`, PostgREST puede tardar en ver las columnas nuevas. Si ves errores tipo `Could not find the 'X' column of 'runs' in the schema cache`, ejecuta en el SQL editor: `NOTIFY pgrst, 'reload schema';`. `lib/runs.ts:createRun` es defensivo y sólo inserta columnas no-null para mitigar el efecto.
-- **Migraciones a aplicar en orden** (estado actual, v0.26.x):
+- **Migraciones a aplicar en orden** (estado actual, v0.32.x):
    1. `0001_initial.sql`
    2. `0002_five_second.sql`
    3. `0003_funnels.sql`
@@ -48,6 +48,10 @@ Ver `.env.example` para el listado completo. Esenciales:
    12. `0012_campaigns_headlines_fix.sql` (idempotente, parche)
    13. `0013_campaigns_strategy.sql`
    14. `0014_campaigns_display.sql`
+   15. `0015_gravity_model.sql`
+   16. `0016_momentum.sql`
+   17. `0017_trash_geo_momentum_profiles.sql`
+   18. `0018_campaigns_descriptions_fix.sql` (idempotente, parche)
 
    Usa `/diag` o `/api/diag` para confirmar que todas las tablas + columnas críticas de `runs` están verdes.
 

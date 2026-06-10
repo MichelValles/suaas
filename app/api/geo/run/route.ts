@@ -1,27 +1,41 @@
 import { NextResponse } from "next/server";
+import { internalError, serviceUnavailable, validationError } from "@/lib/error-response";
 import { runGeoAnalysis } from "@/lib/geo";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
+/**
+ * Errores de negocio de runGeoAnalysis: mensajes nuestros, seguros para
+ * el cliente. Cualquier otro error (Supabase, gateway) se higieniza.
+ */
+const BUSINESS_ERRORS = new Set([
+  "Análisis GEO no encontrado.",
+  "El análisis ya está en marcha.",
+]);
+
 export async function POST(req: Request) {
   if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: "Supabase no configurado." }, { status: 503 });
+    return serviceUnavailable("Supabase no configurado.");
   }
   let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "JSON inválido." }, { status: 400 });
+    return validationError("JSON inválido.");
   }
   const geoId = (body as Record<string, unknown>)?.geoId;
   if (typeof geoId !== "string" || !geoId) {
-    return NextResponse.json({ error: "geoId requerido." }, { status: 400 });
+    return validationError("geoId requerido.");
   }
   try {
     const analysis = await runGeoAnalysis(geoId);
     return NextResponse.json({ ok: true, analysis });
   } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    const message = (err as Error).message;
+    if (BUSINESS_ERRORS.has(message)) {
+      return NextResponse.json({ ok: false, error: message }, { status: 409 });
+    }
+    return internalError(500, "/api/geo/run:POST", err);
   }
 }

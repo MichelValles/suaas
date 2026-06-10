@@ -123,10 +123,10 @@ export default async function AbDetailPage({
                         {l.variant}
                       </span>
                     </Td>
-                    <Td>{l.run ? formatDate(l.run.created_at) : "—"}</Td>
+                    <Td>{l.run ? formatDate(l.run.created_at) : "·"}</Td>
                     <Td>{fmtPct(l.metrics.mean_clarity)}</Td>
                     <Td>{fmtPct(l.metrics.mean_comprehension)}</Td>
-                    <Td>{l.run?.status ?? "—"}</Td>
+                    <Td>{l.run?.status ?? "·"}</Td>
                     <Td>
                       {l.run && (
                         <Link
@@ -236,6 +236,6 @@ function formatDate(iso: string): string {
   });
 }
 function fmtPct(v: number | undefined): string {
-  if (typeof v !== "number") return "—";
+  if (typeof v !== "number") return "·";
   return `${Math.round(v * 100)}%`;
 }

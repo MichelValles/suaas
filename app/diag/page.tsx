@@ -114,7 +114,7 @@ export default async function DiagPage() {
           label="Esquema"
           value={
             !supabaseConfigured
-              ? "—"
+              ? "·"
               : schemaOk
                 ? "todo verde"
                 : "faltan migraciones"
@@ -175,7 +175,7 @@ export default async function DiagPage() {
                         {r.ok ? "ok" : "missing"}
                       </span>
                     </Td>
-                    <Td>{r.count ?? "—"}</Td>
+                    <Td>{r.count ?? "·"}</Td>
                     <Td>
                       <span
                         style={{

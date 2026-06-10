@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { internalError, serviceUnavailable, validationError } from "@/lib/error-response";
 import { createGeoAnalysis, SegmentInputSchema } from "@/lib/geo";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { z } from "zod";
@@ -14,25 +15,24 @@ const CreateGeoSchema = z.object({
 
 export async function POST(req: Request) {
   if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: "Supabase no configurado." }, { status: 503 });
+    return serviceUnavailable("Supabase no configurado.");
   }
   let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "JSON inválido." }, { status: 400 });
+    return validationError("JSON inválido.");
   }
   const parsed = CreateGeoSchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json(
-      { error: parsed.error.issues.map((i) => i.message).join("; ") },
-      { status: 400 },
+    return validationError(
+      parsed.error.issues.map((i) => i.message).join("; "),
     );
   }
   try {
     const analysis = await createGeoAnalysis(parsed.data);
     return NextResponse.json({ ok: true, analysis });
   } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    return internalError(500, "/api/geo:POST", err);
   }
 }

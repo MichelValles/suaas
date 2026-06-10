@@ -327,6 +327,6 @@ function Bar({ label, value, max }: { label: string; value: number; max: number 
 }
 
 function fmtPct(v: number | null): string {
-  if (v === null) return "—";
+  if (v === null) return "·";
   return `${Math.round(v * 100)}%`;
 }

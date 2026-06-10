@@ -27,7 +27,7 @@ const PLANES: Array<{
         label: "Momentum",
         role: "Intent Momentum ante-touchpoint",
         detail:
-          "Simula cómo cada perfil abordaría un Trigger antes de que ninguna marca entre en su radar: narrativa de intención, intensidad, dirección, velocidad, primeros pasos, canales y barreras.",
+          "Antes de que la marca entre en la ecuación: narrativa de intención, intensidad, dirección, velocidad, primeros pasos, canales y barreras por perfil.",
       },
       {
         href: "/targets",
@@ -56,14 +56,14 @@ const PLANES: Array<{
         label: "GEO Tester",
         role: "Generative Engine Optimization",
         detail:
-          "Simula cómo construyen la respuesta buscadores IA (Perplexity, Google AI Overview, ChatGPT Search) por segmento JTBD. Mide visibility_score, brand_position, recommendation_tone, key_claims y missing_attributes.",
+          "Cómo construyen la respuesta Perplexity, Google AI Overview y ChatGPT Search según el JTBD del perfil. Mide visibility_score, brand_position, recommendation_tone, key_claims y missing_attributes.",
       },
       {
         href: "/campaigns",
         label: "Campañas",
         role: "Performance guiado por intención",
         detail:
-          "Genera la versión ideal de un anuncio RSA o RDA por perfil y query de búsqueda. La intención del usuario segmenta el mensaje: no la demografía.",
+          "El anuncio que el usuario querría ver, ajustado a la query y al perfil. RSA o RDA: la intención segmenta el mensaje, no la demografía.",
       },
     ],
   },
@@ -282,7 +282,7 @@ export default function GravityPage() {
                   letterSpacing: "0.1em",
                 }}
               >
-                Sin implementación directa todavía.
+                Value Plane sin módulo propio aún.
               </span>
               <p
                 style={{

@@ -7,7 +7,8 @@ import type { TrashType } from "@/lib/trash";
 
 /**
  * Tarjeta reutilizable para los listados de targets, funnels, A/B tests,
- * copy decks y pricing offers. Misma jerarquía visual en las 5 vistas:
+ * copy decks, pricing offers y campañas. Misma jerarquía visual en todas
+ * las vistas:
  *
  *   media opcional (16:9)
  *   ──────────────────────────────────────────

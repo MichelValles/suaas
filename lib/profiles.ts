@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 // ============================================================
 // Schemas (zod) — la fuente de verdad de la forma del dato.
@@ -55,14 +55,26 @@ export type Profile = z.infer<typeof ProfileSchema>;
 
 export async function listProfiles(): Promise<Profile[]> {
   const supa = getServerClient();
-  const { data, error } = await supa
+  let { data, error } = await supa
     .from("profiles")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data, error } = await supa
+      .from("profiles")
+      .select("*")
+      .order("created_at", { ascending: false }));
+  }
   if (error) throw new Error(error.message);
   return (data ?? []) as Profile[];
 }
 
+/**
+ * No filtra `deleted_at`: lo usan las vistas de resultados históricos
+ * (runs, momentum) y deben seguir mostrando el perfil aunque esté en
+ * la papelera.
+ */
 export async function listProfilesByIds(ids: string[]): Promise<Profile[]> {
   if (ids.length === 0) return [];
   const supa = getServerClient();
@@ -76,11 +88,19 @@ export async function listProfilesByIds(ids: string[]): Promise<Profile[]> {
 
 export async function getProfile(id: string): Promise<Profile | null> {
   const supa = getServerClient();
-  const { data, error } = await supa
+  let { data, error } = await supa
     .from("profiles")
     .select("*")
     .eq("id", id)
+    .is("deleted_at", null)
     .maybeSingle();
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data, error } = await supa
+      .from("profiles")
+      .select("*")
+      .eq("id", id)
+      .maybeSingle());
+  }
   if (error) throw new Error(error.message);
   return (data ?? null) as Profile | null;
 }
@@ -122,7 +142,29 @@ export async function updateProfileIntentContext(
   if (error) throw new Error(error.message);
 }
 
-export async function deleteProfile(id: string): Promise<void> {
+export async function softDeleteProfile(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("profiles")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function restoreProfile(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("profiles")
+    .update({ deleted_at: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+/**
+ * Borrado definitivo. Destruye en cascada los runs y respuestas del
+ * perfil (on delete cascade). Solo debe invocarse desde la papelera.
+ */
+export async function hardDeleteProfile(id: string): Promise<void> {
   const supa = getServerClient();
   const { error } = await supa.from("profiles").delete().eq("id", id);
   if (error) throw new Error(error.message);

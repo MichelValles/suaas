@@ -134,8 +134,15 @@ function MomentumCard({ challenge: c }: { challenge: MomentumChallenge }) {
           <input type="hidden" name="id" value={c.id} />
           <button
             type="submit"
+            aria-label="Enviar Trigger a la papelera"
+            title="Enviar a papelera"
             onClick={(e) => {
-              if (!window.confirm(`¿Eliminar el Trigger "${c.name}"?`)) e.preventDefault();
+              if (
+                !window.confirm(
+                  `¿Enviar «${c.name}» a la papelera? Podrás restaurarlo desde Sistema → Papelera.`,
+                )
+              )
+                e.preventDefault();
             }}
             style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.25)", padding: 4, display: "flex", alignItems: "center" }}
           >

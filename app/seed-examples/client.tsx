@@ -5,7 +5,15 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 
-type Kind = "clarity" | "copy" | "pricing" | "ab" | "funnel" | "campaign";
+type Kind =
+  | "clarity"
+  | "copy"
+  | "pricing"
+  | "ab"
+  | "funnel"
+  | "campaign"
+  | "geo"
+  | "momentum";
 
 type ResultRow = {
   kind: string;
@@ -16,6 +24,9 @@ type ResultRow = {
   abTestId?: string;
   funnelId?: string;
   campaignId?: string;
+  geoId?: string;
+  momentumId?: string;
+  ran?: boolean;
   runId?: string;
   runIds?: string[];
   error?: string;
@@ -30,6 +41,7 @@ type Response = {
 export function SeedExamplesClient() {
   const router = useRouter();
   const [launch, setLaunch] = useState(3);
+  const [brief, setBrief] = useState("");
   const [data, setData] = useState<Response | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -41,10 +53,15 @@ export function SeedExamplesClient() {
     setPendingKind(kinds && kinds.length === 1 ? kinds[0] : "all");
     startTransition(async () => {
       try {
+        const trimmed = brief.trim();
         const res = await fetch("/api/seed/examples", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ launch, ...(kinds ? { kinds } : {}) }),
+          body: JSON.stringify({
+            launch,
+            ...(kinds ? { kinds } : {}),
+            ...(trimmed ? { brief: trimmed } : {}),
+          }),
         });
         const json = (await res.json()) as Response & { error?: string };
         if (!res.ok) {
@@ -69,12 +86,53 @@ export function SeedExamplesClient() {
           border: "1px solid rgba(255,255,255,0.08)",
           borderRadius: "var(--radius-md)",
           background: "rgba(255,255,255,0.02)",
-          display: "grid",
-          gridTemplateColumns: "1fr auto",
+          display: "flex",
+          flexDirection: "column",
           gap: 16,
-          alignItems: "end",
         }}
       >
+        <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <span
+            className="mono"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.22em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.55)",
+            }}
+          >
+            Brief (opcional): los ejemplos se generan con IA a medida
+          </span>
+          <textarea
+            value={brief}
+            onChange={(e) => setBrief(e.currentTarget.value)}
+            disabled={pending}
+            maxLength={2000}
+            rows={3}
+            placeholder="Ej: una marca de zapatillas sostenibles para corredores urbanos en España. Vacío = ejemplos de muestra predefinidos."
+            style={{
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: "var(--radius-sm)",
+              padding: "10px 12px",
+              color: "#fff",
+              fontSize: 14,
+              lineHeight: 1.5,
+              outline: "none",
+              fontFamily: "var(--font-sans)",
+              colorScheme: "dark",
+              resize: "vertical",
+            }}
+          />
+        </label>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr auto",
+            gap: 16,
+            alignItems: "end",
+          }}
+        >
         <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           <span
             className="mono"
@@ -122,14 +180,15 @@ export function SeedExamplesClient() {
         >
           {pending && pendingKind === "all" ? (
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-              <Loader2 size={14} className="spin" /> Sembrando los 6…
+              <Loader2 size={14} className="spin" /> Sembrando los 8…
             </span>
           ) : launch > 0 ? (
-            `Crear los 6 y lanzar (${launch} perfiles)`
+            `Crear los 8 y lanzar (${launch} perfiles)`
           ) : (
-            "Crear los 6 (sin lanzar)"
+            "Crear los 8 (sin lanzar)"
           )}
         </button>
+        </div>
       </div>
 
       <ul
@@ -197,6 +256,26 @@ export function SeedExamplesClient() {
             kind="campaign"
             title="Campaña Paid Search"
             body="Anuncio RSA de Vercel con 5 titulares, 2 descripciones y 3 queries objetivo."
+            onTrigger={trigger}
+            pending={pending}
+            pendingKind={pendingKind}
+          />
+        </li>
+        <li>
+          <Recipe
+            kind="geo"
+            title="GEO Tester"
+            body="Visibilidad de Flat 101 en buscadores IA con 3 segmentos de intención JTBD."
+            onTrigger={trigger}
+            pending={pending}
+            pendingKind={pendingKind}
+          />
+        </li>
+        <li>
+          <Recipe
+            kind="momentum"
+            title="Momentum"
+            body="Trigger de activación (urgencia dental) asignado a perfiles aleatorios."
             onTrigger={trigger}
             pending={pending}
             pendingKind={pendingKind}
@@ -390,6 +469,20 @@ function ResultLinks({ row }: { row: ResultRow }) {
   } else if (row.kind === "campaign") {
     if (row.campaignId) links.push({ href: `/campaigns/${row.campaignId}`, label: "Ver campaña" });
     if (row.runId) links.push({ href: `/experiments/campaign/${row.runId}`, label: "Ver run" });
+  } else if (row.kind === "geo") {
+    if (row.geoId) {
+      links.push({
+        href: `/geo/${row.geoId}`,
+        label: row.ran ? "Ver análisis" : "Ver análisis (sin lanzar)",
+      });
+    }
+  } else if (row.kind === "momentum") {
+    if (row.momentumId) {
+      links.push({
+        href: `/momentum/${row.momentumId}`,
+        label: row.ran ? "Ver Trigger" : "Ver Trigger (sin lanzar)",
+      });
+    }
   }
   if (links.length === 0) return null;
   return (

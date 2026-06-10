@@ -12,7 +12,7 @@ export default async function TrashPage() {
         <PageHeading
           eyebrow="Sistema · papelera"
           title="Supabase aún no está conectado."
-          description="Provisiona Supabase desde el Marketplace de Vercel y aplica las migraciones (incluida 0007_trash.sql)."
+          description="Provisiona Supabase desde el Marketplace de Vercel y aplica las migraciones (incluidas 0007_trash.sql y 0017_trash_geo_momentum_profiles.sql)."
         />
       </AppShell>
     );
@@ -34,7 +34,17 @@ export default async function TrashPage() {
       acc[t] = grouped[t]?.length ?? 0;
       return acc;
     },
-    { targets: 0, funnels: 0, ab: 0, copy: 0, pricing: 0, campaign: 0 },
+    {
+      targets: 0,
+      funnels: 0,
+      ab: 0,
+      copy: 0,
+      pricing: 0,
+      campaign: 0,
+      geo: 0,
+      momentum: 0,
+      profiles: 0,
+    },
   );
 
   return (
@@ -64,8 +74,8 @@ export default async function TrashPage() {
               lineHeight: 1.5,
             }}
           >
-            Error consultando la papelera: {err}. ¿Aplicaste la migración
-            `supabase/migrations/0007_trash.sql`?
+            Error consultando la papelera: {err}. ¿Aplicaste las migraciones
+            `0007_trash.sql` y `0017_trash_geo_momentum_profiles.sql`?
           </div>
         )}
 
@@ -93,7 +103,8 @@ export default async function TrashPage() {
             }}
           >
             La papelera está vacía. Cuando elimines un target, embudo, A/B test,
-            copy deck u oferta de pricing, aparecerá aquí.
+            copy deck, oferta de pricing, campaña, análisis GEO, Trigger de
+            Momentum o perfil, aparecerá aquí.
           </div>
         ) : null}
 

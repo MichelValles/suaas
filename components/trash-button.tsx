@@ -6,8 +6,9 @@ import { useState, useTransition } from "react";
 import type { TrashType } from "@/lib/trash";
 
 /**
- * Botón pequeño cuadrado para enviar una entidad (target, embudo, A/B, copy
- * deck, oferta de pricing) a la papelera. Pide confirmación, llama al
+ * Botón pequeño cuadrado para enviar una entidad (cualquier TrashType:
+ * target, embudo, A/B, copy deck, pricing, campaña, análisis GEO, Trigger
+ * de Momentum o perfil) a la papelera. Pide confirmación, llama al
  * endpoint POST /api/trash/[type]/[id] y refresca la página.
  *
  * Pensado para encajar en una esquina de las cards de listado (overlay).

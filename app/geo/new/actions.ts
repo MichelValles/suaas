@@ -47,12 +47,20 @@ export async function createGeoAnalysisAction(
     return { ok: false, error: "Máximo 10 segmentos por análisis." };
   }
 
-  const analysis = await createGeoAnalysis({
-    name: result.data.name,
-    brand_name: result.data.brand_name,
-    brand_description: result.data.brand_description,
-    segments: segParsed.data,
-  });
+  let analysisId: string;
+  try {
+    const analysis = await createGeoAnalysis({
+      name: result.data.name,
+      brand_name: result.data.brand_name,
+      brand_description: result.data.brand_description,
+      segments: segParsed.data,
+    });
+    analysisId = analysis.id;
+  } catch (err) {
+    console.error("[createGeoAnalysisAction] insert failed", err);
+    return { ok: false, error: "No se pudo guardar el análisis. Inténtalo de nuevo." };
+  }
 
-  redirect(`/geo/${analysis.id}`);
+  // redirect lanza NEXT_REDIRECT: debe quedar fuera del try/catch.
+  redirect(`/geo/${analysisId}`);
 }

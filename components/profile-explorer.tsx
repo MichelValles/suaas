@@ -901,7 +901,7 @@ function ProfileTable({
               <Td>{p.demographics.age}</Td>
               <Td>{p.demographics.gender}</Td>
               <Td>{p.demographics.occupation}</Td>
-              <Td>{p.demographics.geo ?? "—"}</Td>
+              <Td>{p.demographics.geo ?? "·"}</Td>
               <Td className="col-ocean">
                 <BigFiveInlineBars b={p.big_five} />
               </Td>
@@ -1162,7 +1162,7 @@ function RowActions({
     e.preventDefault();
     if (!onDelete) return;
     const ok = window.confirm(
-      `¿Eliminar el perfil «${profile.name}»? Esto borrará también sus runs y respuestas.`,
+      `¿Enviar el perfil «${profile.name}» a la papelera? Sus runs y respuestas se conservan; podrás restaurarlo desde Sistema → Papelera.`,
     );
     if (!ok) return;
     await onDelete(profile.id);

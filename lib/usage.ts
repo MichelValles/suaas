@@ -13,7 +13,8 @@ export type UsageScope =
   | "campaign_ideal"
   | "onboard_synthesize"
   | "geo_probe"
-  | "momentum_probe";
+  | "momentum_probe"
+  | "seed_brief";
 
 type RawUsage = {
   promptTokens?: number;

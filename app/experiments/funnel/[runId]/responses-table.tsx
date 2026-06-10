@@ -202,7 +202,7 @@ function StepBadge({
         }}
         title={skipped ? "Paso no alcanzado por dropoff previo" : "Sin respuesta"}
       >
-        {skipped ? "—" : "?"}
+        {skipped ? "·" : "?"}
       </span>
     );
   }

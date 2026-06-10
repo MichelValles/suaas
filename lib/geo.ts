@@ -1,7 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
 
 // ============================================================
@@ -173,15 +173,40 @@ export async function createGeoAnalysis(input: GeoAnalysisInput): Promise<GeoAna
 
 export async function listGeoAnalyses(): Promise<GeoAnalysis[]> {
   const supa = getServerClient();
-  const { data, error } = await supa
+  let { data, error } = await supa
     .from("geo_analyses")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data, error } = await supa
+      .from("geo_analyses")
+      .select("*")
+      .order("created_at", { ascending: false }));
+  }
   if (error) throw new Error(error.message);
   return (data ?? []) as GeoAnalysis[];
 }
 
-export async function deleteGeoAnalysis(id: string): Promise<void> {
+export async function softDeleteGeoAnalysis(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("geo_analyses")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function restoreGeoAnalysis(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("geo_analyses")
+    .update({ deleted_at: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function hardDeleteGeoAnalysis(id: string): Promise<void> {
   const supa = getServerClient();
   const { error } = await supa.from("geo_analyses").delete().eq("id", id);
   if (error) throw new Error(error.message);

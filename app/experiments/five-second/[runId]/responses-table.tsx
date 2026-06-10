@@ -189,7 +189,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                   <Td>{fmtPct(row.clarity)}</Td>
                   <Td>
                     {row.comprehension_rate === null
-                      ? "—"
+                      ? "·"
                       : fmtPct(row.comprehension_rate)}
                   </Td>
                   <Td>
@@ -210,7 +210,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                         {BEHAVIOR_LABEL[row.behavior_class]}
                       </span>
                     ) : (
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>—</span>
+                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>·</span>
                     )}
                   </Td>
                   <Td>
@@ -221,7 +221,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                       }}
                     >
                       {row.barriers_detected.length === 0
-                        ? "—"
+                        ? "·"
                         : `${row.barriers_detected.length}`}
                     </span>
                   </Td>

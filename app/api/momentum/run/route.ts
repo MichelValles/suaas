@@ -1,28 +1,43 @@
 import { NextResponse } from "next/server";
+import { internalError, serviceUnavailable, validationError } from "@/lib/error-response";
 import { runMomentumChallenge } from "@/lib/momentum";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
 
+/**
+ * Errores de negocio de runMomentumChallenge: mensajes nuestros, seguros
+ * para el cliente. Cualquier otro error (Supabase, gateway) se higieniza.
+ */
+const BUSINESS_ERRORS = new Set([
+  "Trigger de Momentum no encontrado.",
+  "El análisis ya está en marcha.",
+  "El Trigger no tiene perfiles asignados.",
+]);
+
 export async function POST(req: Request) {
   if (!isSupabaseConfigured()) {
-    return NextResponse.json({ error: "Supabase no configurado." }, { status: 503 });
+    return serviceUnavailable("Supabase no configurado.");
   }
   let body: unknown;
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "JSON inválido." }, { status: 400 });
+    return validationError("JSON inválido.");
   }
   const challengeId = (body as Record<string, unknown>)?.challengeId;
   if (typeof challengeId !== "string" || !challengeId) {
-    return NextResponse.json({ error: "challengeId requerido." }, { status: 400 });
+    return validationError("challengeId requerido.");
   }
   try {
     const challenge = await runMomentumChallenge(challengeId);
     return NextResponse.json({ ok: true, challenge });
   } catch (err) {
-    return NextResponse.json({ error: (err as Error).message }, { status: 500 });
+    const message = (err as Error).message;
+    if (BUSINESS_ERRORS.has(message)) {
+      return NextResponse.json({ ok: false, error: message }, { status: 409 });
+    }
+    return internalError(500, "/api/momentum/run:POST", err);
   }
 }

@@ -399,12 +399,12 @@ function PreviewTable({ validations }: { validations: CsvValidationResult[] }) {
         </thead>
         <tbody>
           {validations.map((v) => {
-            const name = v.ok ? v.input.name : v.raw.name ?? "—";
+            const name = v.ok ? v.input.name : v.raw.name ?? "·";
             const age = v.ok
               ? v.input.demographics.age
-              : v.raw.age ?? "—";
-            const gender = v.ok ? v.input.demographics.gender : v.raw.gender ?? "—";
-            const occ = v.ok ? v.input.demographics.occupation : v.raw.occupation ?? "—";
+              : v.raw.age ?? "·";
+            const gender = v.ok ? v.input.demographics.gender : v.raw.gender ?? "·";
+            const occ = v.ok ? v.input.demographics.occupation : v.raw.occupation ?? "·";
             return (
               <tr
                 key={v.row}

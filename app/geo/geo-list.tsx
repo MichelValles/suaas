@@ -224,9 +224,14 @@ function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
           <input type="hidden" name="id" value={analysis.id} />
           <button
             type="submit"
-            aria-label="Eliminar análisis"
+            aria-label="Enviar análisis a la papelera"
+            title="Enviar a papelera"
             onClick={(e) => {
-              if (!window.confirm("¿Eliminar este análisis? Esta acción no se puede deshacer.")) {
+              if (
+                !window.confirm(
+                  `¿Enviar «${analysis.name}» a la papelera? Podrás restaurarlo desde Sistema → Papelera.`,
+                )
+              ) {
                 e.preventDefault();
               }
             }}

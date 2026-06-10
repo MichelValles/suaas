@@ -74,7 +74,7 @@ Por qué: SUAAS no es un deck editorial sino una herramienta de producto. El DS 
 | `.btn-pill` | Pill outline con accent. Modificador `.solid` invierte. |
 | `.hl` | Highlight inline con fondo accent. |
 | `.feature-card` | Tarjeta clicable de módulo (icono + título + body + CTA). Altura uniforme `100%` para grids `auto-fit`. Hover-lift con borde accent. |
-| `.entity-card` | Plantilla de los 5 listados (targets, funnels, ab, copy, pricing). Cabecera (eyebrow + trash overlay), body (título italic + descripción) y pie de stats (runs · perfiles · característica · fecha). Vive en `components/entity-card.tsx`. |
+| `.entity-card` | Plantilla de los listados de entidades testeables (targets, funnels, ab, copy, pricing, campaigns). Cabecera (eyebrow + trash overlay), body (título italic + descripción) y pie de stats (runs · perfiles · característica · fecha). Vive en `components/entity-card.tsx`. |
 | `.backstory-box` | Caja para mostrar el backstory de un perfil como cita en cursiva display. Glifo decorativo `"` en accent. Variante `.backstory-box--compact` para usos embebidos. |
 | `textarea.backstory-input` | Tratamiento cursiva display para el textarea de backstory en formularios. |
 | `.surface-feature` | Fondo `ink-900`, texto blanco, títulos accent. |
@@ -212,7 +212,7 @@ Cada listado mapea su entidad a `EntityListItem` (id, href, trash, title, descri
 
 ## Patrón: papelera (`SendToTrashButton` + `/trash`)
 
-Desde v0.13.0 las 5 entidades soportan soft delete vía `deleted_at` (migración 0007). En cada card hay un botón `<SendToTrashButton>` que envía a la papelera; en `/trash` aparecen los elementos borrados con "Restaurar" y "Eliminar definitivamente". `lib/trash.ts` orquesta soft delete / restore / hard delete por tipo.
+Desde v0.13.0 las entidades soportan soft delete vía `deleted_at` (migración 0007; la 0017 lo extiende a geo, momentum y perfiles, 9 tipos en total). En cada card hay un botón `<SendToTrashButton>` que envía a la papelera (geo y momentum usan server actions propias con la misma semántica soft; perfiles usa `DELETE /api/profiles/[id]`, también soft); en `/trash` aparecen los elementos borrados con "Restaurar" y "Eliminar definitivamente". `lib/trash.ts` orquesta soft delete / restore / hard delete por tipo.
 
 ## Espaciado vertical entre PageHeading y secciones
 

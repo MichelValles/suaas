@@ -2,14 +2,29 @@ import { createAbTest } from "@/lib/ab";
 import { createCampaign } from "@/lib/campaigns";
 import { createCopyDeck } from "@/lib/copy";
 import { createFunnel } from "@/lib/funnels";
+import { createGeoAnalysis } from "@/lib/geo";
+import { createMomentumChallenge } from "@/lib/momentum";
 import { createPricingOffer } from "@/lib/pricing";
 import { listProfiles } from "@/lib/profiles";
+import type {
+  AbPlan,
+  CampaignPlan,
+  ClarityPlan,
+  CopyPlan,
+  FunnelPlan,
+  GeoPlan,
+  MomentumPlan,
+  PricingPlan,
+} from "@/lib/seed-brief";
 import { createTarget, resolveOgImage } from "@/lib/targets";
 
 /**
- * Construye ejemplos realistas en los 6 módulos para validar end-to-end
+ * Construye ejemplos realistas en los 8 módulos para validar end-to-end
  * la plataforma con los 50 perfiles ya sembrados. Cada función crea los
  * registros y devuelve los ids para que el endpoint pueda enlazar el run.
+ *
+ * Cada seed acepta un plan opcional generado a partir de un brief
+ * (lib/seed-brief.ts). Sin plan, usa los ejemplos estáticos de muestra.
  */
 
 // ============================================================
@@ -23,20 +38,21 @@ const FIVE_SECOND_DEFAULTS = {
     "Linear es la herramienta para equipos de producto: issues, proyectos y roadmaps a velocidad récord.",
 };
 
-export async function seedFiveSecondExample(): Promise<{ targetId: string }> {
-  const img = await resolveOgImage(FIVE_SECOND_DEFAULTS.url);
+export async function seedFiveSecondExample(
+  plan?: ClarityPlan,
+): Promise<{ targetId: string }> {
+  const spec = plan ?? FIVE_SECOND_DEFAULTS;
+  const img = await resolveOgImage(spec.url);
   if (!img) {
-    throw new Error(
-      `No se pudo resolver og:image para ${FIVE_SECOND_DEFAULTS.url}.`,
-    );
+    throw new Error(`No se pudo resolver og:image para ${spec.url}.`);
   }
   const target = await createTarget({
-    name: FIVE_SECOND_DEFAULTS.name,
+    name: spec.name,
     payload: {
       kind: "5s_test",
-      main_promise: FIVE_SECOND_DEFAULTS.main_promise,
+      main_promise: spec.main_promise,
       image_url: img,
-      source_url: FIVE_SECOND_DEFAULTS.url,
+      source_url: spec.url,
     },
   });
   return { targetId: target.id };
@@ -46,7 +62,18 @@ export async function seedFiveSecondExample(): Promise<{ targetId: string }> {
 // Copy (no requiere URLs)
 // ============================================================
 
-export async function seedCopyExample(): Promise<{ deckId: string }> {
+export async function seedCopyExample(
+  plan?: CopyPlan,
+): Promise<{ deckId: string }> {
+  if (plan) {
+    const deck = await createCopyDeck({
+      name: plan.name,
+      description: plan.description,
+      context: plan.context,
+      blocks: plan.blocks,
+    });
+    return { deckId: deck.id };
+  }
   const deck = await createCopyDeck({
     name: "Headline CRO · Flat 101",
     description: "Cuatro variantes para captar leads de empresas con tráfico estancado.",
@@ -77,7 +104,19 @@ export async function seedCopyExample(): Promise<{ deckId: string }> {
 // Pricing (no requiere URLs)
 // ============================================================
 
-export async function seedPricingExample(): Promise<{ offerId: string }> {
+export async function seedPricingExample(
+  plan?: PricingPlan,
+): Promise<{ offerId: string }> {
+  if (plan) {
+    const offer = await createPricingOffer({
+      name: plan.name,
+      description: plan.description,
+      currency: plan.currency,
+      anchor_price: plan.anchor_price ?? null,
+      prices: plan.prices,
+    });
+    return { offerId: offer.id };
+  }
   const offer = await createPricingOffer({
     name: "Suscripción · Flat 101 Lab",
     description:
@@ -114,44 +153,45 @@ const AB_DEFAULTS = {
   },
 };
 
-export async function seedAbExample(): Promise<{
+export async function seedAbExample(plan?: AbPlan): Promise<{
   abTestId: string;
   aTargetId: string;
   bTargetId: string;
 }> {
+  const spec = plan ?? AB_DEFAULTS;
   const [aImg, bImg] = await Promise.all([
-    resolveOgImage(AB_DEFAULTS.a.url),
-    resolveOgImage(AB_DEFAULTS.b.url),
+    resolveOgImage(spec.a.url),
+    resolveOgImage(spec.b.url),
   ]);
   if (!aImg) {
-    throw new Error(`No se pudo resolver og:image para ${AB_DEFAULTS.a.url}.`);
+    throw new Error(`No se pudo resolver og:image para ${spec.a.url}.`);
   }
   if (!bImg) {
-    throw new Error(`No se pudo resolver og:image para ${AB_DEFAULTS.b.url}.`);
+    throw new Error(`No se pudo resolver og:image para ${spec.b.url}.`);
   }
 
   const a = await createTarget({
-    name: AB_DEFAULTS.a.name,
+    name: spec.a.name,
     payload: {
       kind: "5s_test",
-      main_promise: AB_DEFAULTS.a.promise,
+      main_promise: spec.a.promise,
       image_url: aImg,
-      source_url: AB_DEFAULTS.a.url,
+      source_url: spec.a.url,
     },
   });
   const b = await createTarget({
-    name: AB_DEFAULTS.b.name,
+    name: spec.b.name,
     payload: {
       kind: "5s_test",
-      main_promise: AB_DEFAULTS.b.promise,
+      main_promise: spec.b.promise,
       image_url: bImg,
-      source_url: AB_DEFAULTS.b.url,
+      source_url: spec.b.url,
     },
   });
 
   const ab = await createAbTest({
-    name: AB_DEFAULTS.name,
-    hypothesis: AB_DEFAULTS.hypothesis,
+    name: spec.name,
+    hypothesis: spec.hypothesis,
     target_a_id: a.id,
     target_b_id: b.id,
   });
@@ -191,9 +231,12 @@ const FUNNEL_DEFAULTS = {
   ],
 };
 
-export async function seedFunnelExample(): Promise<{ funnelId: string }> {
+export async function seedFunnelExample(
+  plan?: FunnelPlan,
+): Promise<{ funnelId: string }> {
+  const spec = plan ?? FUNNEL_DEFAULTS;
   const resolved = await Promise.all(
-    FUNNEL_DEFAULTS.steps.map(async (s) => {
+    spec.steps.map(async (s) => {
       const img = await resolveOgImage(s.url);
       if (!img) {
         throw new Error(`No se pudo resolver og:image para ${s.url}`);
@@ -207,8 +250,8 @@ export async function seedFunnelExample(): Promise<{ funnelId: string }> {
   );
 
   const funnel = await createFunnel({
-    name: FUNNEL_DEFAULTS.name,
-    description: FUNNEL_DEFAULTS.description,
+    name: spec.name,
+    description: spec.description,
     steps: resolved,
   });
 
@@ -242,27 +285,102 @@ const CAMPAIGN_DEFAULTS = {
   ],
 };
 
-export async function seedCampaignExample(): Promise<{ campaignId: string }> {
-  const img = await resolveOgImage(CAMPAIGN_DEFAULTS.final_url);
+export async function seedCampaignExample(
+  plan?: CampaignPlan,
+): Promise<{ campaignId: string }> {
+  const spec = plan ?? CAMPAIGN_DEFAULTS;
+  const img = await resolveOgImage(spec.final_url);
   if (!img) {
-    throw new Error(
-      `No se pudo resolver og:image para ${CAMPAIGN_DEFAULTS.final_url}.`,
-    );
+    throw new Error(`No se pudo resolver og:image para ${spec.final_url}.`);
   }
   const campaign = await createCampaign({
-    name: CAMPAIGN_DEFAULTS.name,
+    name: spec.name,
     channels: ["google"],
     strategy: "search",
-    brief: CAMPAIGN_DEFAULTS.brief,
-    final_url: CAMPAIGN_DEFAULTS.final_url,
+    brief: spec.brief,
+    final_url: spec.final_url,
     landing_image_url: img,
-    landing_source_url: CAMPAIGN_DEFAULTS.final_url,
-    queries: CAMPAIGN_DEFAULTS.queries,
-    headlines: CAMPAIGN_DEFAULTS.headlines,
-    descriptions: CAMPAIGN_DEFAULTS.descriptions,
+    landing_source_url: spec.final_url,
+    queries: spec.queries,
+    headlines: spec.headlines,
+    descriptions: spec.descriptions,
     creatives: [],
   });
   return { campaignId: campaign.id };
+}
+
+// ============================================================
+// GEO (análisis de visibilidad en buscadores IA; no requiere URLs)
+// ============================================================
+
+const GEO_DEFAULTS: GeoPlan = {
+  name: "Visibilidad IA · Flat 101",
+  brand_name: "Flat 101",
+  brand_description:
+    "Consultora española de negocio digital especializada en CRO, analítica y experimentación. Más de 200 marcas optimizan sus ratios de conversión con su framework de tests medibles.",
+  segments: [
+    {
+      label: "E-commerce estancado",
+      jtbd: "Cuando mi tienda online lleva meses sin crecer, quiero saber qué está frenando la conversión para poder vender más sin gastar más en captación.",
+      query: "mejor agencia CRO España ecommerce",
+    },
+    {
+      label: "Director de marketing con presupuesto a defender",
+      jtbd: "Cuando tengo que justificar la inversión digital ante dirección, quiero un partner que mida el impacto de cada cambio para poder demostrar retorno.",
+      query: "consultora optimización conversión con casos de éxito",
+    },
+    {
+      label: "Startup en crecimiento",
+      jtbd: "Cuando mi producto ya tiene tracción pero el funnel hace aguas, quiero expertos en experimentación para poder escalar sin romper la economía unitaria.",
+      query: "agencia experimentación A/B testing startups",
+    },
+  ],
+};
+
+export async function seedGeoExample(
+  plan?: GeoPlan,
+): Promise<{ geoId: string }> {
+  const spec = plan ?? GEO_DEFAULTS;
+  const analysis = await createGeoAnalysis({
+    name: spec.name,
+    brand_name: spec.brand_name,
+    brand_description: spec.brand_description,
+    segments: spec.segments,
+  });
+  return { geoId: analysis.id };
+}
+
+// ============================================================
+// Momentum (Trigger de activación; necesita perfiles asignados)
+// ============================================================
+
+const MOMENTUM_DEFAULTS: MomentumPlan = {
+  name: "Revisión dental pospuesta",
+  trigger_scenario:
+    "Llevas semanas notando sensibilidad en una muela al tomar café. Esta mañana, al morder una tostada, el pinchazo ha sido tan fuerte que has soltado el desayuno. No tienes dentista de confianza en tu ciudad actual.",
+  brand_context:
+    "Cadena de clínicas dentales con primera visita y diagnóstico gratuitos, financiación a 12 meses sin intereses y cita online en menos de 48 horas.",
+};
+
+export async function seedMomentumExample(
+  plan: MomentumPlan | undefined,
+  profileIds: string[],
+): Promise<{ momentumId: string }> {
+  const spec = plan ?? MOMENTUM_DEFAULTS;
+  const ids =
+    profileIds.length > 0 ? profileIds : await pickRandomProfileIds(3);
+  if (ids.length === 0) {
+    throw new Error(
+      "No hay perfiles en la base: siembra perfiles antes de crear el Trigger de ejemplo.",
+    );
+  }
+  const challenge = await createMomentumChallenge({
+    name: spec.name,
+    trigger_scenario: spec.trigger_scenario,
+    brand_context: spec.brand_context,
+    profile_ids: ids,
+  });
+  return { momentumId: challenge.id };
 }
 
 // ============================================================

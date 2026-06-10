@@ -1,7 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
 import { listProfilesByIds, type Profile } from "@/lib/profiles";
 
@@ -179,10 +179,17 @@ export async function createMomentumChallenge(
 
 export async function listMomentumChallenges(): Promise<MomentumChallenge[]> {
   const supa = getServerClient();
-  const { data, error } = await supa
+  let { data, error } = await supa
     .from("momentum_challenges")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data, error } = await supa
+      .from("momentum_challenges")
+      .select("*")
+      .order("created_at", { ascending: false }));
+  }
   if (error) throw new Error(error.message);
   return (data ?? []) as MomentumChallenge[];
 }
@@ -200,7 +207,25 @@ export async function getMomentumChallenge(
   return (data ?? null) as MomentumChallenge | null;
 }
 
-export async function deleteMomentumChallenge(id: string): Promise<void> {
+export async function softDeleteMomentumChallenge(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("momentum_challenges")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function restoreMomentumChallenge(id: string): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("momentum_challenges")
+    .update({ deleted_at: null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function hardDeleteMomentumChallenge(id: string): Promise<void> {
   const supa = getServerClient();
   const { error } = await supa.from("momentum_challenges").delete().eq("id", id);
   if (error) throw new Error(error.message);

@@ -13,7 +13,7 @@ export default async function TokensPage() {
     credits.ok && credits.balance !== null
       ? formatUsd(credits.balance)
       : credits.ok
-        ? "—"
+        ? "·"
         : "no disponible";
   const balanceHint = credits.ok
     ? credits.balance === null
@@ -96,7 +96,7 @@ export default async function TokensPage() {
           />
           <SmallStat
             label="Última actualización"
-            value={summary.lastUpdated ? formatRelative(summary.lastUpdated) : "—"}
+            value={summary.lastUpdated ? formatRelative(summary.lastUpdated) : "·"}
             hint={summary.lastUpdated ?? "Aún sin registros."}
           />
         </section>

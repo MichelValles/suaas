@@ -162,13 +162,14 @@ lib/
   blob.ts                               uploadDataUrlToBlob (acepta image|video|audio data:URL)
   utils.ts                              cx() helper
 
-  profiles.ts                           ProfileInputSchema + CRUD (create / update / get / list / listByIds / delete)
+  profiles.ts                           ProfileInputSchema + CRUD (create / update / get / list / listByIds / softDelete / restore / hardDelete)
   profile-form.ts                       ProfileFormSchema + parseProfileForm (reusado por new y edit)
   profile-filters.ts                    ProfileFilters (rangos + texto contiene) + filterProfiles
   csv.ts                                parseCSV, stringifyCSV, detectSeparator (RFC 4180 simplificado)
   profile-csv.ts                        PROFILE_CSV_HEADERS, profileToCsvRow, validateCsvRow
   seed-profiles.ts                      PROFILE_SEEDS (50 curados) + streamSeededProfiles (Reasoner via generateObject)
-  seed-examples.ts                      seedFiveSecondExample, seedCopyExample, seedPricingExample, seedAbExample, seedFunnelExample, seedCampaignExample + pickRandomProfileIds
+  seed-examples.ts                      seedFiveSecondExample, seedCopyExample, seedPricingExample, seedAbExample, seedFunnelExample, seedCampaignExample, seedGeoExample, seedMomentumExample + pickRandomProfileIds. Cada seed acepta un plan opcional generado desde un brief
+  seed-brief.ts                         generateSeedPlan(brief, kinds): una llamada generateObject produce contenido coherente (misma marca/sector) para los módulos seleccionados; sanea límites duros (headlines 30 chars, etc.). Scope de telemetría seed_brief
 
   runs.ts                               Run/Message types, RunKind union, createRun (defensivo si schema cache stale), markRunFinished, nextTurn, appendMessage, upsertMetric, listMessages, listEffortValues, getRunsStatsByEntity, listRunsBy*
   prompts.ts                            buildSystemPrompt(profile) con negative prompts y voice anchors
@@ -182,7 +183,7 @@ lib/
   copy.ts                               CopyDeckInputSchema + CRUD
   pricing.ts                            PricingOfferInputSchema + CRUD
   campaigns.ts                          CHANNEL_VALUES, STRATEGY_VALUES, CREATIVE_ROLE_VALUES, CTA_VALUES, CampaignInputSchema con superRefine por strategy + CRUD + normalizeCampaign (defensivo)
-  trash.ts                              TRASH_TYPES (incluye campaign), sendToTrash/restoreFromTrash/hardDelete despachan por tipo
+  trash.ts                              TRASH_TYPES (9 tipos: targets, funnels, ab, copy, pricing, campaign, geo, momentum, profiles), sendToTrash/restoreFromTrash/hardDelete despachan por tipo
 
   experiments/
     five-second.ts                      probeProfile + judgeComprehension + runFiveSecondTest + listFiveSecondResponses
@@ -220,7 +221,7 @@ supabase/
     0004_funnel_runs.sql                runs.funnel_id + funnel_step_responses
     0005_gateway_usage.sql              gateway_usage (telemetría tokens)
     0006_ab_copy_pricing.sql            ab_tests + copy_decks/blocks/responses + pricing_offers/prices/responses + runs.{ab_test_id, copy_deck_id, pricing_offer_id}
-    0007_trash.sql                      deleted_at en las 5 entidades originales
+    0007_trash.sql                      deleted_at en las 5 entidades originales (geo/momentum/profiles llegan en 0017)
     0008_campaigns.sql                  campaigns (RSA) + campaign_responses + runs.campaign_id
     0009_campaigns_relax.sql            headlines check 1..15 (antes 3..15)
     0010_campaigns_channel.sql          campaigns.channel (single)
@@ -228,6 +229,10 @@ supabase/
     0012_campaigns_headlines_fix.sql    Idempotente: asegura headlines 1..15 si 0009 nunca se aplicó
     0013_campaigns_strategy.sql         campaigns.strategy (search por defecto, check sobre los 7 valores)
     0014_campaigns_display.sql          campaigns.company_name, long_headline, cta (campos de Display Ads)
+    0015_gravity_model.sql              profiles.intent_context, five_second_responses.behavior_class, tabla geo_analyses
+    0016_momentum.sql                   tabla momentum_challenges
+    0017_trash_geo_momentum_profiles.sql  deleted_at en geo_analyses, momentum_challenges y profiles
+    0018_campaigns_descriptions_fix.sql descriptions check 1..5 (antes 2..4, drift con zod) + índice campaigns.deleted_at
 
 proxy.ts                                Middleware: redirige a /login todo lo no público sin cookie
 next.config.ts                          experimental.serverActions.bodySizeLimit = "10mb"
@@ -270,7 +275,7 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 
 | Tabla | Propósito | Notas |
 |---|---|---|
-| `profiles` | Vignettes grounded: `demographics` jsonb (edad/género/ocupación/ingresos/geo), `big_five` jsonb (O/C/E/A/N 0..1), `com_b_barriers` jsonb (capability/opportunity/motivation arrays), `backstory` text, `source`, `intent_context` text (JTBD, v0.29, se inyecta en todos los system prompts del perfil). | Trigger `updated_at`. |
+| `profiles` | Vignettes grounded: `demographics` jsonb (edad/género/ocupación/ingresos/geo), `big_five` jsonb (O/C/E/A/N 0..1), `com_b_barriers` jsonb (capability/opportunity/motivation arrays), `backstory` text, `source`, `intent_context` text (JTBD, v0.29, se inyecta en todos los system prompts del perfil). | Trigger `updated_at`. `deleted_at` desde 0017: el borrado de UI es soft (el duro, solo desde /trash, destruye runs y respuestas en cascada). `listProfilesByIds` NO filtra `deleted_at` para que los históricos de runs sigan mostrando el perfil. |
 | `targets` | Pantalla evaluable. `kind` + `payload` jsonb (kind `5s_test` con `main_promise`, `image_url`, `source_url?`). | `deleted_at` desde 0007. |
 | `runs` | Sesión de simulación. `profile_id` (owner del run), `kind`, `status`, `params jsonb`, `created_at`, `finished_at`. FKs nullable: `target_id`, `funnel_id`, `ab_test_id`, `copy_deck_id`, `pricing_offer_id`, `campaign_id`. |
 | `messages` | Trazas por turno. `role`: `human | talker | reasoner | system`. `meta jsonb` con `model`, `tokens`, `latency`, `plan` (para reasoner). |
@@ -279,15 +284,15 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 | `funnels` | `name`, `description`, `deleted_at`. |
 | `funnel_steps` | `funnel_id`, `position` (único), `name`, `intent`, `payload jsonb {kind:"url", image_url, source_url?}`. |
 | `funnel_step_responses` | `(run_id, profile_id, step_id)` único. `position`, `perception`, `intent_match`, `effort`, `friction text[]`, `would_continue`, `reasoning`, `meta`. Sólo filas para pasos evaluados (dropoff corta). |
-| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy: `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `onboard_synthesize`, `geo_probe`, `momentum_probe`. (`seed_profile` no es un scope: `lib/seed-profiles.ts` usa `reasoner_chat` con `meta.kind`. El JTBD de `batch-intent` no registra scope propio.) |
+| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy: `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `onboard_synthesize`, `geo_probe`, `momentum_probe`, `seed_brief`. (`seed_profile` no es un scope: `lib/seed-profiles.ts` usa `reasoner_chat` con `meta.kind`. El JTBD de `batch-intent` no registra scope propio.) |
 | `ab_tests` | `target_a_id` ≠ `target_b_id` (check). `hypothesis`. `deleted_at`. |
 | `ab_test_runs` | Vincula `(ab_test_id, run_id, variant 'A'|'B')`. Unique. |
 | `copy_decks` + `copy_blocks` + `copy_responses` | Deck con 2..10 bloques. Reacción `(run, profile, block)` con sentiment/clarity/persuasion/would_click/critique. |
 | `pricing_offers` + `pricing_prices` + `pricing_responses` | Oferta + 2..8 precios. Reacción por (run, profile, price) con would_buy/willingness_to_pay/perceived_value/critique. |
 | `campaigns` | **Módulo Campañas** (ver sección dedicada). |
 | `campaign_responses` | `(run_id, profile_id, query, channel)` único (multichannel). |
-| `geo_analyses` | **GEO Tester** (v0.29, Gravity Model). `name`, `brand_name`, `brand_description`, `segments jsonb` (array de SegmentInput: label/jtbd/query), `results jsonb` (array de SegmentResult), `status` (`pending`/`running`/`done`/`error`). Índice `created_at DESC`. Sin tabla de runs: el análisis vive entero en la fila. |
-| `momentum_challenges` | **Momentum** (v0.30, Gravity Model). `name`, `trigger_scenario`, `brand_context` (nullable), `profile_ids uuid[]`, `results jsonb` (array de ProfileMomentumResult), `status` (`pending`/`running`/`done`/`error`). Sin índice extra. |
+| `geo_analyses` | **GEO Tester** (v0.29, Gravity Model). `name`, `brand_name`, `brand_description`, `segments jsonb` (array de SegmentInput: label/jtbd/query), `results jsonb` (array de SegmentResult), `status` (`pending`/`running`/`done`/`error`). Índice `created_at DESC`. Sin tabla de runs: el análisis vive entero en la fila. | `deleted_at` desde 0017 (papelera). |
+| `momentum_challenges` | **Momentum** (v0.30, Gravity Model). `name`, `trigger_scenario`, `brand_context` (nullable), `profile_ids uuid[]`, `results jsonb` (array de ProfileMomentumResult), `status` (`pending`/`running`/`done`/`error`). | `deleted_at` desde 0017 (papelera). |
 
 ### Migraciones (orden estricto)
 
@@ -307,6 +312,8 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 14. `0014_campaigns_display.sql`
 15. `0015_gravity_model.sql` (Gravity Model v0.29: `profiles.intent_context`, `five_second_responses.behavior_class`, tabla `geo_analyses`)
 16. `0016_momentum.sql` (Momentum v0.30: tabla `momentum_challenges`)
+17. `0017_trash_geo_momentum_profiles.sql` (v0.32: `deleted_at` en `geo_analyses`, `momentum_challenges` y `profiles`)
+18. `0018_campaigns_descriptions_fix.sql` (v0.32: check de `descriptions` 1..5 + índice `campaigns.deleted_at`)
 
 Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado.
 
@@ -470,7 +477,7 @@ Si la key del Gateway no está visible (modo OIDC implícito en runtime), la con
 
 `lib/error-response.ts`: cualquier 500 al cliente devuelve sólo `"Error interno."`. El detalle (stack, cause, mensaje original) queda en `console.error` visible en logs de Vercel. Los 400 (zod) sí pasan el mensaje porque viene del schema del propio body.
 
-Endpoints higienizados: todos los `/api/runs/*`, `/api/chat`, `/api/profiles/[id]`, `/api/trash/[type]/[id]`, `/api/og-image`. `/api/seed/examples` mantiene detalle porque está tras doble gate (login + seed pass).
+Endpoints higienizados: todos los `/api/runs/*`, `/api/chat`, `/api/profiles/[id]`, `/api/trash/[type]/[id]`, `/api/og-image`, `/api/geo`, `/api/geo/run`, `/api/momentum`, `/api/momentum/run` (estos cuatro desde v0.32; los endpoints de run mantienen una lista blanca de mensajes de negocio propios que sí llegan al cliente con 409). `/api/seed/examples` mantiene detalle porque está tras doble gate (login + seed pass).
 
 ### `SEED_PASSWORD` obligatoria en producción
 

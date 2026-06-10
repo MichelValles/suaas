@@ -7,7 +7,10 @@ import { runFiveSecondTest } from "@/lib/experiments/five-second";
 import { runFunnelTest } from "@/lib/experiments/funnel";
 import { runPricingTest } from "@/lib/experiments/pricing";
 import { isGatewayConfigured } from "@/lib/gateway";
+import { runGeoAnalysis } from "@/lib/geo";
+import { runMomentumChallenge } from "@/lib/momentum";
 import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
+import { generateSeedPlan, type SeedPlan } from "@/lib/seed-brief";
 import {
   pickRandomProfileIds,
   seedAbExample,
@@ -15,19 +18,31 @@ import {
   seedCopyExample,
   seedFiveSecondExample,
   seedFunnelExample,
+  seedGeoExample,
+  seedMomentumExample,
   seedPricingExample,
 } from "@/lib/seed-examples";
 
 export const runtime = "nodejs";
-// 6 ejemplos + 6 runs paralelos (con 3 perfiles cada uno) → margen amplio.
+// 8 ejemplos + runs (con 3 perfiles cada uno) + plan opcional con brief.
 export const maxDuration = 300;
 
-const KIND_VALUES = ["clarity", "copy", "pricing", "ab", "funnel", "campaign"] as const;
+const KIND_VALUES = [
+  "clarity",
+  "copy",
+  "pricing",
+  "ab",
+  "funnel",
+  "campaign",
+  "geo",
+  "momentum",
+] as const;
 type Kind = (typeof KIND_VALUES)[number];
 
 const BodySchema = z.object({
   launch: z.number().int().min(0).max(10).optional().default(0),
   kinds: z.array(z.enum(KIND_VALUES)).optional(),
+  brief: z.string().trim().max(2000).optional(),
 });
 
 type ExampleResult =
@@ -37,6 +52,8 @@ type ExampleResult =
   | { kind: "ab"; ok: true; abTestId: string; runIds?: string[]; error?: undefined }
   | { kind: "funnel"; ok: true; funnelId: string; runId?: string; error?: undefined }
   | { kind: "campaign"; ok: true; campaignId: string; runId?: string; error?: undefined }
+  | { kind: "geo"; ok: true; geoId: string; ran?: boolean; error?: undefined }
+  | { kind: "momentum"; ok: true; momentumId: string; ran?: boolean; error?: undefined }
   | { kind: string; ok: false; error: string };
 
 export async function POST(request: Request) {
@@ -58,9 +75,19 @@ export async function POST(request: Request) {
     );
   }
   const { launch } = body;
+  const brief = body.brief && body.brief.length > 0 ? body.brief : null;
   if (launch > 0 && !isGatewayConfigured()) {
     return Response.json(
       { ok: false, error: "AI Gateway no configurado y se pidió launch > 0." },
+      { status: 503 },
+    );
+  }
+  if (brief && !isGatewayConfigured()) {
+    return Response.json(
+      {
+        ok: false,
+        error: "AI Gateway no configurado: el brief requiere generación con IA.",
+      },
       { status: 503 },
     );
   }
@@ -68,6 +95,21 @@ export async function POST(request: Request) {
   const selected: Set<Kind> = new Set(
     body.kinds && body.kinds.length > 0 ? body.kinds : KIND_VALUES,
   );
+
+  let plan: SeedPlan = {};
+  if (brief) {
+    try {
+      plan = await generateSeedPlan(brief, [...selected]);
+    } catch (err) {
+      return Response.json(
+        {
+          ok: false,
+          error: `No se pudo generar el plan a partir del brief: ${(err as Error).message}`,
+        },
+        { status: 502 },
+      );
+    }
+  }
 
   const profileIds = launch > 0 ? await pickRandomProfileIds(launch) : [];
   const results: ExampleResult[] = [];
@@ -77,7 +119,7 @@ export async function POST(request: Request) {
   // ============================================================
   if (selected.has("clarity")) {
     try {
-      const { targetId } = await seedFiveSecondExample();
+      const { targetId } = await seedFiveSecondExample(plan.clarity);
       let runId: string | undefined;
       if (launch > 0 && profileIds.length > 0) {
         const { runId: rid } = await runFiveSecondTest({ targetId, profileIds });
@@ -94,7 +136,7 @@ export async function POST(request: Request) {
   // ============================================================
   if (selected.has("copy")) {
     try {
-      const { deckId } = await seedCopyExample();
+      const { deckId } = await seedCopyExample(plan.copy);
       let runId: string | undefined;
       if (launch > 0 && profileIds.length > 0) {
         const { runId: rid } = await runCopyTest({ deckId, profileIds });
@@ -111,7 +153,7 @@ export async function POST(request: Request) {
   // ============================================================
   if (selected.has("pricing")) {
     try {
-      const { offerId } = await seedPricingExample();
+      const { offerId } = await seedPricingExample(plan.pricing);
       let runId: string | undefined;
       if (launch > 0 && profileIds.length > 0) {
         const { runId: rid } = await runPricingTest({ offerId, profileIds });
@@ -128,7 +170,7 @@ export async function POST(request: Request) {
   // ============================================================
   if (selected.has("ab")) {
     try {
-      const { abTestId } = await seedAbExample();
+      const { abTestId } = await seedAbExample(plan.ab);
       let runIds: string[] | undefined;
       if (launch > 0 && profileIds.length > 0) {
         const { runs } = await runAbTest({ abTestId, profileIds });
@@ -145,7 +187,7 @@ export async function POST(request: Request) {
   // ============================================================
   if (selected.has("funnel")) {
     try {
-      const { funnelId } = await seedFunnelExample();
+      const { funnelId } = await seedFunnelExample(plan.funnel);
       let runId: string | undefined;
       if (launch > 0 && profileIds.length > 0) {
         const { runId: rid } = await runFunnelTest({ funnelId, profileIds });
@@ -162,7 +204,7 @@ export async function POST(request: Request) {
   // ============================================================
   if (selected.has("campaign")) {
     try {
-      const { campaignId } = await seedCampaignExample();
+      const { campaignId } = await seedCampaignExample(plan.campaign);
       let runId: string | undefined;
       if (launch > 0 && profileIds.length > 0) {
         const { runId: rid } = await runCampaignTest({ campaignId, profileIds });
@@ -171,6 +213,40 @@ export async function POST(request: Request) {
       results.push({ kind: "campaign", ok: true, campaignId, runId });
     } catch (err) {
       results.push({ kind: "campaign", ok: false, error: (err as Error).message });
+    }
+  }
+
+  // ============================================================
+  // GEO (el run analiza segmentos, no usa perfiles)
+  // ============================================================
+  if (selected.has("geo")) {
+    try {
+      const { geoId } = await seedGeoExample(plan.geo);
+      let ran = false;
+      if (launch > 0) {
+        await runGeoAnalysis(geoId);
+        ran = true;
+      }
+      results.push({ kind: "geo", ok: true, geoId, ran });
+    } catch (err) {
+      results.push({ kind: "geo", ok: false, error: (err as Error).message });
+    }
+  }
+
+  // ============================================================
+  // Momentum (asigna perfiles aunque no se lance, para poder correrlo luego)
+  // ============================================================
+  if (selected.has("momentum")) {
+    try {
+      const { momentumId } = await seedMomentumExample(plan.momentum, profileIds);
+      let ran = false;
+      if (launch > 0 && profileIds.length > 0) {
+        await runMomentumChallenge(momentumId);
+        ran = true;
+      }
+      results.push({ kind: "momentum", ok: true, momentumId, ran });
+    } catch (err) {
+      results.push({ kind: "momentum", ok: false, error: (err as Error).message });
     }
   }
 

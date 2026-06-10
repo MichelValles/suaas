@@ -6,9 +6,10 @@ import { EntityCard, type EntityMedia, type EntityStat } from "@/components/enti
 import type { TrashType } from "@/lib/trash";
 
 /**
- * Item normalizado que consume EntityListView. Los 5 listados
- * (targets, funnels, ab, copy, pricing) mapean sus entidades a esta forma
- * para tener búsqueda + ordenación con la misma plantilla.
+ * Item normalizado que consume EntityListView. Los listados de entidades
+ * testeables (targets, funnels, ab, copy, pricing, campaigns) mapean sus
+ * entidades a esta forma para tener búsqueda + ordenación con la misma
+ * plantilla.
  */
 export type EntityListItem = {
   id: string;

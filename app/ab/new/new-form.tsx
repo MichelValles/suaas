@@ -35,13 +35,13 @@ export function NewAbForm({
       <Select
         label="Variante A"
         name="target_a_id"
-        options={targets.map((t) => ({ value: t.id, label: `${t.name} — ${t.main_promise}` }))}
+        options={targets.map((t) => ({ value: t.id, label: `${t.name} · ${t.main_promise}` }))}
         required
       />
       <Select
         label="Variante B"
         name="target_b_id"
-        options={targets.map((t) => ({ value: t.id, label: `${t.name} — ${t.main_promise}` }))}
+        options={targets.map((t) => ({ value: t.id, label: `${t.name} · ${t.main_promise}` }))}
         required
       />
       {state.error && <ErrorBox>{state.error}</ErrorBox>}

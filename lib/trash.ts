@@ -29,6 +29,21 @@ import {
   restorePricingOffer,
   softDeletePricingOffer,
 } from "@/lib/pricing";
+import {
+  hardDeleteGeoAnalysis,
+  restoreGeoAnalysis,
+  softDeleteGeoAnalysis,
+} from "@/lib/geo";
+import {
+  hardDeleteMomentumChallenge,
+  restoreMomentumChallenge,
+  softDeleteMomentumChallenge,
+} from "@/lib/momentum";
+import {
+  hardDeleteProfile,
+  restoreProfile,
+  softDeleteProfile,
+} from "@/lib/profiles";
 
 // ============================================================
 // Tipos
@@ -41,6 +56,9 @@ export const TRASH_TYPES = [
   "copy",
   "pricing",
   "campaign",
+  "geo",
+  "momentum",
+  "profiles",
 ] as const;
 
 export type TrashType = (typeof TRASH_TYPES)[number];
@@ -65,6 +83,9 @@ const TYPE_TO_TABLE: Record<TrashType, string> = {
   copy: "copy_decks",
   pricing: "pricing_offers",
   campaign: "campaigns",
+  geo: "geo_analyses",
+  momentum: "momentum_challenges",
+  profiles: "profiles",
 };
 
 export const TRASH_TYPE_LABEL: Record<TrashType, string> = {
@@ -74,6 +95,9 @@ export const TRASH_TYPE_LABEL: Record<TrashType, string> = {
   copy: "Copy deck",
   pricing: "Oferta de pricing",
   campaign: "Campaña",
+  geo: "Análisis GEO",
+  momentum: "Trigger de Momentum",
+  profiles: "Perfil",
 };
 
 // ============================================================
@@ -94,6 +118,12 @@ export async function sendToTrash(type: TrashType, id: string): Promise<void> {
       return softDeletePricingOffer(id);
     case "campaign":
       return softDeleteCampaign(id);
+    case "geo":
+      return softDeleteGeoAnalysis(id);
+    case "momentum":
+      return softDeleteMomentumChallenge(id);
+    case "profiles":
+      return softDeleteProfile(id);
   }
 }
 
@@ -114,6 +144,12 @@ export async function restoreFromTrash(
       return restorePricingOffer(id);
     case "campaign":
       return restoreCampaign(id);
+    case "geo":
+      return restoreGeoAnalysis(id);
+    case "momentum":
+      return restoreMomentumChallenge(id);
+    case "profiles":
+      return restoreProfile(id);
   }
 }
 
@@ -131,6 +167,12 @@ export async function hardDelete(type: TrashType, id: string): Promise<void> {
       return hardDeletePricingOffer(id);
     case "campaign":
       return hardDeleteCampaign(id);
+    case "geo":
+      return hardDeleteGeoAnalysis(id);
+    case "momentum":
+      return hardDeleteMomentumChallenge(id);
+    case "profiles":
+      return hardDeleteProfile(id);
   }
 }
 
@@ -145,6 +187,9 @@ type Row = {
   hypothesis?: string | null;
   kind?: string | null;
   brief?: string | null;
+  brand_name?: string | null;
+  trigger_scenario?: string | null;
+  backstory?: string | null;
   created_at: string;
   deleted_at: string;
 };
@@ -152,7 +197,8 @@ type Row = {
 /**
  * Columnas a seleccionar por tipo. Targets NO tiene description, sólo kind y
  * payload (no se selecciona payload aquí porque pesa). AB usa hypothesis. El
- * resto (funnels, copy_decks, pricing_offers) sí tienen description.
+ * resto (funnels, copy_decks, pricing_offers) sí tienen description. GEO usa
+ * brand_name, momentum el trigger y profiles el backstory.
  */
 const SELECT_BY_TYPE: Record<TrashType, string> = {
   targets: "id, name, kind, created_at, deleted_at",
@@ -161,6 +207,9 @@ const SELECT_BY_TYPE: Record<TrashType, string> = {
   copy: "id, name, description, created_at, deleted_at",
   pricing: "id, name, description, created_at, deleted_at",
   campaign: "id, name, brief, created_at, deleted_at",
+  geo: "id, name, brand_name, created_at, deleted_at",
+  momentum: "id, name, trigger_scenario, created_at, deleted_at",
+  profiles: "id, name, backstory, created_at, deleted_at",
 };
 
 function hintFor(type: TrashType, row: Row): string | null {
@@ -171,6 +220,12 @@ function hintFor(type: TrashType, row: Row): string | null {
       return row.kind ?? null;
     case "campaign":
       return row.brief ?? null;
+    case "geo":
+      return row.brand_name ?? null;
+    case "momentum":
+      return row.trigger_scenario ?? null;
+    case "profiles":
+      return row.backstory ?? null;
     default:
       return row.description ?? null;
   }
@@ -199,8 +254,9 @@ async function listTrashedFor(type: TrashType): Promise<TrashItem[]> {
 /**
  * Devuelve todas las entidades enviadas a papelera, ordenadas por fecha de
  * borrado descendente. Falla en silencio (array vacío) si Supabase no está
- * configurado o si la tabla aún no tiene la columna `deleted_at` (la migración
- * 0007 está pendiente de aplicar).
+ * configurado o si la tabla aún no tiene la columna `deleted_at` (la
+ * migración 0007, o la 0017 para geo/momentum/profiles, está pendiente de
+ * aplicar).
  */
 export async function listTrash(): Promise<TrashItem[]> {
   if (!isSupabaseConfigured()) return [];

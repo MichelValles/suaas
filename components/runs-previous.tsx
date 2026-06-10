@@ -13,7 +13,7 @@ export type RunWithMetrics = {
 };
 
 export type RunMetricCell = {
-  /** Clave del Record<string, number>. Si no existe o no es number → "—". */
+  /** Clave del Record<string, number>. Si no existe o no es number → "·". */
   key: string;
   /** Etiqueta en mono uppercase encima del valor. */
   label: string;
@@ -148,7 +148,7 @@ function RunCard({
           gap: "14px 18px",
         }}
       >
-        <MetricCell label="N perfiles" value={n > 0 ? String(n) : "—"} />
+        <MetricCell label="N perfiles" value={n > 0 ? String(n) : "·"} />
         {fields.map((f) => (
           <MetricCell
             key={f.key}
@@ -235,7 +235,7 @@ function formatMetric(
   v: number | undefined,
   format?: (v: number) => string,
 ): string {
-  if (typeof v !== "number" || !Number.isFinite(v)) return "—";
+  if (typeof v !== "number" || !Number.isFinite(v)) return "·";
   if (format) return format(v);
   return `${Math.round(v * 100)}%`;
 }

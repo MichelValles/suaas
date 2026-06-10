@@ -17,7 +17,7 @@ import { isSupabaseConfigured } from "@/lib/supabase";
 export const dynamic = "force-dynamic";
 
 function fmtPct(v: number | null): string {
-  if (v === null) return "—";
+  if (v === null) return "·";
   return `${Math.round(v * 100)}%`;
 }
 
@@ -258,7 +258,7 @@ function ChannelRow({ c }: { c: CampaignByChannel }) {
       <Td>{fmtPct(c.mean_landing_match)}</Td>
       <Td>
         <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
-          {c.top_barriers.map((b) => b.label).slice(0, 3).join(", ") || "—"}
+          {c.top_barriers.map((b) => b.label).slice(0, 3).join(", ") || "·"}
         </span>
       </Td>
     </tr>
@@ -282,7 +282,7 @@ function QueryRow({ q }: { q: CampaignByQuery }) {
       <Td>{fmtPct(q.mean_landing_match)}</Td>
       <Td>
         <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
-          {q.top_barriers.map((b) => b.label).slice(0, 3).join(", ") || "—"}
+          {q.top_barriers.map((b) => b.label).slice(0, 3).join(", ") || "·"}
         </span>
       </Td>
     </tr>

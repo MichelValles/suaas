@@ -23,6 +23,7 @@ export const PROFILE_CSV_HEADERS = [
   "motivation",
   "backstory",
   "source",
+  "intent_context",
 ] as const;
 
 export type ProfileCsvRow = Record<(typeof PROFILE_CSV_HEADERS)[number], string>;
@@ -45,6 +46,7 @@ export function profileToCsvRow(p: Profile): ProfileCsvRow {
     motivation: (p.com_b_barriers.motivation ?? []).join("; "),
     backstory: p.backstory,
     source: p.source ?? "manual",
+    intent_context: p.intent_context ?? "",
   };
 }
 
