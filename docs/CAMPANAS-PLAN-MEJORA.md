@@ -107,7 +107,7 @@ Crear `app/experiments/campaign/[runId]/responses-table.tsx` clonando la estruct
 
 **Por qué**: campañas es el módulo con mayor cardinalidad (hasta 200 filas) y el único grande sin tabla interactiva; los azules hardcodeados violan la regla de canal de tema de `AGENTS.md`.
 
-### Comparativa run vs run reutilizando los componentes del A/B · M · sin SQL
+### Comparativa run vs run reutilizando los componentes del A/B · M · sin SQL · ✅ hecho en v0.36.2
 
 Extraer `VariantBlock`, `DeltaBar`, `Bar` y `pickWinner` de `app/experiments/ab/[abTestId]/page.tsx` a `components/compare-blocks.tsx` parametrizando las métricas. Nueva ruta `app/campaigns/[id]/compare/page.tsx` que lee `searchParams` `a` y `b` (por defecto los dos últimos runs done), carga `listCampaignResponses` de ambos, calcula `summarizeCampaignResponses` y pinta dos `VariantBlock` más `DeltaBars` de intent, claridad, credibilidad y match landing, con la regla de empate del A/B y un aviso cuando las muestras de perfiles difieren. Botón «Comparar los dos últimos runs» en el detalle si hay 2 o más runs.
 

@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import {
+  CompareCard,
+  DeltaBar,
+  fmtComparePct,
+  pickCompareWinner,
+} from "@/components/compare-blocks";
 import { getAbTestWithTrashed, listAbTestRuns } from "@/lib/ab";
 import {
   listFiveSecondResponses,
@@ -61,6 +67,11 @@ export default async function AbResultsPage({
 
   const sumA = summarizeResponses(respA);
   const sumB = summarizeResponses(respB);
+  // Métrica de decisión: comprensión LLM-as-judge, con claridad de respaldo.
+  const winner = pickCompareWinner(
+    sumA.mean_comprehension ?? sumA.mean_clarity,
+    sumB.mean_comprehension ?? sumB.mean_clarity,
+  );
 
   return (
     <AppShell>
@@ -83,25 +94,29 @@ export default async function AbResultsPage({
           gap: 28,
         }}
       >
-        <VariantBlock
-          variant="A"
-          name={targetA.name}
-          promise={targetA.payload.main_promise}
-          clarity={sumA.mean_clarity}
-          comprehension={sumA.mean_comprehension}
-          n={sumA.n}
-          runId={lastA.run_id}
-          winner={pickWinner(sumA, sumB) === "A"}
+        <CompareCard
+          variantLabel="Variante A"
+          title={targetA.name}
+          subtitle={targetA.payload.main_promise}
+          metrics={[
+            { label: "Compr.", value: fmtComparePct(sumA.mean_comprehension) },
+            { label: "Claridad", value: fmtComparePct(sumA.mean_clarity) },
+            { label: "N", value: String(sumA.n) },
+          ]}
+          detailHref={`/experiments/five-second/${lastA.run_id}`}
+          winner={winner === "A"}
         />
-        <VariantBlock
-          variant="B"
-          name={targetB.name}
-          promise={targetB.payload.main_promise}
-          clarity={sumB.mean_clarity}
-          comprehension={sumB.mean_comprehension}
-          n={sumB.n}
-          runId={lastB.run_id}
-          winner={pickWinner(sumA, sumB) === "B"}
+        <CompareCard
+          variantLabel="Variante B"
+          title={targetB.name}
+          subtitle={targetB.payload.main_promise}
+          metrics={[
+            { label: "Compr.", value: fmtComparePct(sumB.mean_comprehension) },
+            { label: "Claridad", value: fmtComparePct(sumB.mean_clarity) },
+            { label: "N", value: String(sumB.n) },
+          ]}
+          detailHref={`/experiments/five-second/${lastB.run_id}`}
+          winner={winner === "B"}
         />
       </section>
 
@@ -121,214 +136,4 @@ export default async function AbResultsPage({
       />
     </AppShell>
   );
-}
-
-function pickWinner(
-  a: { mean_comprehension: number | null; mean_clarity: number },
-  b: { mean_comprehension: number | null; mean_clarity: number },
-): "A" | "B" | "tie" {
-  const ka = (a.mean_comprehension ?? a.mean_clarity);
-  const kb = (b.mean_comprehension ?? b.mean_clarity);
-  if (Math.abs(ka - kb) < 0.02) return "tie";
-  return ka > kb ? "A" : "B";
-}
-
-function VariantBlock({
-  variant,
-  name,
-  promise,
-  clarity,
-  comprehension,
-  n,
-  runId,
-  winner,
-}: {
-  variant: "A" | "B";
-  name: string;
-  promise: string;
-  clarity: number;
-  comprehension: number | null;
-  n: number;
-  runId: string;
-  winner: boolean;
-}) {
-  return (
-    <div
-      style={{
-        border: `1px solid ${winner ? "var(--accent-500)" : "rgba(var(--fg),0.08)"}`,
-        borderRadius: "var(--radius-md)",
-        padding: "28px 32px",
-        background: winner ? "rgba(250,204,13,0.06)" : "rgba(var(--fg),0.02)",
-        display: "flex",
-        flexDirection: "column",
-        gap: 18,
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-        <span
-          className="mono"
-          style={{
-            fontSize: 11,
-            letterSpacing: "0.28em",
-            textTransform: "uppercase",
-            color: "var(--accent-text)",
-          }}
-        >
-          Variante {variant}
-        </span>
-        {winner && (
-          <span
-            className="mono"
-            style={{
-              fontSize: 10,
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              color: "var(--accent-text)",
-            }}
-          >
-            Ganadora
-          </span>
-        )}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <h3
-          style={{
-            fontFamily: "var(--font-display)",
-            fontStyle: "italic",
-            fontSize: 26,
-            color: "var(--text-strong)",
-            margin: 0,
-            lineHeight: 1.15,
-          }}
-        >
-          {name}
-        </h3>
-        <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 14, margin: 0, lineHeight: 1.55 }}>
-          {promise}
-        </p>
-      </div>
-      <div
-        style={{
-          display: "flex",
-          gap: 28,
-          paddingTop: 6,
-          paddingBottom: 4,
-          borderTop: "1px solid rgba(var(--fg),0.06)",
-          marginTop: 4,
-        }}
-      >
-        <Metric label="Compr." value={fmtPct(comprehension)} />
-        <Metric label="Claridad" value={fmtPct(clarity)} />
-        <Metric label="N" value={String(n)} />
-      </div>
-      <Link
-        href={`/experiments/five-second/${runId}`}
-        className="mono"
-        style={{
-          fontSize: 11,
-          letterSpacing: "0.18em",
-          textTransform: "uppercase",
-          color: "var(--accent-text)",
-          marginTop: 4,
-        }}
-      >
-        Detalle del run →
-      </Link>
-    </div>
-  );
-}
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingTop: 12 }}>
-      <span
-        className="mono"
-        style={{
-          fontSize: 9,
-          letterSpacing: "0.24em",
-          textTransform: "uppercase",
-          color: "rgba(var(--fg),0.5)",
-        }}
-      >
-        {label}
-      </span>
-      <span
-        style={{
-          fontSize: 26,
-          color: "var(--text-strong)",
-          fontFamily: "var(--font-display)",
-          fontStyle: "italic",
-          lineHeight: 1,
-        }}
-      >
-        {value}
-      </span>
-    </div>
-  );
-}
-
-function DeltaBar({
-  labelA,
-  labelB,
-  valueA,
-  valueB,
-  title,
-}: {
-  labelA: string;
-  labelB: string;
-  valueA: number;
-  valueB: number;
-  title: string;
-}) {
-  const max = Math.max(valueA, valueB, 0.01);
-  return (
-    <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <h3
-        className="mono"
-        style={{
-          fontSize: 11,
-          letterSpacing: "0.28em",
-          textTransform: "uppercase",
-          color: "var(--accent-text)",
-          margin: 0,
-        }}
-      >
-        {title}
-      </h3>
-      <Bar label={labelA} value={valueA} max={max} />
-      <Bar label={labelB} value={valueB} max={max} />
-    </section>
-  );
-}
-
-function Bar({ label, value, max }: { label: string; value: number; max: number }) {
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "200px 1fr 50px", gap: 12, alignItems: "center" }}>
-      <span style={{ color: "rgba(var(--fg),0.8)", fontSize: 13 }}>{label}</span>
-      <div
-        style={{
-          height: 10,
-          background: "rgba(var(--fg),0.06)",
-          borderRadius: 999,
-          overflow: "hidden",
-        }}
-      >
-        <div
-          style={{
-            width: `${(value / max) * 100}%`,
-            height: "100%",
-            background: "var(--accent-500)",
-          }}
-        />
-      </div>
-      <span className="mono" style={{ color: "rgba(var(--fg),0.85)", fontSize: 12 }}>
-        {fmtPct(value)}
-      </span>
-    </div>
-  );
-}
-
-function fmtPct(v: number | null): string {
-  if (v === null) return "·";
-  return `${Math.round(v * 100)}%`;
 }

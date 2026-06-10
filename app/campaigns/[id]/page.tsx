@@ -133,7 +133,16 @@ export default async function CampaignDetailPage({
         description={campaign.brief ?? undefined}
         descriptionVariant="panel"
         actions={
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            {runs.filter((r) => r.status === "done").length >= 2 && (
+              <Link
+                href={`/campaigns/${campaign.id}/compare`}
+                className="btn-pill"
+                title="Compara los dos últimos runs completados, métrica a métrica"
+              >
+                Comparar runs
+              </Link>
+            )}
             <Link href={`/campaigns/new?from=${campaign.id}`} className="btn-pill">
               Duplicar
             </Link>
