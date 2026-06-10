@@ -301,26 +301,57 @@ export type Campaign = {
 // ============================================================
 
 /**
- * Normaliza una fila cruda de `campaigns`. Defensivo contra la transición
- * `channel` (single, v0.23) → `channels[]` (array, v0.24): si el cliente
- * ejecuta el código nuevo contra una BD con la migración 0011 aún pendiente,
- * mapea el `channel` antiguo o cae a `["google"]` por defecto. Evita un
- * `TypeError: cannot read 'length' of undefined` en el listado/detalle hasta
- * que el operador aplique la migración.
+ * Schema de la fila cruda de `campaigns`: la frontera tipada con la BD.
+ * Los `.catch()` cubren filas legacy o jsonb corrupto sin tumbar el listado;
+ * `creatives` se valida elemento a elemento (un elemento corrupto se descarta,
+ * los válidos sobreviven) para que el runner nunca reciba creatividades sin
+ * `kind`/`role` validados.
+ */
+const CampaignRowSchema = z.object({
+  id: z.string(),
+  created_at: z.string(),
+  name: z.string().catch(""),
+  channels: z.array(z.enum(CHANNEL_VALUES)).min(1).catch(["google"]),
+  strategy: z.enum(STRATEGY_VALUES).catch("search"),
+  brief: z.string().nullable().catch(null),
+  final_url: z.string().catch(""),
+  landing_image_url: z.string().catch(""),
+  landing_source_url: z.string().nullable().catch(null),
+  queries: z.array(z.string()).catch([]),
+  headlines: z.array(z.string()).catch([]),
+  descriptions: z.array(z.string()).catch([]),
+  creatives: z
+    .array(z.unknown())
+    .catch([])
+    .transform((arr) =>
+      arr.flatMap((c) => {
+        const parsed = CreativeSchema.safeParse(c);
+        return parsed.success ? [parsed.data] : [];
+      }),
+    ),
+  company_name: z.string().nullable().catch(null),
+  long_headline: z.string().nullable().catch(null),
+  cta: z.string().nullable().catch(null),
+  deleted_at: z.string().nullable().catch(null),
+});
+
+/**
+ * Normaliza una fila cruda de `campaigns` validando con zod en lugar de
+ * castear. Mantiene la transición `channel` (single, v0.23) → `channels[]`
+ * (array, v0.24) para BDs con la migración 0011 pendiente; la poda de ese
+ * fallback queda para después de la consolidación de esquema.
  */
 function normalizeCampaign(row: Record<string, unknown>): Campaign {
-  const channels =
-    Array.isArray(row.channels) && (row.channels as unknown[]).length > 0
-      ? (row.channels as Channel[])
-      : typeof row.channel === "string"
-        ? [row.channel as Channel]
-        : (["google"] as Channel[]);
-  const strategy =
-    typeof row.strategy === "string" &&
-    (STRATEGY_VALUES as readonly string[]).includes(row.strategy)
-      ? (row.strategy as Strategy)
-      : ("search" as Strategy);
-  return { ...(row as unknown as Campaign), channels, strategy };
+  const withChannels = {
+    ...row,
+    channels:
+      Array.isArray(row.channels) && (row.channels as unknown[]).length > 0
+        ? row.channels
+        : typeof row.channel === "string"
+          ? [row.channel]
+          : undefined,
+  };
+  return CampaignRowSchema.parse(withChannels);
 }
 
 export async function listCampaigns(): Promise<

@@ -59,7 +59,7 @@ Todo en `lib/experiments/campaign.ts` salvo lo indicado:
 
 **Por qué**: las etiquetas actuales sugieren comparabilidad con un CTR real que no existe; un consultor de paid media que lo detecte descarta la herramienta. Los mensajes de Zod ya están redactados en castellano en `CampaignInputSchema`, solo hay que mostrarlos.
 
-### 7. Frontera de BD tipada y fix de `isMissingColumnError` (S)
+### 7. Frontera de BD tipada y fix de `isMissingColumnError` (S) · ✅ hecho en v0.35.4
 
 1. `lib/supabase.ts:79`: la rama PGRST204 devuelve `true` incondicionalmente; debe respetar el parámetro `column` comprobando el mensaje de PostgREST («Could not find the 'X' column»). Hoy un error por `channels` ausente dispara primero el retry de `strategy` en `createCampaign`.
 2. `lib/campaigns.ts`: definir `CampaignRowSchema` con zod (`channels` con `.catch(['google'])`, `strategy` con `.catch('search')`, `creatives: z.array(CreativeSchema).catch([])`) y que `normalizeCampaign` parsee en vez de castear: hoy el jsonb de `creatives` llega sin validar al runner, que asume `c.kind` y `c.role`. La poda de los fallbacks legacy se hace después de la consolidación de BD (ver release v0.37), no aquí.

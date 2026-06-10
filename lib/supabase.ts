@@ -76,7 +76,14 @@ export function isMissingColumnError(err: unknown, column?: string): boolean {
       ? typeof e.message === "string" && e.message.includes(column)
       : true;
   }
-  if (e.code === "PGRST204") return true;
+  if (e.code === "PGRST204") {
+    // PostgREST: "Could not find the 'X' column of 'tabla' in the schema
+    // cache". Sin comprobar el mensaje, un PGRST204 por la columna A
+    // dispararía el fallback de la columna B (retries inútiles en cadena).
+    return column
+      ? typeof e.message === "string" && e.message.includes(column)
+      : true;
+  }
   if (typeof e.message === "string" && /column .* does not exist/i.test(e.message)) {
     return column ? e.message.includes(column) : true;
   }
