@@ -26,7 +26,7 @@ Cada uno cabe en una sesión. Van primero porque cambian el significado de los r
 | 4 | Honestidad de métricas y errores de formulario legibles | M |
 | 7 | Frontera de BD tipada y fix de `isMissingColumnError` | S |
 
-### 1. Retirar el brief del anunciante del prompt del persona (S)
+### 1. Retirar el brief del anunciante del prompt del persona (S) · ✅ hecho en v0.35.0
 
 Eliminar el bloque de `lib/experiments/campaign.ts:322-324` que inyecta «Nota del anunciante (no la verías tú, sólo contexto)» en el user content de `probeCampaignSnippet`. El brief se queda para la UI y como contexto del futuro juez neutral. Validación: relanzar un run con los mismos perfiles seed sobre la misma campaña y comparar `mean_clarity` e `mean_intent_to_click` antes y después (lo esperable es que bajen un poco, señal de que el sesgo existía).
 

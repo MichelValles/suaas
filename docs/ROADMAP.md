@@ -182,6 +182,12 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.35.x · Campañas: fidelidad y honestidad (plan CAMPANAS-PLAN-MEJORA, release 1 de 6)
+
+Primera release del plan de mejora del módulo de campañas (`docs/CAMPANAS-PLAN-MEJORA.md`). Cada mejora se publica de una en una con su propio ciclo de deploy.
+
+- [x] **v0.35.0 · El persona ya no ve el brief del anunciante**: `probeCampaignSnippet` (`lib/experiments/campaign.ts`) inyectaba «Nota del anunciante (no la verías tú, sólo contexto)» con el brief en el user content del persona, el sesgo de cámara de eco que prohíbe `CONOCIMIENTO-USUARIOS-SINTETICOS.md` §6.1. Eliminado: el brief queda para la UI y como contexto de futuros jueces neutrales. Los scores de runs nuevos pueden bajar ligeramente respecto al histórico (señal de que el sesgo existía).
+
 ## v0.34.0 · Papelera coherente en históricos + MigrationPendingError + diag de migraciones pendientes
 
 Cierre de los flecos de papelera detectados en la auditoría de v0.32: una entidad enviada a papelera ya no rompe sus resultados históricos ni deja errores crípticos cuando falta la migración 0017.

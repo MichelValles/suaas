@@ -314,14 +314,15 @@ async function probeCampaignSnippet(
     | { type: "image"; image: string }
   > = [
     {
+      // El brief del anunciante NO se inyecta aquí: el persona no debe
+      // conocer la intención interna del anuncio antes de interpretarlo
+      // (sesgo de cámara de eco, ver CONOCIMIENTO-USUARIOS-SINTETICOS §6.1).
+      // El brief queda para la UI y como contexto de jueces neutrales.
       type: "text",
       text: [
         framingByChannel(channel, query, campaign),
         "",
         renderSnippetText(campaign, channel),
-        campaign.brief
-          ? `\nNota del anunciante (no la verías tú, sólo contexto): ${campaign.brief}`
-          : "",
       ]
         .filter(Boolean)
         .join("\n"),
