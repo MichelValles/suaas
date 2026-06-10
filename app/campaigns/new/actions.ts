@@ -36,6 +36,7 @@ const PayloadSchema = z.object({
     .default(["google"]),
   strategy: z.enum(STRATEGY_VALUES).default("search"),
   brief: z.string().optional().nullable(),
+  intended_message: z.string().optional().nullable(),
   company_name: z.string().optional().nullable(),
   long_headline: z.string().optional().nullable(),
   cta: z.string().optional().nullable(),
@@ -133,6 +134,7 @@ export async function createCampaignAction(
       channels: payload.channels,
       strategy: payload.strategy,
       brief: payload.brief?.trim() || null,
+      intended_message: payload.intended_message?.trim() || null,
       final_url: payload.final_url,
       landing_image_url:
         payload.landing_mode === "upload"
@@ -270,6 +272,7 @@ export async function createCampaignAction(
     channels: payload.channels,
     strategy: payload.strategy,
     brief: payload.brief?.trim() || null,
+    intended_message: payload.intended_message?.trim() || null,
     final_url: payload.final_url,
     landing_image_url: landingImageUrl,
     landing_source_url: landingSourceUrl ?? null,

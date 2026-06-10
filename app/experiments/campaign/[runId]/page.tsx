@@ -125,6 +125,13 @@ export default async function CampaignRunPage({
         <KpiCard label="Claridad" value={fmtPct(summary.mean_clarity)} />
         <KpiCard label="Credibilidad" value={fmtPct(summary.mean_credibility)} />
         <KpiCard label="Diferenciación" value={fmtPct(summary.mean_differentiation)} />
+        {summary.mean_ad_comprehension !== null && (
+          <KpiCard
+            label="Comprensión"
+            value={fmtPct(summary.mean_ad_comprehension)}
+            hint="Juez neutral (sin persona): cuánto coincide lo que cada perfil percibió con el mensaje que la campaña pretendía comunicar."
+          />
+        )}
         <KpiCard
           label="Match landing"
           value={fmtPct(summary.mean_landing_match)}
@@ -604,6 +611,11 @@ function ProfileBlock({
             {r.barriers.length > 0 && (
               <p style={{ color: "rgba(var(--fg),0.6)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
                 Barreras: {r.barriers.join(", ")}
+              </p>
+            )}
+            {r.comprehension_rate !== null && (
+              <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
+                Comprensión del mensaje (juez): {fmtPct(r.comprehension_rate)}
               </p>
             )}
             {r.landing_evaluated && (

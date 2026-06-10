@@ -81,6 +81,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
   const [channel, setChannel] = useState<Channel>(src?.channels[0] ?? "google");
   const [strategy, setStrategy] = useState<Strategy>(src?.strategy ?? "search");
   const [brief, setBrief] = useState(src?.brief ?? "");
+  const [intendedMessage, setIntendedMessage] = useState(src?.intended_message ?? "");
   const [finalUrl, setFinalUrl] = useState(src?.final_url ?? "");
   const [landingMode, setLandingMode] = useState<LandingMode>("og");
   const [landingUpload, setLandingUpload] = useState<string>("");
@@ -257,6 +258,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
     channels: [channel] as Channel[],
     strategy,
     brief: brief.trim() || null,
+    intended_message: intendedMessage.trim() || null,
     final_url: finalUrl,
     landing_mode: landingMode,
     landing_upload_data: landingUpload,
@@ -389,6 +391,13 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             value={brief}
             onChange={setBrief}
             placeholder="Promesa diferencial vs ING. Limitaciones legales: no decir TAE."
+          />
+          <Controlled
+            label="Mensaje que quieres que entiendan (opcional, activa el juez de comprensión)"
+            value={intendedMessage}
+            onChange={setIntendedMessage}
+            maxLength={200}
+            placeholder="Hipoteca fija sin comisiones de apertura para menores de 35"
           />
         </Section>
 
@@ -1209,6 +1218,7 @@ function Controlled(props: {
   onChange: (v: string) => void;
   required?: boolean;
   placeholder?: string;
+  maxLength?: number;
 }) {
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -1218,6 +1228,7 @@ function Controlled(props: {
         onChange={(e) => props.onChange(e.currentTarget.value)}
         placeholder={props.placeholder}
         required={props.required}
+        maxLength={props.maxLength}
         style={inputStyle}
       />
     </label>

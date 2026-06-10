@@ -89,7 +89,7 @@ En `lib/experiments/campaign.ts`: aplanar a una cola perfil × canal × query co
 
 **Por qué**: C-03 de la auditoría sigue abierto: `recordUsage` solo observa y, con la cookie constante de A-01, cualquiera que adivine el patrón puede quemar 200 combinaciones de Opus por POST. Además el operador no tiene estimación fiable antes de lanzar.
 
-### Juez neutral de comprensión del anuncio · M · necesita SQL
+### Juez neutral de comprensión del anuncio · M · necesita SQL · ✅ hecho en v0.39.0 (SQL agrupado en la 0019; funciona con fallback a meta mientras esté pendiente)
 
 Migración manual: `alter table campaigns add column if not exists intended_message text`; `alter table campaign_responses add column if not exists comprehension_rate numeric` con check 0..1. En `lib/campaigns.ts`: `intended_message` en `CampaignInputSchema` (max 200, opcional) y en el tipo `Campaign`; campo «Mensaje que quieres que entiendan» en `new-form.tsx` y `actions.ts`, análogo al `main_promise` de targets. En `lib/experiments/campaign.ts`: `judgeAdComprehension` clonando la rúbrica por bandas de `judgeComprehension` (`five-second.ts:154-183`), con `DEFAULT_MODEL` (Sonnet, barato), SIN `buildSystemPrompt` del persona, comparando `perceived_offer` contra `intended_message` y usando el brief como contexto del juez (su destino legítimo tras retirarlo del probe); llamada por respuesta solo si `intended_message` existe, tolerante a fallos (null + `console.error`). Persistir `comprehension_rate` y `judge_reasoning` en `meta`, `mean_ad_comprehension` en summarize + `upsertMetric`, KPI card «Comprensión del mensaje» en resultados. Scope de usage nuevo: `campaign_judge`.
 

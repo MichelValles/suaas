@@ -11,7 +11,7 @@ import { resolveImageForApi } from "@/lib/image-source";
 import { buildSystemPrompt } from "@/lib/prompts";
 import { type Profile, getProfile, listProfilesByIds } from "@/lib/profiles";
 import { createRun, markRunFinished, upsertMetric } from "@/lib/runs";
-import { getServerClient } from "@/lib/supabase";
+import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
 
 /**
@@ -109,6 +109,16 @@ export type LandingMatch = z.infer<typeof LandingMatchSchema>;
 // Sin .max() duros en headline/description: un LLM que devuelve 31
 // caracteres lanzaría NoObjectGeneratedError y mataría el run entero.
 // El límite vive en el describe (instrucción) y se trunca al persistir.
+export const AdJudgeSchema = z.object({
+  comprehension: z
+    .number()
+    .min(0)
+    .max(1)
+    .describe("0..1 cuánto coincide lo percibido con el mensaje pretendido"),
+  reasoning: z.string().min(1).describe("1-2 frases justificando el score"),
+});
+export type AdJudge = z.infer<typeof AdJudgeSchema>;
+
 export const IdealVersionSchema = z.object({
   ideal_headline: z.string().min(1).describe("Tu titular ideal en máximo 30 caracteres"),
   ideal_description: z
@@ -138,6 +148,8 @@ export type CampaignResponse = {
   perceived_offer: string;
   /** Razonamiento del perfil antes de puntuar. Vive en meta (jsonb); null en filas anteriores a v0.35.1. */
   reasoning: string | null;
+  /** Juez neutral: cuánto coincide perceived_offer con campaign.intended_message. Null si no hay mensaje pretendido o la fila es anterior a v0.39.0. */
+  comprehension_rate: number | null;
   clarity: number;
   credibility: number;
   differentiation: number;
@@ -184,6 +196,8 @@ export type CampaignSummary = {
   mean_clarity: number;
   mean_credibility: number;
   mean_differentiation: number;
+  /** Juez neutral: media de comprehension_rate. Null si la campaña no define intended_message. */
+  mean_ad_comprehension: number | null;
   mean_landing_match: number | null;
   click_rate: number;
   byQuery: CampaignByQuery[];
@@ -475,6 +489,51 @@ async function judgeLandingMatch(
         ],
       },
     ],
+  });
+  return {
+    output: result.object,
+    latencyMs: Date.now() - startedAt,
+    usage: result.usage ?? null,
+  };
+}
+
+// ============================================================
+// 2b) Juez neutral de comprensión del anuncio
+// ============================================================
+
+/**
+ * Compara lo que el perfil percibió contra lo que el anunciante quería
+ * comunicar. Es un juez SIN persona (no usa buildSystemPrompt): el brief
+ * del anunciante alimenta su contexto, nunca al perfil (ver v0.35.0).
+ * Rúbrica por bandas clonada del judgeComprehension de five-second.
+ */
+async function judgeAdComprehension(
+  intendedMessage: string,
+  perceivedOffer: string,
+  brief: string | null,
+): Promise<{ output: AdJudge; latencyMs: number; usage: unknown }> {
+  const startedAt = Date.now();
+  const result = await generateObject({
+    model: DEFAULT_MODEL,
+    schema: AdJudgeSchema,
+    system: [
+      "Eres un juez calibrado de tests de comprensión de anuncios.",
+      "Vas a comparar el 'mensaje pretendido' definido por el anunciante contra la 'oferta percibida' que verbalizó un usuario sintético al ver el anuncio.",
+      "Devuelve un score 0..1:",
+      "- 1.0 = la percepción recoge el mensaje pretendido o algo más específico del mismo.",
+      "- 0.6-0.8 = la percepción recoge una parte central del mensaje, con omisiones.",
+      "- 0.3-0.5 = la percepción toca un elemento periférico (precio, marca, sector) pero pierde el qué.",
+      "- 0.0-0.2 = no hay relación o la percepción contradice el mensaje.",
+      "Sé estricto con jerga: si el mensaje es específico y la percepción es genérica, baja el score. No premies adivinanzas.",
+      "Devuelve también 'reasoning' (1-2 frases) justificando el score.",
+    ].join("\n"),
+    prompt: [
+      `Mensaje pretendido por el anunciante: ${intendedMessage}`,
+      brief ? `Contexto del anunciante (brief interno): ${brief}` : "",
+      `Oferta percibida por el usuario: ${perceivedOffer}`,
+    ]
+      .filter(Boolean)
+      .join("\n"),
   });
   return {
     output: result.object,
@@ -779,6 +838,14 @@ export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<voi
         unit: "0..1",
       });
     }
+    if (summary.mean_ad_comprehension !== null) {
+      await upsertMetric({
+        run_id: runId,
+        key: "mean_ad_comprehension",
+        value: summary.mean_ad_comprehension,
+        unit: "0..1",
+      });
+    }
     await upsertMetric({
       run_id: runId,
       key: "click_rate",
@@ -886,6 +953,34 @@ async function processCombo(
     }
   }
 
+  // Juez neutral de comprensión: solo si la campaña define mensaje pretendido.
+  // Tolerante a fallos: una respuesta sin juez no rompe la combinación.
+  let comprehensionRate: number | null = null;
+  let judgeReasoning: string | null = null;
+  if (campaign.intended_message) {
+    try {
+      const judge = await judgeAdComprehension(
+        campaign.intended_message,
+        snippet.output.perceived_offer,
+        campaign.brief,
+      );
+      comprehensionRate = judge.output.comprehension;
+      judgeReasoning = judge.output.reasoning;
+      await recordUsage({
+        runId,
+        scope: "campaign_judge",
+        model: DEFAULT_MODEL,
+        usage: judge.usage,
+        meta: { latency_ms: judge.latencyMs, query, channel, profile_id: profile.id },
+      }).catch(() => {});
+    } catch (err) {
+      console.error(
+        `[campaign] juez de comprensión falló (profile=${profile.id}, channel=${channel}, query=${query}):`,
+        (err as Error).message,
+      );
+    }
+  }
+
   const ideal = await proposeIdealVersion(profile, channel, query, snippet.output);
   await recordUsage({
     runId,
@@ -895,38 +990,51 @@ async function processCombo(
     meta: { latency_ms: ideal.latencyMs, query, channel, profile_id: profile.id },
   }).catch(() => {});
 
-  const { error } = await supa.from("campaign_responses").upsert(
-    {
-      run_id: runId,
-      profile_id: profile.id,
-      channel,
-      query,
-      intent_to_click: snippet.output.intent_to_click,
-      perceived_offer: snippet.output.perceived_offer,
-      clarity: snippet.output.clarity,
-      credibility: snippet.output.credibility,
-      differentiation: snippet.output.differentiation,
-      barriers: snippet.output.barriers,
-      landing_evaluated: landingEvaluated,
-      landing_match: landingMatch,
-      landing_critique: landingCritique,
-      // El límite RSA (30/90) se instruye en el prompt; aquí se garantiza.
-      ideal_headline: ideal.output.ideal_headline.slice(0, 30),
-      ideal_description: ideal.output.ideal_description.slice(0, 90),
-      ideal_promise: ideal.output.ideal_promise,
-      ideal_free_text: ideal.output.ideal_free_text ?? null,
-      meta: {
-        model_snippet: REASONER_MODEL,
-        model_landing: REASONER_MODEL,
-        model_ideal: DEFAULT_MODEL,
-        latency_ms_snippet: snippet.latencyMs,
-        latency_ms_ideal: ideal.latencyMs,
-        reasoning: snippet.output.reasoning,
-        landing_error: landingError,
-      },
-    },
-    { onConflict: "run_id,profile_id,query,channel" },
-  );
+  const meta = {
+    model_snippet: REASONER_MODEL,
+    model_landing: REASONER_MODEL,
+    model_ideal: DEFAULT_MODEL,
+    latency_ms_snippet: snippet.latencyMs,
+    latency_ms_ideal: ideal.latencyMs,
+    reasoning: snippet.output.reasoning,
+    landing_error: landingError,
+    judge_reasoning: judgeReasoning,
+  };
+  const record = {
+    run_id: runId,
+    profile_id: profile.id,
+    channel,
+    query,
+    intent_to_click: snippet.output.intent_to_click,
+    perceived_offer: snippet.output.perceived_offer,
+    clarity: snippet.output.clarity,
+    credibility: snippet.output.credibility,
+    differentiation: snippet.output.differentiation,
+    barriers: snippet.output.barriers,
+    landing_evaluated: landingEvaluated,
+    landing_match: landingMatch,
+    landing_critique: landingCritique,
+    // El límite RSA (30/90) se instruye en el prompt; aquí se garantiza.
+    ideal_headline: ideal.output.ideal_headline.slice(0, 30),
+    ideal_description: ideal.output.ideal_description.slice(0, 90),
+    ideal_promise: ideal.output.ideal_promise,
+    ideal_free_text: ideal.output.ideal_free_text ?? null,
+  };
+  const onConflict = { onConflict: "run_id,profile_id,query,channel" };
+
+  let { error } = await supa
+    .from("campaign_responses")
+    .upsert({ ...record, comprehension_rate: comprehensionRate, meta }, onConflict);
+  // 0019 pendiente: la columna no existe; el score viaja en meta y
+  // listCampaignResponses lo lee de ahí.
+  if (isMissingColumnError(error, "comprehension_rate")) {
+    ({ error } = await supa
+      .from("campaign_responses")
+      .upsert(
+        { ...record, meta: { ...meta, comprehension_rate: comprehensionRate } },
+        onConflict,
+      ));
+  }
   if (error) throw new Error(error.message);
 }
 
@@ -954,6 +1062,13 @@ export async function listCampaignResponses(
       typeof (r.meta as Record<string, unknown> | null)?.reasoning === "string"
         ? ((r.meta as Record<string, unknown>).reasoning as string)
         : null,
+    comprehension_rate:
+      r.comprehension_rate !== null && r.comprehension_rate !== undefined
+        ? Number(r.comprehension_rate)
+        : typeof (r.meta as Record<string, unknown> | null)?.comprehension_rate ===
+            "number"
+          ? ((r.meta as Record<string, unknown>).comprehension_rate as number)
+          : null,
     clarity: Number(r.clarity),
     credibility: Number(r.credibility),
     differentiation: Number(r.differentiation),
@@ -993,6 +1108,7 @@ function summarize(
       mean_clarity: 0,
       mean_credibility: 0,
       mean_differentiation: 0,
+      mean_ad_comprehension: null,
       mean_landing_match: null,
       click_rate: 0,
       byQuery: [],
@@ -1010,6 +1126,10 @@ function summarize(
     .filter((r) => r.landing_evaluated && typeof r.landing_match === "number")
     .map((r) => r.landing_match as number);
   const meanMatch = matched.length === 0 ? null : avg(matched);
+  const judged = rs
+    .filter((r) => typeof r.comprehension_rate === "number")
+    .map((r) => r.comprehension_rate as number);
+  const meanAdComprehension = judged.length === 0 ? null : avg(judged);
   const clicks = rs.filter((r) => r.intent_to_click >= LANDING_THRESHOLD).length;
   const clickRate = clicks / n;
 
@@ -1045,6 +1165,7 @@ function summarize(
     mean_clarity: meanClarity,
     mean_credibility: meanCred,
     mean_differentiation: meanDiff,
+    mean_ad_comprehension: meanAdComprehension,
     mean_landing_match: meanMatch,
     click_rate: clickRate,
     byQuery,

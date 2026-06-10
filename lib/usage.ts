@@ -11,6 +11,7 @@ export type UsageScope =
   | "campaign_probe"
   | "campaign_landing"
   | "campaign_ideal"
+  | "campaign_judge"
   | "onboard_synthesize"
   | "geo_probe"
   | "momentum_probe"

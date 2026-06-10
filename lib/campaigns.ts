@@ -190,6 +190,11 @@ export const CampaignInputSchema = z
       .max(20, "Máximo 20 creatividades.")
       .optional()
       .default([]),
+    intended_message: z
+      .string()
+      .max(200, "El mensaje pretendido admite máximo 200 caracteres.")
+      .optional()
+      .nullable(),
     company_name: z
       .string()
       .max(25, "Nombre de empresa máximo 25 caracteres.")
@@ -283,6 +288,8 @@ export type Campaign = {
   channels: Channel[];
   strategy: Strategy;
   brief: string | null;
+  /** Mensaje que el anunciante quiere que se entienda; activa el juez neutral de comprensión. */
+  intended_message: string | null;
   final_url: string;
   landing_image_url: string;
   landing_source_url: string | null;
@@ -314,6 +321,7 @@ const CampaignRowSchema = z.object({
   channels: z.array(z.enum(CHANNEL_VALUES)).min(1).catch(["google"]),
   strategy: z.enum(STRATEGY_VALUES).catch("search"),
   brief: z.string().nullable().catch(null),
+  intended_message: z.string().nullable().catch(null),
   final_url: z.string().catch(""),
   landing_image_url: z.string().catch(""),
   landing_source_url: z.string().nullable().catch(null),
@@ -440,9 +448,25 @@ export async function createCampaign(input: CampaignInput): Promise<Campaign> {
   };
   let { data, error } = await supa
     .from("campaigns")
-    .insert({ ...base, channels: parsed.channels })
+    .insert({
+      ...base,
+      intended_message: parsed.intended_message ?? null,
+      channels: parsed.channels,
+    })
     .select("*")
     .single();
+  // Si la 0019 aún no está aplicada (intended_message no existe), caemos a
+  // un insert sin la columna (el juez de comprensión queda inactivo).
+  if (isMissingColumnError(error, "intended_message")) {
+    console.warn(
+      "[createCampaign] columna 'intended_message' no existe; fallback sin ella. Aplica la migración 0019_consolidacion.sql.",
+    );
+    ({ data, error } = await supa
+      .from("campaigns")
+      .insert({ ...base, channels: parsed.channels })
+      .select("*")
+      .single());
+  }
   // Si la migración 0013 aún no está aplicada (strategy no existe), caemos a
   // un insert sin la columna. La 0011 (channels) tiene su propio fallback.
   if (isMissingColumnError(error, "strategy")) {
