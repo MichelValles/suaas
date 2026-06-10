@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { ConceptosPendientes } from "./conceptos-pendientes";
 
 const PLANES: Array<{
   label: string;
@@ -101,36 +102,6 @@ const INTENT_DIMENSIONS = [
   },
 ];
 
-const PENDING = [
-  {
-    label: "Instancias como entidad",
-    note: "SUAAS tiene perfiles individuales, pero no el par «perfil comportamental → N instancias»: mismo comportamiento observable, orígenes y aha moments radicalmente distintos.",
-  },
-  {
-    label: "Gravedad agregada",
-    note: "No existe una métrica que sume el momentum de las interacciones de una cohorte como fuerza gravitacional de la marca, ni una vista que cruce el momentum entre módulos.",
-  },
-  {
-    label: "Mapa de fricción priorizado por impacto",
-    note: "Los embudos ya rankean fricciones por frecuencia entre perfiles (top_friction), pero falta la dimensión instancia y la regla de severidad: lo que falla en todas las instancias se toca primero.",
-  },
-  {
-    label: "Aha moment por instancia",
-    note: "El momento de propiedad psicológica no se modela ni detecta. Es específico por instancia, detectable y acelerable.",
-  },
-  {
-    label: "Capas de activación (Value Plane)",
-    note: "No hay simulación post-alta: adopción, pertenencia, inducción de hábitos recurrentes ni predicción de churn.",
-  },
-  {
-    label: "Repesca accionable",
-    note: "behavior_class='repesca' se cuenta pero no genera la ventana de recuperación: qué mensaje recuperaría a ese perfil en función de su instancia.",
-  },
-  {
-    label: "Evolución temporal del momentum",
-    note: "El vector se mide por interacción, pero no se traza su trayectoria a lo largo del tiempo ni entre touchpoints.",
-  },
-];
 
 export default function GravityPage() {
   return (
@@ -328,57 +299,7 @@ export default function GravityPage() {
         </section>
       ))}
 
-      <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <SectionLabel>Conceptos pendientes</SectionLabel>
-        <p
-          style={{
-            fontSize: 13,
-            color: "rgba(255,255,255,0.5)",
-            lineHeight: 1.6,
-            margin: 0,
-          }}
-        >
-          Huecos identificados entre el marco teórico y la implementación actual. Insumo directo
-          para el roadmap.
-        </p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {PENDING.map((p) => (
-            <div
-              key={p.label}
-              style={{
-                padding: "14px 18px",
-                border: "1px solid rgba(255,255,255,0.07)",
-                borderRadius: "var(--radius-sm)",
-                background: "rgba(255,255,255,0.015)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-              }}
-            >
-              <span
-                className="mono"
-                style={{
-                  fontSize: 11,
-                  color: "rgba(255,255,255,0.5)",
-                  letterSpacing: "0.1em",
-                }}
-              >
-                {p.label}
-              </span>
-              <p
-                style={{
-                  fontSize: 13,
-                  color: "rgba(255,255,255,0.38)",
-                  lineHeight: 1.55,
-                  margin: 0,
-                }}
-              >
-                {p.note}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+      <ConceptosPendientes />
     </AppShell>
   );
 }
