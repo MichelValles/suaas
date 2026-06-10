@@ -310,7 +310,7 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 
 Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado.
 
-## Módulo Campañas (Paid Ads) — detalle
+## Módulo Campañas (Paid Ads): detalle
 
 Es el módulo más complejo. Modela publicidad pagada **simulada en distintas redes y estrategias**. Hoy: **Google Ads · Search RSA** y **Google Ads · Display RDA** funcionales. Las otras 5 estrategias de Google y los 4 canales restantes (Meta / LinkedIn / TikTok / X) están como `Próx.` con su descripción en la UI.
 
@@ -415,7 +415,7 @@ Telemetría: `gateway_usage` con scopes `campaign_probe`, `campaign_landing`, `c
 
 ## Módulos Gravity Model (v0.29-v0.30)
 
-Cuatro funcionalidades que modelan la intención del usuario como un vector (intensidad, dirección, velocidad) en lugar de como demografía estática.
+Cuatro funcionalidades que modelan la intención del usuario como un vector (intensidad, dirección, velocidad) en lugar de como demografía estática. **Base teórica completa del marco en [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md)** (Intent Momentum, planos de influencia, instancias, aha moment, GEO).
 
 ### 1. Contexto JTBD en perfiles (`intent_context`)
 
@@ -429,11 +429,11 @@ Campo libre en `profiles`. Formato recomendado «Cuando [situación], quiero [mo
 
 `ProbeOutputSchema` (en `lib/experiments/five-second.ts`) añade `behavior_class` (`optima` = comprende y avanza, `fuga` = carga cognitiva alta, abandona, `repesca` = duda pero intención viva). El LLM clasifica su propia conducta durante el probe (sin llamada extra). Se persiste en `five_second_responses` y la página de resultados muestra la distribución. Migración `0015`.
 
-### 4. GEO Tester (Generative Engine Optimization) — `lib/geo.ts`
+### 4. GEO Tester (Generative Engine Optimization): `lib/geo.ts`
 
 Simula cómo un buscador IA (Perplexity / Google AI Overview / ChatGPT Search) describe la marca ante cada segmento de intención (JTBD). Por segmento produce `source_engine`, `simulated_response`, `brand_mentioned`, `brand_position`, `visibility_score`, `recommendation_tone`, `key_claims`, `missing_attributes`. Runner serie por segmento (`runGeoAnalysis`), scope `geo_probe`. Rutas: `/geo` (lista), `/geo/new`, `/geo/[id]` (resultados + botón Analizar). API: `POST /api/geo/run` `{ geoId }`. Tabla `geo_analyses`. Migración `0015`.
 
-### 5. Momentum (Intent Momentum ante-touchpoint) — `lib/momentum.ts`
+### 5. Momentum (Intent Momentum ante-touchpoint): `lib/momentum.ts`
 
 Define **Triggers** (escenarios de activación JTBD) y simula cómo cada perfil los abordaría en su vida real, antes de que ninguna marca entre en su radar. Por perfil: `intent_narrative` (1ª persona), `intensity`, `direction`, `velocity`, `first_steps`, `channels`, `barriers`, `jtbd_expressed`. Runner serie por perfil (`runMomentumChallenge`), scope `momentum_probe`. Rutas: `/momentum` (lista), `/momentum/new`, `/momentum/[id]`. API: `POST /api/momentum` (crear), `POST /api/momentum/run` `{ challengeId }`. Tabla `momentum_challenges`. Migración `0016`.
 
