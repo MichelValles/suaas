@@ -1,5 +1,6 @@
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { isGatewayConfigured } from "@/lib/gateway";
+import { getMigrationsStatus, type MigrationsStatus } from "@/lib/migrations";
 import { getServerClient, isSupabaseConfigured } from "@/lib/supabase";
 import { APP_VERSION } from "@/lib/version";
 
@@ -85,6 +86,12 @@ export default async function DiagPage() {
 
   let results: TableStatus[] = [];
   const columns: ColumnStatus[] = [];
+  let migrations: MigrationsStatus = { tracking: false };
+  if (supabaseConfigured) {
+    migrations = await getMigrationsStatus().catch(
+      (): MigrationsStatus => ({ tracking: false }),
+    );
+  }
   if (supabaseConfigured) {
     const supa = getServerClient();
     results = await Promise.all(
@@ -363,6 +370,42 @@ export default async function DiagPage() {
               </div>
             ))}
           </div>
+        </section>
+      )}
+
+      {supabaseConfigured && (
+        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <h2
+            className="mono"
+            style={{
+              fontSize: 11,
+              letterSpacing: "0.28em",
+              textTransform: "uppercase",
+              color: "var(--accent-text)",
+              margin: 0,
+            }}
+          >
+            Tracking de migraciones
+          </h2>
+          {!migrations.tracking ? (
+            <Notice tone="warn">
+              La tabla <code className="mono">suaas_migrations</code> no existe
+              todavía: aplica <code className="mono">0019_consolidacion.sql</code>{" "}
+              en el SQL editor para activar el tracking (incluye el backfill de
+              las migraciones anteriores).
+            </Notice>
+          ) : migrations.pending.length > 0 ? (
+            <Notice tone="warn">
+              Migraciones sin registrar como aplicadas:{" "}
+              <strong>{migrations.pending.join(", ")}</strong>. Aplícalas en el
+              SQL editor (cada una registra su propia fila al final).
+            </Notice>
+          ) : (
+            <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 13, lineHeight: 1.55, margin: 0 }}>
+              Las {migrations.applied.length} migraciones conocidas constan como
+              aplicadas.
+            </p>
+          )}
         </section>
       )}
 

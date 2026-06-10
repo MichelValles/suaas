@@ -68,7 +68,7 @@ Todo en `lib/experiments/campaign.ts` salvo lo indicado:
 
 ## Releases mayores
 
-### Consolidación de esquema con tracking de migraciones (0019) · M · necesita SQL
+### Consolidación de esquema con tracking de migraciones (0019) · M · necesita SQL · ✅ código y SQL escritos en v0.37.0 (SQL pendiente de aplicar; incluye agrupadas las columnas de v0.39 y v0.40; la poda de fallbacks legacy queda para cuando la 0019 conste aplicada)
 
 Nueva `supabase/migrations/0019_consolidacion.sql`, idempotente, para pegar una vez en el SQL editor: (1) `create table if not exists suaas_migrations(name text primary key, applied_at timestamptz default now())` con backfill de `0001`..`0019`; (2) `drop column if exists channel` en `campaigns` (legacy pre-0011); (3) rehacer los checks de arrays con `coalesce(array_length(x,1),0)` porque `array_length` de `'{}'` es NULL y el CHECK pasa, así que hoy los mínimos no se garantizan en BD; (4) checks de Display: `char_length(company_name) <= 25`, `char_length(long_headline) <= 90`, `cta` restringido a los `CTA_VALUES`; (5) `enable row level security` en `campaigns` y `campaign_responses` sin policies (el service role salta RLS, la anon key queda deny-all, la app no cambia). En código: `lib/migrations.ts` con `getPendingMigrations()` leyendo `suaas_migrations` y estado visible en `app/diag/page.tsx`; tras confirmar la aplicación, podar los fallbacks pre-0011/pre-0013 de `createCampaign` y `normalizeCampaign` sustituyéndolos por `MigrationPendingError` (clase ya existente en `lib/supabase.ts`). Convención hacia delante: cada migración termina insertando su propia fila.
 

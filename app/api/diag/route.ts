@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getMigrationsStatus, type MigrationsStatus } from "@/lib/migrations";
 import { getServerClient, isSupabaseConfigured } from "@/lib/supabase";
 import { APP_VERSION } from "@/lib/version";
 
@@ -126,6 +127,10 @@ export async function GET() {
     ]),
   ].sort();
 
+  const migrations: MigrationsStatus = await getMigrationsStatus().catch(
+    (): MigrationsStatus => ({ tracking: false }),
+  );
+
   const allOk = results.every((r) => r.ok) && missingColumns.length === 0;
   return NextResponse.json(
     {
@@ -136,6 +141,7 @@ export async function GET() {
       columns,
       missing_columns: missingColumns,
       pending_migrations: pendingMigrations,
+      migrations_tracking: migrations,
     },
     { status: allOk ? 200 : 500 },
   );
