@@ -55,13 +55,13 @@ export default async function PricingDetailPage({
           <div
             key={p.id}
             style={{
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(var(--fg),0.08)",
               borderRadius: "var(--radius-md)",
               padding: "22px 24px",
               display: "flex",
               flexDirection: "column",
               gap: 10,
-              background: "rgba(255,255,255,0.02)",
+              background: "rgba(var(--fg),0.02)",
             }}
           >
             <span
@@ -70,7 +70,7 @@ export default async function PricingDetailPage({
                 fontSize: 10,
                 letterSpacing: "0.24em",
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.55)",
+                color: "rgba(var(--fg),0.55)",
               }}
             >
               {p.label ?? `nivel ${p.position}`}
@@ -80,7 +80,7 @@ export default async function PricingDetailPage({
                 fontFamily: "var(--font-display)",
                 fontStyle: "italic",
                 fontSize: 30,
-                color: "#fff",
+                color: "var(--text-strong)",
                 lineHeight: 1,
               }}
             >

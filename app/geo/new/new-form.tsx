@@ -86,7 +86,7 @@ export function NewGeoForm() {
         hint={
           <>
             <p style={{ margin: "0 0 10px" }}>
-              Un <strong style={{ color: "rgba(255,255,255,0.85)" }}>segmento de intención</strong> es un grupo de usuarios que tienen el mismo trabajo a hacer (JTBD): el problema concreto que quieren resolver en un momento específico. A diferencia de la segmentación demográfica, el JTBD describe <em>por qué</em> alguien busca algo hoy.
+              Un <strong style={{ color: "rgba(var(--fg),0.85)" }}>segmento de intención</strong> es un grupo de usuarios que tienen el mismo trabajo a hacer (JTBD): el problema concreto que quieren resolver en un momento específico. A diferencia de la segmentación demográfica, el JTBD describe <em>por qué</em> alguien busca algo hoy.
             </p>
             <p style={{ margin: 0 }}>
               El GEO tester simula cómo un motor de búsqueda IA (Perplexity, Google AI Overview, ChatGPT Search) respondería a la búsqueda de cada segmento y analiza si tu marca aparece, con qué posición y con qué tono. Puedes añadir hasta 10 segmentos.
@@ -111,9 +111,9 @@ export function NewGeoForm() {
             style={{
               alignSelf: "flex-start",
               background: "transparent",
-              border: "1px dashed rgba(255,255,255,0.2)",
+              border: "1px dashed rgba(var(--fg),0.2)",
               borderRadius: "var(--radius-pill)",
-              color: "rgba(255,255,255,0.6)",
+              color: "rgba(var(--fg),0.6)",
               padding: "8px 18px",
               fontSize: 12,
               fontFamily: "var(--font-mono)",
@@ -126,8 +126,8 @@ export function NewGeoForm() {
               (e.currentTarget as HTMLButtonElement).style.color = "var(--accent-400)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.2)";
-              (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.6)";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(var(--fg),0.2)";
+              (e.currentTarget as HTMLButtonElement).style.color = "rgba(var(--fg),0.6)";
             }}
           >
             + Añadir segmento
@@ -136,7 +136,7 @@ export function NewGeoForm() {
         {segments.length === 10 && (
           <p
             className="mono"
-            style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", margin: 0, letterSpacing: "0.1em" }}
+            style={{ fontSize: 11, color: "rgba(var(--fg),0.4)", margin: 0, letterSpacing: "0.1em" }}
           >
             Límite de 10 segmentos alcanzado.
           </p>
@@ -150,7 +150,7 @@ export function NewGeoForm() {
             padding: 16,
             border: "1px solid var(--error-500)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.9)",
+            color: "rgba(var(--fg),0.9)",
             background: "rgba(180,35,24,0.12)",
             fontSize: 14,
             lineHeight: 1.5,
@@ -179,13 +179,13 @@ function SegmentBlock({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.1)",
+        border: "1px solid rgba(var(--fg),0.1)",
         borderRadius: "var(--radius-sm)",
         padding: 20,
         display: "flex",
         flexDirection: "column",
         gap: 16,
-        background: "rgba(255,255,255,0.015)",
+        background: "rgba(var(--fg),0.015)",
       }}
     >
       <div
@@ -201,7 +201,7 @@ function SegmentBlock({
             fontSize: 10,
             letterSpacing: "0.22em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           Segmento {index + 1}
@@ -213,9 +213,9 @@ function SegmentBlock({
             aria-label={`Eliminar segmento ${index + 1}`}
             style={{
               background: "transparent",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid rgba(var(--fg),0.1)",
               borderRadius: "var(--radius-pill)",
-              color: "rgba(255,255,255,0.45)",
+              color: "rgba(var(--fg),0.45)",
               padding: "2px 10px",
               fontSize: 12,
               fontFamily: "var(--font-mono)",
@@ -261,15 +261,14 @@ function SegmentBlock({
 // ============================================================
 
 const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(var(--fg),0.03)",
+  border: "1px solid rgba(var(--fg),0.12)",
   borderRadius: "var(--radius-sm)",
   padding: "10px 12px",
-  color: "#fff",
+  color: "var(--text-strong)",
   fontSize: 14,
   outline: "none",
   fontFamily: "var(--font-sans)",
-  colorScheme: "dark",
   width: "100%",
   boxSizing: "border-box",
 };
@@ -388,7 +387,7 @@ function FLabel({ label, tooltip }: { label: string; tooltip?: string }) {
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {label}
@@ -410,7 +409,7 @@ function FieldGroup({
   return (
     <fieldset
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 24,
         display: "flex",
@@ -427,13 +426,13 @@ function FieldGroup({
           fontSize: 10,
           letterSpacing: "0.24em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
         }}
       >
         {title}
       </legend>
       {hint && (
-        <div style={{ color: "rgba(255,255,255,0.5)", fontSize: 13, lineHeight: 1.6, margin: 0 }}>
+        <div style={{ color: "rgba(var(--fg),0.5)", fontSize: 13, lineHeight: 1.6, margin: 0 }}>
           {hint}
         </div>
       )}

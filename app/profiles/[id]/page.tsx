@@ -66,7 +66,7 @@ export default async function ProfileDetailPage({
                 fontSize: 10,
                 letterSpacing: "0.24em",
                 textTransform: "uppercase",
-                color: "var(--accent-500)",
+                color: "var(--accent-text)",
               }}
             >
               Backstory
@@ -146,7 +146,7 @@ function SectionLabel({
           fontSize: 11,
           letterSpacing: "0.28em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
           margin: 0,
         }}
       >
@@ -155,7 +155,7 @@ function SectionLabel({
       {description && (
         <p
           style={{
-            color: "rgba(255,255,255,0.6)",
+            color: "rgba(var(--fg),0.6)",
             fontSize: 13,
             lineHeight: 1.55,
             margin: 0,
@@ -181,7 +181,7 @@ function Trait({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 16,
         display: "flex",
@@ -196,7 +196,7 @@ function Trait({
             fontSize: 10,
             letterSpacing: "0.22em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
           }}
         >
           {label}
@@ -208,7 +208,7 @@ function Trait({
         style={{
           height: 6,
           width: "100%",
-          background: "rgba(255,255,255,0.08)",
+          background: "rgba(var(--fg),0.08)",
           borderRadius: 999,
           overflow: "hidden",
         }}
@@ -223,7 +223,7 @@ function Trait({
       </div>
       <span
         className="mono"
-        style={{ fontSize: 12, color: "rgba(255,255,255,0.85)" }}
+        style={{ fontSize: 12, color: "rgba(var(--fg),0.85)" }}
       >
         {Math.round(value * 100)}%
       </span>
@@ -243,7 +243,7 @@ function BarrierCard({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 20,
         display: "flex",
@@ -258,7 +258,7 @@ function BarrierCard({
             fontSize: 10,
             letterSpacing: "0.22em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           {label}
@@ -266,11 +266,11 @@ function BarrierCard({
         {tooltip && <InfoTooltip text={tooltip} label={`Sobre ${label}`} />}
       </span>
       {items.length === 0 ? (
-        <span style={{ color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+        <span style={{ color: "rgba(var(--fg),0.4)", fontSize: 13 }}>
           Sin barreras registradas.
         </span>
       ) : (
-        <ul style={{ margin: 0, paddingLeft: 18, color: "rgba(255,255,255,0.85)" }}>
+        <ul style={{ margin: 0, paddingLeft: 18, color: "rgba(var(--fg),0.85)" }}>
           {items.map((item, idx) => (
             <li key={idx} style={{ fontSize: 14, lineHeight: 1.5 }}>
               {item}

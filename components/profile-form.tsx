@@ -186,7 +186,7 @@ export function ProfileForm({
             padding: 16,
             border: "1px solid var(--error-500)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.9)",
+            color: "rgba(var(--fg),0.9)",
             background: "rgba(180,35,24,0.12)",
             fontSize: 14,
             lineHeight: 1.5,
@@ -249,7 +249,7 @@ function FieldGroup({
   return (
     <fieldset
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 24,
         display: "flex",
@@ -266,13 +266,13 @@ function FieldGroup({
           fontSize: 10,
           letterSpacing: "0.24em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
         }}
       >
         {title}
       </legend>
       {hint && (
-        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, lineHeight: 1.5, margin: 0 }}>
+        <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, lineHeight: 1.5, margin: 0 }}>
           {hint}
         </p>
       )}
@@ -378,7 +378,7 @@ function SelectField(props: {
         style={inputStyle}
       >
         {props.options.map((o) => (
-          <option key={o.value} value={o.value} style={{ background: "var(--ink-900)", color: "#fff" }}>
+          <option key={o.value} value={o.value} style={{ background: "var(--surface-app)", color: "var(--text-strong)" }}>
             {o.label}
           </option>
         ))}
@@ -396,7 +396,7 @@ function FieldLabel({ label, tooltip }: { label: string; tooltip?: string }) {
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {label}
@@ -407,13 +407,12 @@ function FieldLabel({ label, tooltip }: { label: string; tooltip?: string }) {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(var(--fg),0.03)",
+  border: "1px solid rgba(var(--fg),0.12)",
   borderRadius: "var(--radius-sm)",
   padding: "10px 12px",
-  color: "#fff",
+  color: "var(--text-strong)",
   fontSize: 14,
   outline: "none",
   fontFamily: "var(--font-sans)",
-  colorScheme: "dark",
 };

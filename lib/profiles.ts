@@ -2,7 +2,7 @@ import { z } from "zod";
 import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 
 // ============================================================
-// Schemas (zod) — la fuente de verdad de la forma del dato.
+// Schemas (zod) : la fuente de verdad de la forma del dato.
 // ============================================================
 
 export const DemographicsSchema = z.object({

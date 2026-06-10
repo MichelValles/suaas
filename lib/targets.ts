@@ -8,7 +8,7 @@ const MAX_HTML_BYTES = 1_500_000; // 1.5 MB; <head> rara vez excede 200 KB.
 const MAX_REDIRECTS = 3;
 
 // ============================================================
-// Schemas (zod) — la fuente de verdad de la forma del dato.
+// Schemas (zod) : la fuente de verdad de la forma del dato.
 // ============================================================
 
 export const FiveSecondPayloadSchema = z.object({

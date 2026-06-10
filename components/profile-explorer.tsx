@@ -141,9 +141,9 @@ export function ProfileExplorer({
         <div
           style={{
             padding: 24,
-            border: "1px dashed rgba(255,255,255,0.12)",
+            border: "1px dashed rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
             fontSize: 13,
           }}
         >
@@ -257,16 +257,15 @@ function Toolbar({
           onChange={(e) => onTextChange(e.currentTarget.value)}
           placeholder="Buscar (palabras separadas por espacio = AND)…"
           style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.12)",
+            background: "rgba(var(--fg),0.03)",
+            border: "1px solid rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-pill)",
             padding: "8px 14px",
-            color: "#fff",
+            color: "var(--text-strong)",
             fontSize: 13,
             outline: "none",
             fontFamily: "var(--font-sans)",
             minWidth: 280,
-            colorScheme: "dark",
           }}
         />
         <button
@@ -279,8 +278,8 @@ function Toolbar({
             gap: 8,
             padding: "8px 14px",
             background: filtersActive ? "var(--accent-500)" : "transparent",
-            color: filtersActive ? "var(--ink-900)" : "rgba(255,255,255,0.75)",
-            border: `1px solid ${filtersActive ? "var(--accent-500)" : "rgba(255,255,255,0.12)"}`,
+            color: filtersActive ? "var(--ink-900)" : "rgba(var(--fg),0.75)",
+            border: `1px solid ${filtersActive ? "var(--accent-500)" : "rgba(var(--fg),0.12)"}`,
             borderRadius: "var(--radius-pill)",
             cursor: "pointer",
             fontSize: 11,
@@ -301,8 +300,8 @@ function Toolbar({
             style={{
               padding: "8px 14px",
               background: "transparent",
-              color: "rgba(255,255,255,0.65)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              color: "rgba(var(--fg),0.65)",
+              border: "1px solid rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-pill)",
               cursor: "pointer",
               fontSize: 11,
@@ -320,14 +319,14 @@ function Toolbar({
             fontSize: 11,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.5)",
+            color: "rgba(var(--fg),0.5)",
           }}
         >
           {visible}/{total}
           {selectedCount > 0 && (
             <>
               {" · "}
-              <span style={{ color: "var(--accent-500)" }}>{selectedCount} sel.</span>
+              <span style={{ color: "var(--accent-text)" }}>{selectedCount} sel.</span>
             </>
           )}
           {selectedCount > 0 && onClearSelection && (
@@ -338,7 +337,7 @@ function Toolbar({
                 marginLeft: 6,
                 background: "transparent",
                 border: 0,
-                color: "rgba(255,255,255,0.6)",
+                color: "rgba(var(--fg),0.6)",
                 cursor: "pointer",
                 display: "inline-flex",
                 alignItems: "center",
@@ -358,7 +357,7 @@ function Toolbar({
           style={{
             display: "inline-flex",
             padding: 3,
-            border: "1px solid rgba(255,255,255,0.12)",
+            border: "1px solid rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-pill)",
           }}
         >
@@ -397,7 +396,7 @@ function ViewToggle({
         gap: 6,
         padding: "6px 12px",
         background: active ? "var(--accent-500)" : "transparent",
-        color: active ? "var(--ink-900)" : "rgba(255,255,255,0.7)",
+        color: active ? "var(--ink-900)" : "rgba(var(--fg),0.7)",
         border: 0,
         borderRadius: "var(--radius-pill)",
         cursor: "pointer",
@@ -431,10 +430,10 @@ function FiltersPanel({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 20,
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         display: "grid",
         gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
         gap: 16,
@@ -484,7 +483,7 @@ function RangeField({
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {label}
@@ -524,15 +523,14 @@ function RangeField({
 }
 
 const smallInputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(var(--fg),0.03)",
+  border: "1px solid rgba(var(--fg),0.12)",
   borderRadius: "var(--radius-sm)",
   padding: "8px 10px",
-  color: "#fff",
+  color: "var(--text-strong)",
   fontSize: 13,
   outline: "none",
   fontFamily: "var(--font-sans)",
-  colorScheme: "dark",
 };
 
 // ============================================================
@@ -606,8 +604,8 @@ function ProfileCard({
           flexDirection: "column",
           gap: 14,
           padding: 18,
-          border: `1px solid ${selected ? "var(--accent-500)" : "rgba(255,255,255,0.08)"}`,
-          background: selected ? "rgba(250,204,13,0.06)" : "rgba(255,255,255,0.02)",
+          border: `1px solid ${selected ? "var(--accent-500)" : "rgba(var(--fg),0.08)"}`,
+          background: selected ? "rgba(250,204,13,0.06)" : "rgba(var(--fg),0.02)",
           borderRadius: "var(--radius-md)",
           width: "100%",
           minHeight: 220,
@@ -643,7 +641,7 @@ function ProfileCard({
                 fontSize: 10,
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.5)",
+                color: "rgba(var(--fg),0.5)",
               }}
             >
               {profile.demographics.age} · {profile.demographics.gender}
@@ -659,7 +657,7 @@ function ProfileCard({
               fontStyle: "italic",
               fontSize: 22,
               lineHeight: 1.15,
-              color: "#fff",
+              color: "var(--text-strong)",
               margin: 0,
             }}
           >
@@ -667,7 +665,7 @@ function ProfileCard({
           </h3>
           <p
             style={{
-              color: "rgba(255,255,255,0.7)",
+              color: "rgba(var(--fg),0.7)",
               fontSize: 13,
               margin: 0,
               lineHeight: 1.45,
@@ -678,7 +676,7 @@ function ProfileCard({
           {profile.demographics.geo && (
             <p
               style={{
-                color: "rgba(255,255,255,0.45)",
+                color: "rgba(var(--fg),0.45)",
                 fontSize: 12,
                 margin: 0,
                 lineHeight: 1.4,
@@ -699,9 +697,9 @@ function ProfileCard({
             fontSize: 10,
             letterSpacing: "0.2em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(var(--fg),0.4)",
             paddingTop: 8,
-            borderTop: "1px solid rgba(255,255,255,0.05)",
+            borderTop: "1px solid rgba(var(--fg),0.05)",
           }}
         >
           <span>{barriersCount} barrera{barriersCount === 1 ? "" : "s"} COM-B</span>
@@ -747,7 +745,7 @@ function BigFiveBars({ b }: { b: Profile["big_five"] }) {
               style={{
                 width: "100%",
                 height: 5,
-                background: "rgba(255,255,255,0.06)",
+                background: "rgba(var(--fg),0.06)",
                 borderRadius: 999,
                 overflow: "hidden",
               }}
@@ -766,7 +764,7 @@ function BigFiveBars({ b }: { b: Profile["big_five"] }) {
               style={{
                 fontSize: 9,
                 letterSpacing: "0.16em",
-                color: "rgba(255,255,255,0.5)",
+                color: "rgba(var(--fg),0.5)",
               }}
             >
               {label}
@@ -793,7 +791,7 @@ function BigFiveInlineBars({ b }: { b: Profile["big_five"] }) {
               style={{
                 width: "100%",
                 height: 4,
-                background: "rgba(255,255,255,0.06)",
+                background: "rgba(var(--fg),0.06)",
                 borderRadius: 999,
                 overflow: "hidden",
               }}
@@ -811,7 +809,7 @@ function BigFiveInlineBars({ b }: { b: Profile["big_five"] }) {
               style={{
                 fontSize: 9,
                 letterSpacing: "0.14em",
-                color: "rgba(255,255,255,0.5)",
+                color: "rgba(var(--fg),0.5)",
               }}
             >
               {label}
@@ -851,11 +849,11 @@ function ProfileTable({
           width: "100%",
           borderCollapse: "collapse",
           fontSize: 13,
-          color: "rgba(255,255,255,0.85)",
+          color: "rgba(var(--fg),0.85)",
         }}
       >
         <thead>
-          <tr style={{ textAlign: "left", color: "rgba(255,255,255,0.55)" }}>
+          <tr style={{ textAlign: "left", color: "rgba(var(--fg),0.55)" }}>
             <Th></Th>
             <SortableTh sortKey="name" current={sort} onClick={() => onSort("name")}>
               Nombre
@@ -883,7 +881,7 @@ function ProfileTable({
               data-selected={selected.has(p.id) ? "true" : "false"}
               className="profile-row"
               style={{
-                borderTop: "1px solid rgba(255,255,255,0.06)",
+                borderTop: "1px solid rgba(var(--fg),0.06)",
                 background: selected.has(p.id) ? "rgba(250,204,13,0.06)" : "transparent",
               }}
             >
@@ -896,7 +894,7 @@ function ProfileTable({
                 />
               </Td>
               <Td>
-                <span style={{ color: "#fff" }}>{p.name}</span>
+                <span style={{ color: "var(--text-strong)" }}>{p.name}</span>
               </Td>
               <Td>{p.demographics.age}</Td>
               <Td>{p.demographics.gender}</Td>
@@ -968,7 +966,7 @@ function SortableTh({
           width: "100%",
           background: "transparent",
           border: 0,
-          color: active ? "var(--accent-500)" : "rgba(255,255,255,0.55)",
+          color: active ? "var(--accent-500)" : "rgba(var(--fg),0.55)",
           padding: "10px 12px",
           textAlign: "left",
           fontSize: 10,
@@ -1040,7 +1038,7 @@ function Pagination({
           fontSize: 11,
           letterSpacing: "0.18em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.5)",
+          color: "rgba(var(--fg),0.5)",
         }}
       >
         {pageStart + 1}–{pageEnd} de {totalItems} · {PAGE_SIZE} por página
@@ -1062,7 +1060,7 @@ function Pagination({
               style={{
                 padding: "0 6px",
                 fontSize: 11,
-                color: "rgba(255,255,255,0.4)",
+                color: "rgba(var(--fg),0.4)",
               }}
             >
               …
@@ -1119,8 +1117,8 @@ function PageBtn({
         justifyContent: "center",
         padding: "0 8px",
         background: active ? "var(--accent-500)" : "transparent",
-        color: active ? "var(--ink-900)" : disabled ? "rgba(255,255,255,0.25)" : "rgba(255,255,255,0.7)",
-        border: `1px solid ${active ? "var(--accent-500)" : "rgba(255,255,255,0.12)"}`,
+        color: active ? "var(--ink-900)" : disabled ? "rgba(var(--fg),0.25)" : "rgba(var(--fg),0.7)",
+        border: `1px solid ${active ? "var(--accent-500)" : "rgba(var(--fg),0.12)"}`,
         borderRadius: "var(--radius-sm)",
         fontSize: 11,
         letterSpacing: "0.16em",
@@ -1187,9 +1185,9 @@ function RowActions({
           width: 28,
           height: 28,
           background: "transparent",
-          border: "1px solid rgba(255,255,255,0.12)",
+          border: "1px solid rgba(var(--fg),0.12)",
           borderRadius: "var(--radius-sm)",
-          color: "rgba(255,255,255,0.6)",
+          color: "rgba(var(--fg),0.6)",
           cursor: "pointer",
         }}
       >
@@ -1220,9 +1218,9 @@ function IconLink({
         width: 28,
         height: 28,
         background: "transparent",
-        border: "1px solid rgba(255,255,255,0.12)",
+        border: "1px solid rgba(var(--fg),0.12)",
         borderRadius: "var(--radius-sm)",
-        color: "rgba(255,255,255,0.6)",
+        color: "rgba(var(--fg),0.6)",
       }}
     >
       {children}

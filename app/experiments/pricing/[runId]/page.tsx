@@ -81,7 +81,7 @@ export default async function PricingRunPage({
               fontSize: 11,
               letterSpacing: "0.28em",
               textTransform: "uppercase",
-              color: "var(--accent-500)",
+              color: "var(--accent-text)",
             }}
           >
             Sweet spot · mejor revenue esperado
@@ -92,7 +92,7 @@ export default async function PricingRunPage({
               fontStyle: "italic",
               fontSize: "clamp(26px, 3vw, 36px)",
               lineHeight: 1.05,
-              color: "#fff",
+              color: "var(--text-strong)",
             }}
           >
             {summary.sweet_spot.price} {summary.currency} · buy-rate{" "}
@@ -112,13 +112,13 @@ export default async function PricingRunPage({
                 gap: 20,
                 alignItems: "center",
                 padding: "18px 22px",
-                border: "1px solid rgba(255,255,255,0.08)",
+                border: "1px solid rgba(var(--fg),0.08)",
                 borderRadius: "var(--radius-md)",
-                background: "rgba(255,255,255,0.02)",
+                background: "rgba(var(--fg),0.02)",
               }}
             >
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <span style={{ color: "#fff", fontSize: 15 }}>
+                <span style={{ color: "var(--text-strong)", fontSize: 15 }}>
                   {p.price} {summary.currency}
                 </span>
                 {p.label && (
@@ -128,7 +128,7 @@ export default async function PricingRunPage({
                       fontSize: 10,
                       letterSpacing: "0.2em",
                       textTransform: "uppercase",
-                      color: "rgba(255,255,255,0.5)",
+                      color: "rgba(var(--fg),0.5)",
                     }}
                   >
                     {p.label}
@@ -138,7 +138,7 @@ export default async function PricingRunPage({
               <div
                 style={{
                   height: 12,
-                  background: "rgba(255,255,255,0.06)",
+                  background: "rgba(var(--fg),0.06)",
                   borderRadius: 999,
                   overflow: "hidden",
                 }}
@@ -154,7 +154,7 @@ export default async function PricingRunPage({
               <span
                 className="mono"
                 style={{
-                  color: "rgba(255,255,255,0.85)",
+                  color: "rgba(var(--fg),0.85)",
                   fontSize: 13,
                   textAlign: "right",
                 }}
@@ -173,9 +173,9 @@ export default async function PricingRunPage({
               key={p.priceId}
               style={{
                 padding: "20px 24px",
-                border: "1px solid rgba(255,255,255,0.08)",
+                border: "1px solid rgba(var(--fg),0.08)",
                 borderRadius: "var(--radius-md)",
-                background: "rgba(255,255,255,0.02)",
+                background: "rgba(var(--fg),0.02)",
               }}
             >
               <summary
@@ -185,7 +185,7 @@ export default async function PricingRunPage({
                   letterSpacing: "0.2em",
                   textTransform: "uppercase",
                   cursor: "pointer",
-                  color: "rgba(255,255,255,0.85)",
+                  color: "rgba(var(--fg),0.85)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -228,7 +228,7 @@ export default async function PricingRunPage({
                         style={{
                           padding: "16px 18px",
                           borderRadius: "var(--radius-sm)",
-                          background: "rgba(255,255,255,0.03)",
+                          background: "rgba(var(--fg),0.03)",
                           display: "flex",
                           flexDirection: "column",
                           gap: 10,
@@ -247,10 +247,10 @@ export default async function PricingRunPage({
                             href={`/profiles/${r.profileId}`}
                             title={profile ? `Ver perfil de ${profile.name}` : undefined}
                             style={{
-                              color: "#fff",
+                              color: "var(--text-strong)",
                               fontSize: 14,
                               textDecoration: "none",
-                              borderBottom: "1px dotted rgba(255,255,255,0.25)",
+                              borderBottom: "1px dotted rgba(var(--fg),0.25)",
                             }}
                           >
                             {profile?.name ?? r.profileId.slice(0, 8)}
@@ -271,7 +271,7 @@ export default async function PricingRunPage({
                         </div>
                         <p
                           style={{
-                            color: "rgba(255,255,255,0.75)",
+                            color: "rgba(var(--fg),0.75)",
                             fontSize: 14,
                             margin: 0,
                             lineHeight: 1.55,
@@ -306,7 +306,7 @@ function Section({
           fontSize: 11,
           letterSpacing: "0.28em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
           margin: 0,
         }}
       >
@@ -327,16 +327,16 @@ function Chip({ label, value }: { label: string; value: string }) {
         gap: 6,
         padding: "4px 10px",
         borderRadius: 999,
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: "rgba(var(--fg),0.04)",
+        border: "1px solid rgba(var(--fg),0.08)",
         fontSize: 10,
         letterSpacing: "0.18em",
         textTransform: "uppercase",
-        color: "rgba(255,255,255,0.55)",
+        color: "rgba(var(--fg),0.55)",
       }}
     >
       <span>{label}</span>
-      <span style={{ color: "#fff", fontWeight: 700 }}>{value}</span>
+      <span style={{ color: "var(--text-strong)", fontWeight: 700 }}>{value}</span>
     </span>
   );
 }

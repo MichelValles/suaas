@@ -29,6 +29,10 @@ export const metadata: Metadata = {
   },
 };
 
+/* Aplica el tema guardado antes del primer paint. El oscuro es el de
+   serie: sólo se marca el atributo cuando la preferencia es "light". */
+const THEME_INIT = `(function(){try{if(localStorage.getItem("suaas-theme")==="light"){document.documentElement.dataset.theme="light"}}catch(e){}})()`;
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -37,8 +41,10 @@ export default function RootLayout({
       lang="es"
       className={`${nunito.variable} ${dmSerif.variable}`}
       style={{ height: "100%" }}
+      suppressHydrationWarning
     >
       <body style={{ minHeight: "100%" }}>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
         <ConsoleBanner />
         {children}
       </body>

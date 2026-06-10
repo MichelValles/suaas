@@ -72,9 +72,9 @@ export default async function FunnelDetailPage({
               gridTemplateColumns: "minmax(0, 420px) minmax(0, 1fr)",
               gap: 28,
               padding: "26px 28px",
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(var(--fg),0.08)",
               borderRadius: "var(--radius-md)",
-              background: "rgba(255,255,255,0.02)",
+              background: "rgba(var(--fg),0.02)",
               alignItems: "start",
             }}
           >
@@ -87,7 +87,7 @@ export default async function FunnelDetailPage({
                   fontSize: 10,
                   letterSpacing: "0.24em",
                   textTransform: "uppercase",
-                  color: "var(--accent-500)",
+                  color: "var(--accent-text)",
                 }}
               >
                 Paso {idx + 1} de {funnel.steps.length} · {step.payload.kind}
@@ -98,7 +98,7 @@ export default async function FunnelDetailPage({
                   fontStyle: "italic",
                   fontSize: 28,
                   lineHeight: 1.15,
-                  color: "#fff",
+                  color: "var(--text-strong)",
                   margin: 0,
                 }}
               >
@@ -112,7 +112,7 @@ export default async function FunnelDetailPage({
                     target="_blank"
                     rel="noopener noreferrer"
                     style={{
-                      color: "rgba(255,255,255,0.7)",
+                      color: "rgba(var(--fg),0.7)",
                       fontSize: 13,
                       wordBreak: "break-all",
                     }}
@@ -162,8 +162,8 @@ function Hero({ src, alt }: { src: string; alt: string }) {
           aspectRatio: "16 / 10",
           objectFit: "cover",
           borderRadius: "var(--radius-sm)",
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "rgba(var(--fg),0.04)",
+          border: "1px solid rgba(var(--fg),0.08)",
         }}
       />
     );
@@ -181,8 +181,8 @@ function Hero({ src, alt }: { src: string; alt: string }) {
         aspectRatio: "16 / 10",
         objectFit: "cover",
         borderRadius: "var(--radius-sm)",
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: "rgba(var(--fg),0.04)",
+        border: "1px solid rgba(var(--fg),0.08)",
       }}
     />
   );
@@ -203,14 +203,14 @@ function Block({
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.5)",
+          color: "rgba(var(--fg),0.5)",
         }}
       >
         {label}
       </span>
       <div
         style={{
-          color: "rgba(255,255,255,0.85)",
+          color: "rgba(var(--fg),0.85)",
           fontSize: 14,
           lineHeight: 1.6,
         }}

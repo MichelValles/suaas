@@ -179,14 +179,14 @@ function Toolbar({
             display: "inline-flex",
             alignItems: "center",
             gap: 12,
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.12)",
+            background: "rgba(var(--fg),0.03)",
+            border: "1px solid rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-pill)",
             padding: "14px 22px",
             minWidth: 380,
           }}
         >
-          <Search size={16} color="rgba(255,255,255,0.5)" />
+          <Search size={16} color="rgba(var(--fg),0.5)" />
           <input
             type="search"
             value={query}
@@ -197,11 +197,10 @@ function Toolbar({
               background: "transparent",
               border: 0,
               outline: "none",
-              color: "#fff",
+              color: "var(--text-strong)",
               fontSize: 14,
               fontFamily: "var(--font-sans)",
               minWidth: 220,
-              colorScheme: "dark",
             }}
           />
         </label>
@@ -211,7 +210,7 @@ function Toolbar({
             fontSize: 11,
             letterSpacing: "0.22em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.5)",
+            color: "rgba(var(--fg),0.5)",
           }}
         >
           {visible}/{total}
@@ -224,14 +223,14 @@ function Toolbar({
           display: "inline-flex",
           alignItems: "center",
           gap: 14,
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.12)",
+          background: "rgba(var(--fg),0.03)",
+          border: "1px solid rgba(var(--fg),0.12)",
           borderRadius: "var(--radius-pill)",
           padding: "12px 22px",
           fontSize: 11,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         Orden
@@ -242,12 +241,11 @@ function Toolbar({
             background: "transparent",
             border: 0,
             outline: "none",
-            color: "#fff",
+            color: "var(--text-strong)",
             fontFamily: "var(--font-sans)",
             fontSize: 13,
             letterSpacing: "0.06em",
             textTransform: "none",
-            colorScheme: "dark",
             cursor: "pointer",
           }}
         >
@@ -255,7 +253,7 @@ function Toolbar({
             <option
               key={o.key}
               value={o.key}
-              style={{ background: "var(--ink-900)", color: "#fff" }}
+              style={{ background: "var(--surface-app)", color: "var(--text-strong)" }}
             >
               {o.label}
             </option>
@@ -271,9 +269,9 @@ function EmptyState({ children }: { children: React.ReactNode }) {
     <div
       style={{
         padding: "36px 32px",
-        border: "1px dashed rgba(255,255,255,0.12)",
+        border: "1px dashed rgba(var(--fg),0.12)",
         borderRadius: "var(--radius-md)",
-        color: "rgba(255,255,255,0.55)",
+        color: "rgba(var(--fg),0.55)",
         fontSize: 14,
         lineHeight: 1.55,
       }}

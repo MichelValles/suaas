@@ -4,14 +4,14 @@ import { ConceptosPendientes } from "./conceptos-pendientes";
 
 const PLANES: Array<{
   label: string;
-  color: string;
+  index: string;
   function: string;
   modules: Array<{ href: string; label: string; role: string; detail: string }>;
   pendingDetail?: string;
 }> = [
   {
     label: "Construction",
-    color: "#60a5fa",
+    index: "01",
     function:
       "Crea el contexto gravitacional: define por qué la marca empieza a existir en la órbita del usuario. Aquí se genera la primera atracción mediante hipersegmentación por intención.",
     modules: [
@@ -47,7 +47,7 @@ const PLANES: Array<{
   },
   {
     label: "Acceleration",
-    color: "#fb923c",
+    index: "02",
     function:
       "Modula el momentum: refuerza, redirige o debilita la intención en función de todas las interacciones que recibe el usuario. Incluye performance guiado por intención y visibilidad en motores de respuesta IA.",
     modules: [
@@ -69,7 +69,7 @@ const PLANES: Array<{
   },
   {
     label: "Value",
-    color: "#a78bfa",
+    index: "03",
     function:
       "Estabiliza la órbita: convierte una decisión puntual en una relación duradera. El alta es el principio, no el final. Aquí ocurre la propiedad psicológica: el aha moment en que el usuario integra el producto en su identidad.",
     modules: [],
@@ -84,21 +84,21 @@ const INTENT_DIMENSIONS = [
     values: "0 → 1",
     description:
       "Cuánta motivación hay para actuar ahora. 0 = sin intención de avanzar. 1 = acción inminente.",
-    color: "var(--accent-500)",
+    color: "var(--accent-text)",
   },
   {
     label: "Dirección",
     values: "approaching · stable · drifting",
     description:
       "Hacia dónde se mueve la intención: se acerca a la solución, está consciente pero sin moverse, o se aleja y lo pospone.",
-    color: "#60a5fa",
+    color: "var(--accent-text)",
   },
   {
     label: "Velocidad",
     values: "accelerating · steady · decelerating",
     description:
       "Cómo cambia el momentum en el tiempo: la urgencia crece, se mantiene estable o se disipa.",
-    color: "#fb923c",
+    color: "var(--accent-text)",
   },
 ];
 
@@ -115,7 +115,7 @@ export default function GravityPage() {
 
       <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <SectionLabel>Intent Momentum</SectionLabel>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.65)", lineHeight: 1.65, margin: 0 }}>
+        <p style={{ fontSize: 14, color: "rgba(var(--fg),0.65)", lineHeight: 1.65, margin: 0 }}>
           La tesis central del modelo: lo que está en el centro no es el usuario, sino su intención en
           cada momento. La intención no es binaria: tiene tres dimensiones que forman el vector
           Intent Momentum.
@@ -131,14 +131,13 @@ export default function GravityPage() {
             <div
               key={d.label}
               style={{
-                border: "1px solid rgba(255,255,255,0.08)",
-                borderTop: `3px solid ${d.color}`,
+                border: "1px solid rgba(var(--fg),0.08)",
                 borderRadius: "var(--radius-md)",
                 padding: "20px 22px",
                 display: "flex",
                 flexDirection: "column",
                 gap: 10,
-                background: "rgba(255,255,255,0.02)",
+                background: "rgba(var(--fg),0.02)",
               }}
             >
               <span
@@ -147,7 +146,7 @@ export default function GravityPage() {
                   fontSize: 9,
                   letterSpacing: "0.22em",
                   textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.45)",
+                  color: "rgba(var(--fg),0.45)",
                 }}
               >
                 {d.label}
@@ -161,7 +160,7 @@ export default function GravityPage() {
               <p
                 style={{
                   fontSize: 13,
-                  color: "rgba(255,255,255,0.6)",
+                  color: "rgba(var(--fg),0.6)",
                   lineHeight: 1.55,
                   margin: 0,
                 }}
@@ -180,21 +179,22 @@ export default function GravityPage() {
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div
+              <span
+                className="mono"
                 style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: plane.color,
-                  flexShrink: 0,
+                  fontSize: 11,
+                  letterSpacing: "0.08em",
+                  color: "var(--accent-text)",
                 }}
-              />
+              >
+                {plane.index}
+              </span>
               <SectionLabel>{plane.label} Plane</SectionLabel>
             </div>
             <p
               style={{
                 fontSize: 14,
-                color: "rgba(255,255,255,0.65)",
+                color: "rgba(var(--fg),0.65)",
                 lineHeight: 1.65,
                 margin: 0,
               }}
@@ -209,7 +209,7 @@ export default function GravityPage() {
                 <div
                   key={mod.href}
                   style={{
-                    borderLeft: `3px solid ${plane.color}55`,
+                    borderLeft: "3px solid rgba(var(--fg), 0.14)",
                     paddingLeft: 20,
                     display: "flex",
                     flexDirection: "column",
@@ -230,7 +230,7 @@ export default function GravityPage() {
                         fontFamily: "var(--font-display)",
                         fontStyle: "italic",
                         fontSize: 20,
-                        color: "#fff",
+                        color: "var(--text-strong)",
                         textDecoration: "none",
                         lineHeight: 1.1,
                       }}
@@ -243,8 +243,7 @@ export default function GravityPage() {
                         fontSize: 9,
                         letterSpacing: "0.18em",
                         textTransform: "uppercase",
-                        color: plane.color,
-                        opacity: 0.8,
+                        color: "var(--accent-text)",
                       }}
                     >
                       {mod.role}
@@ -253,7 +252,7 @@ export default function GravityPage() {
                   <p
                     style={{
                       fontSize: 13,
-                      color: "rgba(255,255,255,0.6)",
+                      color: "rgba(var(--fg),0.6)",
                       lineHeight: 1.6,
                       margin: 0,
                     }}
@@ -266,7 +265,7 @@ export default function GravityPage() {
           ) : (
             <div
               style={{
-                borderLeft: `3px solid ${plane.color}33`,
+                borderLeft: "3px solid rgba(var(--fg), 0.08)",
                 paddingLeft: 20,
                 display: "flex",
                 flexDirection: "column",
@@ -277,7 +276,7 @@ export default function GravityPage() {
                 className="mono"
                 style={{
                   fontSize: 11,
-                  color: "rgba(255,255,255,0.25)",
+                  color: "rgba(var(--fg),0.25)",
                   fontStyle: "italic",
                   letterSpacing: "0.1em",
                 }}
@@ -287,7 +286,7 @@ export default function GravityPage() {
               <p
                 style={{
                   fontSize: 13,
-                  color: "rgba(255,255,255,0.38)",
+                  color: "rgba(var(--fg),0.38)",
                   lineHeight: 1.6,
                   margin: 0,
                 }}
@@ -312,7 +311,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
         fontSize: 11,
         letterSpacing: "0.28em",
         textTransform: "uppercase",
-        color: "var(--accent-500)",
+        color: "var(--accent-text)",
         margin: 0,
       }}
     >

@@ -47,7 +47,7 @@ function Notice({ children }: { children: React.ReactNode }) {
         border: "1px solid var(--warning-500)",
         borderRadius: "var(--radius-md)",
         background: "rgba(180,83,9,0.08)",
-        color: "rgba(255,255,255,0.85)",
+        color: "rgba(var(--fg),0.85)",
         fontSize: 14,
         lineHeight: 1.5,
       }}

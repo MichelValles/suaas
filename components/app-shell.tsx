@@ -41,7 +41,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             display: "flex",
             gap: 16,
             alignItems: "center",
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(var(--fg),0.4)",
             fontSize: 10,
             letterSpacing: "0.22em",
             textTransform: "uppercase",
@@ -90,7 +90,7 @@ export function PageHeading({
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           {eyebrow}
@@ -108,7 +108,7 @@ export function PageHeading({
         <h1
           className="display"
           style={{
-            color: "#fff",
+            color: "var(--text-strong)",
             fontSize: "clamp(32px, 4vw, 56px)",
             lineHeight: 1.05,
             flex: "1 1 320px",
@@ -126,11 +126,11 @@ export function PageHeading({
             style={{
               marginTop: 8,
               padding: "26px 30px",
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(var(--fg),0.08)",
               borderLeft: "3px solid var(--accent-500)",
               borderRadius: "var(--radius-md)",
-              background: "rgba(255,255,255,0.02)",
-              color: "rgba(255,255,255,0.85)",
+              background: "rgba(var(--fg),0.02)",
+              color: "rgba(var(--fg),0.85)",
               fontSize: "clamp(15px, 1.15vw, 17px)",
               lineHeight: 1.6,
             }}
@@ -138,7 +138,7 @@ export function PageHeading({
             {description}
           </div>
         ) : (
-          <p className="body-lg" style={{ color: "rgba(255,255,255,0.7)" }}>
+          <p className="body-lg" style={{ color: "rgba(var(--fg),0.7)" }}>
             {description}
           </p>
         ))}

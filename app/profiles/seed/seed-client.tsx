@@ -141,9 +141,9 @@ export function SeedClient({
           gap: 16,
           alignItems: "end",
           padding: 20,
-          border: "1px solid rgba(255,255,255,0.08)",
+          border: "1px solid rgba(var(--fg),0.08)",
           borderRadius: "var(--radius-md)",
-          background: "rgba(255,255,255,0.02)",
+          background: "rgba(var(--fg),0.02)",
         }}
       >
         <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -153,7 +153,7 @@ export function SeedClient({
               fontSize: 10,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(var(--fg),0.55)",
             }}
           >
             Cuántos perfiles generar (1..{maxN})
@@ -170,15 +170,14 @@ export function SeedClient({
             }}
             disabled={running}
             style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(var(--fg),0.03)",
+              border: "1px solid rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-sm)",
               padding: "10px 12px",
-              color: "#fff",
+              color: "var(--text-strong)",
               fontSize: 14,
               outline: "none",
               fontFamily: "var(--font-sans)",
-              colorScheme: "dark",
               maxWidth: 160,
             }}
             inputMode="numeric"
@@ -210,7 +209,7 @@ export function SeedClient({
                 fontSize: 11,
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.55)",
+                color: "rgba(var(--fg),0.55)",
               }}
             >
               {progress.done}/{progress.total} · {okCount} ok · {errCount} err
@@ -230,7 +229,7 @@ export function SeedClient({
           <div
             style={{
               height: 10,
-              background: "rgba(255,255,255,0.06)",
+              background: "rgba(var(--fg),0.06)",
               borderRadius: 999,
               overflow: "hidden",
             }}
@@ -254,7 +253,7 @@ export function SeedClient({
             padding: 16,
             border: "1px solid var(--error-500)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.9)",
+            color: "rgba(var(--fg),0.9)",
             background: "rgba(180,35,24,0.12)",
             fontSize: 14,
           }}
@@ -269,9 +268,9 @@ export function SeedClient({
             listStyle: "none",
             padding: 16,
             margin: 0,
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid rgba(var(--fg),0.08)",
             borderRadius: "var(--radius-md)",
-            background: "rgba(255,255,255,0.02)",
+            background: "rgba(var(--fg),0.02)",
             display: "flex",
             flexDirection: "column",
             gap: 6,
@@ -280,7 +279,7 @@ export function SeedClient({
           }}
         >
           {logs.map((l, i) => (
-            <li key={i} style={{ fontSize: 13, color: "rgba(255,255,255,0.85)" }}>
+            <li key={i} style={{ fontSize: 13, color: "rgba(var(--fg),0.85)" }}>
               <LogLine log={l} />
             </li>
           ))}
@@ -301,7 +300,7 @@ function LogLine({ log }: { log: Log }) {
           fontSize: 11,
           letterSpacing: "0.18em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         · {log.text}
@@ -319,13 +318,13 @@ function LogLine({ log }: { log: Log }) {
               fontSize: 10,
               letterSpacing: "0.18em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.45)",
+              color: "rgba(var(--fg),0.45)",
             }}
           >
             {log.index}/{log.total}
           </span>{" "}
-          <strong style={{ color: "#fff" }}>{log.name}</strong>{" "}
-          <span style={{ color: "rgba(255,255,255,0.55)" }}>· {log.seed}</span>
+          <strong style={{ color: "var(--text-strong)" }}>{log.name}</strong>{" "}
+          <span style={{ color: "rgba(var(--fg),0.55)" }}>· {log.seed}</span>
         </span>
       </span>
     );
@@ -340,13 +339,13 @@ function LogLine({ log }: { log: Log }) {
             fontSize: 10,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.45)",
+            color: "rgba(var(--fg),0.45)",
           }}
         >
           {log.index}/{log.total}
         </span>{" "}
         <span style={{ color: "var(--error-500)" }}>{log.message}</span>{" "}
-        <span style={{ color: "rgba(255,255,255,0.55)" }}>· {log.seed}</span>
+        <span style={{ color: "rgba(var(--fg),0.55)" }}>· {log.seed}</span>
       </span>
     </span>
   );

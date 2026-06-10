@@ -5,6 +5,7 @@ export default function OnboardLayout({
 }) {
   return (
     <div
+      className="theme-dark-fixed"
       style={{
         // `svh` descuenta las barras del navegador en móvil. Sin esto, en
         // Safari iOS y Chrome Android `100vh` mide más que el viewport

@@ -44,9 +44,9 @@ export function SeedGate() {
       style={{
         maxWidth: 460,
         padding: 28,
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         display: "flex",
         flexDirection: "column",
         gap: 18,
@@ -60,13 +60,13 @@ export function SeedGate() {
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           Acceso restringido
         </span>
       </div>
-      <p style={{ margin: 0, color: "rgba(255,255,255,0.75)", lineHeight: 1.55, fontSize: 14 }}>
+      <p style={{ margin: 0, color: "rgba(var(--fg),0.75)", lineHeight: 1.55, fontSize: 14 }}>
         Sembrar ejemplos crea entidades reales y, si lanzas runs, consume tokens del AI Gateway.
         Introduce la contraseña para continuar.
       </p>
@@ -78,7 +78,7 @@ export function SeedGate() {
               fontSize: 10,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(var(--fg),0.55)",
             }}
           >
             Contraseña
@@ -91,15 +91,14 @@ export function SeedGate() {
             onChange={(e) => setPassword(e.currentTarget.value)}
             disabled={pending}
             style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(var(--fg),0.03)",
+              border: "1px solid rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-sm)",
               padding: "10px 12px",
-              color: "#fff",
+              color: "var(--text-strong)",
               fontSize: 14,
               outline: "none",
               fontFamily: "var(--font-sans)",
-              colorScheme: "dark",
             }}
           />
         </label>

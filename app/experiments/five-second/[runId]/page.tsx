@@ -109,7 +109,7 @@ export default async function FiveSecondRunPage({
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             margin: 0,
           }}
         >
@@ -122,9 +122,9 @@ export default async function FiveSecondRunPage({
             gap: 16,
           }}
         >
-          <BehaviorCard label="Óptima" count={summary.behavior_counts.optima} total={summary.n} color="#4ade80" hint="Entendió el mensaje y seguiría hacia la acción." />
-          <BehaviorCard label="Repesca" count={summary.behavior_counts.repesca} total={summary.n} color="#facc15" hint="Dudas, pero la intención sigue viva: recuperable con el mensaje correcto." />
-          <BehaviorCard label="Fuga" count={summary.behavior_counts.fuga} total={summary.n} color="#f87171" hint="Carga cognitiva o promesa poco clara: abandonaría." />
+          <BehaviorCard label="Óptima" count={summary.behavior_counts.optima} total={summary.n} color="var(--success-text)" hint="Entendió el mensaje y seguiría hacia la acción." />
+          <BehaviorCard label="Repesca" count={summary.behavior_counts.repesca} total={summary.n} color="var(--warning-text)" hint="Dudas, pero la intención sigue viva: recuperable con el mensaje correcto." />
+          <BehaviorCard label="Fuga" count={summary.behavior_counts.fuga} total={summary.n} color="var(--error-text)" hint="Carga cognitiva o promesa poco clara: abandonaría." />
         </div>
       </section>
 
@@ -135,7 +135,7 @@ export default async function FiveSecondRunPage({
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             margin: 0,
           }}
         >
@@ -145,9 +145,9 @@ export default async function FiveSecondRunPage({
           <div
             style={{
               padding: "28px 24px",
-              border: "1px dashed rgba(255,255,255,0.12)",
+              border: "1px dashed rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-md)",
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(var(--fg),0.55)",
               fontSize: 14,
               lineHeight: 1.55,
             }}
@@ -209,8 +209,8 @@ function Hero({ src, alt }: { src: string; alt: string }) {
           aspectRatio: "16 / 10",
           objectFit: "cover",
           borderRadius: "var(--radius-md)",
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "rgba(var(--fg),0.04)",
+          border: "1px solid rgba(var(--fg),0.08)",
         }}
       />
     );
@@ -228,8 +228,8 @@ function Hero({ src, alt }: { src: string; alt: string }) {
         aspectRatio: "16 / 10",
         objectFit: "cover",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: "rgba(var(--fg),0.04)",
+        border: "1px solid rgba(var(--fg),0.08)",
       }}
     />
   );
@@ -247,7 +247,7 @@ function SummaryCard({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 20,
         display: "flex",
@@ -261,19 +261,19 @@ function SummaryCard({
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {label}
       </span>
       <span
         className="display"
-        style={{ fontSize: 36, lineHeight: 1, color: "#fff" }}
+        style={{ fontSize: 36, lineHeight: 1, color: "var(--text-strong)" }}
       >
         {value === null ? "·" : `${Math.round(value * 100)}%`}
       </span>
       {hint && (
-        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>
+        <span style={{ fontSize: 12, color: "rgba(var(--fg),0.5)", lineHeight: 1.4 }}>
           {hint}
         </span>
       )}
@@ -285,7 +285,7 @@ function NumberCard({ label, value }: { label: string; value: number }) {
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 20,
         display: "flex",
@@ -299,14 +299,14 @@ function NumberCard({ label, value }: { label: string; value: number }) {
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {label}
       </span>
       <span
         className="display"
-        style={{ fontSize: 36, lineHeight: 1, color: "#fff" }}
+        style={{ fontSize: 36, lineHeight: 1, color: "var(--text-strong)" }}
       >
         {value}
       </span>
@@ -355,11 +355,11 @@ function BehaviorCard({
         <span className="display" style={{ fontSize: 36, lineHeight: 1, color }}>
           {count}
         </span>
-        <span style={{ fontSize: 13, color: "rgba(255,255,255,0.45)" }}>
+        <span style={{ fontSize: 13, color: "rgba(var(--fg),0.45)" }}>
           {pct}%
         </span>
       </div>
-      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>
+      <span style={{ fontSize: 12, color: "rgba(var(--fg),0.45)", lineHeight: 1.4 }}>
         {hint}
       </span>
     </div>

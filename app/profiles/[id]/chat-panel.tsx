@@ -174,7 +174,7 @@ export function ChatPanel({ profileId }: { profileId: string }) {
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             margin: 0,
           }}
         >
@@ -186,7 +186,7 @@ export function ChatPanel({ profileId }: { profileId: string }) {
             style={{
               fontSize: 10,
               letterSpacing: "0.22em",
-              color: "rgba(255,255,255,0.45)",
+              color: "rgba(var(--fg),0.45)",
             }}
           >
             run {runId.slice(0, 8)}
@@ -197,9 +197,9 @@ export function ChatPanel({ profileId }: { profileId: string }) {
       <div
         ref={scrollRef}
         style={{
-          border: "1px solid rgba(255,255,255,0.08)",
+          border: "1px solid rgba(var(--fg),0.08)",
           borderRadius: "var(--radius-md)",
-          background: "rgba(255,255,255,0.02)",
+          background: "rgba(var(--fg),0.02)",
           padding: 20,
           minHeight: isEmpty ? 180 : 320,
           maxHeight: 540,
@@ -214,7 +214,7 @@ export function ChatPanel({ profileId }: { profileId: string }) {
         {messages.length === 0 && (
           <p
             style={{
-              color: "rgba(255,255,255,0.5)",
+              color: "rgba(var(--fg),0.5)",
               fontSize: 14,
               lineHeight: 1.55,
               margin: 0,
@@ -247,7 +247,7 @@ export function ChatPanel({ profileId }: { profileId: string }) {
             padding: 12,
             border: "1px solid var(--error-500)",
             borderRadius: "var(--radius-sm)",
-            color: "rgba(255,255,255,0.9)",
+            color: "rgba(var(--fg),0.9)",
             background: "rgba(180,35,24,0.12)",
             fontSize: 13,
           }}
@@ -268,11 +268,11 @@ export function ChatPanel({ profileId }: { profileId: string }) {
           disabled={busy}
           style={{
             flex: 1,
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.12)",
+            background: "rgba(var(--fg),0.04)",
+            border: "1px solid rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-sm)",
             padding: "12px 14px",
-            color: "#fff",
+            color: "var(--text-strong)",
             fontSize: 14,
             outline: "none",
             fontFamily: "var(--font-sans)",
@@ -306,9 +306,9 @@ function TalkerMessage({
         <details
           style={{
             width: "100%",
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid rgba(var(--fg),0.08)",
             borderRadius: "var(--radius-sm)",
-            background: "rgba(255,255,255,0.02)",
+            background: "rgba(var(--fg),0.02)",
             padding: "8px 12px",
           }}
         >
@@ -319,7 +319,7 @@ function TalkerMessage({
               fontSize: 10,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(var(--fg),0.55)",
               listStyle: "none",
               display: "flex",
               gap: 12,
@@ -327,7 +327,7 @@ function TalkerMessage({
             }}
           >
             <span>Razonamiento</span>
-            <span style={{ color: "var(--accent-500)" }}>
+            <span style={{ color: "var(--accent-text)" }}>
               tono {msg.plan.tone}
             </span>
             <span>esfuerzo {Math.round(msg.plan.effort * 100)}%</span>
@@ -345,7 +345,7 @@ function TalkerMessage({
               gridTemplateColumns: "auto 1fr",
               gap: "4px 16px",
               fontSize: 12,
-              color: "rgba(255,255,255,0.85)",
+              color: "rgba(var(--fg),0.85)",
               lineHeight: 1.5,
             }}
           >
@@ -379,9 +379,9 @@ const DIRECTION_LABEL: Record<string, string> = {
   drifting: "alejándose",
 };
 const DIRECTION_COLOR: Record<string, string> = {
-  approaching: "#4ade80",
-  stable: "rgba(255,255,255,0.6)",
-  drifting: "#f87171",
+  approaching: "var(--success-text)",
+  stable: "rgba(var(--fg),0.6)",
+  drifting: "var(--error-text)",
 };
 const VELOCITY_LABEL: Record<string, string> = {
   accelerating: "acelerando",
@@ -390,7 +390,7 @@ const VELOCITY_LABEL: Record<string, string> = {
 };
 
 function MomentumIndicator({ momentum }: { momentum: Momentum }) {
-  const dirColor = DIRECTION_COLOR[momentum.direction] ?? "rgba(255,255,255,0.6)";
+  const dirColor = DIRECTION_COLOR[momentum.direction] ?? "rgba(var(--fg),0.6)";
   return (
     <div
       style={{
@@ -399,12 +399,12 @@ function MomentumIndicator({ momentum }: { momentum: Momentum }) {
         alignItems: "center",
         gap: 12,
         padding: "6px 10px",
-        background: "rgba(255,255,255,0.03)",
+        background: "rgba(var(--fg),0.03)",
         borderRadius: "var(--radius-sm)",
-        border: "1px solid rgba(255,255,255,0.06)",
+        border: "1px solid rgba(var(--fg),0.06)",
       }}
     >
-      <span className="mono" style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>
+      <span className="mono" style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(var(--fg),0.4)" }}>
         momentum
       </span>
       <div
@@ -412,7 +412,7 @@ function MomentumIndicator({ momentum }: { momentum: Momentum }) {
         style={{
           width: 48,
           height: 4,
-          background: "rgba(255,255,255,0.1)",
+          background: "rgba(var(--fg),0.1)",
           borderRadius: 2,
           overflow: "hidden",
         }}
@@ -430,7 +430,7 @@ function MomentumIndicator({ momentum }: { momentum: Momentum }) {
       <span style={{ fontSize: 11, color: dirColor }}>
         {DIRECTION_LABEL[momentum.direction] ?? momentum.direction}
       </span>
-      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)" }}>
+      <span style={{ fontSize: 11, color: "rgba(var(--fg),0.45)" }}>
         {VELOCITY_LABEL[momentum.velocity] ?? momentum.velocity}
       </span>
     </div>
@@ -443,7 +443,7 @@ function Term({ label, value }: { label: string; value: string }) {
       <dt
         className="mono"
         style={{
-          color: "rgba(255,255,255,0.45)",
+          color: "rgba(var(--fg),0.45)",
           fontSize: 10,
           letterSpacing: "0.18em",
           textTransform: "uppercase",
@@ -466,8 +466,8 @@ function ReasoningHint() {
         maxWidth: "82%",
         padding: "10px 14px",
         borderRadius: "var(--radius-md)",
-        border: "1px dashed rgba(255,255,255,0.15)",
-        color: "rgba(255,255,255,0.55)",
+        border: "1px dashed rgba(var(--fg),0.15)",
+        color: "rgba(var(--fg),0.55)",
         fontSize: 12,
         letterSpacing: "0.04em",
       }}
@@ -493,8 +493,8 @@ function Bubble({
         maxWidth: isHuman ? "82%" : "100%",
         padding: "12px 16px",
         borderRadius: "var(--radius-md)",
-        background: isHuman ? "var(--accent-500)" : "rgba(255,255,255,0.06)",
-        color: isHuman ? "var(--ink-900)" : "rgba(255,255,255,0.95)",
+        background: isHuman ? "var(--accent-500)" : "rgba(var(--fg),0.06)",
+        color: isHuman ? "var(--ink-900)" : "rgba(var(--fg),0.95)",
         fontSize: 14,
         lineHeight: 1.55,
         whiteSpace: "pre-wrap",

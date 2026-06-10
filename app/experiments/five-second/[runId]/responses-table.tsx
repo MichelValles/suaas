@@ -21,9 +21,9 @@ const BEHAVIOR_LABEL: Record<string, string> = {
   repesca: "Repesca",
 };
 const BEHAVIOR_COLOR: Record<string, string> = {
-  optima: "#4ade80",
-  repesca: "#facc15",
-  fuga: "#f87171",
+  optima: "var(--success-text)",
+  repesca: "var(--warning-text)",
+  fuga: "var(--error-text)",
 };
 
 type SortKey = "profile" | "clarity" | "comprehension";
@@ -59,7 +59,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
         style={{
           background: "transparent",
           border: "none",
-          color: active ? "var(--accent-500)" : "rgba(255,255,255,0.55)",
+          color: active ? "var(--accent-500)" : "rgba(var(--fg),0.55)",
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
@@ -98,9 +98,9 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
       <div
         style={{
           padding: 16,
-          border: "1px dashed rgba(255,255,255,0.12)",
+          border: "1px dashed rgba(var(--fg),0.12)",
           borderRadius: "var(--radius-md)",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
           fontSize: 13,
         }}
       >
@@ -117,7 +117,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
           fontSize: 11,
           letterSpacing: "0.28em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
           margin: 0,
         }}
       >
@@ -129,7 +129,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
             width: "100%",
             borderCollapse: "collapse",
             fontSize: 13,
-            color: "rgba(255,255,255,0.85)",
+            color: "rgba(var(--fg),0.85)",
           }}
         >
           <thead>
@@ -148,7 +148,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
               return (
                 <tr
                   key={row.profileId}
-                  style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+                  style={{ borderTop: "1px solid rgba(var(--fg),0.06)" }}
                 >
                   <Td>
                     <div
@@ -166,9 +166,9 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                           fontFamily: "var(--font-display)",
                           fontStyle: "italic",
                           fontSize: 16,
-                          color: "#fff",
+                          color: "var(--text-strong)",
                           textDecoration: "none",
-                          borderBottom: "1px dotted rgba(255,255,255,0.25)",
+                          borderBottom: "1px dotted rgba(var(--fg),0.25)",
                         }}
                       >
                         {row.profileName}
@@ -179,7 +179,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                           fontSize: 10,
                           letterSpacing: "0.18em",
                           textTransform: "uppercase",
-                          color: "rgba(255,255,255,0.5)",
+                          color: "rgba(var(--fg),0.5)",
                         }}
                       >
                         {row.profileDemo}
@@ -210,14 +210,14 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                         {BEHAVIOR_LABEL[row.behavior_class]}
                       </span>
                     ) : (
-                      <span style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>·</span>
+                      <span style={{ fontSize: 12, color: "rgba(var(--fg),0.3)" }}>·</span>
                     )}
                   </Td>
                   <Td>
                     <span
                       style={{
                         fontSize: 12,
-                        color: "rgba(255,255,255,0.6)",
+                        color: "rgba(var(--fg),0.6)",
                       }}
                     >
                       {row.barriers_detected.length === 0
@@ -232,9 +232,9 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                       className="mono"
                       style={{
                         background: "transparent",
-                        border: "1px solid rgba(255,255,255,0.12)",
+                        border: "1px solid rgba(var(--fg),0.12)",
                         borderRadius: "var(--radius-pill)",
-                        color: "rgba(255,255,255,0.75)",
+                        color: "rgba(var(--fg),0.75)",
                         padding: "4px 12px",
                         fontSize: 10,
                         letterSpacing: "0.18em",
@@ -251,7 +251,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                       colSpan={6}
                       style={{
                         padding: 0,
-                        background: "rgba(255,255,255,0.02)",
+                        background: "rgba(var(--fg),0.02)",
                       }}
                     >
                       <div
@@ -307,7 +307,7 @@ function Detail({ label, value }: { label: string; value: string }) {
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.5)",
+          color: "rgba(var(--fg),0.5)",
         }}
       >
         {label}
@@ -316,7 +316,7 @@ function Detail({ label, value }: { label: string; value: string }) {
         style={{
           fontSize: 14,
           lineHeight: 1.5,
-          color: "rgba(255,255,255,0.9)",
+          color: "rgba(var(--fg),0.9)",
           margin: 0,
         }}
       >

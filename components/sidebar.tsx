@@ -23,6 +23,7 @@ import {
   Zap,
   Clock,
 } from "lucide-react";
+import { ThemeSwitch } from "@/components/theme-switch";
 
 const CONSTRUCTION_ITEMS = [
   { href: "/profiles", label: "Perfiles", icon: Users, exact: false },
@@ -94,7 +95,8 @@ export function Sidebar() {
               alt="Flat 101"
               width={64}
               height={16}
-              style={{ height: 16, width: "auto", filter: "brightness(0) invert(1)" }}
+              className="sidebar-logo"
+              style={{ height: 16, width: "auto" }}
               priority
             />
             <span
@@ -102,7 +104,7 @@ export function Sidebar() {
               style={{
                 fontSize: 10,
                 letterSpacing: "0.28em",
-                color: "var(--accent-500)",
+                color: "var(--accent-text)",
                 textTransform: "uppercase",
               }}
             >
@@ -172,6 +174,16 @@ export function Sidebar() {
             ))}
           </NavGroup>
         </nav>
+
+        <div
+          style={{
+            marginTop: "auto",
+            padding: "12px 8px 0",
+            borderTop: "1px solid rgba(var(--fg), 0.06)",
+          }}
+        >
+          <ThemeSwitch />
+        </div>
       </aside>
     </>
   );
@@ -193,7 +205,7 @@ function NavGroup({
           fontSize: 9,
           letterSpacing: "0.28em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.35)",
+          color: "rgba(var(--fg),0.35)",
         }}
       >
         {label}

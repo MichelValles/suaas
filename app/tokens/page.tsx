@@ -135,9 +135,9 @@ export default async function TokensPage() {
         <p
           style={{
             padding: "16px 20px",
-            border: "1px dashed rgba(255,255,255,0.12)",
+            border: "1px dashed rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
             fontSize: 12,
             lineHeight: 1.6,
             margin: 0,
@@ -173,19 +173,19 @@ function BigKpi({
       : tone === "warn"
         ? "var(--warning-500)"
         : tone === "off"
-          ? "rgba(255,255,255,0.4)"
+          ? "rgba(var(--fg),0.4)"
           : "var(--accent-500)";
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderTop: `3px solid ${accent}`,
         borderRadius: "var(--radius-md)",
         padding: "28px 28px 26px",
         display: "flex",
         flexDirection: "column",
         gap: 14,
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         minHeight: 180,
       }}
     >
@@ -195,7 +195,7 @@ function BigKpi({
           fontSize: 10,
           letterSpacing: "0.24em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {label}
@@ -215,7 +215,7 @@ function BigKpi({
         <span
           style={{
             fontSize: 12,
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
             lineHeight: 1.5,
             marginTop: "auto",
           }}
@@ -239,13 +239,13 @@ function SmallStat({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: "18px 20px 16px",
         display: "flex",
         flexDirection: "column",
         gap: 8,
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
       }}
     >
       <span
@@ -254,7 +254,7 @@ function SmallStat({
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.5)",
+          color: "rgba(var(--fg),0.5)",
         }}
       >
         {label}
@@ -263,7 +263,7 @@ function SmallStat({
         className="mono"
         style={{
           fontSize: 20,
-          color: "#fff",
+          color: "var(--text-strong)",
           lineHeight: 1.1,
           fontWeight: 700,
         }}
@@ -271,7 +271,7 @@ function SmallStat({
         {value}
       </span>
       {hint && (
-        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>
+        <span style={{ fontSize: 11, color: "rgba(var(--fg),0.45)", lineHeight: 1.4 }}>
           {hint}
         </span>
       )}
@@ -287,7 +287,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
         fontSize: 11,
         letterSpacing: "0.28em",
         textTransform: "uppercase",
-        color: "var(--accent-500)",
+        color: "var(--accent-text)",
         margin: 0,
       }}
     >
@@ -306,9 +306,9 @@ function UsageTable({
     <div
       style={{
         overflowX: "auto",
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
       }}
     >
       <table
@@ -316,11 +316,11 @@ function UsageTable({
           width: "100%",
           borderCollapse: "collapse",
           fontSize: 13,
-          color: "rgba(255,255,255,0.85)",
+          color: "rgba(var(--fg),0.85)",
         }}
       >
         <thead>
-          <tr style={{ textAlign: "left", color: "rgba(255,255,255,0.55)" }}>
+          <tr style={{ textAlign: "left", color: "rgba(var(--fg),0.55)" }}>
             <Th>Clave</Th>
             <Th>Llamadas</Th>
             <Th>Prompt</Th>
@@ -331,7 +331,7 @@ function UsageTable({
         </thead>
         <tbody>
           {rows.map((r) => (
-            <tr key={r.key} style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <tr key={r.key} style={{ borderTop: "1px solid rgba(var(--fg),0.06)" }}>
               <Td>
                 <span className="mono" style={{ fontSize: 12 }}>
                   {r.key}
@@ -341,14 +341,14 @@ function UsageTable({
               <Td>{formatNumber(r.prompt)}</Td>
               <Td>{formatNumber(r.completion)}</Td>
               <Td>
-                <strong style={{ color: "#fff" }}>{formatNumber(r.total)}</strong>
+                <strong style={{ color: "var(--text-strong)" }}>{formatNumber(r.total)}</strong>
               </Td>
               <Td>
                 <div
                   style={{
                     width: 160,
                     height: 8,
-                    background: "rgba(255,255,255,0.06)",
+                    background: "rgba(var(--fg),0.06)",
                     borderRadius: 999,
                     overflow: "hidden",
                   }}
@@ -381,9 +381,9 @@ function DayBars({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         padding: 24,
         display: "flex",
         flexDirection: "column",
@@ -400,13 +400,13 @@ function DayBars({
       >
         <span
           className="mono"
-          style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", letterSpacing: "0.16em" }}
+          style={{ fontSize: 11, color: "rgba(var(--fg),0.55)", letterSpacing: "0.16em" }}
         >
           {rows.length} {rows.length === 1 ? "día" : "días"} con actividad
         </span>
         <span
           className="mono"
-          style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", letterSpacing: "0.16em" }}
+          style={{ fontSize: 11, color: "rgba(var(--fg),0.75)", letterSpacing: "0.16em" }}
         >
           {formatNumber(totalWeek)} tokens · {formatNumber(callsWeek)} llamadas
         </span>
@@ -437,7 +437,7 @@ function DayBars({
               className="mono"
               style={{
                 fontSize: 10,
-                color: "rgba(255,255,255,0.85)",
+                color: "rgba(var(--fg),0.85)",
                 fontWeight: 700,
               }}
             >
@@ -459,7 +459,7 @@ function DayBars({
               style={{
                 fontSize: 9,
                 letterSpacing: "0.14em",
-                color: "rgba(255,255,255,0.5)",
+                color: "rgba(var(--fg),0.5)",
               }}
             >
               {r.date.slice(5)}
@@ -476,9 +476,9 @@ function Notice({ children }: { children: React.ReactNode }) {
     <div
       style={{
         padding: "16px 20px",
-        border: "1px dashed rgba(255,255,255,0.12)",
+        border: "1px dashed rgba(var(--fg),0.12)",
         borderRadius: "var(--radius-md)",
-        color: "rgba(255,255,255,0.6)",
+        color: "rgba(var(--fg),0.6)",
         fontSize: 13,
         lineHeight: 1.55,
       }}

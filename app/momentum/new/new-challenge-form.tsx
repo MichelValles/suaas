@@ -8,10 +8,10 @@ import { createMomentumChallengeAction, saveProfileIntentAction } from "./action
 const inputStyle: React.CSSProperties = {
   width: "100%",
   padding: "10px 14px",
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.1)",
+  background: "rgba(var(--fg),0.04)",
+  border: "1px solid rgba(var(--fg),0.1)",
   borderRadius: "var(--radius-sm)",
-  color: "#fff",
+  color: "var(--text-strong)",
   fontSize: 14,
   lineHeight: 1.5,
   outline: "none",
@@ -23,7 +23,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
     <span
       className="mono"
-      style={{ fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.55)" }}
+      style={{ fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(var(--fg),0.55)" }}
     >
       {children}
     </span>
@@ -35,7 +35,7 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <FieldLabel>{label}</FieldLabel>
       {hint && (
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: 0, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 12, color: "rgba(var(--fg),0.38)", margin: 0, lineHeight: 1.5 }}>
           {hint}
         </p>
       )}
@@ -80,9 +80,9 @@ function FilterPill({
         textTransform: "uppercase",
         padding: "4px 11px",
         borderRadius: "var(--radius-pill)",
-        border: active ? "1px solid var(--accent-500)" : "1px solid rgba(255,255,255,0.1)",
-        background: active ? "rgba(255,255,255,0.05)" : "transparent",
-        color: active ? "#fff" : "rgba(255,255,255,0.4)",
+        border: active ? "1px solid var(--accent-500)" : "1px solid rgba(var(--fg),0.1)",
+        background: active ? "rgba(var(--fg),0.05)" : "transparent",
+        color: active ? "#fff" : "rgba(var(--fg),0.4)",
         cursor: "pointer",
         transition: "all 0.12s",
       }}
@@ -120,9 +120,9 @@ function ProfileRow({
   return (
     <div
       style={{
-        border: selected ? "1px solid var(--accent-500)" : "1px solid rgba(255,255,255,0.08)",
+        border: selected ? "1px solid var(--accent-500)" : "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-sm)",
-        background: selected ? "rgba(255,255,255,0.03)" : "transparent",
+        background: selected ? "rgba(var(--fg),0.03)" : "transparent",
         transition: "border-color 0.15s, background 0.15s",
         overflow: "hidden",
         flexShrink: 0,
@@ -150,10 +150,10 @@ function ProfileRow({
           style={{ marginTop: 3, accentColor: "var(--accent-500)", flexShrink: 0 }}
         />
         <div style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1, minWidth: 0 }}>
-          <span style={{ fontSize: 14, color: "#fff", fontFamily: "var(--font-display)" }}>
+          <span style={{ fontSize: 14, color: "var(--text-strong)", fontFamily: "var(--font-display)" }}>
             {p.name}
           </span>
-          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}>
+          <span style={{ fontSize: 12, color: "rgba(var(--fg),0.45)", lineHeight: 1.4 }}>
             {p.demographics.age} años · {p.demographics.gender} · {p.demographics.occupation}
             {p.demographics.geo ? ` · ${p.demographics.geo}` : ""}
           </span>
@@ -163,7 +163,7 @@ function ProfileRow({
       {/* Franja de intent */}
       <div
         style={{
-          borderTop: "1px solid rgba(255,255,255,0.06)",
+          borderTop: "1px solid rgba(var(--fg),0.06)",
           padding: "10px 16px",
           background: "rgba(0,0,0,0.15)",
         }}
@@ -174,7 +174,7 @@ function ProfileRow({
               <span
                 style={{
                   fontSize: 12,
-                  color: "rgba(255,255,255,0.42)",
+                  color: "rgba(var(--fg),0.42)",
                   lineHeight: 1.55,
                   fontStyle: "italic",
                   flex: 1,
@@ -189,7 +189,7 @@ function ProfileRow({
                 style={{
                   fontSize: 9,
                   letterSpacing: "0.18em",
-                  color: "rgba(255,255,255,0.2)",
+                  color: "rgba(var(--fg),0.2)",
                   textTransform: "uppercase",
                 }}
               >
@@ -206,9 +206,9 @@ function ProfileRow({
                 textTransform: "uppercase",
                 padding: "3px 9px",
                 borderRadius: "var(--radius-pill)",
-                border: "1px solid rgba(255,255,255,0.12)",
+                border: "1px solid rgba(var(--fg),0.12)",
                 background: "transparent",
-                color: "rgba(255,255,255,0.4)",
+                color: "rgba(var(--fg),0.4)",
                 cursor: "pointer",
                 flexShrink: 0,
                 transition: "color 0.12s, border-color 0.12s",
@@ -228,10 +228,10 @@ function ProfileRow({
               style={{
                 width: "100%",
                 padding: "8px 10px",
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.15)",
+                background: "rgba(var(--fg),0.04)",
+                border: "1px solid rgba(var(--fg),0.15)",
                 borderRadius: "var(--radius-xs)",
-                color: "#fff",
+                color: "var(--text-strong)",
                 fontSize: 13,
                 lineHeight: 1.5,
                 resize: "vertical",
@@ -408,14 +408,14 @@ export function NewChallengeForm({ profiles }: { profiles: Profile[] }) {
           </FilterPill>
         </div>
 
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.38)", margin: 0 }}>
+        <p style={{ fontSize: 12, color: "rgba(var(--fg),0.38)", margin: 0 }}>
           {selectedIds.size} de {profiles.length} seleccionados
         </p>
 
         {/* Lista de perfiles */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 500, overflowY: "auto" }}>
           {filteredProfiles.length === 0 ? (
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.3)", padding: "20px 0", textAlign: "center", margin: 0 }}>
+            <p style={{ fontSize: 13, color: "rgba(var(--fg),0.3)", padding: "20px 0", textAlign: "center", margin: 0 }}>
               Ningún perfil coincide con el filtro.
             </p>
           ) : (

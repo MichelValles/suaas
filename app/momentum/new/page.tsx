@@ -25,9 +25,9 @@ export default async function NewMomentumPage() {
           title="No hay perfiles todavía."
           actions={<Link href="/momentum" className="btn-pill">Volver</Link>}
         />
-        <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 14, lineHeight: 1.6, margin: 0 }}>
+        <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 14, lineHeight: 1.6, margin: 0 }}>
           Necesitas al menos un perfil para lanzar un análisis de Momentum.{" "}
-          <Link href="/profiles/new" style={{ color: "var(--accent-500)" }}>
+          <Link href="/profiles/new" style={{ color: "var(--accent-text)" }}>
             Crea el primero
           </Link>
           .

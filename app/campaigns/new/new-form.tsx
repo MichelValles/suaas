@@ -275,7 +275,7 @@ export function NewCampaignForm() {
                 fontSize: 10,
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.55)",
+                color: "rgba(var(--fg),0.55)",
               }}
             >
               ¿En qué red simulamos el anuncio?
@@ -283,7 +283,7 @@ export function NewCampaignForm() {
             <ChannelTabs value={channel} onChange={setChannel} />
             <p
               style={{
-                color: "rgba(255,255,255,0.55)",
+                color: "rgba(var(--fg),0.55)",
                 fontSize: 12,
                 lineHeight: 1.55,
                 margin: 0,
@@ -305,7 +305,7 @@ export function NewCampaignForm() {
                 fontSize: 10,
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.55)",
+                color: "rgba(var(--fg),0.55)",
               }}
             >
               Tipo de campaña dentro de {CHANNEL_LABEL[channel].split(" ")[0]}
@@ -313,7 +313,7 @@ export function NewCampaignForm() {
             <StrategyTabs value={strategy} onChange={setStrategy} />
             <p
               style={{
-                color: "rgba(255,255,255,0.55)",
+                color: "rgba(var(--fg),0.55)",
                 fontSize: 12,
                 lineHeight: 1.55,
                 margin: 0,
@@ -384,7 +384,7 @@ export function NewCampaignForm() {
                 flexDirection: "column",
                 gap: 8,
                 padding: 14,
-                border: "1px dashed rgba(255,255,255,0.12)",
+                border: "1px dashed rgba(var(--fg),0.12)",
                 borderRadius: "var(--radius-sm)",
               }}
             >
@@ -430,7 +430,7 @@ export function NewCampaignForm() {
                     maxHeight: 240,
                     objectFit: "cover",
                     borderRadius: "var(--radius-sm)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(var(--fg),0.08)",
                   }}
                 />
               )}
@@ -446,7 +446,7 @@ export function NewCampaignForm() {
                 style={inputStyle}
               />
               {landingPreviewName && (
-                <span className="mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>
+                <span className="mono" style={{ fontSize: 11, color: "rgba(var(--fg),0.55)" }}>
                   {landingPreviewName} cargado.
                 </span>
               )}
@@ -460,7 +460,7 @@ export function NewCampaignForm() {
                     maxHeight: 240,
                     objectFit: "cover",
                     borderRadius: "var(--radius-sm)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(var(--fg),0.08)",
                     marginTop: 6,
                   }}
                 />
@@ -586,10 +586,7 @@ export function NewCampaignForm() {
               <select
                 value={cta}
                 onChange={(e) => setCta(e.currentTarget.value)}
-                style={{
-                  ...inputStyle,
-                  colorScheme: "dark",
-                }}
+                style={inputStyle}
               >
                 <option value="">sin CTA</option>
                 {CTA_VALUES.map((c) => (
@@ -613,14 +610,14 @@ export function NewCampaignForm() {
           canAdd={creatives.length < 20}
         >
           {strategy === "display" ? (
-            <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
+            <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
               Display exige al menos <strong>1 imagen landscape (1.91:1)</strong>,
               <strong> 1 imagen square (1:1)</strong> y <strong>1 logo square (1:1)</strong>.
               Recomendado: añade portrait (4:5) para mobile y vídeo YouTube si lo tienes.
             </p>
           ) : (
             creatives.length === 0 && (
-              <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 13, margin: 0 }}>
+              <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0 }}>
                 Imagen, vídeo o YouTube. El perfil sintético ve la imagen
                 directamente o el thumbnail si es vídeo / YouTube (los modelos
                 actuales no procesan vídeo).
@@ -667,7 +664,7 @@ export function NewCampaignForm() {
                     onChange={(e) =>
                       patchCreative(i, { role: e.currentTarget.value as CreativeRole })
                     }
-                    style={{ ...inputStyle, colorScheme: "dark" }}
+                    style={inputStyle}
                   >
                     <option value="generic">{CREATIVE_ROLE_LABEL.generic}</option>
                     <option value="landscape_image">
@@ -731,7 +728,7 @@ export function NewCampaignForm() {
               padding: 16,
               border: "1px solid var(--error-500)",
               borderRadius: "var(--radius-md)",
-              color: "rgba(255,255,255,0.9)",
+              color: "rgba(var(--fg),0.9)",
               background: "rgba(180,35,24,0.12)",
               fontSize: 14,
             }}
@@ -761,7 +758,7 @@ export function NewCampaignForm() {
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           Vista previa · {STRATEGY_LABEL[strategy]}
@@ -788,9 +785,9 @@ export function NewCampaignForm() {
           descriptions.filter(Boolean).length > 1) && (
           <div
             style={{
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(var(--fg),0.08)",
               borderRadius: "var(--radius-md)",
-              background: "rgba(255,255,255,0.02)",
+              background: "rgba(var(--fg),0.02)",
               padding: 14,
               display: "flex",
               flexDirection: "column",
@@ -804,7 +801,7 @@ export function NewCampaignForm() {
                   style={{
                     fontSize: 10,
                     letterSpacing: "0.22em",
-                    color: "rgba(255,255,255,0.55)",
+                    color: "rgba(var(--fg),0.55)",
                     textTransform: "uppercase",
                   }}
                 >
@@ -844,7 +841,7 @@ export function NewCampaignForm() {
                   style={{
                     fontSize: 10,
                     letterSpacing: "0.22em",
-                    color: "rgba(255,255,255,0.55)",
+                    color: "rgba(var(--fg),0.55)",
                     textTransform: "uppercase",
                   }}
                 >
@@ -865,7 +862,7 @@ export function NewCampaignForm() {
                       <li
                         key={i}
                         style={{
-                          color: "rgba(255,255,255,0.7)",
+                          color: "rgba(var(--fg),0.7)",
                           fontSize: 12,
                           lineHeight: 1.55,
                         }}
@@ -883,9 +880,9 @@ export function NewCampaignForm() {
         {previewImage && (
           <div
             style={{
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(var(--fg),0.08)",
               borderRadius: "var(--radius-md)",
-              background: "rgba(255,255,255,0.02)",
+              background: "rgba(var(--fg),0.02)",
               padding: 12,
               display: "flex",
               flexDirection: "column",
@@ -894,7 +891,7 @@ export function NewCampaignForm() {
           >
             <span
               className="mono"
-              style={{ fontSize: 10, letterSpacing: "0.22em", color: "rgba(255,255,255,0.55)" }}
+              style={{ fontSize: 10, letterSpacing: "0.22em", color: "rgba(var(--fg),0.55)" }}
             >
               Landing
             </span>
@@ -915,9 +912,9 @@ export function NewCampaignForm() {
         {creatives.length > 0 && (
           <div
             style={{
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(var(--fg),0.08)",
               borderRadius: "var(--radius-md)",
-              background: "rgba(255,255,255,0.02)",
+              background: "rgba(var(--fg),0.02)",
               padding: 12,
               display: "flex",
               flexDirection: "column",
@@ -926,7 +923,7 @@ export function NewCampaignForm() {
           >
             <span
               className="mono"
-              style={{ fontSize: 10, letterSpacing: "0.22em", color: "rgba(255,255,255,0.55)" }}
+              style={{ fontSize: 10, letterSpacing: "0.22em", color: "rgba(var(--fg),0.55)" }}
             >
               Creatividades · {creatives.length}
             </span>
@@ -1014,7 +1011,7 @@ function CreativeVideoInput({
         onChange={onThumbnail}
         placeholder="https://cdn.miweb.com/spot-thumb.jpg"
       />
-      <p style={{ color: "rgba(255,255,255,0.55)", fontSize: 12, lineHeight: 1.55, margin: 0 }}>
+      <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 12, lineHeight: 1.55, margin: 0 }}>
         Los modelos actuales no procesan vídeo. Si subes un .mp4 o pones una URL,
         sube también un thumbnail estático (jpg/png) para que el perfil sintético
         pueda &quot;verlo&quot;. Sin thumbnail la creatividad se ignora.
@@ -1060,7 +1057,7 @@ function CreativeYouTubeInput({
             style={{
               fontSize: 10,
               letterSpacing: "0.18em",
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(var(--fg),0.55)",
             }}
           >
             Thumbnail enviado al modelo · {creative.youtube_id}
@@ -1108,7 +1105,7 @@ function Section({
             fontSize: 11,
             letterSpacing: "0.24em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           {title}
@@ -1216,7 +1213,7 @@ function CharCountedInput(props: {
           className="mono"
           style={{
             fontSize: 10,
-            color: over ? "var(--error-500)" : "rgba(255,255,255,0.45)",
+            color: over ? "var(--error-500)" : "rgba(var(--fg),0.45)",
           }}
         >
           {props.value.length}/{props.max}
@@ -1251,7 +1248,7 @@ function CharCountedTextarea(props: {
           className="mono"
           style={{
             fontSize: 10,
-            color: over ? "var(--error-500)" : "rgba(255,255,255,0.45)",
+            color: over ? "var(--error-500)" : "rgba(var(--fg),0.45)",
           }}
         >
           {props.value.length}/{props.max}
@@ -1303,9 +1300,9 @@ function SearchAdPreview({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         padding: 18,
         display: "flex",
         flexDirection: "column",
@@ -1314,7 +1311,7 @@ function SearchAdPreview({
     >
       <span
         style={{
-          color: "rgba(255,255,255,0.45)",
+          color: "rgba(var(--fg),0.45)",
           fontSize: 11,
           fontFamily: "var(--font-mono)",
         }}
@@ -1323,7 +1320,7 @@ function SearchAdPreview({
       </span>
       <span
         style={{
-          color: "rgba(255,255,255,0.7)",
+          color: "rgba(var(--fg),0.7)",
           fontSize: 12,
           fontFamily: "var(--font-mono)",
         }}
@@ -1342,7 +1339,7 @@ function SearchAdPreview({
       </p>
       <p
         style={{
-          color: "rgba(255,255,255,0.78)",
+          color: "rgba(var(--fg),0.78)",
           fontSize: 13,
           margin: 0,
           lineHeight: 1.55,
@@ -1383,9 +1380,9 @@ function DisplayAdPreview({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
@@ -1393,12 +1390,12 @@ function DisplayAdPreview({
     >
       <div
         style={{
-          background: "rgba(255,255,255,0.04)",
+          background: "rgba(var(--fg),0.04)",
           aspectRatio: "1.91 / 1",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "rgba(255,255,255,0.4)",
+          color: "rgba(var(--fg),0.4)",
           fontSize: 11,
           fontFamily: "var(--font-mono)",
         }}
@@ -1438,7 +1435,7 @@ function DisplayAdPreview({
                 height: 28,
                 objectFit: "cover",
                 borderRadius: "var(--radius-sm)",
-                background: "rgba(255,255,255,0.06)",
+                background: "rgba(var(--fg),0.06)",
               }}
             />
           ) : (
@@ -1448,12 +1445,12 @@ function DisplayAdPreview({
                 width: 28,
                 height: 28,
                 borderRadius: "var(--radius-sm)",
-                background: "rgba(255,255,255,0.06)",
+                background: "rgba(var(--fg),0.06)",
                 display: "inline-flex",
                 alignItems: "center",
                 justifyContent: "center",
                 fontSize: 9,
-                color: "rgba(255,255,255,0.4)",
+                color: "rgba(var(--fg),0.4)",
               }}
             >
               Logo
@@ -1462,7 +1459,7 @@ function DisplayAdPreview({
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <span
               style={{
-                color: "rgba(255,255,255,0.9)",
+                color: "rgba(var(--fg),0.9)",
                 fontSize: 13,
                 fontWeight: 600,
               }}
@@ -1472,7 +1469,7 @@ function DisplayAdPreview({
             <span
               className="mono"
               style={{
-                color: "rgba(255,255,255,0.45)",
+                color: "rgba(var(--fg),0.45)",
                 fontSize: 10,
               }}
             >
@@ -1482,7 +1479,7 @@ function DisplayAdPreview({
         </div>
         <p
           style={{
-            color: "rgba(255,255,255,0.95)",
+            color: "rgba(var(--fg),0.95)",
             fontSize: 16,
             lineHeight: 1.3,
             margin: 0,
@@ -1504,7 +1501,7 @@ function DisplayAdPreview({
         )}
         <p
           style={{
-            color: "rgba(255,255,255,0.7)",
+            color: "rgba(var(--fg),0.7)",
             fontSize: 12,
             margin: 0,
             lineHeight: 1.55,
@@ -1519,8 +1516,8 @@ function DisplayAdPreview({
             alignSelf: "flex-start",
             padding: "8px 16px",
             borderRadius: "var(--radius-sm)",
-            background: cta ? "var(--accent-500)" : "rgba(255,255,255,0.08)",
-            color: cta ? "var(--ink-900)" : "rgba(255,255,255,0.5)",
+            background: cta ? "var(--accent-500)" : "rgba(var(--fg),0.08)",
+            color: cta ? "var(--ink-900)" : "rgba(var(--fg),0.5)",
             border: 0,
             fontFamily: "var(--font-sans)",
             fontSize: 12,
@@ -1549,7 +1546,7 @@ function StrategyTabs({
       style={{
         display: "flex",
         gap: 0,
-        borderBottom: "1px solid rgba(255,255,255,0.1)",
+        borderBottom: "1px solid rgba(var(--fg),0.1)",
         overflowX: "auto",
       }}
     >
@@ -1557,10 +1554,10 @@ function StrategyTabs({
         const active = value === s;
         const implemented = isStrategyImplemented(s);
         const color = !implemented
-          ? "rgba(255,255,255,0.35)"
+          ? "rgba(var(--fg),0.35)"
           : active
             ? "var(--accent-500)"
-            : "rgba(255,255,255,0.6)";
+            : "rgba(var(--fg),0.6)";
         return (
           <button
             key={s}
@@ -1603,8 +1600,8 @@ function StrategyTabs({
                   textTransform: "uppercase",
                   padding: "2px 6px",
                   borderRadius: "var(--radius-pill)",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                  color: "rgba(255,255,255,0.5)",
+                  border: "1px solid rgba(var(--fg),0.18)",
+                  color: "rgba(var(--fg),0.5)",
                 }}
               >
                 Próx.
@@ -1621,9 +1618,9 @@ function UnderConstruction({ strategy }: { strategy: Strategy }) {
   return (
     <div
       style={{
-        border: "1px dashed rgba(255,255,255,0.15)",
+        border: "1px dashed rgba(var(--fg),0.15)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         padding: "28px 32px",
         display: "flex",
         flexDirection: "column",
@@ -1638,7 +1635,7 @@ function UnderConstruction({ strategy }: { strategy: Strategy }) {
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           {STRATEGY_LABEL[strategy]} · En construcción
@@ -1647,7 +1644,7 @@ function UnderConstruction({ strategy }: { strategy: Strategy }) {
       <p
         style={{
           margin: 0,
-          color: "rgba(255,255,255,0.75)",
+          color: "rgba(var(--fg),0.75)",
           fontSize: 14,
           lineHeight: 1.65,
           maxWidth: 720,
@@ -1658,7 +1655,7 @@ function UnderConstruction({ strategy }: { strategy: Strategy }) {
       <p
         style={{
           margin: 0,
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
           fontSize: 12,
           lineHeight: 1.55,
         }}
@@ -1685,7 +1682,7 @@ function ChannelTabs({
       style={{
         display: "flex",
         gap: 0,
-        borderBottom: "1px solid rgba(255,255,255,0.1)",
+        borderBottom: "1px solid rgba(var(--fg),0.1)",
         overflowX: "auto",
       }}
     >
@@ -1693,10 +1690,10 @@ function ChannelTabs({
         const active = value === c;
         const disabled = c !== "google";
         const color = disabled
-          ? "rgba(255,255,255,0.3)"
+          ? "rgba(var(--fg),0.3)"
           : active
             ? "var(--accent-500)"
-            : "rgba(255,255,255,0.6)";
+            : "rgba(var(--fg),0.6)";
         return (
           <button
             key={c}
@@ -1740,8 +1737,8 @@ function ChannelTabs({
                   textTransform: "uppercase",
                   padding: "2px 6px",
                   borderRadius: "var(--radius-pill)",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                  color: "rgba(255,255,255,0.5)",
+                  border: "1px solid rgba(var(--fg),0.18)",
+                  color: "rgba(var(--fg),0.5)",
                 }}
               >
                 Próx.
@@ -1783,11 +1780,11 @@ function ThumbPlaceholder({ label }: { label: string }) {
       className="mono"
       style={{
         ...thumbStyle,
-        background: "rgba(255,255,255,0.04)",
+        background: "rgba(var(--fg),0.04)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        color: "rgba(255,255,255,0.5)",
+        color: "rgba(var(--fg),0.5)",
         fontSize: 10,
         letterSpacing: "0.18em",
         textTransform: "uppercase",
@@ -1806,7 +1803,7 @@ function Label({ children }: { children: React.ReactNode }) {
         fontSize: 10,
         letterSpacing: "0.22em",
         textTransform: "uppercase",
-        color: "rgba(255,255,255,0.55)",
+        color: "rgba(var(--fg),0.55)",
       }}
     >
       {children}
@@ -1824,18 +1821,18 @@ function Submit() {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(var(--fg),0.03)",
+  border: "1px solid rgba(var(--fg),0.12)",
   borderRadius: "var(--radius-sm)",
   padding: "10px 12px",
-  color: "#fff",
+  color: "var(--text-strong)",
   fontSize: 14,
   outline: "none",
   fontFamily: "var(--font-sans)",
 };
 
 const fieldsetStyle: React.CSSProperties = {
-  border: "1px solid rgba(255,255,255,0.08)",
+  border: "1px solid rgba(var(--fg),0.08)",
   borderRadius: "var(--radius-md)",
   padding: 20,
   display: "flex",
@@ -1850,7 +1847,7 @@ const legendStyle: React.CSSProperties = {
   fontSize: 10,
   letterSpacing: "0.24em",
   textTransform: "uppercase",
-  color: "var(--accent-500)",
+  color: "var(--accent-text)",
 };
 
 const previewBox: React.CSSProperties = {
@@ -1858,7 +1855,7 @@ const previewBox: React.CSSProperties = {
   maxHeight: 200,
   objectFit: "cover",
   borderRadius: "var(--radius-sm)",
-  border: "1px solid rgba(255,255,255,0.08)",
+  border: "1px solid rgba(var(--fg),0.08)",
 };
 
 const thumbStyle: React.CSSProperties = {
@@ -1866,5 +1863,5 @@ const thumbStyle: React.CSSProperties = {
   aspectRatio: "1 / 1",
   objectFit: "cover",
   borderRadius: "var(--radius-sm)",
-  border: "1px solid rgba(255,255,255,0.08)",
+  border: "1px solid rgba(var(--fg),0.08)",
 };

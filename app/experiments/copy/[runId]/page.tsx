@@ -63,10 +63,10 @@ export default async function CopyRunPage({
             <article
               key={b.blockId}
               style={{
-                border: `1px solid ${idx === 0 ? "var(--accent-500)" : "rgba(255,255,255,0.08)"}`,
+                border: `1px solid ${idx === 0 ? "var(--accent-500)" : "rgba(var(--fg),0.08)"}`,
                 borderRadius: "var(--radius-md)",
                 padding: "24px 28px",
-                background: idx === 0 ? "rgba(250,204,13,0.06)" : "rgba(255,255,255,0.02)",
+                background: idx === 0 ? "rgba(250,204,13,0.06)" : "rgba(var(--fg),0.02)",
                 display: "flex",
                 flexDirection: "column",
                 gap: 18,
@@ -87,11 +87,11 @@ export default async function CopyRunPage({
                     fontSize: 10,
                     letterSpacing: "0.24em",
                     textTransform: "uppercase",
-                    color: "var(--accent-500)",
+                    color: "var(--accent-text)",
                   }}
                 >
                   Bloque {b.position} · {b.label}
-                  {idx === 0 && " · ★ mejor"}
+                  {idx === 0 && " · mejor"}
                 </span>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                   <Chip label="Persuasión" value={fmtPct(b.persuasion_mean)} />
@@ -101,7 +101,7 @@ export default async function CopyRunPage({
               </header>
               <p
                 style={{
-                  color: "rgba(255,255,255,0.85)",
+                  color: "rgba(var(--fg),0.85)",
                   fontSize: 15,
                   lineHeight: 1.65,
                   margin: 0,
@@ -118,7 +118,7 @@ export default async function CopyRunPage({
                     fontSize: 11,
                     letterSpacing: "0.2em",
                     textTransform: "uppercase",
-                    color: "rgba(255,255,255,0.6)",
+                    color: "rgba(var(--fg),0.6)",
                     cursor: "pointer",
                     paddingBlock: 4,
                   }}
@@ -145,7 +145,7 @@ export default async function CopyRunPage({
                           style={{
                             padding: "16px 18px",
                             borderRadius: "var(--radius-sm)",
-                            background: "rgba(255,255,255,0.03)",
+                            background: "rgba(var(--fg),0.03)",
                             display: "flex",
                             flexDirection: "column",
                             gap: 10,
@@ -164,10 +164,10 @@ export default async function CopyRunPage({
                               href={`/profiles/${r.profileId}`}
                               title={profile ? `Ver perfil de ${profile.name}` : undefined}
                               style={{
-                                color: "#fff",
+                                color: "var(--text-strong)",
                                 fontSize: 14,
                                 textDecoration: "none",
-                                borderBottom: "1px dotted rgba(255,255,255,0.25)",
+                                borderBottom: "1px dotted rgba(var(--fg),0.25)",
                               }}
                             >
                               {profile?.name ?? r.profileId.slice(0, 8)}
@@ -183,7 +183,7 @@ export default async function CopyRunPage({
                                     ? "var(--success-500)"
                                     : r.reaction.sentiment === "negativo"
                                       ? "var(--error-500)"
-                                      : "rgba(255,255,255,0.55)",
+                                      : "rgba(var(--fg),0.55)",
                               }}
                             >
                               {r.reaction.sentiment} ·{" "}
@@ -192,7 +192,7 @@ export default async function CopyRunPage({
                           </div>
                           <p
                             style={{
-                              color: "rgba(255,255,255,0.75)",
+                              color: "rgba(var(--fg),0.75)",
                               fontSize: 14,
                               margin: 0,
                               lineHeight: 1.55,
@@ -222,16 +222,16 @@ function Chip({ label, value }: { label: string; value: string }) {
         gap: 6,
         padding: "4px 10px",
         borderRadius: 999,
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: "rgba(var(--fg),0.04)",
+        border: "1px solid rgba(var(--fg),0.08)",
         fontSize: 10,
         letterSpacing: "0.18em",
         textTransform: "uppercase",
-        color: "rgba(255,255,255,0.55)",
+        color: "rgba(var(--fg),0.55)",
       }}
     >
       <span>{label}</span>
-      <span style={{ color: "#fff", fontWeight: 700 }}>{value}</span>
+      <span style={{ color: "var(--text-strong)", fontWeight: 700 }}>{value}</span>
     </span>
   );
 }
@@ -254,13 +254,13 @@ function SentimentBar({
         style={{
           height: 10,
           borderRadius: 999,
-          background: "rgba(255,255,255,0.06)",
+          background: "rgba(var(--fg),0.06)",
           overflow: "hidden",
           display: "flex",
         }}
       >
         <div style={{ width: `${w(sentiment.positivo)}%`, background: "var(--success-500)" }} />
-        <div style={{ width: `${w(sentiment.neutro)}%`, background: "rgba(255,255,255,0.35)" }} />
+        <div style={{ width: `${w(sentiment.neutro)}%`, background: "rgba(var(--fg),0.35)" }} />
         <div style={{ width: `${w(sentiment.escéptico)}%`, background: "var(--warning-500)" }} />
         <div style={{ width: `${w(sentiment.negativo)}%`, background: "var(--error-500)" }} />
       </div>
@@ -272,14 +272,14 @@ function SentimentBar({
           flexWrap: "wrap",
           fontSize: 10,
           letterSpacing: "0.18em",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         <span>
           <span style={{ color: "var(--success-500)" }}>●</span> positivo {sentiment.positivo}
         </span>
         <span>
-          <span style={{ color: "rgba(255,255,255,0.5)" }}>●</span> neutro {sentiment.neutro}
+          <span style={{ color: "rgba(var(--fg),0.5)" }}>●</span> neutro {sentiment.neutro}
         </span>
         <span>
           <span style={{ color: "var(--warning-500)" }}>●</span> escéptico {sentiment.escéptico}

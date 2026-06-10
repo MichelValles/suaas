@@ -57,7 +57,7 @@ export function ConceptosPendientes() {
           fontSize: 11,
           letterSpacing: "0.28em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
           margin: 0,
         }}
       >
@@ -69,9 +69,9 @@ export function ConceptosPendientes() {
           onSubmit={handleSubmit}
           style={{
             padding: "24px 24px",
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid rgba(var(--fg),0.08)",
             borderRadius: "var(--radius-md)",
-            background: "rgba(255,255,255,0.02)",
+            background: "rgba(var(--fg),0.02)",
             display: "flex",
             flexDirection: "column",
             gap: 14,
@@ -81,7 +81,7 @@ export function ConceptosPendientes() {
           <p
             style={{
               fontSize: 13,
-              color: "rgba(255,255,255,0.45)",
+              color: "rgba(var(--fg),0.45)",
               lineHeight: 1.6,
               margin: 0,
             }}
@@ -100,12 +100,12 @@ export function ConceptosPendientes() {
                 padding: "8px 12px",
                 fontSize: 13,
                 fontFamily: "var(--font-mono)",
-                background: "rgba(255,255,255,0.04)",
+                background: "rgba(var(--fg),0.04)",
                 border: error
-                  ? "1px solid #f87171"
-                  : "1px solid rgba(255,255,255,0.12)",
+                  ? "1px solid var(--error-500)"
+                  : "1px solid rgba(var(--fg),0.12)",
                 borderRadius: "var(--radius-sm)",
-                color: "#fff",
+                color: "var(--text-strong)",
                 outline: "none",
                 transition: "border-color 0.15s",
               }}
@@ -118,7 +118,7 @@ export function ConceptosPendientes() {
                 fontFamily: "var(--font-mono)",
                 letterSpacing: "0.08em",
                 background: "var(--accent-500)",
-                color: "#000",
+                color: "var(--ink-900)",
                 border: "none",
                 borderRadius: "var(--radius-sm)",
                 cursor: "pointer",
@@ -131,7 +131,7 @@ export function ConceptosPendientes() {
           {error && (
             <span
               className="mono"
-              style={{ fontSize: 11, color: "#f87171", letterSpacing: "0.08em" }}
+              style={{ fontSize: 11, color: "var(--error-text)", letterSpacing: "0.08em" }}
             >
               Contraseña incorrecta.
             </span>
@@ -142,7 +142,7 @@ export function ConceptosPendientes() {
           <p
             style={{
               fontSize: 13,
-              color: "rgba(255,255,255,0.5)",
+              color: "rgba(var(--fg),0.5)",
               lineHeight: 1.6,
               margin: 0,
             }}
@@ -156,9 +156,9 @@ export function ConceptosPendientes() {
                 key={p.label}
                 style={{
                   padding: "14px 18px",
-                  border: "1px solid rgba(255,255,255,0.07)",
+                  border: "1px solid rgba(var(--fg),0.07)",
                   borderRadius: "var(--radius-sm)",
-                  background: "rgba(255,255,255,0.015)",
+                  background: "rgba(var(--fg),0.015)",
                   display: "flex",
                   flexDirection: "column",
                   gap: 4,
@@ -168,7 +168,7 @@ export function ConceptosPendientes() {
                   className="mono"
                   style={{
                     fontSize: 11,
-                    color: "rgba(255,255,255,0.5)",
+                    color: "rgba(var(--fg),0.5)",
                     letterSpacing: "0.1em",
                   }}
                 >
@@ -177,7 +177,7 @@ export function ConceptosPendientes() {
                 <p
                   style={{
                     fontSize: 13,
-                    color: "rgba(255,255,255,0.38)",
+                    color: "rgba(var(--fg),0.38)",
                     lineHeight: 1.55,
                     margin: 0,
                   }}

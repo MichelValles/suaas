@@ -75,7 +75,7 @@ export default async function TargetDetailPage({
             display: "flex",
             flexDirection: "column",
             gap: 16,
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid rgba(var(--fg),0.08)",
             borderRadius: "var(--radius-md)",
             padding: 24,
           }}
@@ -86,7 +86,7 @@ export default async function TargetDetailPage({
               fontSize: 10,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "var(--accent-500)",
+              color: "var(--accent-text)",
             }}
           >
             Cómo funciona el test
@@ -94,7 +94,7 @@ export default async function TargetDetailPage({
           <p
             className="body"
             style={{
-              color: "rgba(255,255,255,0.75)",
+              color: "rgba(var(--fg),0.75)",
               fontSize: 14,
               lineHeight: 1.6,
               margin: 0,
@@ -143,8 +143,8 @@ function Hero({ src, alt }: { src: string; alt: string }) {
           aspectRatio: "16 / 10",
           objectFit: "cover",
           borderRadius: "var(--radius-md)",
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "rgba(var(--fg),0.04)",
+          border: "1px solid rgba(var(--fg),0.08)",
         }}
       />
     );
@@ -162,8 +162,8 @@ function Hero({ src, alt }: { src: string; alt: string }) {
         aspectRatio: "16 / 10",
         objectFit: "cover",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: "rgba(var(--fg),0.04)",
+        border: "1px solid rgba(var(--fg),0.08)",
       }}
     />
   );

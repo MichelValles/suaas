@@ -17,9 +17,9 @@ const DIRECTION_LABEL: Record<string, string> = {
   drifting: "Inactivo",
 };
 const DIRECTION_COLOR: Record<string, string> = {
-  approaching: "#4ade80",
-  stable: "#facc15",
-  drifting: "#f87171",
+  approaching: "var(--success-text)",
+  stable: "var(--warning-text)",
+  drifting: "var(--error-text)",
 };
 const DIRECTION_TOOLTIP: Record<string, string> = {
   approaching: "El perfil se mueve activamente hacia buscar una solución.",
@@ -77,37 +77,37 @@ export default async function MomentumDetailPage({
         <div
           style={{
             padding: "12px 16px",
-            border: "1px solid rgba(255,255,255,0.07)",
+            border: "1px solid rgba(var(--fg),0.07)",
             borderRadius: "var(--radius-sm)",
-            background: "rgba(255,255,255,0.025)",
+            background: "rgba(var(--fg),0.025)",
             display: "flex",
             flexDirection: "column",
             gap: 4,
           }}
         >
-          <span className="mono" style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}>
+          <span className="mono" style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(var(--fg),0.35)" }}>
             Contexto de marca
           </span>
-          <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+          <span style={{ fontSize: 13, color: "rgba(var(--fg),0.6)", lineHeight: 1.5 }}>
             {challenge.brand_context}
           </span>
         </div>
       )}
 
       {challenge.status === "running" && (
-        <div style={{ padding: 20, border: "1px solid rgba(250,204,21,0.3)", borderRadius: "var(--radius-md)", background: "rgba(250,204,21,0.06)", color: "#facc15", fontSize: 14 }}>
+        <div style={{ padding: 20, border: "1px solid rgba(250, 204, 13, 0.3)", borderRadius: "var(--radius-md)", background: "rgba(250, 204, 13, 0.06)", color: "var(--warning-text)", fontSize: 14 }}>
           Análisis en progreso. Recarga la página para ver los resultados cuando termine.
         </div>
       )}
 
       {challenge.status === "error" && (
-        <div style={{ padding: 20, border: "1px solid rgba(248,113,113,0.3)", borderRadius: "var(--radius-md)", background: "rgba(248,113,113,0.06)", color: "#f87171", fontSize: 14 }}>
+        <div style={{ padding: 20, border: "1px solid rgba(180, 35, 24, 0.4)", borderRadius: "var(--radius-md)", background: "rgba(180, 35, 24, 0.08)", color: "var(--error-text)", fontSize: 14 }}>
           El análisis terminó con error. Puedes relanzarlo con el botón de arriba.
         </div>
       )}
 
       {challenge.status === "pending" && !challenge.results && (
-        <div style={{ padding: 48, border: "1px dashed rgba(255,255,255,0.12)", borderRadius: "var(--radius-md)", color: "rgba(255,255,255,0.5)", textAlign: "center", fontSize: 14, lineHeight: 1.6 }}>
+        <div style={{ padding: 48, border: "1px dashed rgba(var(--fg),0.12)", borderRadius: "var(--radius-md)", color: "rgba(var(--fg),0.5)", textAlign: "center", fontSize: 14, lineHeight: 1.6 }}>
           Pulsa «Analizar» para lanzar el análisis contra los {challenge.profile_ids.length} perfiles seleccionados.
         </div>
       )}
@@ -118,7 +118,7 @@ export default async function MomentumDetailPage({
           <section style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <h2
               className="mono"
-              style={{ fontSize: 11, letterSpacing: "0.28em", textTransform: "uppercase", color: "var(--accent-500)", margin: 0 }}
+              style={{ fontSize: 11, letterSpacing: "0.28em", textTransform: "uppercase", color: "var(--accent-text)", margin: 0 }}
             >
               Intent por perfil
             </h2>
@@ -155,10 +155,10 @@ function SummaryStrip({ challenge }: { challenge: MomentumChallenge }) {
 
   const intensityColor =
     avgIntensity !== null && avgIntensity >= 0.6
-      ? "#4ade80"
+      ? "var(--success-text)"
       : avgIntensity !== null && avgIntensity >= 0.3
-        ? "#facc15"
-        : "#f87171";
+        ? "var(--warning-text)"
+        : "var(--error-text)";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -172,19 +172,19 @@ function SummaryStrip({ challenge }: { challenge: MomentumChallenge }) {
         <MetricCard
           label="Activos"
           value={String(approaching)}
-          color="#4ade80"
+          color="var(--success-text)"
           tooltip="El perfil se mueve hacia una solución: el Trigger tiene suficiente peso para que actúe a corto plazo."
         />
         <MetricCard
           label="Latentes"
           value={String(stable)}
-          color="#facc15"
+          color="var(--warning-text)"
           tooltip="El perfil es consciente del Trigger pero no actúa todavía: lo tiene en radar, frenado por fricciones o prioridades."
         />
         <MetricCard
           label="Inactivos"
           value={String(drifting)}
-          color="#f87171"
+          color="var(--error-text)"
           tooltip="El perfil pospone el Trigger indefinidamente o lo descarta: el peso gravitacional no es suficiente para moverle."
         />
         <MetricCard
@@ -199,7 +199,7 @@ function SummaryStrip({ challenge }: { challenge: MomentumChallenge }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <span
             className="mono"
-            style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.35)" }}
+            style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(var(--fg),0.35)" }}
           >
             Canales más frecuentes
           </span>
@@ -212,9 +212,9 @@ function SummaryStrip({ challenge }: { challenge: MomentumChallenge }) {
                   fontSize: 11,
                   padding: "3px 10px",
                   borderRadius: "var(--radius-pill)",
-                  background: "rgba(255,255,255,0.07)",
-                  color: "rgba(255,255,255,0.65)",
-                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "rgba(var(--fg),0.07)",
+                  color: "rgba(var(--fg),0.65)",
+                  border: "1px solid rgba(var(--fg),0.1)",
                 }}
               >
                 {ch}
@@ -242,7 +242,7 @@ function MetricCard({
     <div
       data-tooltip={tooltip}
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: "16px 20px",
         display: "flex",
@@ -253,7 +253,7 @@ function MetricCard({
     >
       <span
         className="mono"
-        style={{ fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}
+        style={{ fontSize: 9, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(var(--fg),0.4)" }}
       >
         {label}
       </span>
@@ -265,7 +265,7 @@ function MetricCard({
 }
 
 function ProfileCard({ result }: { result: ProfileMomentumResult }) {
-  const dirColor = DIRECTION_COLOR[result.direction] ?? "rgba(255,255,255,0.6)";
+  const dirColor = DIRECTION_COLOR[result.direction] ?? "rgba(var(--fg),0.6)";
   const initials = result.profile_name
     .split(" ")
     .slice(0, 2)
@@ -276,7 +276,7 @@ function ProfileCard({ result }: { result: ProfileMomentumResult }) {
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 24,
         display: "flex",
@@ -306,7 +306,7 @@ function ProfileCard({ result }: { result: ProfileMomentumResult }) {
             {initials}
           </div>
           <span
-            style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: 18, color: "#fff", lineHeight: 1.2 }}
+            style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: 18, color: "var(--text-strong)", lineHeight: 1.2 }}
           >
             {result.profile_name}
           </span>
@@ -319,7 +319,7 @@ function ProfileCard({ result }: { result: ProfileMomentumResult }) {
           />
           <Badge
             label={VELOCITY_LABEL[result.velocity] ?? result.velocity}
-            color="rgba(255,255,255,0.5)"
+            color="rgba(var(--fg),0.5)"
             tooltip={VELOCITY_TOOLTIP[result.velocity]}
           />
         </div>
@@ -329,11 +329,11 @@ function ProfileCard({ result }: { result: ProfileMomentumResult }) {
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         <span
           className="mono"
-          style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}
+          style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(var(--fg),0.4)" }}
         >
           Intensidad
         </span>
-        <div style={{ flex: 1, height: 4, background: "rgba(255,255,255,0.08)", borderRadius: 2, overflow: "hidden" }}>
+        <div style={{ flex: 1, height: 4, background: "rgba(var(--fg),0.08)", borderRadius: 2, overflow: "hidden" }}>
           <div
             style={{ width: `${Math.round(result.intensity * 100)}%`, height: "100%", background: dirColor, borderRadius: 2 }}
           />
@@ -345,7 +345,7 @@ function ProfileCard({ result }: { result: ProfileMomentumResult }) {
 
       {/* Narrativa de intención */}
       <div style={{ borderLeft: `2px solid ${dirColor}44`, paddingLeft: 16 }}>
-        <p style={{ fontSize: 14, lineHeight: 1.7, color: "rgba(255,255,255,0.8)", fontStyle: "italic", margin: 0 }}>
+        <p style={{ fontSize: 14, lineHeight: 1.7, color: "rgba(var(--fg),0.8)", fontStyle: "italic", margin: 0 }}>
           «{result.intent_narrative}»
         </p>
       </div>
@@ -355,7 +355,7 @@ function ProfileCard({ result }: { result: ProfileMomentumResult }) {
         <Section label="Primeros pasos">
           <ol style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 6 }}>
             {result.first_steps.map((step, i) => (
-              <li key={i} style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>
+              <li key={i} style={{ fontSize: 13, color: "rgba(var(--fg),0.72)", lineHeight: 1.5 }}>
                 {step}
               </li>
             ))}
@@ -376,9 +376,9 @@ function ProfileCard({ result }: { result: ProfileMomentumResult }) {
                   letterSpacing: "0.1em",
                   padding: "3px 10px",
                   borderRadius: "var(--radius-pill)",
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.6)",
+                  background: "rgba(var(--fg),0.06)",
+                  border: "1px solid rgba(var(--fg),0.1)",
+                  color: "rgba(var(--fg),0.6)",
                 }}
               >
                 {ch}
@@ -393,7 +393,7 @@ function ProfileCard({ result }: { result: ProfileMomentumResult }) {
         <Section label="Barreras y fricciones">
           <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 }}>
             {result.barriers.map((b, i) => (
-              <li key={i} style={{ fontSize: 13, color: "#f87171", lineHeight: 1.5 }}>
+              <li key={i} style={{ fontSize: 13, color: "var(--error-text)", lineHeight: 1.5 }}>
                 {b}
               </li>
             ))}
@@ -404,7 +404,7 @@ function ProfileCard({ result }: { result: ProfileMomentumResult }) {
       {/* JTBD expresado */}
       {result.jtbd_expressed && (
         <Section label="JTBD en sus palabras">
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: 0, fontStyle: "italic" }}>
+          <p style={{ fontSize: 13, color: "rgba(var(--fg),0.55)", lineHeight: 1.6, margin: 0, fontStyle: "italic" }}>
             {result.jtbd_expressed}
           </p>
         </Section>
@@ -418,7 +418,7 @@ function Section({ label, children }: { label: string; children: React.ReactNode
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <span
         className="mono"
-        style={{ fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}
+        style={{ fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: "rgba(var(--fg),0.4)" }}
       >
         {label}
       </span>

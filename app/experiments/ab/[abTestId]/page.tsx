@@ -153,10 +153,10 @@ function VariantBlock({
   return (
     <div
       style={{
-        border: `1px solid ${winner ? "var(--accent-500)" : "rgba(255,255,255,0.08)"}`,
+        border: `1px solid ${winner ? "var(--accent-500)" : "rgba(var(--fg),0.08)"}`,
         borderRadius: "var(--radius-md)",
         padding: "28px 32px",
-        background: winner ? "rgba(250,204,13,0.06)" : "rgba(255,255,255,0.02)",
+        background: winner ? "rgba(250,204,13,0.06)" : "rgba(var(--fg),0.02)",
         display: "flex",
         flexDirection: "column",
         gap: 18,
@@ -169,7 +169,7 @@ function VariantBlock({
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           Variante {variant}
@@ -181,10 +181,10 @@ function VariantBlock({
               fontSize: 10,
               letterSpacing: "0.2em",
               textTransform: "uppercase",
-              color: "var(--accent-500)",
+              color: "var(--accent-text)",
             }}
           >
-            ★ Ganadora
+            Ganadora
           </span>
         )}
       </div>
@@ -194,14 +194,14 @@ function VariantBlock({
             fontFamily: "var(--font-display)",
             fontStyle: "italic",
             fontSize: 26,
-            color: "#fff",
+            color: "var(--text-strong)",
             margin: 0,
             lineHeight: 1.15,
           }}
         >
           {name}
         </h3>
-        <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, margin: 0, lineHeight: 1.55 }}>
+        <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 14, margin: 0, lineHeight: 1.55 }}>
           {promise}
         </p>
       </div>
@@ -211,7 +211,7 @@ function VariantBlock({
           gap: 28,
           paddingTop: 6,
           paddingBottom: 4,
-          borderTop: "1px solid rgba(255,255,255,0.06)",
+          borderTop: "1px solid rgba(var(--fg),0.06)",
           marginTop: 4,
         }}
       >
@@ -226,7 +226,7 @@ function VariantBlock({
           fontSize: 11,
           letterSpacing: "0.18em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
           marginTop: 4,
         }}
       >
@@ -245,7 +245,7 @@ function Metric({ label, value }: { label: string; value: string }) {
           fontSize: 9,
           letterSpacing: "0.24em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.5)",
+          color: "rgba(var(--fg),0.5)",
         }}
       >
         {label}
@@ -253,7 +253,7 @@ function Metric({ label, value }: { label: string; value: string }) {
       <span
         style={{
           fontSize: 26,
-          color: "#fff",
+          color: "var(--text-strong)",
           fontFamily: "var(--font-display)",
           fontStyle: "italic",
           lineHeight: 1,
@@ -287,7 +287,7 @@ function DeltaBar({
           fontSize: 11,
           letterSpacing: "0.28em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
           margin: 0,
         }}
       >
@@ -302,11 +302,11 @@ function DeltaBar({
 function Bar({ label, value, max }: { label: string; value: number; max: number }) {
   return (
     <div style={{ display: "grid", gridTemplateColumns: "200px 1fr 50px", gap: 12, alignItems: "center" }}>
-      <span style={{ color: "rgba(255,255,255,0.8)", fontSize: 13 }}>{label}</span>
+      <span style={{ color: "rgba(var(--fg),0.8)", fontSize: 13 }}>{label}</span>
       <div
         style={{
           height: 10,
-          background: "rgba(255,255,255,0.06)",
+          background: "rgba(var(--fg),0.06)",
           borderRadius: 999,
           overflow: "hidden",
         }}
@@ -319,7 +319,7 @@ function Bar({ label, value, max }: { label: string; value: number; max: number 
           }}
         />
       </div>
-      <span className="mono" style={{ color: "rgba(255,255,255,0.85)", fontSize: 12 }}>
+      <span className="mono" style={{ color: "rgba(var(--fg),0.85)", fontSize: 12 }}>
         {fmtPct(value)}
       </span>
     </div>

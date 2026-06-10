@@ -63,7 +63,7 @@ export function NewPricingForm() {
               fontSize: 11,
               letterSpacing: "0.24em",
               textTransform: "uppercase",
-              color: "var(--accent-500)",
+              color: "var(--accent-text)",
             }}
           >
             Niveles de precio · {prices.length} / 8
@@ -87,7 +87,7 @@ export function NewPricingForm() {
               gap: 12,
               alignItems: "end",
               padding: 12,
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(var(--fg),0.08)",
               borderRadius: "var(--radius-sm)",
             }}
           >
@@ -124,7 +124,7 @@ export function NewPricingForm() {
             padding: 16,
             border: "1px solid var(--error-500)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.9)",
+            color: "rgba(var(--fg),0.9)",
             background: "rgba(180,35,24,0.12)",
             fontSize: 14,
           }}
@@ -195,7 +195,7 @@ function Label({ children }: { children: React.ReactNode }) {
         fontSize: 10,
         letterSpacing: "0.22em",
         textTransform: "uppercase",
-        color: "rgba(255,255,255,0.55)",
+        color: "rgba(var(--fg),0.55)",
       }}
     >
       {children}
@@ -211,11 +211,11 @@ function Submit() {
   );
 }
 const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(var(--fg),0.03)",
+  border: "1px solid rgba(var(--fg),0.12)",
   borderRadius: "var(--radius-sm)",
   padding: "10px 12px",
-  color: "#fff",
+  color: "var(--text-strong)",
   fontSize: 14,
   outline: "none",
   fontFamily: "var(--font-sans)",

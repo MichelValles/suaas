@@ -4,7 +4,7 @@ type Tone = "accent" | "muted" | "warn";
 
 const COLORS: Record<Tone, string> = {
   accent: "var(--accent-500)",
-  muted: "rgba(255,255,255,0.55)",
+  muted: "rgba(var(--fg),0.55)",
   warn: "var(--error-500)",
 };
 
@@ -47,7 +47,7 @@ export function ResultBar({
             fontSize: 10,
             letterSpacing: "0.22em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
           }}
         >
           {label}
@@ -56,7 +56,7 @@ export function ResultBar({
           className="mono"
           style={{
             fontSize: 12,
-            color: "rgba(255,255,255,0.85)",
+            color: "rgba(var(--fg),0.85)",
           }}
         >
           {pct}%
@@ -67,7 +67,7 @@ export function ResultBar({
         style={{
           height: 6,
           width: "100%",
-          background: "rgba(255,255,255,0.08)",
+          background: "rgba(var(--fg),0.08)",
           borderRadius: 999,
           overflow: "hidden",
         }}
@@ -84,7 +84,7 @@ export function ResultBar({
         <span
           style={{
             fontSize: 12,
-            color: "rgba(255,255,255,0.5)",
+            color: "rgba(var(--fg),0.5)",
             lineHeight: 1.5,
           }}
         >

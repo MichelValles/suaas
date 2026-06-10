@@ -88,7 +88,7 @@ export type FiveSecondSummary = {
 };
 
 // ============================================================
-// 1) probeProfile — vista breve y oclusión, multimodal
+// 1) probeProfile : vista breve y oclusión, multimodal
 // ============================================================
 
 /**
@@ -148,7 +148,7 @@ function buildProbeSystem(profile: Profile): string {
 }
 
 // ============================================================
-// 2) judgeComprehension — LLM-as-judge
+// 2) judgeComprehension : LLM-as-judge
 // ============================================================
 
 export async function judgeComprehension(

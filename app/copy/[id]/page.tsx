@@ -55,10 +55,10 @@ export default async function CopyDeckDetailPage({
           <div
             key={b.id}
             style={{
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(var(--fg),0.08)",
               borderRadius: "var(--radius-md)",
               padding: "26px 28px",
-              background: "rgba(255,255,255,0.02)",
+              background: "rgba(var(--fg),0.02)",
               display: "flex",
               flexDirection: "column",
               gap: 16,
@@ -71,14 +71,14 @@ export default async function CopyDeckDetailPage({
                 fontSize: 10,
                 letterSpacing: "0.24em",
                 textTransform: "uppercase",
-                color: "var(--accent-500)",
+                color: "var(--accent-text)",
               }}
             >
               {b.position} · {b.label}
             </span>
             <p
               style={{
-                color: "rgba(255,255,255,0.85)",
+                color: "rgba(var(--fg),0.85)",
                 fontSize: 15,
                 lineHeight: 1.65,
                 margin: 0,

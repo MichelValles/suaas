@@ -45,7 +45,7 @@ export function GeoRunButton({ geoId }: { geoId: string }) {
         <span
           style={{
             fontSize: 12,
-            color: "#f87171",
+            color: "var(--error-text)",
             maxWidth: 300,
             lineHeight: 1.4,
           }}

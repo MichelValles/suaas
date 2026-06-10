@@ -13,10 +13,10 @@ const STATUS_LABEL: Record<string, string> = {
   error: "Error",
 };
 const STATUS_COLOR: Record<string, string> = {
-  pending: "rgba(255,255,255,0.45)",
-  running: "#facc15",
-  done: "#4ade80",
-  error: "#f87171",
+  pending: "rgba(var(--fg),0.45)",
+  running: "var(--warning-text)",
+  done: "var(--success-text)",
+  error: "var(--error-text)",
 };
 const MONTHS = ["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
 
@@ -63,13 +63,13 @@ export function GeoList({ analyses }: { analyses: GeoAnalysis[] }) {
             display: "flex",
             alignItems: "center",
             gap: 10,
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(var(--fg),0.04)",
+            border: "1px solid rgba(var(--fg),0.1)",
             borderRadius: "var(--radius-pill)",
             padding: "8px 16px",
           }}
         >
-          <Search size={14} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
+          <Search size={14} style={{ color: "rgba(var(--fg),0.35)", flexShrink: 0 }} />
           <input
             type="text"
             value={query}
@@ -79,7 +79,7 @@ export function GeoList({ analyses }: { analyses: GeoAnalysis[] }) {
               background: "transparent",
               border: "none",
               outline: "none",
-              color: "#fff",
+              color: "var(--text-strong)",
               fontSize: 13,
               fontFamily: "var(--font-sans)",
               flex: 1,
@@ -90,7 +90,7 @@ export function GeoList({ analyses }: { analyses: GeoAnalysis[] }) {
             className="mono"
             style={{
               fontSize: 10,
-              color: "rgba(255,255,255,0.35)",
+              color: "rgba(var(--fg),0.35)",
               letterSpacing: "0.12em",
               flexShrink: 0,
             }}
@@ -104,7 +104,7 @@ export function GeoList({ analyses }: { analyses: GeoAnalysis[] }) {
             className="mono"
             style={{
               fontSize: 10,
-              color: "rgba(255,255,255,0.4)",
+              color: "rgba(var(--fg),0.4)",
               letterSpacing: "0.18em",
               textTransform: "uppercase",
             }}
@@ -115,16 +115,15 @@ export function GeoList({ analyses }: { analyses: GeoAnalysis[] }) {
             value={order}
             onChange={(e) => setOrder(e.target.value)}
             style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(var(--fg),0.04)",
+              border: "1px solid rgba(var(--fg),0.1)",
               borderRadius: "var(--radius-pill)",
-              color: "rgba(255,255,255,0.8)",
+              color: "rgba(var(--fg),0.8)",
               fontSize: 12,
               fontFamily: "var(--font-sans)",
               padding: "7px 14px",
               outline: "none",
               cursor: "pointer",
-              colorScheme: "dark",
             }}
           >
             {ORDERS.map((o) => (
@@ -141,9 +140,9 @@ export function GeoList({ analyses }: { analyses: GeoAnalysis[] }) {
         <div
           style={{
             padding: "48px 32px",
-            border: "1px dashed rgba(255,255,255,0.12)",
+            border: "1px dashed rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.5)",
+            color: "rgba(var(--fg),0.5)",
             textAlign: "center",
             fontSize: 14,
             lineHeight: 1.6,
@@ -158,9 +157,9 @@ export function GeoList({ analyses }: { analyses: GeoAnalysis[] }) {
         <div
           style={{
             padding: "32px",
-            border: "1px dashed rgba(255,255,255,0.1)",
+            border: "1px dashed rgba(var(--fg),0.1)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(var(--fg),0.4)",
             textAlign: "center",
             fontSize: 14,
           }}
@@ -185,7 +184,7 @@ export function GeoList({ analyses }: { analyses: GeoAnalysis[] }) {
 }
 
 function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
-  const color = STATUS_COLOR[analysis.status] ?? "rgba(255,255,255,0.45)";
+  const color = STATUS_COLOR[analysis.status] ?? "rgba(var(--fg),0.45)";
   const segCount = analysis.segments?.length ?? 0;
   const doneCount =
     analysis.results?.filter((r) => r.brand_mentioned !== undefined).length ?? 0;
@@ -216,7 +215,7 @@ function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span
           className="mono"
-          style={{ fontSize: 10, letterSpacing: "0.16em", color: "rgba(255,255,255,0.35)" }}
+          style={{ fontSize: 10, letterSpacing: "0.16em", color: "rgba(var(--fg),0.35)" }}
         >
           {formatDate(analysis.created_at)}
         </span>
@@ -237,9 +236,9 @@ function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
             }}
             style={{
               background: "transparent",
-              border: "1px solid rgba(255,255,255,0.1)",
+              border: "1px solid rgba(var(--fg),0.1)",
               borderRadius: "var(--radius-sm)",
-              color: "rgba(255,255,255,0.3)",
+              color: "rgba(var(--fg),0.3)",
               padding: "4px 7px",
               cursor: "pointer",
               display: "flex",
@@ -248,12 +247,12 @@ function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
               transition: "color var(--dur-micro), border-color var(--dur-micro)",
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = "#f87171";
+              (e.currentTarget as HTMLButtonElement).style.color = "var(--error-text)";
               (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(248,113,113,0.35)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.3)";
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.1)";
+              (e.currentTarget as HTMLButtonElement).style.color = "rgba(var(--fg),0.3)";
+              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(var(--fg),0.1)";
             }}
           >
             <Trash2 size={13} />
@@ -269,7 +268,7 @@ function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
               fontFamily: "var(--font-display)",
               fontStyle: "italic",
               fontSize: 18,
-              color: "#fff",
+              color: "var(--text-strong)",
               lineHeight: 1.25,
             }}
           >
@@ -278,7 +277,7 @@ function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
           <span
             style={{
               fontSize: 13,
-              color: "rgba(255,255,255,0.5)",
+              color: "rgba(var(--fg),0.5)",
               lineHeight: 1.55,
             }}
           >
@@ -293,7 +292,7 @@ function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
           display: "flex",
           gap: 20,
           paddingTop: 12,
-          borderTop: "1px solid rgba(255,255,255,0.06)",
+          borderTop: "1px solid rgba(var(--fg),0.06)",
         }}
       >
         <Stat label="Segmentos" value={String(segCount)} />
@@ -301,7 +300,7 @@ function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
           <Stat label="Visibilidad" value={`${visAvg}%`} color={color} />
         )}
         {analysis.status === "running" && (
-          <Stat label="Analizados" value={`${doneCount}/${segCount}`} color="#facc15" />
+          <Stat label="Analizados" value={`${doneCount}/${segCount}`} color="var(--warning-text)" />
         )}
         <Stat
           label="Estado"
@@ -330,12 +329,12 @@ function Stat({
           fontSize: 9,
           letterSpacing: "0.2em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.35)",
+          color: "rgba(var(--fg),0.35)",
         }}
       >
         {label}
       </span>
-      <span style={{ fontSize: 14, color: color ?? "rgba(255,255,255,0.85)", fontWeight: 500 }}>
+      <span style={{ fontSize: 14, color: color ?? "rgba(var(--fg),0.85)", fontWeight: 500 }}>
         {value}
       </span>
     </div>

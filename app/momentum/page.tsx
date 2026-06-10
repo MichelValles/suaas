@@ -24,7 +24,7 @@ export default async function MomentumPage() {
       return (
         <AppShell>
           <PageHeading eyebrow="Momentum" title="Tabla pendiente de migración." />
-          <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 14, margin: 0 }}>
+          <p style={{ color: "rgba(var(--fg),0.6)", fontSize: 14, margin: 0 }}>
             Aplica la migración <code>0016_momentum.sql</code> en Supabase para activar este módulo.
           </p>
         </AppShell>
@@ -33,7 +33,7 @@ export default async function MomentumPage() {
     return (
       <AppShell>
         <PageHeading eyebrow="Momentum" title="Error al cargar los Triggers." />
-        <p style={{ color: "#f87171", fontSize: 14, margin: 0 }}>Error interno.</p>
+        <p style={{ color: "var(--error-text)", fontSize: 14, margin: 0 }}>Error interno.</p>
       </AppShell>
     );
   }

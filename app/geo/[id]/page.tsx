@@ -13,9 +13,9 @@ const POSITION_LABEL: Record<string, string> = {
   absent: "Ausente",
 };
 const POSITION_COLOR: Record<string, string> = {
-  primary: "#4ade80",
-  secondary: "#facc15",
-  absent: "#f87171",
+  primary: "var(--success-text)",
+  secondary: "var(--warning-text)",
+  absent: "var(--error-text)",
 };
 const TONE_LABEL: Record<string, string> = {
   positive: "Positivo",
@@ -89,7 +89,7 @@ export default async function GeoDetailPage({
             border: "1px solid rgba(250,204,21,0.3)",
             borderRadius: "var(--radius-md)",
             background: "rgba(250,204,21,0.06)",
-            color: "#facc15",
+            color: "var(--warning-text)",
             fontSize: 14,
           }}
         >
@@ -104,7 +104,7 @@ export default async function GeoDetailPage({
             border: "1px solid rgba(248,113,113,0.3)",
             borderRadius: "var(--radius-md)",
             background: "rgba(248,113,113,0.06)",
-            color: "#f87171",
+            color: "var(--error-text)",
             fontSize: 14,
           }}
         >
@@ -116,9 +116,9 @@ export default async function GeoDetailPage({
         <div
           style={{
             padding: 48,
-            border: "1px dashed rgba(255,255,255,0.12)",
+            border: "1px dashed rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.5)",
+            color: "rgba(var(--fg),0.5)",
             textAlign: "center",
             fontSize: 14,
             lineHeight: 1.6,
@@ -138,7 +138,7 @@ export default async function GeoDetailPage({
                 fontSize: 11,
                 letterSpacing: "0.28em",
                 textTransform: "uppercase",
-                color: "var(--accent-500)",
+                color: "var(--accent-text)",
                 margin: 0,
               }}
             >
@@ -176,10 +176,10 @@ function SummaryStrip({
       <MetricCard
         label="Visibilidad media"
         value={visAvg !== null ? `${Math.round(visAvg * 100)}%` : "·"}
-        color={visAvg !== null && visAvg >= 0.6 ? "#4ade80" : visAvg !== null && visAvg >= 0.3 ? "#facc15" : "#f87171"}
+        color={visAvg !== null && visAvg >= 0.6 ? "var(--success-text)" : visAvg !== null && visAvg >= 0.3 ? "var(--warning-text)" : "var(--error-text)"}
       />
       <MetricCard label="Segmentos mencionados" value={`${mentioned}/${results.length}`} />
-      <MetricCard label="Posición protagonista" value={`${primary}/${results.length}`} color={primary > 0 ? "#4ade80" : "rgba(255,255,255,0.6)"} />
+      <MetricCard label="Posición protagonista" value={`${primary}/${results.length}`} color={primary > 0 ? "var(--success-text)" : "rgba(var(--fg),0.6)"} />
       <MetricCard label="Segmentos analizados" value={String(results.length)} />
     </div>
   );
@@ -197,7 +197,7 @@ function MetricCard({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 20,
         display: "flex",
@@ -211,7 +211,7 @@ function MetricCard({
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.5)",
+          color: "rgba(var(--fg),0.5)",
         }}
       >
         {label}
@@ -239,7 +239,7 @@ function EngineTabBar() {
     <div
       style={{
         display: "flex",
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        borderBottom: "1px solid rgba(var(--fg),0.08)",
         overflowX: "auto",
         scrollbarWidth: "none",
       }}
@@ -253,7 +253,7 @@ function EngineTabBar() {
             letterSpacing: "0.14em",
             textTransform: "uppercase",
             padding: "9px 14px",
-            color: engine.active ? "#fff" : "rgba(255,255,255,0.22)",
+            color: engine.active ? "#fff" : "rgba(var(--fg),0.22)",
             borderBottom: engine.active
               ? "2px solid var(--accent-500)"
               : "2px solid transparent",
@@ -278,12 +278,12 @@ function SegmentCard({
   result: SegmentResult;
   segment: SegmentInput;
 }) {
-  const posColor = POSITION_COLOR[result.brand_position] ?? "rgba(255,255,255,0.6)";
+  const posColor = POSITION_COLOR[result.brand_position] ?? "rgba(var(--fg),0.6)";
 
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 24,
         display: "flex",
@@ -298,7 +298,7 @@ function SegmentCard({
             fontFamily: "var(--font-display)",
             fontStyle: "italic",
             fontSize: 18,
-            color: "#fff",
+            color: "var(--text-strong)",
             lineHeight: 1.2,
           }}
         >
@@ -313,7 +313,7 @@ function SegmentCard({
           {result.recommendation_tone !== "absent" && (
             <Badge
               label={TONE_LABEL[result.recommendation_tone] ?? result.recommendation_tone}
-              color="rgba(255,255,255,0.5)"
+              color="rgba(var(--fg),0.5)"
               tooltip={TONE_TOOLTIP[result.recommendation_tone]}
             />
           )}
@@ -323,8 +323,8 @@ function SegmentCard({
       {/* Parámetros del segmento */}
       <div
         style={{
-          background: "rgba(255,255,255,0.025)",
-          border: "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(var(--fg),0.025)",
+          border: "1px solid rgba(var(--fg),0.07)",
           borderRadius: "var(--radius-sm)",
           padding: "12px 16px",
           display: "flex",
@@ -340,7 +340,7 @@ function SegmentCard({
       {/* Respuesta por motor de busqueda IA */}
       <div
         style={{
-          border: "1px solid rgba(255,255,255,0.08)",
+          border: "1px solid rgba(var(--fg),0.08)",
           borderRadius: "var(--radius-sm)",
         }}
       >
@@ -350,9 +350,9 @@ function SegmentCard({
             padding: 16,
             fontSize: 14,
             lineHeight: 1.6,
-            color: "rgba(255,255,255,0.8)",
+            color: "rgba(var(--fg),0.8)",
             fontStyle: "italic",
-            background: "rgba(255,255,255,0.015)",
+            background: "rgba(var(--fg),0.015)",
             borderBottomLeftRadius: "var(--radius-sm)",
             borderBottomRightRadius: "var(--radius-sm)",
           }}
@@ -369,7 +369,7 @@ function SegmentCard({
             fontSize: 9,
             letterSpacing: "0.2em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(var(--fg),0.4)",
           }}
         >
           Visibilidad
@@ -378,7 +378,7 @@ function SegmentCard({
           style={{
             flex: 1,
             height: 4,
-            background: "rgba(255,255,255,0.08)",
+            background: "rgba(var(--fg),0.08)",
             borderRadius: 2,
             overflow: "hidden",
           }}
@@ -401,7 +401,7 @@ function SegmentCard({
         <Detail label="Lo que dice el buscador sobre la marca">
           <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 }}>
             {result.key_claims.map((c, i) => (
-              <li key={i} style={{ fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.5 }}>
+              <li key={i} style={{ fontSize: 13, color: "rgba(var(--fg),0.75)", lineHeight: 1.5 }}>
                 {c}
               </li>
             ))}
@@ -413,7 +413,7 @@ function SegmentCard({
         <Detail label="Huecos detectados (atributos ausentes)">
           <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 }}>
             {result.missing_attributes.map((a, i) => (
-              <li key={i} style={{ fontSize: 13, color: "#f87171", lineHeight: 1.5 }}>
+              <li key={i} style={{ fontSize: 13, color: "var(--error-text)", lineHeight: 1.5 }}>
                 {a}
               </li>
             ))}
@@ -433,7 +433,7 @@ function ParamRow({ label, value }: { label: string; value: string }) {
           fontSize: 9,
           letterSpacing: "0.2em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.35)",
+          color: "rgba(var(--fg),0.35)",
           minWidth: 60,
           flexShrink: 0,
           paddingTop: 2,
@@ -441,7 +441,7 @@ function ParamRow({ label, value }: { label: string; value: string }) {
       >
         {label}
       </span>
-      <span style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>
+      <span style={{ fontSize: 13, color: "rgba(var(--fg),0.72)", lineHeight: 1.5 }}>
         {value}
       </span>
     </div>
@@ -487,7 +487,7 @@ function Detail({ label, children }: { label: string; children: React.ReactNode 
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.45)",
+          color: "rgba(var(--fg),0.45)",
         }}
       >
         {label}

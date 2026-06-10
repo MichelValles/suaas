@@ -72,9 +72,9 @@ export function SendToTrashButton({
         width: size,
         height: size,
         background: "rgba(10,11,13,0.72)",
-        border: "1px solid rgba(255,255,255,0.12)",
+        border: "1px solid rgba(var(--fg),0.12)",
         borderRadius: "var(--radius-sm)",
-        color: "rgba(255,255,255,0.7)",
+        color: "rgba(var(--fg),0.7)",
         cursor: busy || pending ? "wait" : "pointer",
         backdropFilter: "blur(6px)",
         transition:
@@ -85,8 +85,8 @@ export function SendToTrashButton({
         e.currentTarget.style.borderColor = "var(--error-500)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.color = "rgba(255,255,255,0.7)";
-        e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
+        e.currentTarget.style.color = "rgba(var(--fg),0.7)";
+        e.currentTarget.style.borderColor = "rgba(var(--fg),0.12)";
       }}
     >
       <Trash2 size={14} />

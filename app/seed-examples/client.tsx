@@ -83,9 +83,9 @@ export function SeedExamplesClient() {
       <div
         style={{
           padding: 20,
-          border: "1px solid rgba(255,255,255,0.08)",
+          border: "1px solid rgba(var(--fg),0.08)",
           borderRadius: "var(--radius-md)",
-          background: "rgba(255,255,255,0.02)",
+          background: "rgba(var(--fg),0.02)",
           display: "flex",
           flexDirection: "column",
           gap: 16,
@@ -98,7 +98,7 @@ export function SeedExamplesClient() {
               fontSize: 10,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(var(--fg),0.55)",
             }}
           >
             Brief (opcional): los ejemplos se generan con IA a medida
@@ -111,16 +111,15 @@ export function SeedExamplesClient() {
             rows={3}
             placeholder="Ej: una marca de zapatillas sostenibles para corredores urbanos en España. Vacío = ejemplos de muestra predefinidos."
             style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(var(--fg),0.03)",
+              border: "1px solid rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-sm)",
               padding: "10px 12px",
-              color: "#fff",
+              color: "var(--text-strong)",
               fontSize: 14,
               lineHeight: 1.5,
               outline: "none",
               fontFamily: "var(--font-sans)",
-              colorScheme: "dark",
               resize: "vertical",
             }}
           />
@@ -140,7 +139,7 @@ export function SeedExamplesClient() {
               fontSize: 10,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(var(--fg),0.55)",
             }}
           >
             Perfiles aleatorios por run (0 = solo crear sin lanzar)
@@ -159,15 +158,14 @@ export function SeedExamplesClient() {
             inputMode="numeric"
             pattern="[0-9]*"
             style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              background: "rgba(var(--fg),0.03)",
+              border: "1px solid rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-sm)",
               padding: "10px 12px",
-              color: "#fff",
+              color: "var(--text-strong)",
               fontSize: 14,
               outline: "none",
               fontFamily: "var(--font-sans)",
-              colorScheme: "dark",
               maxWidth: 160,
             }}
           />
@@ -290,7 +288,7 @@ export function SeedExamplesClient() {
             padding: 16,
             border: "1px solid var(--error-500)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.9)",
+            color: "rgba(var(--fg),0.9)",
             background: "rgba(180,35,24,0.12)",
             fontSize: 14,
           }}
@@ -326,9 +324,9 @@ function Recipe({
     <div
       style={{
         padding: 16,
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         display: "flex",
         flexDirection: "column",
         gap: 10,
@@ -341,14 +339,14 @@ function Recipe({
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
         }}
       >
         {title}
       </span>
       <p
         style={{
-          color: "rgba(255,255,255,0.7)",
+          color: "rgba(var(--fg),0.7)",
           fontSize: 13,
           lineHeight: 1.5,
           margin: 0,
@@ -385,7 +383,7 @@ function ResultsBlock({ data }: { data: Response }) {
           fontSize: 11,
           letterSpacing: "0.28em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
           margin: 0,
         }}
       >
@@ -406,9 +404,9 @@ function ResultsBlock({ data }: { data: Response }) {
             key={i}
             style={{
               padding: 14,
-              border: `1px solid ${r.ok ? "rgba(255,255,255,0.08)" : "var(--error-500)"}`,
+              border: `1px solid ${r.ok ? "rgba(var(--fg),0.08)" : "var(--error-500)"}`,
               borderRadius: "var(--radius-md)",
-              background: r.ok ? "rgba(255,255,255,0.02)" : "rgba(180,35,24,0.06)",
+              background: r.ok ? "rgba(var(--fg),0.02)" : "rgba(180,35,24,0.06)",
               display: "flex",
               alignItems: "flex-start",
               gap: 12,
@@ -429,7 +427,7 @@ function ResultsBlock({ data }: { data: Response }) {
                   fontSize: 11,
                   letterSpacing: "0.18em",
                   textTransform: "uppercase",
-                  color: "rgba(255,255,255,0.7)",
+                  color: "rgba(var(--fg),0.7)",
                 }}
               >
                 {r.kind}
@@ -496,7 +494,7 @@ function ResultLinks({ row }: { row: ResultRow }) {
             fontSize: 11,
             letterSpacing: "0.16em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             textDecoration: "underline",
             textUnderlineOffset: 3,
           }}

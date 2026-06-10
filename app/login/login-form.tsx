@@ -61,7 +61,7 @@ export function LoginForm() {
   }
 
   return (
-    <main style={S.main}>
+    <main className="theme-dark-fixed" style={S.main}>
       {/* Rejilla estática (sistema de coordenadas) */}
       <div
         aria-hidden

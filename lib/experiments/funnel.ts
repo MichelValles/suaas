@@ -94,7 +94,7 @@ export type FunnelRunSummary = {
 };
 
 // ============================================================
-// 1) probeFunnelStep — Reasoner multimodal por paso
+// 1) probeFunnelStep : Reasoner multimodal por paso
 // ============================================================
 
 export async function probeFunnelStep(

@@ -130,7 +130,7 @@ export default async function DiagPage() {
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             margin: 0,
           }}
         >
@@ -145,11 +145,11 @@ export default async function DiagPage() {
                 width: "100%",
                 borderCollapse: "collapse",
                 fontSize: 13,
-                color: "rgba(255,255,255,0.85)",
+                color: "rgba(var(--fg),0.85)",
               }}
             >
               <thead>
-                <tr style={{ textAlign: "left", color: "rgba(255,255,255,0.55)" }}>
+                <tr style={{ textAlign: "left", color: "rgba(var(--fg),0.55)" }}>
                   <Th>Tabla</Th>
                   <Th>Estado</Th>
                   <Th>Filas</Th>
@@ -160,7 +160,7 @@ export default async function DiagPage() {
                 {results.map((r) => (
                   <tr
                     key={r.table}
-                    style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+                    style={{ borderTop: "1px solid rgba(var(--fg),0.06)" }}
                   >
                     <Td>
                       <span className="mono" style={{ fontSize: 12 }}>
@@ -179,7 +179,7 @@ export default async function DiagPage() {
                     <Td>
                       <span
                         style={{
-                          color: "rgba(255,255,255,0.55)",
+                          color: "rgba(var(--fg),0.55)",
                           fontSize: 12,
                         }}
                       >
@@ -202,7 +202,7 @@ export default async function DiagPage() {
               fontSize: 11,
               letterSpacing: "0.28em",
               textTransform: "uppercase",
-              color: "var(--accent-500)",
+              color: "var(--accent-text)",
               margin: 0,
             }}
           >
@@ -228,9 +228,9 @@ export default async function DiagPage() {
                 key={c.name}
                 style={{
                   padding: "10px 12px",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(var(--fg),0.08)",
                   borderRadius: "var(--radius-sm)",
-                  background: "rgba(255,255,255,0.02)",
+                  background: "rgba(var(--fg),0.02)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
@@ -256,19 +256,19 @@ export default async function DiagPage() {
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             margin: 0,
           }}
         >
           Endpoint JSON
         </h2>
-        <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, lineHeight: 1.55, margin: 0 }}>
+        <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 13, lineHeight: 1.55, margin: 0 }}>
           La misma información en bruto está disponible en{" "}
           <a
             href="/api/diag"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "var(--accent-500)" }}
+            style={{ color: "var(--accent-text)" }}
           >
             /api/diag
           </a>
@@ -294,18 +294,18 @@ function StatusBlock({
       : tone === "warn"
         ? "var(--warning-500)"
         : tone === "off"
-          ? "rgba(255,255,255,0.4)"
+          ? "rgba(var(--fg),0.4)"
           : "var(--accent-500)";
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 20,
         display: "flex",
         flexDirection: "column",
         gap: 8,
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
       }}
     >
       <span
@@ -314,7 +314,7 @@ function StatusBlock({
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {label}
@@ -348,8 +348,8 @@ function Notice({
         padding: 16,
         border: `1px solid ${color}`,
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
-        color: "rgba(255,255,255,0.85)",
+        background: "rgba(var(--fg),0.02)",
+        color: "rgba(var(--fg),0.85)",
         lineHeight: 1.6,
         fontSize: 14,
       }}

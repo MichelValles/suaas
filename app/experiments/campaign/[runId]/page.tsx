@@ -160,15 +160,15 @@ export default async function CampaignRunPage({
                 className="mono"
                 style={{
                   padding: "6px 12px",
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(var(--fg),0.12)",
                   borderRadius: "var(--radius-pill)",
                   fontSize: 12,
                   letterSpacing: "0.06em",
-                  color: "rgba(255,255,255,0.85)",
-                  background: "rgba(255,255,255,0.03)",
+                  color: "rgba(var(--fg),0.85)",
+                  background: "rgba(var(--fg),0.03)",
                 }}
               >
-                {b.label} <span style={{ color: "var(--accent-500)" }}>· {b.count}</span>
+                {b.label} <span style={{ color: "var(--accent-text)" }}>· {b.count}</span>
               </li>
             ))}
           </ul>
@@ -180,7 +180,7 @@ export default async function CampaignRunPage({
         <SectionLabel>Como yo lo veo · versiones ideales propuestas</SectionLabel>
         <p
           style={{
-            color: "rgba(255,255,255,0.65)",
+            color: "rgba(var(--fg),0.65)",
             fontSize: 13,
             lineHeight: 1.6,
             margin: 0,
@@ -234,14 +234,14 @@ export default async function CampaignRunPage({
 
 function ChannelRow({ c }: { c: CampaignByChannel }) {
   return (
-    <tr style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+    <tr style={{ borderTop: "1px solid rgba(var(--fg),0.06)" }}>
       <Td>
         <span
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: 8,
-            color: "rgba(255,255,255,0.9)",
+            color: "rgba(var(--fg),0.9)",
             fontSize: 13,
           }}
         >
@@ -257,7 +257,7 @@ function ChannelRow({ c }: { c: CampaignByChannel }) {
       <Td>{fmtPct(c.mean_differentiation)}</Td>
       <Td>{fmtPct(c.mean_landing_match)}</Td>
       <Td>
-        <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
+        <span style={{ color: "rgba(var(--fg),0.7)", fontSize: 12 }}>
           {c.top_barriers.map((b) => b.label).slice(0, 3).join(", ") || "·"}
         </span>
       </Td>
@@ -267,7 +267,7 @@ function ChannelRow({ c }: { c: CampaignByChannel }) {
 
 function QueryRow({ q }: { q: CampaignByQuery }) {
   return (
-    <tr style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+    <tr style={{ borderTop: "1px solid rgba(var(--fg),0.06)" }}>
       <Td>
         <span className="mono" style={{ fontSize: 12 }}>
           {q.query}
@@ -281,7 +281,7 @@ function QueryRow({ q }: { q: CampaignByQuery }) {
       <Td>{fmtPct(q.mean_differentiation)}</Td>
       <Td>{fmtPct(q.mean_landing_match)}</Td>
       <Td>
-        <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
+        <span style={{ color: "rgba(var(--fg),0.7)", fontSize: 12 }}>
           {q.top_barriers.map((b) => b.label).slice(0, 3).join(", ") || "·"}
         </span>
       </Td>
@@ -299,10 +299,10 @@ function IdealCard({
   return (
     <article
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: "18px 20px",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         display: "flex",
         flexDirection: "column",
         gap: 10,
@@ -320,10 +320,10 @@ function IdealCard({
         <Link
           href={`/profiles/${resp.profileId}`}
           style={{
-            color: "#fff",
+            color: "var(--text-strong)",
             fontSize: 14,
             textDecoration: "none",
-            borderBottom: "1px dotted rgba(255,255,255,0.25)",
+            borderBottom: "1px dotted rgba(var(--fg),0.25)",
           }}
         >
           {profile?.name ?? resp.profileId.slice(0, 8)}
@@ -333,7 +333,7 @@ function IdealCard({
           style={{
             fontSize: 10,
             letterSpacing: "0.18em",
-            color: "rgba(255,255,255,0.6)",
+            color: "rgba(var(--fg),0.6)",
           }}
         >
           intent {fmtPct(resp.intent_to_click)}
@@ -348,7 +348,7 @@ function IdealCard({
             gap: 5,
             fontSize: 10,
             letterSpacing: "0.18em",
-            color: "rgba(255,255,255,0.7)",
+            color: "rgba(var(--fg),0.7)",
           }}
         >
           <ChannelIcon channel={resp.channel} size={12} />
@@ -359,7 +359,7 @@ function IdealCard({
           style={{
             fontSize: 10,
             letterSpacing: "0.18em",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           · {resp.query}
@@ -378,7 +378,7 @@ function IdealCard({
         </p>
         <p
           style={{
-            color: "rgba(255,255,255,0.78)",
+            color: "rgba(var(--fg),0.78)",
             fontSize: 13,
             margin: 0,
             lineHeight: 1.5,
@@ -389,7 +389,7 @@ function IdealCard({
       </div>
       <p
         style={{
-          color: "rgba(255,255,255,0.6)",
+          color: "rgba(var(--fg),0.6)",
           fontSize: 12,
           margin: 0,
           lineHeight: 1.5,
@@ -401,7 +401,7 @@ function IdealCard({
       {resp.ideal_free_text && (
         <p
           style={{
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
             fontSize: 12,
             margin: 0,
             lineHeight: 1.5,
@@ -424,9 +424,9 @@ function ProfileBlock({
   return (
     <details
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         padding: "18px 20px",
       }}
     >
@@ -444,10 +444,10 @@ function ProfileBlock({
         <Link
           href={`/profiles/${profile.id}`}
           style={{
-            color: "#fff",
+            color: "var(--text-strong)",
             fontSize: 14,
             textDecoration: "none",
-            borderBottom: "1px dotted rgba(255,255,255,0.25)",
+            borderBottom: "1px dotted rgba(var(--fg),0.25)",
           }}
         >
           {profile.name}
@@ -457,7 +457,7 @@ function ProfileBlock({
           style={{
             fontSize: 10,
             letterSpacing: "0.18em",
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
           }}
         >
           {responses.length} respuesta{responses.length === 1 ? "" : "s"}
@@ -479,7 +479,7 @@ function ProfileBlock({
             style={{
               padding: "14px 16px",
               borderRadius: "var(--radius-sm)",
-              background: "rgba(255,255,255,0.03)",
+              background: "rgba(var(--fg),0.03)",
               display: "flex",
               flexDirection: "column",
               gap: 8,
@@ -501,48 +501,48 @@ function ProfileBlock({
                   gap: 6,
                   fontSize: 11,
                   letterSpacing: "0.18em",
-                  color: "var(--accent-500)",
+                  color: "var(--accent-text)",
                 }}
               >
                 <ChannelIcon channel={r.channel} size={12} />
                 {CHANNEL_LABEL[r.channel].split(" ")[0]} · {r.query}
               </span>
-              <span className="mono" style={{ fontSize: 10, color: "rgba(255,255,255,0.55)" }}>
+              <span className="mono" style={{ fontSize: 10, color: "rgba(var(--fg),0.55)" }}>
                 intent {fmtPct(r.intent_to_click)} · claridad {fmtPct(r.clarity)} · credibilidad {fmtPct(r.credibility)} · diferenciación {fmtPct(r.differentiation)}
               </span>
             </header>
-            <p style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
+            <p style={{ color: "rgba(var(--fg),0.85)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
               «{r.perceived_offer}»
             </p>
             {r.barriers.length > 0 && (
-              <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
+              <p style={{ color: "rgba(var(--fg),0.6)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
                 Barreras: {r.barriers.join(", ")}
               </p>
             )}
             {r.landing_evaluated && (
-              <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
+              <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
                 Landing match {fmtPct(r.landing_match)}: {r.landing_critique}
               </p>
             )}
             <div
               style={{
-                borderTop: "1px dashed rgba(255,255,255,0.1)",
+                borderTop: "1px dashed rgba(var(--fg),0.1)",
                 paddingTop: 8,
                 display: "flex",
                 flexDirection: "column",
                 gap: 4,
               }}
             >
-              <span className="mono" style={{ fontSize: 10, letterSpacing: "0.2em", color: "rgba(255,255,255,0.55)" }}>
+              <span className="mono" style={{ fontSize: 10, letterSpacing: "0.2em", color: "rgba(var(--fg),0.55)" }}>
                 Como yo lo veo
               </span>
               <p style={{ color: "rgba(132, 192, 255, 0.95)", fontSize: 14, margin: 0, lineHeight: 1.4 }}>
                 {r.ideal_headline}
               </p>
-              <p style={{ color: "rgba(255,255,255,0.78)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
+              <p style={{ color: "rgba(var(--fg),0.78)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
                 {r.ideal_description}
               </p>
-              <p style={{ color: "rgba(255,255,255,0.6)", fontSize: 11, margin: 0, fontStyle: "italic" }}>
+              <p style={{ color: "rgba(var(--fg),0.6)", fontSize: 11, margin: 0, fontStyle: "italic" }}>
                 «{r.ideal_promise}»
               </p>
             </div>
@@ -557,10 +557,10 @@ function KpiCard({ label, value, accent }: { label: string; value: string; accen
   return (
     <div
       style={{
-        border: `1px solid ${accent ? "var(--accent-500)" : "rgba(255,255,255,0.08)"}`,
+        border: `1px solid ${accent ? "var(--accent-500)" : "rgba(var(--fg),0.08)"}`,
         borderRadius: "var(--radius-md)",
         padding: 20,
-        background: accent ? "rgba(250,204,13,0.06)" : "rgba(255,255,255,0.02)",
+        background: accent ? "rgba(250,204,13,0.06)" : "rgba(var(--fg),0.02)",
         display: "flex",
         flexDirection: "column",
         gap: 6,
@@ -572,14 +572,14 @@ function KpiCard({ label, value, accent }: { label: string; value: string; accen
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {label}
       </span>
       <span
         style={{
-          color: "#fff",
+          color: "var(--text-strong)",
           fontSize: 26,
           letterSpacing: "-0.01em",
         }}
@@ -598,7 +598,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
         fontSize: 11,
         letterSpacing: "0.28em",
         textTransform: "uppercase",
-        color: "var(--accent-500)",
+        color: "var(--accent-text)",
         margin: 0,
       }}
     >
@@ -611,7 +611,7 @@ const tableStyle: React.CSSProperties = {
   width: "100%",
   borderCollapse: "collapse",
   fontSize: 13,
-  color: "rgba(255,255,255,0.85)",
+  color: "rgba(var(--fg),0.85)",
 };
 
 function Th({ children }: { children: React.ReactNode }) {
@@ -624,7 +624,7 @@ function Th({ children }: { children: React.ReactNode }) {
         letterSpacing: "0.22em",
         textTransform: "uppercase",
         textAlign: "left",
-        color: "rgba(255,255,255,0.55)",
+        color: "rgba(var(--fg),0.55)",
         fontWeight: 400,
         whiteSpace: "nowrap",
       }}

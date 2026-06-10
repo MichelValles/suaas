@@ -43,7 +43,7 @@ export function FunnelResponsesTable({
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             margin: 0,
           }}
         >
@@ -52,9 +52,9 @@ export function FunnelResponsesTable({
         <div
           style={{
             padding: 16,
-            border: "1px dashed rgba(255,255,255,0.12)",
+            border: "1px dashed rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
             fontSize: 13,
           }}
         >
@@ -72,7 +72,7 @@ export function FunnelResponsesTable({
           fontSize: 11,
           letterSpacing: "0.28em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
           margin: 0,
         }}
       >
@@ -85,11 +85,11 @@ export function FunnelResponsesTable({
             width: "100%",
             borderCollapse: "collapse",
             fontSize: 13,
-            color: "rgba(255,255,255,0.85)",
+            color: "rgba(var(--fg),0.85)",
           }}
         >
           <thead>
-            <tr style={{ textAlign: "left", color: "rgba(255,255,255,0.55)" }}>
+            <tr style={{ textAlign: "left", color: "rgba(var(--fg),0.55)" }}>
               <Th>Perfil</Th>
               {steps.map((s) => (
                 <Th key={s.id}>{`P${s.position}`}</Th>
@@ -105,9 +105,9 @@ export function FunnelResponsesTable({
                   <tr
                     onClick={() => setExpanded(open ? null : row.profileId)}
                     style={{
-                      borderTop: "1px solid rgba(255,255,255,0.06)",
+                      borderTop: "1px solid rgba(var(--fg),0.06)",
                       cursor: "pointer",
-                      background: open ? "rgba(255,255,255,0.03)" : "transparent",
+                      background: open ? "rgba(var(--fg),0.03)" : "transparent",
                     }}
                   >
                     <Td>
@@ -117,9 +117,9 @@ export function FunnelResponsesTable({
                           onClick={(e) => e.stopPropagation()}
                           title={`Ver perfil de ${row.profileName}`}
                           style={{
-                            color: "#fff",
+                            color: "var(--text-strong)",
                             textDecoration: "none",
-                            borderBottom: "1px dotted rgba(255,255,255,0.25)",
+                            borderBottom: "1px dotted rgba(var(--fg),0.25)",
                             alignSelf: "flex-start",
                           }}
                         >
@@ -131,7 +131,7 @@ export function FunnelResponsesTable({
                             fontSize: 10,
                             letterSpacing: "0.16em",
                             textTransform: "uppercase",
-                            color: "rgba(255,255,255,0.45)",
+                            color: "rgba(var(--fg),0.45)",
                           }}
                         >
                           {row.profileDemo}
@@ -164,7 +164,7 @@ export function FunnelResponsesTable({
                     </Td>
                   </tr>
                   {open && (
-                    <tr style={{ background: "rgba(255,255,255,0.02)" }}>
+                    <tr style={{ background: "rgba(var(--fg),0.02)" }}>
                       <td colSpan={steps.length + 2} style={{ padding: 16 }}>
                         <ExpandedDetail steps={row.steps} />
                       </td>
@@ -198,7 +198,7 @@ function StepBadge({
           fontSize: 10,
           letterSpacing: "0.16em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.3)",
+          color: "rgba(var(--fg),0.3)",
         }}
         title={skipped ? "Paso no alcanzado por dropoff previo" : "Sin respuesta"}
       >
@@ -239,7 +239,7 @@ function ExpandedDetail({ steps }: { steps: StepCell[] }) {
             gridTemplateColumns: "120px minmax(0, 1fr)",
             gap: 16,
             padding: 12,
-            borderTop: "1px solid rgba(255,255,255,0.05)",
+            borderTop: "1px solid rgba(var(--fg),0.05)",
           }}
         >
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
@@ -249,12 +249,12 @@ function ExpandedDetail({ steps }: { steps: StepCell[] }) {
                 fontSize: 10,
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.5)",
+                color: "rgba(var(--fg),0.5)",
               }}
             >
               Paso {s.position}
             </span>
-            <span style={{ color: "#fff", fontSize: 13 }}>{s.stepName}</span>
+            <span style={{ color: "var(--text-strong)", fontSize: 13 }}>{s.stepName}</span>
             <span
               className="mono"
               style={{
@@ -279,10 +279,10 @@ function ExpandedDetail({ steps }: { steps: StepCell[] }) {
                       key={i}
                       style={{
                         padding: "2px 10px",
-                        border: "1px solid rgba(255,255,255,0.15)",
+                        border: "1px solid rgba(var(--fg),0.15)",
                         borderRadius: "var(--radius-pill)",
                         fontSize: 11,
-                        color: "rgba(255,255,255,0.75)",
+                        color: "rgba(var(--fg),0.75)",
                       }}
                     >
                       {f}
@@ -307,12 +307,12 @@ function Block({ label, children }: { label: string; children: React.ReactNode }
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.5)",
+          color: "rgba(var(--fg),0.5)",
         }}
       >
         {label}
       </span>
-      <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 13, lineHeight: 1.5 }}>
+      <span style={{ color: "rgba(var(--fg),0.85)", fontSize: 13, lineHeight: 1.5 }}>
         {children}
       </span>
     </div>
@@ -329,7 +329,7 @@ function Stats({ intent, effort }: { intent: number; effort: number }) {
         fontSize: 11,
         letterSpacing: "0.18em",
         textTransform: "uppercase",
-        color: "rgba(255,255,255,0.65)",
+        color: "rgba(var(--fg),0.65)",
       }}
     >
       <span>intent {Math.round(intent * 100)}%</span>

@@ -1,9 +1,15 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-10 tras v0.32.0 (consistencia papelera + seed con brief).
+> Última actualización: 2026-06-10 tras v0.33.0 (capa de temas + limpieza anti-AI-slop).
 
-## Estado actual (v0.32.0 desplegada)
+## Estado actual (v0.33.0 desplegada)
+
+- **Capa de temas (v0.33)**: oscuro por defecto con switch de modo claro al pie del sidebar (`components/theme-switch.tsx`, localStorage `suaas-theme`, script anti-FOUC en `app/layout.tsx`). Canal `--fg` + `--surface-app/panel`, `--text-strong`, `--accent-text` y semánticos `--{success,warning,error}-text` en `globals.css`. Codemod migró 791 `rgba(255,255,255,x)` en 64 archivos. Login y `/onboard` van con `.theme-dark-fixed` (siempre oscuros).
+- **Limpieza anti-AI-slop (v0.33)**: erradicado el arcoíris Tailwind (azul/naranja/violeta de los planos en home y `/gravity`, semáforo verde/amarillo/rojo en GEO/Momentum/chat/5s) y los glows neón. Planos ahora con numeración editorial `01·02·03` en accent y diagrama orbital monocromo con centro accent. Reglas nuevas documentadas en `docs/SISTEMA-DISENO.md → Tema` y `Antipatrones`.
+- **Pendiente anotado**: contraseña de «Conceptos pendientes» (`/gravity`) hardcodeada en cliente; moverla a env en el sprint de seguridad.
+
+## Estado anterior (v0.32.0)
 
 - **Consistencia de funcionalidades menores (v0.32)**: papelera extendida a GEO, Momentum y Perfiles (9 tipos; migración `0017`), seed para los 8 módulos y **seed con brief** (genera el contenido de los ejemplos con IA a medida, `lib/seed-brief.ts`, scope `seed_brief`). Fix del check SQL de descriptions en campañas (`0018`). Endpoints de GEO/Momentum higienizados con `lib/error-response.ts`. Ver `docs/ROADMAP.md → v0.32.0` para los pendientes detectados por la auditoría (edición/duplicado, acoplamiento target↔A/B en papelera, runners síncronos).
 - **Gravity Model (v0.29)** y **Momentum (v0.30)** en producción. Ver `docs/PROYECTO.md → Módulos Gravity Model` para el detalle: `intent_context` (JTBD en perfiles), Intent Momentum en el chat, `behavior_class` en el test 5s, GEO Tester (`/geo`) y Momentum (`/momentum`).

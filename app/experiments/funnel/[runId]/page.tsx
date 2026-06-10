@@ -106,7 +106,7 @@ export default async function FunnelRunPage({
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             margin: 0,
           }}
         >
@@ -129,9 +129,9 @@ export default async function FunnelRunPage({
                   gridTemplateColumns: "minmax(0, 1fr) minmax(260px, 420px)",
                   gap: 24,
                   padding: "22px 26px",
-                  border: "1px solid rgba(255,255,255,0.08)",
+                  border: "1px solid rgba(var(--fg),0.08)",
                   borderRadius: "var(--radius-md)",
-                  background: "rgba(255,255,255,0.02)",
+                  background: "rgba(var(--fg),0.02)",
                   alignItems: "center",
                 }}
               >
@@ -142,13 +142,13 @@ export default async function FunnelRunPage({
                       fontSize: 10,
                       letterSpacing: "0.24em",
                       textTransform: "uppercase",
-                      color: "rgba(255,255,255,0.5)",
+                      color: "rgba(var(--fg),0.5)",
                     }}
                   >
                     Paso {step.position} · {step.reached}/{summary.n} alcanzados
                   </span>
-                  <span style={{ fontSize: 16, color: "#fff", lineHeight: 1.3 }}>{step.name}</span>
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+                  <span style={{ fontSize: 16, color: "var(--text-strong)", lineHeight: 1.3 }}>{step.name}</span>
+                  <span style={{ fontSize: 13, color: "rgba(var(--fg),0.6)", lineHeight: 1.5 }}>
                     {step.continued} continuó · {dropped} abandonó
                     {step.top_friction.length > 0
                       ? ` · fricción: ${step.top_friction.map((f) => f.label).join(", ")}`
@@ -173,7 +173,7 @@ export default async function FunnelRunPage({
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             margin: 0,
           }}
         >
@@ -183,9 +183,9 @@ export default async function FunnelRunPage({
           <div
             style={{
               padding: "28px 24px",
-              border: "1px dashed rgba(255,255,255,0.12)",
+              border: "1px dashed rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-md)",
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(var(--fg),0.55)",
               fontSize: 14,
               lineHeight: 1.55,
             }}
@@ -259,7 +259,7 @@ function FunnelBar({
       <div
         style={{
           height: 14,
-          background: "rgba(255,255,255,0.06)",
+          background: "rgba(var(--fg),0.06)",
           borderRadius: 999,
           overflow: "hidden",
           position: "relative",
@@ -270,7 +270,7 @@ function FunnelBar({
             position: "absolute",
             inset: 0,
             width: `${reachedPct * 100}%`,
-            background: "rgba(255,255,255,0.18)",
+            background: "rgba(var(--fg),0.18)",
           }}
         />
         <div
@@ -290,7 +290,7 @@ function FunnelBar({
           fontSize: 10,
           letterSpacing: "0.18em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         <span>llegó {Math.round(reachedPct * 100)}%</span>
@@ -314,7 +314,7 @@ function SummaryCard({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 20,
         display: "flex",
@@ -328,7 +328,7 @@ function SummaryCard({
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {label}
@@ -336,12 +336,12 @@ function SummaryCard({
       </span>
       <span
         className="display"
-        style={{ fontSize: 36, lineHeight: 1, color: "#fff" }}
+        style={{ fontSize: 36, lineHeight: 1, color: "var(--text-strong)" }}
       >
         {`${Math.round(value * 100)}%`}
       </span>
       {hint && (
-        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.4 }}>
+        <span style={{ fontSize: 12, color: "rgba(var(--fg),0.5)", lineHeight: 1.4 }}>
           {hint}
         </span>
       )}
@@ -353,7 +353,7 @@ function NumberCard({ label, value }: { label: string; value: number }) {
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 20,
         display: "flex",
@@ -367,14 +367,14 @@ function NumberCard({ label, value }: { label: string; value: number }) {
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {label}
       </span>
       <span
         className="display"
-        style={{ fontSize: 36, lineHeight: 1, color: "#fff" }}
+        style={{ fontSize: 36, lineHeight: 1, color: "var(--text-strong)" }}
       >
         {value}
       </span>

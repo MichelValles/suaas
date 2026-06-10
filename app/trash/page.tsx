@@ -69,7 +69,7 @@ export default async function TrashPage() {
               border: "1px solid var(--error-500)",
               borderRadius: "var(--radius-md)",
               background: "rgba(180,35,24,0.12)",
-              color: "rgba(255,255,255,0.9)",
+              color: "rgba(var(--fg),0.9)",
               fontSize: 13,
               lineHeight: 1.5,
             }}
@@ -96,9 +96,9 @@ export default async function TrashPage() {
           <div
             style={{
               padding: 24,
-              border: "1px dashed rgba(255,255,255,0.12)",
+              border: "1px dashed rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-md)",
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(var(--fg),0.55)",
               fontSize: 13,
             }}
           >
@@ -123,7 +123,7 @@ export default async function TrashPage() {
                   fontSize: 11,
                   letterSpacing: "0.28em",
                   textTransform: "uppercase",
-                  color: "var(--accent-500)",
+                  color: "var(--accent-text)",
                   margin: 0,
                 }}
               >
@@ -156,10 +156,10 @@ function SummaryChip({ label, count }: { label: string; count: number }) {
   return (
     <div
       style={{
-        border: `1px solid ${active ? "rgba(255,255,255,0.18)" : "rgba(255,255,255,0.06)"}`,
+        border: `1px solid ${active ? "rgba(var(--fg),0.18)" : "rgba(var(--fg),0.06)"}`,
         borderRadius: "var(--radius-md)",
         padding: "14px 18px",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         display: "flex",
         flexDirection: "column",
         gap: 6,
@@ -171,7 +171,7 @@ function SummaryChip({ label, count }: { label: string; count: number }) {
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.5)",
+          color: "rgba(var(--fg),0.5)",
         }}
       >
         {label}
@@ -180,7 +180,7 @@ function SummaryChip({ label, count }: { label: string; count: number }) {
         className="mono"
         style={{
           fontSize: 22,
-          color: active ? "var(--accent-500)" : "rgba(255,255,255,0.35)",
+          color: active ? "var(--accent-500)" : "rgba(var(--fg),0.35)",
           lineHeight: 1.1,
           fontWeight: 700,
         }}

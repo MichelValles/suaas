@@ -182,6 +182,20 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.33.0 — Capa de temas (dark por defecto + modo claro) y limpieza anti-AI-slop
+
+Lavado de cara alineado con la spec de sd.michelvalles.com (RULES, ANTIPATTERNS, VOICE, PRODUCT-UI). Dos frentes: sistema de temas conmutable y erradicación del slop visual que la spec prohíbe.
+
+- [x] **Capa de temas en `globals.css`**: canal `--fg` (componentes RGB del primer plano) + `--surface-app`, `--surface-panel`, `--text-strong`, `--accent-text` y semánticos de texto (`--success-text`, `--warning-text`, `--error-text`). Oscuro por defecto en `:root`; `html[data-theme="light"]` invierte. Todo el CSS y los inline styles consumen `rgba(var(--fg), alpha)` en lugar de blancos hardcodeados (791 ocurrencias migradas por codemod en 64 archivos).
+- [x] **Switch de modo claro** al pie del sidebar (`components/theme-switch.tsx`): toggle pill con `role="switch"`, persistencia en `localStorage` (`suaas-theme`) y script inline en `app/layout.tsx` que aplica la preferencia antes del primer paint (sin destello). En claro el accent de texto baja a `--accent-700` para mantener contraste sobre paper.
+- [x] **Contextos de tema fijo**: `.theme-dark-fixed` para el login HUD y `/onboard` (siempre oscuros por diseño); `.surface-feature` y los tooltips redefinen el canal localmente. Los previews de anuncios (SERP/Display) no cambian: emulan superficies reales.
+- [x] **Fuera el arcoíris Tailwind**: la home y `/gravity` usaban `#60a5fa`/`#fb923c`/`#a78bfa` (azul/naranja/violeta-IA) con glow neón para los tres planos. Ahora: numeración editorial `01·02·03` en accent, anillos del diagrama orbital en alphas del canal `--fg`, centro (la intención) como única masa con color y pulso discreto sin glow. Antipatrones de la spec eliminados: AI-purple, outer glow, segundo color saturado.
+- [x] **Semáforo de estados con tokens**: `#4ade80`/`#facc15`/`#f87171` (verde/amarillo/rojo Tailwind) sustituidos por `--success-text`/`--warning-text`/`--error-text` en GEO, Momentum, chat panel y test 5s (uso semántico licenciado por el DS, ahora legible en ambos temas).
+- [x] **Micro-slop de copy**: em-dashes eliminados de comentarios de `lib/`, glifo `★` retirado de los chips «Ganadora» y «mejor», `color: "#000"` → `var(--ink-900)`.
+- [x] El logo del sidebar deja el `filter: invert(1)` inline y pasa a `.sidebar-logo` (invertido en oscuro, original en claro).
+
+Pendiente anotado: la contraseña del bloque «Conceptos pendientes» de `/gravity` sigue hardcodeada en código cliente (antipatrón de PRODUCT-UI.md); moverla a env en el sprint de seguridad.
+
 ## v0.32.0 — Consistencia de funcionalidades menores (papelera + seed en todos los módulos, seed con brief)
 
 Auditoría de consistencia módulo a módulo (10 agentes) y cierre de los huecos de papelera y sembrador. Detalle de lo aplicado:

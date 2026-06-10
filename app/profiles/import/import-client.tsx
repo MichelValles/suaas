@@ -106,7 +106,7 @@ export function ImportClient() {
             padding: 16,
             border: "1px solid var(--error-500)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.9)",
+            color: "rgba(var(--fg),0.9)",
             background: "rgba(180,35,24,0.12)",
             fontSize: 14,
           }}
@@ -136,14 +136,14 @@ export function ImportClient() {
             fontSize: 11,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.6)",
+            color: "rgba(var(--fg),0.6)",
             cursor: "pointer",
           }}
         >
           Formato esperado de CSV
         </summary>
         <div style={{ paddingTop: 12, display: "flex", flexDirection: "column", gap: 8 }}>
-          <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, lineHeight: 1.6, margin: 0 }}>
+          <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 13, lineHeight: 1.6, margin: 0 }}>
             Cabecera obligatoria (en cualquier orden, mayúsculas/minúsculas
             indistintas). Las listas COM-B se separan con <code>;</code> dentro
             del campo. Coma o punto y coma como separador de columnas. UTF-8
@@ -155,11 +155,11 @@ export function ImportClient() {
             style={{
               fontSize: 12,
               padding: 12,
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(var(--fg),0.03)",
+              border: "1px solid rgba(var(--fg),0.08)",
               borderRadius: "var(--radius-sm)",
               overflowX: "auto",
-              color: "rgba(255,255,255,0.85)",
+              color: "rgba(var(--fg),0.85)",
             }}
           >
             {PROFILE_CSV_HEADERS.join(",")}
@@ -204,18 +204,18 @@ function Dropzone({
         justifyContent: "center",
         gap: 12,
         padding: 40,
-        border: "2px dashed rgba(255,255,255,0.18)",
+        border: "2px dashed rgba(var(--fg),0.18)",
         borderRadius: "var(--radius-md)",
         cursor: disabled ? "not-allowed" : "pointer",
-        background: "rgba(255,255,255,0.02)",
-        color: "rgba(255,255,255,0.65)",
+        background: "rgba(var(--fg),0.02)",
+        color: "rgba(var(--fg),0.65)",
         textAlign: "center",
       }}
     >
       <FileText size={28} />
       {fileName ? (
         <>
-          <span style={{ color: "#fff", fontSize: 14 }}>{fileName}</span>
+          <span style={{ color: "var(--text-strong)", fontSize: 14 }}>{fileName}</span>
           <button
             type="button"
             onClick={(e) => {
@@ -225,8 +225,8 @@ function Dropzone({
             className="mono"
             style={{
               background: "transparent",
-              color: "rgba(255,255,255,0.65)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              color: "rgba(var(--fg),0.65)",
+              border: "1px solid rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-pill)",
               padding: "6px 14px",
               fontSize: 11,
@@ -249,7 +249,7 @@ function Dropzone({
               fontSize: 10,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.4)",
+              color: "rgba(var(--fg),0.4)",
             }}
           >
             UTF-8, hasta 500 filas
@@ -286,9 +286,9 @@ function SummaryBar({
     <div
       style={{
         padding: 16,
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         display: "flex",
         flexDirection: "column",
         gap: 12,
@@ -335,7 +335,7 @@ function SummaryBar({
       {unknownColumns.length > 0 && (
         <p
           style={{
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
             fontSize: 12,
             lineHeight: 1.5,
             margin: 0,
@@ -365,7 +365,7 @@ function Stat({
           fontSize: 9,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.5)",
+          color: "rgba(var(--fg),0.5)",
         }}
       >
         {label}
@@ -383,11 +383,11 @@ function PreviewTable({ validations }: { validations: CsvValidationResult[] }) {
           width: "100%",
           borderCollapse: "collapse",
           fontSize: 13,
-          color: "rgba(255,255,255,0.85)",
+          color: "rgba(var(--fg),0.85)",
         }}
       >
         <thead>
-          <tr style={{ textAlign: "left", color: "rgba(255,255,255,0.55)" }}>
+          <tr style={{ textAlign: "left", color: "rgba(var(--fg),0.55)" }}>
             <Th>Fila</Th>
             <Th>Estado</Th>
             <Th>Nombre</Th>
@@ -409,12 +409,12 @@ function PreviewTable({ validations }: { validations: CsvValidationResult[] }) {
               <tr
                 key={v.row}
                 style={{
-                  borderTop: "1px solid rgba(255,255,255,0.06)",
+                  borderTop: "1px solid rgba(var(--fg),0.06)",
                   background: v.ok ? "transparent" : "rgba(180,35,24,0.05)",
                 }}
               >
                 <Td>
-                  <span className="mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
+                  <span className="mono" style={{ fontSize: 11, color: "rgba(var(--fg),0.5)" }}>
                     L{v.row}
                   </span>
                 </Td>
@@ -435,7 +435,7 @@ function PreviewTable({ validations }: { validations: CsvValidationResult[] }) {
                 <Td>{occ}</Td>
                 <Td>
                   {v.ok ? (
-                    <span style={{ color: "rgba(255,255,255,0.55)", fontSize: 12 }}>
+                    <span style={{ color: "rgba(var(--fg),0.55)", fontSize: 12 }}>
                       backstory {v.input.backstory.length} ch
                     </span>
                   ) : (

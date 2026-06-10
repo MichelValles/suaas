@@ -121,10 +121,10 @@ export function ProfileLaunchPanel({
           display: "flex",
           flexDirection: "column",
           gap: 20,
-          border: "1px solid rgba(255,255,255,0.08)",
+          border: "1px solid rgba(var(--fg),0.08)",
           borderRadius: "var(--radius-md)",
           padding: "32px 32px 30px",
-          background: "rgba(255,255,255,0.02)",
+          background: "rgba(var(--fg),0.02)",
         }}
       >
         <h2
@@ -133,7 +133,7 @@ export function ProfileLaunchPanel({
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             margin: 0,
           }}
         >
@@ -141,7 +141,7 @@ export function ProfileLaunchPanel({
         </h2>
         <p
           style={{
-            color: "rgba(255,255,255,0.65)",
+            color: "rgba(var(--fg),0.65)",
             fontSize: 14,
             lineHeight: 1.6,
             margin: 0,
@@ -172,10 +172,10 @@ export function ProfileLaunchPanel({
         display: "flex",
         flexDirection: "column",
         gap: 22,
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: "32px 32px 30px",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
       }}
     >
       <header
@@ -193,7 +193,7 @@ export function ProfileLaunchPanel({
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             margin: 0,
           }}
         >
@@ -207,7 +207,7 @@ export function ProfileLaunchPanel({
           style={{
             background: "transparent",
             border: 0,
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
             cursor: submitting ? "wait" : "pointer",
             fontSize: 11,
             letterSpacing: "0.18em",
@@ -244,7 +244,7 @@ export function ProfileLaunchPanel({
           style={{
             fontSize: 11,
             letterSpacing: "0.18em",
-            color: "rgba(255,255,255,0.5)",
+            color: "rgba(var(--fg),0.5)",
           }}
         >
           {selected.length === 0
@@ -260,7 +260,7 @@ export function ProfileLaunchPanel({
             padding: 12,
             border: "1px solid var(--error-500)",
             borderRadius: "var(--radius-sm)",
-            color: "rgba(255,255,255,0.9)",
+            color: "rgba(var(--fg),0.9)",
             background: "rgba(180,35,24,0.12)",
             fontSize: 13,
           }}
@@ -272,9 +272,9 @@ export function ProfileLaunchPanel({
         <div
           style={{
             padding: 12,
-            border: "1px solid rgba(255,255,255,0.12)",
+            border: "1px solid rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-sm)",
-            color: "rgba(255,255,255,0.75)",
+            color: "rgba(var(--fg),0.75)",
             fontSize: 13,
           }}
         >
@@ -286,9 +286,9 @@ export function ProfileLaunchPanel({
         <div
           style={{
             padding: 16,
-            border: "1px dashed rgba(255,255,255,0.12)",
+            border: "1px dashed rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
             fontSize: 13,
           }}
         >

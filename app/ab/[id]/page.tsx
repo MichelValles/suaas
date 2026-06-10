@@ -74,7 +74,7 @@ export default async function AbDetailPage({
             fontSize: 11,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             margin: 0,
           }}
         >
@@ -84,9 +84,9 @@ export default async function AbDetailPage({
           <div
             style={{
               padding: 16,
-              border: "1px dashed rgba(255,255,255,0.12)",
+              border: "1px dashed rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-md)",
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(var(--fg),0.55)",
               fontSize: 13,
             }}
           >
@@ -99,11 +99,11 @@ export default async function AbDetailPage({
                 width: "100%",
                 borderCollapse: "collapse",
                 fontSize: 13,
-                color: "rgba(255,255,255,0.85)",
+                color: "rgba(var(--fg),0.85)",
               }}
             >
               <thead>
-                <tr style={{ textAlign: "left", color: "rgba(255,255,255,0.55)" }}>
+                <tr style={{ textAlign: "left", color: "rgba(var(--fg),0.55)" }}>
                   <Th>Variante</Th>
                   <Th>Fecha</Th>
                   <Th>Claridad</Th>
@@ -116,10 +116,10 @@ export default async function AbDetailPage({
                 {launches.map((l) => (
                   <tr
                     key={l.run?.id ?? Math.random()}
-                    style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+                    style={{ borderTop: "1px solid rgba(var(--fg),0.06)" }}
                   >
                     <Td>
-                      <span className="mono" style={{ color: "var(--accent-500)" }}>
+                      <span className="mono" style={{ color: "var(--accent-text)" }}>
                         {l.variant}
                       </span>
                     </Td>
@@ -136,7 +136,7 @@ export default async function AbDetailPage({
                             fontSize: 11,
                             letterSpacing: "0.16em",
                             textTransform: "uppercase",
-                            color: "var(--accent-500)",
+                            color: "var(--accent-text)",
                           }}
                         >
                           ver →
@@ -168,10 +168,10 @@ function VariantCard({
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: "28px 30px",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         display: "flex",
         flexDirection: "column",
         gap: 14,
@@ -184,7 +184,7 @@ function VariantCard({
           fontSize: 11,
           letterSpacing: "0.28em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
         }}
       >
         Variante {variant}
@@ -195,13 +195,13 @@ function VariantCard({
           fontStyle: "italic",
           fontSize: 26,
           lineHeight: 1.15,
-          color: "#fff",
+          color: "var(--text-strong)",
           margin: 0,
         }}
       >
         {name}
       </h3>
-      <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 14, margin: 0, lineHeight: 1.5 }}>
+      <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 14, margin: 0, lineHeight: 1.5 }}>
         {promise}
       </p>
     </div>

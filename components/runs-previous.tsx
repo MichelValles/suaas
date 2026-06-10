@@ -48,7 +48,7 @@ export function RunsPreviousGrid({
           fontSize: 11,
           letterSpacing: "0.28em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
           margin: 0,
         }}
       >
@@ -59,9 +59,9 @@ export function RunsPreviousGrid({
         <div
           style={{
             padding: "26px 24px",
-            border: "1px dashed rgba(255,255,255,0.12)",
+            border: "1px dashed rgba(var(--fg),0.12)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
             fontSize: 14,
             lineHeight: 1.55,
           }}
@@ -115,9 +115,9 @@ function RunCard({
         flexDirection: "column",
         gap: 18,
         padding: "22px 22px 20px",
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
       }}
     >
       <header
@@ -133,7 +133,7 @@ function RunCard({
           style={{
             fontSize: 11,
             letterSpacing: "0.18em",
-            color: "rgba(255,255,255,0.7)",
+            color: "rgba(var(--fg),0.7)",
           }}
         >
           {formatDate(run.created_at)}
@@ -166,7 +166,7 @@ function RunCard({
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
           paddingTop: 4,
         }}
       >
@@ -185,7 +185,7 @@ function MetricCell({ label, value }: { label: string; value: string }) {
           fontSize: 9,
           letterSpacing: "0.24em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.45)",
+          color: "rgba(var(--fg),0.45)",
         }}
       >
         {label}
@@ -194,7 +194,7 @@ function MetricCell({ label, value }: { label: string; value: string }) {
         className="mono"
         style={{
           fontSize: 16,
-          color: "#fff",
+          color: "var(--text-strong)",
           fontWeight: 700,
           lineHeight: 1.1,
         }}
@@ -211,7 +211,7 @@ function StatusBadge({ status }: { status: string }) {
       ? "var(--accent-500)"
       : status === "error"
         ? "var(--error-500)"
-        : "rgba(255,255,255,0.55)";
+        : "rgba(var(--fg),0.55)";
   return (
     <span
       className="mono"
@@ -220,7 +220,7 @@ function StatusBadge({ status }: { status: string }) {
         letterSpacing: "0.22em",
         textTransform: "uppercase",
         color,
-        border: `1px solid ${color === "rgba(255,255,255,0.55)" ? "rgba(255,255,255,0.18)" : color}`,
+        border: `1px solid ${color === "rgba(var(--fg),0.55)" ? "rgba(var(--fg),0.18)" : color}`,
         borderRadius: "var(--radius-pill)",
         padding: "3px 8px",
         opacity: 0.95,

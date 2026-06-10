@@ -88,7 +88,7 @@ export function NewTargetForm() {
                 fontSize: 10,
                 letterSpacing: "0.22em",
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.55)",
+                color: "rgba(var(--fg),0.55)",
               }}
             >
               Screenshot (JPG/PNG, <span style={{ textTransform: "none", letterSpacing: 0 }}>&lt;2 MB recomendado</span>)
@@ -116,7 +116,7 @@ export function NewTargetForm() {
             style={{
               maxWidth: 320,
               borderRadius: "var(--radius-sm)",
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(var(--fg),0.08)",
             }}
           />
         )}
@@ -129,7 +129,7 @@ export function NewTargetForm() {
             padding: 16,
             border: "1px solid var(--error-500)",
             borderRadius: "var(--radius-md)",
-            color: "rgba(255,255,255,0.9)",
+            color: "rgba(var(--fg),0.9)",
             background: "rgba(180,35,24,0.12)",
             fontSize: 14,
             lineHeight: 1.5,
@@ -158,7 +158,7 @@ function ModeSelector({
         display: "flex",
         gap: 8,
         padding: 4,
-        border: "1px solid rgba(255,255,255,0.12)",
+        border: "1px solid rgba(var(--fg),0.12)",
         borderRadius: "var(--radius-pill)",
         width: "fit-content",
       }}
@@ -181,7 +181,7 @@ function ModeSelector({
               borderRadius: "var(--radius-pill)",
               border: "none",
               background: selected ? "var(--accent-500)" : "transparent",
-              color: selected ? "var(--ink-900)" : "rgba(255,255,255,0.7)",
+              color: selected ? "var(--ink-900)" : "rgba(var(--fg),0.7)",
               cursor: "pointer",
               fontFamily: "inherit",
             }}
@@ -220,7 +220,7 @@ function FieldGroup({
   return (
     <fieldset
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
         padding: 24,
         display: "flex",
@@ -237,7 +237,7 @@ function FieldGroup({
           fontSize: 10,
           letterSpacing: "0.24em",
           textTransform: "uppercase",
-          color: "var(--accent-500)",
+          color: "var(--accent-text)",
         }}
       >
         {title}
@@ -245,7 +245,7 @@ function FieldGroup({
       {hint && (
         <p
           style={{
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
             fontSize: 13,
             lineHeight: 1.5,
             margin: 0,
@@ -275,7 +275,7 @@ function Field(props: {
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.55)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {props.label}
@@ -310,7 +310,7 @@ function TextArea(props: {
             fontSize: 10,
             letterSpacing: "0.22em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
           }}
         >
           {props.label}
@@ -330,11 +330,11 @@ function TextArea(props: {
 }
 
 const inputStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.03)",
-  border: "1px solid rgba(255,255,255,0.12)",
+  background: "rgba(var(--fg),0.03)",
+  border: "1px solid rgba(var(--fg),0.12)",
   borderRadius: "var(--radius-sm)",
   padding: "10px 12px",
-  color: "#fff",
+  color: "var(--text-strong)",
   fontSize: 14,
   outline: "none",
   fontFamily: "var(--font-sans)",

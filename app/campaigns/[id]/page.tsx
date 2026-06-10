@@ -141,9 +141,9 @@ export default async function CampaignDetailPage({
                 gap: 8,
                 padding: "6px 12px",
                 borderRadius: "var(--radius-pill)",
-                border: "1px solid rgba(255,255,255,0.18)",
-                background: "rgba(255,255,255,0.04)",
-                color: "rgba(255,255,255,0.85)",
+                border: "1px solid rgba(var(--fg),0.18)",
+                background: "rgba(var(--fg),0.04)",
+                color: "rgba(var(--fg),0.85)",
                 fontSize: 11,
                 letterSpacing: "0.16em",
                 textTransform: "uppercase",
@@ -163,7 +163,7 @@ export default async function CampaignDetailPage({
               borderRadius: "var(--radius-pill)",
               border: "1px solid var(--accent-500)",
               background: "rgba(250,204,13,0.08)",
-              color: "var(--accent-500)",
+              color: "var(--accent-text)",
               fontSize: 11,
               letterSpacing: "0.16em",
               textTransform: "uppercase",
@@ -181,9 +181,9 @@ export default async function CampaignDetailPage({
           <SectionLabel>Empresa</SectionLabel>
           <div
             style={{
-              border: "1px solid rgba(255,255,255,0.08)",
+              border: "1px solid rgba(var(--fg),0.08)",
               borderRadius: "var(--radius-md)",
-              background: "rgba(255,255,255,0.02)",
+              background: "rgba(var(--fg),0.02)",
               padding: "16px 18px",
               display: "flex",
               flexDirection: "column",
@@ -197,7 +197,7 @@ export default async function CampaignDetailPage({
                 </span>
                 <p
                   style={{
-                    color: "rgba(255,255,255,0.9)",
+                    color: "rgba(var(--fg),0.9)",
                     fontSize: 18,
                     margin: "4px 0 0",
                   }}
@@ -230,7 +230,7 @@ export default async function CampaignDetailPage({
                 </span>
                 <p
                   style={{
-                    color: "rgba(255,255,255,0.85)",
+                    color: "rgba(var(--fg),0.85)",
                     fontSize: 14,
                     margin: "4px 0 0",
                   }}
@@ -246,9 +246,9 @@ export default async function CampaignDetailPage({
       {/* Vista tipo SERP: el primer titular + primera descripción como snippet representativo. */}
       <section
         style={{
-          border: "1px solid rgba(255,255,255,0.08)",
+          border: "1px solid rgba(var(--fg),0.08)",
           borderRadius: "var(--radius-md)",
-          background: "rgba(255,255,255,0.02)",
+          background: "rgba(var(--fg),0.02)",
           padding: "26px 28px",
           display: "flex",
           flexDirection: "column",
@@ -261,14 +261,14 @@ export default async function CampaignDetailPage({
             fontSize: 10,
             letterSpacing: "0.24em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           Vista previa · primer titular
         </span>
         <span
           style={{
-            color: "rgba(255,255,255,0.55)",
+            color: "rgba(var(--fg),0.55)",
             fontSize: 12,
             fontFamily: "var(--font-mono)",
           }}
@@ -287,7 +287,7 @@ export default async function CampaignDetailPage({
         </p>
         <p
           style={{
-            color: "rgba(255,255,255,0.78)",
+            color: "rgba(var(--fg),0.78)",
             fontSize: 14,
             margin: 0,
             lineHeight: 1.55,
@@ -312,12 +312,12 @@ export default async function CampaignDetailPage({
               className="mono"
               style={{
                 padding: "6px 12px",
-                border: "1px solid rgba(255,255,255,0.12)",
+                border: "1px solid rgba(var(--fg),0.12)",
                 borderRadius: "var(--radius-pill)",
                 fontSize: 12,
                 letterSpacing: "0.08em",
-                color: "rgba(255,255,255,0.85)",
-                background: "rgba(255,255,255,0.03)",
+                color: "rgba(var(--fg),0.85)",
+                background: "rgba(var(--fg),0.03)",
               }}
             >
               {q}
@@ -342,7 +342,7 @@ export default async function CampaignDetailPage({
               <span className="mono" style={chipMonoStyle}>
                 H{i + 1} · {h.length}/30
               </span>
-              <span style={{ color: "rgba(255,255,255,0.9)", fontSize: 14, lineHeight: 1.4 }}>
+              <span style={{ color: "rgba(var(--fg),0.9)", fontSize: 14, lineHeight: 1.4 }}>
                 {h}
               </span>
             </div>
@@ -365,7 +365,7 @@ export default async function CampaignDetailPage({
               <span className="mono" style={chipMonoStyle}>
                 D{i + 1} · {d.length}/90
               </span>
-              <span style={{ color: "rgba(255,255,255,0.85)", fontSize: 14, lineHeight: 1.55 }}>
+              <span style={{ color: "rgba(var(--fg),0.85)", fontSize: 14, lineHeight: 1.55 }}>
                 {d}
               </span>
             </div>
@@ -395,7 +395,7 @@ export default async function CampaignDetailPage({
                     <span
                       style={{
                         fontSize: 12,
-                        color: "rgba(255,255,255,0.6)",
+                        color: "rgba(var(--fg),0.6)",
                       }}
                     >
                       {c.label}
@@ -413,9 +413,9 @@ export default async function CampaignDetailPage({
         <SectionLabel>Landing</SectionLabel>
         <div
           style={{
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid rgba(var(--fg),0.08)",
             borderRadius: "var(--radius-md)",
-            background: "rgba(255,255,255,0.02)",
+            background: "rgba(var(--fg),0.02)",
             padding: 16,
             display: "grid",
             gridTemplateColumns: "minmax(0, 1fr)",
@@ -440,7 +440,7 @@ export default async function CampaignDetailPage({
             rel="noopener noreferrer"
             className="mono"
             style={{
-              color: "var(--accent-500)",
+              color: "var(--accent-text)",
               fontSize: 11,
               letterSpacing: "0.16em",
               textTransform: "uppercase",
@@ -485,7 +485,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
         fontSize: 11,
         letterSpacing: "0.28em",
         textTransform: "uppercase",
-        color: "var(--accent-500)",
+        color: "var(--accent-text)",
         margin: 0,
       }}
     >
@@ -495,9 +495,9 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
 }
 
 const cardStyle: React.CSSProperties = {
-  border: "1px solid rgba(255,255,255,0.08)",
+  border: "1px solid rgba(var(--fg),0.08)",
   borderRadius: "var(--radius-md)",
-  background: "rgba(255,255,255,0.02)",
+  background: "rgba(var(--fg),0.02)",
   padding: "16px 18px",
   display: "flex",
   flexDirection: "column",
@@ -508,5 +508,5 @@ const chipMonoStyle: React.CSSProperties = {
   fontSize: 10,
   letterSpacing: "0.22em",
   textTransform: "uppercase",
-  color: "var(--accent-500)",
+  color: "var(--accent-text)",
 };

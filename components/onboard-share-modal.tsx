@@ -75,8 +75,8 @@ export function OnboardShareModal() {
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "var(--ink-900)",
-              border: "1px solid rgba(255,255,255,0.12)",
+              background: "var(--surface-app)",
+              border: "1px solid rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-lg)",
               padding: "clamp(24px, 4vw, 36px)",
               maxWidth: 460,
@@ -97,7 +97,7 @@ export function OnboardShareModal() {
                 right: 14,
                 background: "transparent",
                 border: "none",
-                color: "rgba(255,255,255,0.5)",
+                color: "rgba(var(--fg),0.5)",
                 cursor: "pointer",
                 padding: 6,
                 display: "flex",
@@ -113,7 +113,7 @@ export function OnboardShareModal() {
                   fontSize: 11,
                   letterSpacing: "0.28em",
                   textTransform: "uppercase",
-                  color: "var(--accent-500)",
+                  color: "var(--accent-text)",
                 }}
               >
                 Compartir cuestionario
@@ -121,7 +121,7 @@ export function OnboardShareModal() {
               <h2
                 className="display"
                 style={{
-                  color: "#fff",
+                  color: "var(--text-strong)",
                   fontSize: "clamp(22px, 3vw, 28px)",
                   lineHeight: 1.2,
                   margin: 0,
@@ -129,7 +129,7 @@ export function OnboardShareModal() {
               >
                 Convierte a alguien real en su gemelo sintético.
               </h2>
-              <p style={{ color: "rgba(255,255,255,0.65)", margin: 0, fontSize: 14 }}>
+              <p style={{ color: "rgba(var(--fg),0.65)", margin: 0, fontSize: 14 }}>
                 Cualquier persona con este enlace puede contestar el cuestionario
                 desde su móvil. Al terminar verá su gemelo y aparecerá en
                 /profiles como `self_report`.
@@ -161,8 +161,8 @@ export function OnboardShareModal() {
                 alignItems: "center",
                 gap: 8,
                 padding: "12px 14px",
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(var(--fg),0.04)",
+                border: "1px solid rgba(var(--fg),0.1)",
                 borderRadius: "var(--radius-md)",
               }}
             >
@@ -171,7 +171,7 @@ export function OnboardShareModal() {
                   flex: 1,
                   fontFamily: "var(--font-mono)",
                   fontSize: 13,
-                  color: "rgba(255,255,255,0.85)",
+                  color: "rgba(var(--fg),0.85)",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -188,9 +188,9 @@ export function OnboardShareModal() {
                   alignItems: "center",
                   gap: 6,
                   background: "transparent",
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  border: "1px solid rgba(var(--fg),0.12)",
                   borderRadius: "var(--radius-pill)",
-                  color: copied ? "var(--accent-500)" : "rgba(255,255,255,0.8)",
+                  color: copied ? "var(--accent-500)" : "rgba(var(--fg),0.8)",
                   padding: "6px 12px",
                   fontSize: 10,
                   letterSpacing: "0.22em",
@@ -206,7 +206,7 @@ export function OnboardShareModal() {
 
             <p
               style={{
-                color: "rgba(255,255,255,0.45)",
+                color: "rgba(var(--fg),0.45)",
                 margin: 0,
                 fontSize: 12,
                 lineHeight: 1.5,

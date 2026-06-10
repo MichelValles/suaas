@@ -129,7 +129,7 @@ export default function HomePage() {
 
         {/* CONSTRUCTION PLANE */}
         <PlaneSection
-          color="#60a5fa"
+          index="01"
           label="Construction Plane"
           description="Crea el contexto gravitacional: define por qué la marca empieza a existir en la órbita del usuario. Aquí se genera la primera atracción mediante hipersegmentación por intención."
           modules={CONSTRUCTION_MODULES}
@@ -137,7 +137,7 @@ export default function HomePage() {
 
         {/* ACCELERATION PLANE */}
         <PlaneSection
-          color="#fb923c"
+          index="02"
           label="Acceleration Plane"
           description="Modula el momentum: refuerza, redirige o debilita la intención en función de las interacciones que recibe el usuario. Incluye performance guiado por intención y visibilidad en motores IA."
           modules={ACCELERATION_MODULES}
@@ -145,7 +145,6 @@ export default function HomePage() {
 
         {/* KNOWLEDGE TOOLS */}
         <PlaneSection
-          color="rgba(255,255,255,0.3)"
           label="Knowledge Tools"
           description="Herramientas de experimentación clásica. Complementan el modelo con datos de copy, precio y variantes de pantalla."
           modules={KNOWLEDGE_MODULES}
@@ -160,7 +159,6 @@ export default function HomePage() {
 const DIMENSIONS = [
   {
     label: "Intensidad",
-    color: "var(--accent-500)",
     description:
       "Cuánta motivación hay para actuar ahora. A mayor valor, más probable la acción en el corto plazo.",
     visual: (
@@ -168,7 +166,7 @@ const DIMENSIONS = [
         <div
           style={{
             height: 3,
-            background: "rgba(255,255,255,0.08)",
+            background: "rgba(var(--fg),0.08)",
             borderRadius: 2,
             overflow: "hidden",
           }}
@@ -184,7 +182,7 @@ const DIMENSIONS = [
         </div>
         <span
           className="mono"
-          style={{ fontSize: 22, color: "var(--accent-500)", lineHeight: 1 }}
+          style={{ fontSize: 22, color: "var(--accent-text)", lineHeight: 1 }}
         >
           0 → 1
         </span>
@@ -193,15 +191,14 @@ const DIMENSIONS = [
   },
   {
     label: "Dirección",
-    color: "#60a5fa",
     description:
       "Hacia dónde se mueve la intención respecto a una solución: se acerca, está inmóvil o se aleja.",
     visual: (
       <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
         {[
-          { v: "approaching", color: "#4ade80", note: "activo" },
-          { v: "stable", color: "#facc15", note: "latente" },
-          { v: "drifting", color: "#f87171", note: "inactivo" },
+          { v: "approaching", color: "var(--success-text)", note: "activo" },
+          { v: "stable", color: "var(--warning-text)", note: "latente" },
+          { v: "drifting", color: "var(--error-text)", note: "inactivo" },
         ].map((s) => (
           <div key={s.v} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
@@ -211,7 +208,7 @@ const DIMENSIONS = [
               {s.v}
             </span>
             <span
-              style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}
+              style={{ fontSize: 10, color: "rgba(var(--fg),0.25)" }}
             >
               {s.note}
             </span>
@@ -222,7 +219,6 @@ const DIMENSIONS = [
   },
   {
     label: "Velocidad",
-    color: "#fb923c",
     description:
       "Cómo cambia el momentum en el tiempo: si la urgencia crece, se mantiene o se disipa.",
     visual: (
@@ -235,13 +231,13 @@ const DIMENSIONS = [
           <div key={s.v} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
               className="mono"
-              style={{ fontSize: 13, color: "#fb923c", width: 14, textAlign: "center" }}
+              style={{ fontSize: 13, color: "var(--accent-text)", width: 14, textAlign: "center" }}
             >
               {s.symbol}
             </span>
             <span
               className="mono"
-              style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", letterSpacing: "0.08em" }}
+              style={{ fontSize: 11, color: "rgba(var(--fg),0.45)", letterSpacing: "0.08em" }}
             >
               {s.v}
             </span>
@@ -262,7 +258,7 @@ function IntentMomentumSection() {
             fontSize: 9,
             letterSpacing: "0.3em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           Intent Momentum
@@ -273,7 +269,7 @@ function IntentMomentumSection() {
             fontStyle: "italic",
             fontSize: "clamp(22px, 3vw, 30px)",
             lineHeight: 1.1,
-            color: "#fff",
+            color: "var(--text-strong)",
             margin: 0,
           }}
         >
@@ -282,7 +278,7 @@ function IntentMomentumSection() {
         <p
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.5)",
+            color: "rgba(var(--fg),0.5)",
             lineHeight: 1.6,
             margin: 0,
             maxWidth: 560,
@@ -305,14 +301,13 @@ function IntentMomentumSection() {
           <div
             key={d.label}
             style={{
-              border: "1px solid rgba(255,255,255,0.07)",
-              borderTop: `2px solid ${d.color}`,
+              border: "1px solid rgba(var(--fg),0.07)",
               borderRadius: "var(--radius-md)",
               padding: "22px 22px 20px",
               display: "flex",
               flexDirection: "column",
               gap: 16,
-              background: "rgba(255,255,255,0.02)",
+              background: "rgba(var(--fg),0.02)",
             }}
           >
             <span
@@ -321,7 +316,7 @@ function IntentMomentumSection() {
                 fontSize: 9,
                 letterSpacing: "0.24em",
                 textTransform: "uppercase",
-                color: "rgba(255,255,255,0.35)",
+                color: "rgba(var(--fg),0.35)",
               }}
             >
               {d.label}
@@ -330,7 +325,7 @@ function IntentMomentumSection() {
             <p
               style={{
                 fontSize: 12,
-                color: "rgba(255,255,255,0.45)",
+                color: "rgba(var(--fg),0.45)",
                 lineHeight: 1.55,
                 margin: 0,
               }}
@@ -350,10 +345,10 @@ function GravityVisual() {
   return (
     <section
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-lg)",
         padding: "clamp(36px, 5vw, 60px)",
-        background: "rgba(255,255,255,0.015)",
+        background: "rgba(var(--fg),0.015)",
         display: "flex",
         gap: "clamp(36px, 6vw, 80px)",
         alignItems: "center",
@@ -368,7 +363,7 @@ function GravityVisual() {
             fontSize: 9,
             letterSpacing: "0.3em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
           }}
         >
           Gravity Model
@@ -381,7 +376,7 @@ function GravityVisual() {
               fontStyle: "italic",
               fontSize: "clamp(28px, 4vw, 42px)",
               lineHeight: 1.1,
-              color: "#fff",
+              color: "var(--text-strong)",
               margin: 0,
             }}
           >
@@ -390,51 +385,56 @@ function GravityVisual() {
           <p
             style={{
               fontSize: 14,
-              color: "rgba(255,255,255,0.6)",
+              color: "rgba(var(--fg),0.6)",
               lineHeight: 1.65,
               margin: 0,
               maxWidth: 420,
             }}
           >
             La intención no es binaria: tiene{" "}
-            <em style={{ color: "rgba(255,255,255,0.85)", fontStyle: "normal" }}>intensidad</em>{" "}
+            <em style={{ color: "rgba(var(--fg),0.85)", fontStyle: "normal" }}>intensidad</em>{" "}
             (0→1),{" "}
-            <em style={{ color: "rgba(255,255,255,0.85)", fontStyle: "normal" }}>dirección</em>{" "}
+            <em style={{ color: "rgba(var(--fg),0.85)", fontStyle: "normal" }}>dirección</em>{" "}
             (approaching · stable · drifting) y{" "}
-            <em style={{ color: "rgba(255,255,255,0.85)", fontStyle: "normal" }}>velocidad</em>{" "}
+            <em style={{ color: "rgba(var(--fg),0.85)", fontStyle: "normal" }}>velocidad</em>{" "}
             (accelerating · steady · decelerating). Los tres planos determinan ese vector antes de
             que la marca entre en la ecuación.
           </p>
         </div>
 
-        {/* Plane pills */}
+        {/* Plane index */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {[
-            { color: "#60a5fa", label: "Construction", desc: "Contexto gravitacional" },
-            { color: "#fb923c", label: "Acceleration", desc: "Modulación del momentum" },
-            { color: "#a78bfa", label: "Value", desc: "Estabilización de la órbita" },
+            { n: "01", label: "Construction", desc: "Contexto gravitacional" },
+            { n: "02", label: "Acceleration", desc: "Modulación del momentum" },
+            { n: "03", label: "Value", desc: "Estabilización de la órbita" },
           ].map((p) => (
-            <div key={p.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <div
-                style={{
-                  width: 8,
-                  height: 8,
-                  borderRadius: "50%",
-                  background: p.color,
-                  flexShrink: 0,
-                  boxShadow: `0 0 8px 2px ${p.color}66`,
-                }}
-              />
+            <div key={p.label} style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
               <span
                 className="mono"
-                style={{ fontSize: 11, color: p.color, letterSpacing: "0.12em" }}
+                style={{
+                  fontSize: 10,
+                  color: "var(--accent-text)",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                {p.n}
+              </span>
+              <span
+                className="mono"
+                style={{
+                  fontSize: 11,
+                  color: "rgba(var(--fg),0.85)",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                }}
               >
                 {p.label}
               </span>
               <span
                 style={{
                   fontSize: 12,
-                  color: "rgba(255,255,255,0.35)",
+                  color: "rgba(var(--fg),0.35)",
                   letterSpacing: "0.02em",
                 }}
               >
@@ -451,7 +451,7 @@ function GravityVisual() {
             fontSize: 10,
             letterSpacing: "0.22em",
             textTransform: "uppercase",
-            color: "var(--accent-500)",
+            color: "var(--accent-text)",
             textDecoration: "none",
           }}
         >
@@ -481,33 +481,34 @@ function OrbitalDiagram() {
   const SIZE = 280;
   return (
     <div style={{ position: "relative", width: SIZE, height: SIZE }}>
-      {/* Rings */}
-      <Ring r={128} color="#60a5fa" />
-      <Ring r={84} color="#fb923c" />
-      <Ring r={44} color="#a78bfa" />
+      {/* Rings: un solo acento (el centro); las órbitas viven en el
+          canal del tema con alphas decrecientes hacia el interior */}
+      <Ring r={128} alpha={0.28} />
+      <Ring r={84} alpha={0.18} />
+      <Ring r={44} alpha={0.1} />
 
       {/* Labels */}
-      <RingLabel r={128} angle={-28} color="#60a5fa" text="Construction" />
-      <RingLabel r={84} angle={42} color="#fb923c" text="Acceleration" />
-      <RingLabel r={44} angle={-55} color="#a78bfa55" text="Value" />
+      <RingLabel r={128} angle={-28} alpha={0.5} text="01 Construction" />
+      <RingLabel r={84} angle={42} alpha={0.38} text="02 Acceleration" />
+      <RingLabel r={44} angle={-55} alpha={0.22} text="03 Value" />
 
-      {/* Center */}
+      {/* Center: la intención, la única masa con color */}
       <div className="gm-center" />
 
       {/* Orbiting dots:Construction (2 dots, slow) */}
-      <Dot r={128} color="#60a5fa" dur="16s" delay="0s" />
-      <Dot r={128} color="#60a5fa" dur="16s" delay="-8s" opacity={0.5} />
+      <Dot r={128} dur="16s" delay="0s" opacity={0.9} />
+      <Dot r={128} dur="16s" delay="-8s" opacity={0.5} />
 
       {/* Orbiting dot:Acceleration */}
-      <Dot r={84} color="#fb923c" dur="10s" delay="-3s" />
+      <Dot r={84} dur="10s" delay="-3s" opacity={0.75} />
 
       {/* Orbiting dot:Value (faint, pending) */}
-      <Dot r={44} color="#a78bfa" dur="6s" delay="-1.5s" opacity={0.25} />
+      <Dot r={44} dur="6s" delay="-1.5s" opacity={0.25} />
     </div>
   );
 }
 
-function Ring({ r, color }: { r: number; color: string }) {
+function Ring({ r, alpha }: { r: number; alpha: number }) {
   const d = r * 2;
   return (
     <div
@@ -520,7 +521,7 @@ function Ring({ r, color }: { r: number; color: string }) {
         marginTop: -r,
         marginLeft: -r,
         borderRadius: "50%",
-        border: `1px solid ${color}33`,
+        border: `1px solid rgba(var(--fg), ${alpha})`,
       }}
     />
   );
@@ -529,12 +530,12 @@ function Ring({ r, color }: { r: number; color: string }) {
 function RingLabel({
   r,
   angle,
-  color,
+  alpha,
   text,
 }: {
   r: number;
   angle: number;
-  color: string;
+  alpha: number;
   text: string;
 }) {
   const rad = (angle * Math.PI) / 180;
@@ -551,7 +552,7 @@ function RingLabel({
         fontSize: 8,
         letterSpacing: "0.2em",
         textTransform: "uppercase",
-        color,
+        color: `rgba(var(--fg), ${alpha})`,
         whiteSpace: "nowrap",
         pointerEvents: "none",
         userSelect: "none",
@@ -564,13 +565,11 @@ function RingLabel({
 
 function Dot({
   r,
-  color,
   dur,
   delay,
   opacity = 1,
 }: {
   r: number;
-  color: string;
   dur: string;
   delay: string;
   opacity?: number;
@@ -583,8 +582,7 @@ function Dot({
           "--orbit-r": `${r}px`,
           "--orbit-dur": dur,
           animationDelay: delay,
-          background: color,
-          boxShadow: `0 0 6px 2px ${color}99`,
+          background: "rgba(var(--fg), 0.85)",
           opacity,
         } as CSSProperties
       }
@@ -595,12 +593,12 @@ function Dot({
 // ── Plane sections ────────────────────────────────────────────
 
 function PlaneSection({
-  color,
+  index,
   label,
   description,
   modules,
 }: {
-  color: string;
+  index?: string;
   label: string;
   description: string;
   modules: ModuleItem[];
@@ -608,23 +606,26 @@ function PlaneSection({
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 8,
-              height: 8,
-              borderRadius: "50%",
-              background: color,
-              flexShrink: 0,
-            }}
-          />
+        <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+          {index && (
+            <span
+              className="mono"
+              style={{
+                fontSize: 11,
+                letterSpacing: "0.08em",
+                color: "var(--accent-text)",
+              }}
+            >
+              {index}
+            </span>
+          )}
           <h2
             className="mono"
             style={{
               fontSize: 11,
               letterSpacing: "0.28em",
               textTransform: "uppercase",
-              color,
+              color: "rgba(var(--fg),0.85)",
               margin: 0,
             }}
           >
@@ -634,7 +635,7 @@ function PlaneSection({
         <p
           style={{
             fontSize: 13,
-            color: "rgba(255,255,255,0.5)",
+            color: "rgba(var(--fg),0.5)",
             lineHeight: 1.6,
             margin: 0,
             maxWidth: 640,
@@ -652,26 +653,16 @@ function PlaneSection({
         }}
       >
         {modules.map((m) => (
-          <ModuleCard key={m.href} item={m} accentColor={color} />
+          <ModuleCard key={m.href} item={m} />
         ))}
       </div>
     </section>
   );
 }
 
-function ModuleCard({
-  item,
-  accentColor,
-}: {
-  item: ModuleItem;
-  accentColor: string;
-}) {
+function ModuleCard({ item }: { item: ModuleItem }) {
   return (
-    <Link
-      href={item.href}
-      className="feature-card"
-      style={{ borderTop: `2px solid ${accentColor}55` }}
-    >
+    <Link href={item.href} className="feature-card">
       <item.icon size={20} />
       <h3
         style={{
@@ -679,7 +670,7 @@ function ModuleCard({
           fontStyle: "italic",
           fontSize: 20,
           lineHeight: 1.15,
-          color: "#fff",
+          color: "var(--text-strong)",
           margin: 0,
         }}
       >
@@ -687,7 +678,7 @@ function ModuleCard({
       </h3>
       <p
         style={{
-          color: "rgba(255,255,255,0.6)",
+          color: "rgba(var(--fg),0.6)",
           fontSize: 13,
           lineHeight: 1.55,
           margin: 0,
@@ -702,7 +693,7 @@ function ModuleCard({
           fontSize: 10,
           letterSpacing: "0.18em",
           textTransform: "uppercase",
-          color: accentColor,
+          color: "var(--accent-text)",
         }}
       >
         {item.cta} →

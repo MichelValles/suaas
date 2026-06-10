@@ -62,6 +62,29 @@ Por qué: SUAAS no es un deck editorial sino una herramienta de producto. El DS 
 --ease-in-out   cubic-bezier(0.65, 0, 0.35, 1)
 ```
 
+### Tema (v0.33)
+
+Oscuro por defecto. `html[data-theme="light"]` activa el modo claro. El conmutador vive al pie del sidebar (`components/theme-switch.tsx`), persiste en `localStorage` (`suaas-theme`) y un script inline en `app/layout.tsx` aplica la preferencia antes del primer paint.
+
+```css
+--fg              /* canal RGB del primer plano: "255, 255, 255" en oscuro,
+                     "10, 11, 13" en claro. Se consume como rgba(var(--fg), a) */
+--surface-app     /* fondo del shell: ink-900 / paper */
+--surface-panel   /* sidebar, paneles: ink-800 / ink-50 */
+--text-strong     /* titulares: #fff / ink-900 */
+--accent-text     /* texto accent: accent-500 / accent-700 (contraste en claro) */
+--success-text / --warning-text / --error-text
+                  /* estados como texto, legibles en ambos temas */
+```
+
+Reglas:
+
+- **Nunca** `rgba(255,255,255,x)` ni `color: "#fff"` en estilos de la app: usar `rgba(var(--fg), x)` y `var(--text-strong)`. El codemod de v0.33 migró las 791 ocurrencias.
+- Texto en color accent → `var(--accent-text)`. Fondos y bordes accent → `var(--accent-500)` (funciona en ambos temas).
+- Estados (done/running/error, approaching/stable/drifting, óptima/repesca/fuga) → tokens semánticos de texto, nunca hexes del semáforo Tailwind.
+- Contextos que no cambian de tema: clase `.theme-dark-fixed` (login HUD, `/onboard`). `.surface-feature`, `.surface-paper`, `.surface-tone` y los tooltips redefinen el canal localmente, así sus descendientes heredan la paleta correcta.
+- Los previews de anuncios (SERP, Display) emulan superficies reales: mantienen sus colores literales en ambos temas.
+
 ## Clases semánticas disponibles
 
 | Clase | Uso |
@@ -179,9 +202,12 @@ Reglas:
 - ❌ Importar Tailwind o utility classes.
 - ❌ Inventar tokens fuera de la lista: si necesitas un color o espaciado nuevo, propón añadirlo a `globals.css` y a este doc, no lo metas inline en un solo sitio.
 - ❌ Animar atributos SVG `x`/`y` con motion (duplica posición porque se suma transform al atributo). Solo animar `opacity`.
-- ❌ Usar raw `#000` o `#fff` para texto/fondos. Siempre `--ink-900` / `--paper`.
-- ❌ Saturar con más de un accent. El amarillo `--accent-500` es el único color brand.
+- ❌ Usar raw `#000` o `#fff` para texto/fondos. Siempre `--ink-900` / `--paper` (o `--text-strong` / `--surface-app` si debe responder al tema).
+- ❌ `rgba(255,255,255,x)` hardcodeado en estilos de la app: rompe el modo claro. Usar `rgba(var(--fg), x)`.
+- ❌ Saturar con más de un accent. El amarillo `--accent-500` es el único color brand. Los hexes de la paleta Tailwind (`#60a5fa`, `#fb923c`, `#a78bfa`, `#4ade80`, `#f87171`...) están prohibidos: son la firma visual del diseño-por-LLM.
+- ❌ Glow exterior / neón (`box-shadow` con blur de color). Elevación con borde de 1px; énfasis con peso y tamaño.
 - ❌ Aplicar `maxWidth: 1100` (u otros valores genéricos) a secciones de página: el container global del AppShell ya centra a 1280.
+- ❌ Diferenciar categorías conceptuales con un color por categoría (los «tres planos» de colores). Diferenciar con numeración editorial (`01 · 02 · 03` en accent), jerarquía tipográfica o alphas del canal `--fg`.
 
 ## Patrón: descripción destacada (`descriptionVariant="panel"`)
 

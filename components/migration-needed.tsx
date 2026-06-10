@@ -20,7 +20,7 @@ export function MigrationNeeded({
         border: "1px solid var(--warning-500)",
         borderRadius: "var(--radius-md)",
         background: "rgba(180,83,9,0.08)",
-        color: "rgba(255,255,255,0.85)",
+        color: "rgba(var(--fg),0.85)",
         lineHeight: 1.55,
         display: "flex",
         flexDirection: "column",
@@ -47,7 +47,7 @@ export function MigrationNeeded({
         Hasta entonces esta sección queda inactiva.
       </p>
       {details && (
-        <p style={{ margin: 0, fontSize: 12, color: "rgba(255,255,255,0.55)" }}>
+        <p style={{ margin: 0, fontSize: 12, color: "rgba(var(--fg),0.55)" }}>
           {details}
         </p>
       )}

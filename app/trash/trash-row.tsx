@@ -34,9 +34,9 @@ export function TrashRow({ item }: { item: TrashItem }) {
   return (
     <li
       style={{
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         padding: "16px 18px",
         display: "flex",
         flexDirection: "column",
@@ -50,7 +50,7 @@ export function TrashRow({ item }: { item: TrashItem }) {
             fontStyle: "italic",
             fontSize: 18,
             lineHeight: 1.2,
-            color: "#fff",
+            color: "var(--text-strong)",
             margin: 0,
           }}
         >
@@ -59,7 +59,7 @@ export function TrashRow({ item }: { item: TrashItem }) {
         {item.hint && (
           <p
             style={{
-              color: "rgba(255,255,255,0.55)",
+              color: "rgba(var(--fg),0.55)",
               fontSize: 12,
               lineHeight: 1.45,
               margin: 0,
@@ -77,7 +77,7 @@ export function TrashRow({ item }: { item: TrashItem }) {
           style={{
             fontSize: 10,
             letterSpacing: "0.18em",
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(var(--fg),0.4)",
             marginTop: 4,
           }}
         >
@@ -96,9 +96,9 @@ export function TrashRow({ item }: { item: TrashItem }) {
             gap: 6,
             padding: "6px 12px",
             background: "transparent",
-            border: "1px solid rgba(255,255,255,0.18)",
+            border: "1px solid rgba(var(--fg),0.18)",
             borderRadius: "var(--radius-pill)",
-            color: "rgba(255,255,255,0.85)",
+            color: "rgba(var(--fg),0.85)",
             fontSize: 10,
             letterSpacing: "0.18em",
             textTransform: "uppercase",
