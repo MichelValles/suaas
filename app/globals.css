@@ -654,16 +654,6 @@ textarea.backstory-input:focus-visible {
   color: var(--accent-500);
 }
 
-.gm-link {
-  display: block;
-  text-decoration: none;
-  transition: background var(--dur-micro) var(--ease-out);
-}
-.gm-link:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-radius: var(--radius-xs, 3px);
-}
-
 .sidebar-burger {
   display: none;
   position: fixed;
@@ -820,6 +810,39 @@ textarea.backstory-input:focus-visible {
 }
 [data-tooltip]:hover::before {
   opacity: 1;
+}
+
+/* ── Gravity Model diagram ──────────────────────────────────── */
+@keyframes gm-orbit {
+  from { transform: rotate(0deg) translateX(var(--orbit-r)) rotate(0deg); }
+  to   { transform: rotate(360deg) translateX(var(--orbit-r)) rotate(-360deg); }
+}
+@keyframes gm-center-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(167,139,250,0.5), 0 0 18px rgba(167,139,250,0.3);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(167,139,250,0), 0 0 32px rgba(167,139,250,0.55);
+  }
+}
+.gm-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 12px; height: 12px;
+  margin: -6px;
+  border-radius: 50%;
+  background: #a78bfa;
+  z-index: 2;
+  animation: gm-center-pulse 3s ease-in-out infinite;
+}
+.gm-dot {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 7px; height: 7px;
+  margin: -3.5px;
+  border-radius: 50%;
+  z-index: 1;
+  animation: gm-orbit var(--orbit-dur, 10s) linear infinite;
 }
 
 /* Reduced motion */
