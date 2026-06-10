@@ -31,6 +31,23 @@ export function isSupabaseConfigured(): boolean {
 }
 
 /**
+ * Error de "migración pendiente": la query falló porque falta aplicar
+ * una migración SQL en Supabase. El mensaje es seguro para mostrar al
+ * usuario (solo nombra el archivo de migración).
+ */
+export class MigrationPendingError extends Error {
+  migration: string;
+
+  constructor(migration: string) {
+    super(
+      `Falta aplicar la migración ${migration} en el SQL editor de Supabase (y después NOTIFY pgrst, 'reload schema';).`,
+    );
+    this.name = "MigrationPendingError";
+    this.migration = migration;
+  }
+}
+
+/**
  * Detecta si un error proviene de una tabla que no existe (PostgREST
  * code `PGRST205` o mensaje "Could not find the table"). Útil para
  * mostrar mensajes de "aplica la migración X" en vez de stack traces.

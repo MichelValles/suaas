@@ -63,7 +63,9 @@ export default async function GeoDetailPage({
         analysis.results.length
       : null;
 
-  const canRun = analysis.status === "pending" || analysis.status === "error";
+  const trashed = Boolean(analysis.deleted_at);
+  const canRun =
+    !trashed && (analysis.status === "pending" || analysis.status === "error");
 
   return (
     <AppShell>
@@ -81,6 +83,21 @@ export default async function GeoDetailPage({
           </div>
         }
       />
+
+      {trashed && (
+        <div
+          style={{
+            padding: 16,
+            border: "1px dashed rgba(var(--fg),0.12)",
+            borderRadius: "var(--radius-md)",
+            color: "rgba(var(--fg),0.55)",
+            fontSize: 13,
+          }}
+        >
+          Este análisis está en la papelera: se muestra solo como histórico.
+          Restáuralo desde Sistema → Papelera para volver a lanzarlo.
+        </div>
+      )}
 
       {analysis.status === "running" && (
         <div
@@ -218,7 +235,7 @@ function MetricCard({
       </span>
       <span
         className="display"
-        style={{ fontSize: 32, lineHeight: 1, color: color ?? "#fff" }}
+        style={{ fontSize: 32, lineHeight: 1, color: color ?? "var(--text-strong)" }}
       >
         {value}
       </span>
@@ -253,7 +270,7 @@ function EngineTabBar() {
             letterSpacing: "0.14em",
             textTransform: "uppercase",
             padding: "9px 14px",
-            color: engine.active ? "#fff" : "rgba(var(--fg),0.22)",
+            color: engine.active ? "var(--text-strong)" : "rgba(var(--fg),0.22)",
             borderBottom: engine.active
               ? "2px solid var(--accent-500)"
               : "2px solid transparent",

@@ -14,6 +14,7 @@ const BUSINESS_ERRORS = new Set([
   "Trigger de Momentum no encontrado.",
   "El análisis ya está en marcha.",
   "El Trigger no tiene perfiles asignados.",
+  "El Trigger está en la papelera: restáuralo antes de lanzarlo.",
 ]);
 
 export async function POST(req: Request) {

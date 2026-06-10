@@ -293,6 +293,7 @@ export type Campaign = {
   company_name: string | null;
   long_headline: string | null;
   cta: string | null;
+  deleted_at?: string | null;
 };
 
 // ============================================================
@@ -366,6 +367,23 @@ export async function getCampaign(id: string): Promise<Campaign | null> {
       .eq("id", id)
       .maybeSingle());
   }
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  return normalizeCampaign(data as Record<string, unknown>);
+}
+
+/**
+ * No filtra `deleted_at`: lo usan las vistas de resultados históricos
+ * (runs de campaña) y deben seguir mostrando la campaña aunque esté en
+ * la papelera.
+ */
+export async function getCampaignWithTrashed(id: string): Promise<Campaign | null> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("campaigns")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!data) return null;
   return normalizeCampaign(data as Record<string, unknown>);

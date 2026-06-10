@@ -56,7 +56,9 @@ export default async function MomentumDetailPage({
   const challenge = await getMomentumChallenge(id);
   if (!challenge) notFound();
 
-  const canRun = challenge.status === "pending" || challenge.status === "error";
+  const trashed = Boolean(challenge.deleted_at);
+  const canRun =
+    !trashed && (challenge.status === "pending" || challenge.status === "error");
 
   return (
     <AppShell>
@@ -72,6 +74,21 @@ export default async function MomentumDetailPage({
           </div>
         }
       />
+
+      {trashed && (
+        <div
+          style={{
+            padding: 16,
+            border: "1px dashed rgba(var(--fg),0.12)",
+            borderRadius: "var(--radius-md)",
+            color: "rgba(var(--fg),0.55)",
+            fontSize: 13,
+          }}
+        >
+          Este Trigger está en la papelera: se muestra solo como histórico.
+          Restáuralo desde Sistema → Papelera para volver a lanzarlo.
+        </div>
+      )}
 
       {challenge.brand_context && (
         <div
@@ -257,7 +274,7 @@ function MetricCard({
       >
         {label}
       </span>
-      <span className="display" style={{ fontSize: 28, lineHeight: 1, color: color ?? "#fff" }}>
+      <span className="display" style={{ fontSize: 28, lineHeight: 1, color: color ?? "var(--text-strong)" }}>
         {value}
       </span>
     </div>

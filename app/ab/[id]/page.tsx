@@ -5,7 +5,7 @@ import { getAbTest, listAbTestRuns } from "@/lib/ab";
 import { listProfiles } from "@/lib/profiles";
 import { getMetricsForRun, getRun } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { getTarget } from "@/lib/targets";
+import { getTargetWithTrashed } from "@/lib/targets";
 import { LaunchAbPanel } from "./launch-panel";
 
 export const dynamic = "force-dynamic";
@@ -25,13 +25,22 @@ export default async function AbDetailPage({
   }
   const ab = await getAbTest(id);
   if (!ab) notFound();
+  // Las variantes se cargan sin filtrar la papelera: un target borrado no
+  // debe romper la vista del A/B ni sus resultados históricos. Sólo 404
+  // si el target ya no existe (hard delete).
   const [targetA, targetB, profiles, abRuns] = await Promise.all([
-    getTarget(ab.target_a_id),
-    getTarget(ab.target_b_id),
+    getTargetWithTrashed(ab.target_a_id),
+    getTargetWithTrashed(ab.target_b_id),
     listProfiles(),
     listAbTestRuns(ab.id),
   ]);
   if (!targetA || !targetB) notFound();
+
+  // Variantes en papelera: se muestran, pero bloquean el lanzamiento de runs.
+  const trashedVariants = [
+    targetA.deleted_at ? `A («${targetA.name}»)` : null,
+    targetB.deleted_at ? `B («${targetB.name}»)` : null,
+  ].filter((v): v is string => v !== null);
 
   // Agrupar runs por launchTime (pares A/B muy juntos en el tiempo).
   const launches = await Promise.all(
@@ -63,8 +72,18 @@ export default async function AbDetailPage({
           gap: 24,
         }}
       >
-        <VariantCard variant="A" name={targetA.name} promise={targetA.payload.main_promise} />
-        <VariantCard variant="B" name={targetB.name} promise={targetB.payload.main_promise} />
+        <VariantCard
+          variant="A"
+          name={targetA.name}
+          promise={targetA.payload.main_promise}
+          trashed={Boolean(targetA.deleted_at)}
+        />
+        <VariantCard
+          variant="B"
+          name={targetB.name}
+          promise={targetB.payload.main_promise}
+          trashed={Boolean(targetB.deleted_at)}
+        />
       </section>
 
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -151,7 +170,24 @@ export default async function AbDetailPage({
         )}
       </section>
 
-      <LaunchAbPanel abTestId={ab.id} profiles={profiles} />
+      {trashedVariants.length === 0 ? (
+        <LaunchAbPanel abTestId={ab.id} profiles={profiles} />
+      ) : (
+        <div
+          style={{
+            padding: 16,
+            border: "1px dashed rgba(var(--fg),0.12)",
+            borderRadius: "var(--radius-md)",
+            color: "rgba(var(--fg),0.55)",
+            fontSize: 13,
+          }}
+        >
+          {trashedVariants.length === 1
+            ? `No se pueden lanzar runs nuevos mientras la variante ${trashedVariants[0]} esté en la papelera.`
+            : `No se pueden lanzar runs nuevos mientras las variantes ${trashedVariants.join(" y ")} estén en la papelera.`}{" "}
+          Los runs históricos se siguen mostrando.
+        </div>
+      )}
     </AppShell>
   );
 }
@@ -160,10 +196,12 @@ function VariantCard({
   variant,
   name,
   promise,
+  trashed,
 }: {
   variant: "A" | "B";
   name: string;
   promise: string;
+  trashed?: boolean;
 }) {
   return (
     <div
@@ -178,17 +216,43 @@ function VariantCard({
         minHeight: 180,
       }}
     >
-      <span
-        className="mono"
+      <div
         style={{
-          fontSize: 11,
-          letterSpacing: "0.28em",
-          textTransform: "uppercase",
-          color: "var(--accent-text)",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          gap: 12,
         }}
       >
-        Variante {variant}
-      </span>
+        <span
+          className="mono"
+          style={{
+            fontSize: 11,
+            letterSpacing: "0.28em",
+            textTransform: "uppercase",
+            color: "var(--accent-text)",
+          }}
+        >
+          Variante {variant}
+        </span>
+        {trashed && (
+          <span
+            className="mono"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.18em",
+              textTransform: "uppercase",
+              color: "rgba(var(--fg),0.45)",
+              border: "1px solid rgba(var(--fg),0.15)",
+              borderRadius: "var(--radius-pill)",
+              padding: "3px 10px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            En papelera
+          </span>
+        )}
+      </div>
       <h3
         style={{
           fontFamily: "var(--font-display)",

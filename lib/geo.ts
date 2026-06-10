@@ -1,7 +1,11 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
-import { getServerClient, isMissingColumnError } from "@/lib/supabase";
+import {
+  getServerClient,
+  isMissingColumnError,
+  MigrationPendingError,
+} from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
 
 // ============================================================
@@ -71,6 +75,7 @@ export type GeoAnalysis = {
   segments: SegmentInput[];
   results: SegmentResult[] | null;
   status: "pending" | "running" | "done" | "error";
+  deleted_at?: string | null;
 };
 
 // ============================================================
@@ -194,6 +199,9 @@ export async function softDeleteGeoAnalysis(id: string): Promise<void> {
     .from("geo_analyses")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id);
+  if (isMissingColumnError(error, "deleted_at")) {
+    throw new MigrationPendingError("0017_trash_geo_momentum_profiles.sql");
+  }
   if (error) throw new Error(error.message);
 }
 
@@ -203,6 +211,9 @@ export async function restoreGeoAnalysis(id: string): Promise<void> {
     .from("geo_analyses")
     .update({ deleted_at: null })
     .eq("id", id);
+  if (isMissingColumnError(error, "deleted_at")) {
+    throw new MigrationPendingError("0017_trash_geo_momentum_profiles.sql");
+  }
   if (error) throw new Error(error.message);
 }
 
@@ -228,6 +239,9 @@ export async function runGeoAnalysis(id: string): Promise<GeoAnalysis> {
 
   const analysis = await getGeoAnalysis(id);
   if (!analysis) throw new Error("Análisis GEO no encontrado.");
+  if (analysis.deleted_at) {
+    throw new Error("El análisis está en la papelera: restáuralo antes de lanzarlo.");
+  }
   if (analysis.status === "running") throw new Error("El análisis ya está en marcha.");
 
   await supa.from("geo_analyses").update({ status: "running" }).eq("id", id);

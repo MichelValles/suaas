@@ -36,6 +36,7 @@ export type PricingOffer = {
   description: string;
   currency: string;
   anchor_price: number | null;
+  deleted_at?: string | null;
 };
 
 export type PricingOfferWithPrices = PricingOffer & { prices: PricingPrice[] };
@@ -93,6 +94,34 @@ export async function getPricingOffer(
       .eq("id", id)
       .maybeSingle());
   }
+  if (error) throw new Error(error.message);
+  if (!offer) return null;
+  const { data: prices, error: pErr } = await supa
+    .from("pricing_prices")
+    .select("*")
+    .eq("offer_id", id)
+    .order("position", { ascending: true });
+  if (pErr) throw new Error(pErr.message);
+  return {
+    ...(offer as PricingOffer),
+    prices: (prices ?? []) as PricingPrice[],
+  };
+}
+
+/**
+ * No filtra `deleted_at`: lo usan las vistas de resultados históricos
+ * (runs de pricing) y deben seguir mostrando la oferta aunque esté en
+ * la papelera.
+ */
+export async function getPricingOfferWithTrashed(
+  id: string,
+): Promise<PricingOfferWithPrices | null> {
+  const supa = getServerClient();
+  const { data: offer, error } = await supa
+    .from("pricing_offers")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!offer) return null;
   const { data: prices, error: pErr } = await supa

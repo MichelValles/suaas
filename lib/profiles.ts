@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { getServerClient, isMissingColumnError } from "@/lib/supabase";
+import {
+  getServerClient,
+  isMissingColumnError,
+  MigrationPendingError,
+} from "@/lib/supabase";
 
 // ============================================================
 // Schemas (zod) : la fuente de verdad de la forma del dato.
@@ -148,6 +152,9 @@ export async function softDeleteProfile(id: string): Promise<void> {
     .from("profiles")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id);
+  if (isMissingColumnError(error, "deleted_at")) {
+    throw new MigrationPendingError("0017_trash_geo_momentum_profiles.sql");
+  }
   if (error) throw new Error(error.message);
 }
 
@@ -157,6 +164,9 @@ export async function restoreProfile(id: string): Promise<void> {
     .from("profiles")
     .update({ deleted_at: null })
     .eq("id", id);
+  if (isMissingColumnError(error, "deleted_at")) {
+    throw new MigrationPendingError("0017_trash_geo_momentum_profiles.sql");
+  }
   if (error) throw new Error(error.message);
 }
 

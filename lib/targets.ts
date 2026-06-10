@@ -39,6 +39,7 @@ export type Target = {
   kind: "5s_test";
   name: string;
   payload: FiveSecondPayload;
+  deleted_at?: string | null;
 };
 
 // ============================================================
@@ -89,6 +90,22 @@ export async function getTarget(id: string): Promise<Target | null> {
       .eq("id", id)
       .maybeSingle());
   }
+  if (error) throw new Error(error.message);
+  return (data ?? null) as Target | null;
+}
+
+/**
+ * No filtra `deleted_at`: lo usan las vistas de resultados históricos
+ * (runs, comparativas) y el detalle de un A/B test, que deben seguir
+ * mostrando el target aunque esté en la papelera.
+ */
+export async function getTargetWithTrashed(id: string): Promise<Target | null> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("targets")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   return (data ?? null) as Target | null;
 }

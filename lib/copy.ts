@@ -34,6 +34,7 @@ export type CopyDeck = {
   name: string;
   description: string | null;
   context: string | null;
+  deleted_at?: string | null;
 };
 
 export type CopyDeckWithBlocks = CopyDeck & { blocks: CopyBlock[] };
@@ -89,6 +90,31 @@ export async function getCopyDeck(id: string): Promise<CopyDeckWithBlocks | null
       .eq("id", id)
       .maybeSingle());
   }
+  if (error) throw new Error(error.message);
+  if (!deck) return null;
+  const { data: blocks, error: bErr } = await supa
+    .from("copy_blocks")
+    .select("*")
+    .eq("deck_id", id)
+    .order("position", { ascending: true });
+  if (bErr) throw new Error(bErr.message);
+  return { ...(deck as CopyDeck), blocks: (blocks ?? []) as CopyBlock[] };
+}
+
+/**
+ * No filtra `deleted_at`: lo usan las vistas de resultados históricos
+ * (runs de copy) y deben seguir mostrando el deck aunque esté en
+ * la papelera.
+ */
+export async function getCopyDeckWithTrashed(
+  id: string,
+): Promise<CopyDeckWithBlocks | null> {
+  const supa = getServerClient();
+  const { data: deck, error } = await supa
+    .from("copy_decks")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!deck) return null;
   const { data: blocks, error: bErr } = await supa

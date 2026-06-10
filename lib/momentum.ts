@@ -1,7 +1,11 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
-import { getServerClient, isMissingColumnError } from "@/lib/supabase";
+import {
+  getServerClient,
+  isMissingColumnError,
+  MigrationPendingError,
+} from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
 import { listProfilesByIds, type Profile } from "@/lib/profiles";
 
@@ -43,6 +47,7 @@ export type MomentumChallenge = {
   profile_ids: string[];
   results: ProfileMomentumResult[] | null;
   status: "pending" | "running" | "done" | "error";
+  deleted_at?: string | null;
 };
 
 // ============================================================
@@ -213,6 +218,9 @@ export async function softDeleteMomentumChallenge(id: string): Promise<void> {
     .from("momentum_challenges")
     .update({ deleted_at: new Date().toISOString() })
     .eq("id", id);
+  if (isMissingColumnError(error, "deleted_at")) {
+    throw new MigrationPendingError("0017_trash_geo_momentum_profiles.sql");
+  }
   if (error) throw new Error(error.message);
 }
 
@@ -222,6 +230,9 @@ export async function restoreMomentumChallenge(id: string): Promise<void> {
     .from("momentum_challenges")
     .update({ deleted_at: null })
     .eq("id", id);
+  if (isMissingColumnError(error, "deleted_at")) {
+    throw new MigrationPendingError("0017_trash_geo_momentum_profiles.sql");
+  }
   if (error) throw new Error(error.message);
 }
 
@@ -238,6 +249,9 @@ export async function runMomentumChallenge(
 
   const challenge = await getMomentumChallenge(id);
   if (!challenge) throw new Error("Trigger de Momentum no encontrado.");
+  if (challenge.deleted_at) {
+    throw new Error("El Trigger está en la papelera: restáuralo antes de lanzarlo.");
+  }
   if (challenge.status === "running") throw new Error("El análisis ya está en marcha.");
   if (challenge.profile_ids.length === 0)
     throw new Error("El Trigger no tiene perfiles asignados.");

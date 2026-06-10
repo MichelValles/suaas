@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { ChannelIcon } from "@/components/channel-icon";
-import { CHANNEL_LABEL, getCampaign } from "@/lib/campaigns";
+import { CHANNEL_LABEL, getCampaignWithTrashed } from "@/lib/campaigns";
 import {
   listCampaignResponses,
   summarizeCampaignResponses,
@@ -40,8 +40,10 @@ export default async function CampaignRunPage({
     run.campaign_id ?? (run.params?.campaignId as string | undefined);
   if (!campaignId) notFound();
 
+  // Vista de resultados históricos: la campaña se carga aunque esté en la
+  // papelera para no romper runs antiguos.
   const [campaign, responses] = await Promise.all([
-    getCampaign(campaignId),
+    getCampaignWithTrashed(campaignId),
     listCampaignResponses(runId),
   ]);
   if (!campaign) notFound();
@@ -62,8 +64,11 @@ export default async function CampaignRunPage({
         description={campaign.brief ?? undefined}
         descriptionVariant="panel"
         actions={
-          <Link href={`/campaigns/${campaign.id}`} className="btn-pill">
-            Volver a la campaña
+          <Link
+            href={campaign.deleted_at ? "/campaigns" : `/campaigns/${campaign.id}`}
+            className="btn-pill"
+          >
+            {campaign.deleted_at ? "Volver al listado" : "Volver a la campaña"}
           </Link>
         }
       />

@@ -4,8 +4,8 @@ import { AppShell, PageHeading } from "@/components/app-shell";
 import { isGatewayConfigured } from "@/lib/gateway";
 import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { SeedGate } from "@/components/seed-gate";
 import { SeedExamplesClient } from "./client";
-import { SeedGate } from "./seed-gate";
 
 export const dynamic = "force-dynamic";
 
@@ -44,9 +44,9 @@ function Notice({ children }: { children: React.ReactNode }) {
     <div
       style={{
         padding: 16,
-        border: "1px solid var(--warning-500)",
+        border: "1px solid var(--warning-text)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(180,83,9,0.08)",
+        background: "rgba(var(--fg),0.03)",
         color: "rgba(var(--fg),0.85)",
         fontSize: 14,
         lineHeight: 1.5,

@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Search, Trash2 } from "lucide-react";
+import { Search } from "lucide-react";
 import type { MomentumChallenge } from "@/lib/momentum";
-import { deleteMomentumChallengeAction } from "./actions";
+import { SendToTrashButton } from "@/components/trash-button";
 
 const MONTHS = ["ENE","FEB","MAR","ABR","MAY","JUN","JUL","AGO","SEP","OCT","NOV","DIC"];
 
@@ -130,25 +130,7 @@ function MomentumCard({ challenge: c }: { challenge: MomentumChallenge }) {
         <span className="mono" style={{ fontSize: 9, letterSpacing: "0.2em", color: "rgba(var(--fg),0.35)", textTransform: "uppercase" }}>
           {formatDate(c.created_at)}
         </span>
-        <form action={deleteMomentumChallengeAction}>
-          <input type="hidden" name="id" value={c.id} />
-          <button
-            type="submit"
-            aria-label="Enviar Trigger a la papelera"
-            title="Enviar a papelera"
-            onClick={(e) => {
-              if (
-                !window.confirm(
-                  `¿Enviar «${c.name}» a la papelera? Podrás restaurarlo desde Sistema → Papelera.`,
-                )
-              )
-                e.preventDefault();
-            }}
-            style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(var(--fg),0.25)", padding: 4, display: "flex", alignItems: "center" }}
-          >
-            <Trash2 size={14} />
-          </button>
-        </form>
+        <SendToTrashButton type="momentum" id={c.id} name={c.name} variant="inline" />
       </div>
 
       <Link href={`/momentum/${c.id}`} style={{ textDecoration: "none", display: "flex", flexDirection: "column", gap: 6 }}>

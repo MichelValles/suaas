@@ -882,6 +882,15 @@ html[data-theme="light"] .sidebar-logo {
   opacity: 1;
 }
 
+/* Spinner genérico (iconos de carga tipo Loader2) */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 1s linear infinite;
+}
+
 /* ── Gravity Model diagram ──────────────────────────────────────
    Un solo acento: el centro (la intención) es accent; los anillos y
    puntos orbitales viven en el canal --fg con alphas decrecientes.

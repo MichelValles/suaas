@@ -1,5 +1,7 @@
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { isGatewayConfigured } from "@/lib/gateway";
+import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
 import { PROFILE_SEEDS, streamSeededProfiles, type ProfileSeedEvent } from "@/lib/seed-profiles";
 
 export const runtime = "nodejs";
@@ -16,6 +18,15 @@ function frame(obj: ProfileSeedEvent | { type: "fatal"; message: string }): Uint
 }
 
 export async function POST(request: Request) {
+  // Mismo gate que /api/seed/examples: la siembra consume tokens de Opus.
+  const jar = await cookies();
+  if (jar.get(SEED_COOKIE)?.value !== SEED_VALUE) {
+    return new Response(
+      JSON.stringify({ ok: false, error: "Acceso a la siembra de perfiles no autorizado." }),
+      { status: 401, headers: { "Content-Type": "application/json" } },
+    );
+  }
+
   if (!isGatewayConfigured()) {
     return new Response(
       JSON.stringify({ ok: false, error: "AI Gateway no configurado." }),

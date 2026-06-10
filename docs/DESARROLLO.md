@@ -18,7 +18,7 @@ Ver `.env.example` para el listado completo. Esenciales:
 | Var | Dónde | Para qué |
 |---|---|---|
 | `ACCESS_PASSWORD` | Vercel + .env.local | Login global. |
-| `SEED_PASSWORD` | Vercel + .env.local | Pass adicional para `/seed-examples` y `/api/seed/examples`. **Obligatoria en producción** desde v0.20.0; sin ella el seed devuelve 503. En dev cae a `michel101` si falta. |
+| `SEED_PASSWORD` | Vercel + .env.local | Pass adicional para `/seed-examples`, `/api/seed/examples`, `/profiles/seed` y `/api/profiles/seed`. **Obligatoria en producción** desde v0.20.0; sin ella el seed devuelve 503. En dev cae a `michel101` si falta. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Marketplace | Cliente browser. |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Marketplace | Cliente browser. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Marketplace | Cliente server. |
@@ -33,7 +33,7 @@ Ver `.env.example` para el listado completo. Esenciales:
 
 - **Server Actions body limit**: por defecto Next 16 lo deja en 1MB. SUAAS lo sube a `10mb` en `next.config.ts` (`experimental.serverActions.bodySizeLimit`) para que los uploads de screenshot (data: URL base64) no salten en `/targets/new` ni en `/funnels/new`. Si subes imágenes > 10MB, conviene migrar al patrón **client upload directo a Vercel Blob** con `handleUpload`.
 - **Schema cache de PostgREST**: tras aplicar una migración con `ALTER TABLE`, PostgREST puede tardar en ver las columnas nuevas. Si ves errores tipo `Could not find the 'X' column of 'runs' in the schema cache`, ejecuta en el SQL editor: `NOTIFY pgrst, 'reload schema';`. `lib/runs.ts:createRun` es defensivo y sólo inserta columnas no-null para mitigar el efecto.
-- **Migraciones a aplicar en orden** (estado actual, v0.32.x):
+- **Migraciones a aplicar en orden** (estado actual, v0.34.x):
    1. `0001_initial.sql`
    2. `0002_five_second.sql`
    3. `0003_funnels.sql`
@@ -53,7 +53,7 @@ Ver `.env.example` para el listado completo. Esenciales:
    17. `0017_trash_geo_momentum_profiles.sql`
    18. `0018_campaigns_descriptions_fix.sql` (idempotente, parche)
 
-   Usa `/diag` o `/api/diag` para confirmar que todas las tablas + columnas críticas de `runs` están verdes.
+   Usa `/diag` o `/api/diag` para confirmar que todas las tablas + columnas críticas están verdes. El campo `pending_migrations` del JSON de `/api/diag` es el atajo: lista deduplicada de los archivos `.sql` que faltan por aplicar.
 
 - **¿Cómo aplico las migraciones?** El proyecto suaas **no está conectado a Git en Vercel**, así que `supabase db push` automático no aplica. El flujo es manual:
    1. Vercel → Marketplace → Supabase → **Open in Supabase** → SQL editor.
@@ -111,7 +111,7 @@ vercel --prod --yes  # deploy producción
 ## Troubleshooting
 
 - **El login no acepta `michel101`**: verifica que no haya `ACCESS_PASSWORD` definida en `.env.local` o que coincida.
-- **`/seed-examples` me pide pass y la rechaza**: probablemente `SEED_PASSWORD` no está en el entorno (Vercel responde 503 con `code: seed_password_unset`). Configúrala con `vercel env add SEED_PASSWORD production --force --yes --value <pass>` y haz redeploy.
+- **`/seed-examples` me pide pass y la rechaza** (aplica igual a `/profiles/seed`, comparten el gate `seed_access`): probablemente `SEED_PASSWORD` no está en el entorno (Vercel responde 503 con `code: seed_password_unset`). Configúrala con `vercel env add SEED_PASSWORD production --force --yes --value <pass>` y haz redeploy.
 - **`/campaigns` da 500 `TypeError: Cannot read 'length' of undefined`**: faltan migraciones de Campañas. v0.24.1 añadió `normalizeCampaign` defensivo pero conviene aplicar 0010..0014 si no lo has hecho.
 - **`new row for relation "campaigns" violates check constraint "campaigns_headlines_check"`**: la migración 0009 (relax headlines a 1..15) no está aplicada. Ejecuta `0012_campaigns_headlines_fix.sql` que es idempotente.
 - **`/api/runs/campaign` da error "Combinatorial demasiado grande"**: estás pidiendo más de 200 combinaciones perfil × canal × query. Reduce alguno.

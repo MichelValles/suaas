@@ -169,9 +169,9 @@ function BigKpi({
 }) {
   const accent =
     tone === "ok"
-      ? "var(--success-500)"
+      ? "var(--success-text)"
       : tone === "warn"
-        ? "var(--warning-500)"
+        ? "var(--warning-text)"
         : tone === "off"
           ? "rgba(var(--fg),0.4)"
           : "var(--accent-500)";

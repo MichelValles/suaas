@@ -17,9 +17,9 @@ export function MigrationNeeded({
       role="alert"
       style={{
         padding: 24,
-        border: "1px solid var(--warning-500)",
+        border: "1px solid var(--warning-text)",
         borderRadius: "var(--radius-md)",
-        background: "rgba(180,83,9,0.08)",
+        background: "rgba(var(--fg),0.03)",
         color: "rgba(var(--fg),0.85)",
         lineHeight: 1.55,
         display: "flex",
@@ -27,7 +27,7 @@ export function MigrationNeeded({
         gap: 8,
       }}
     >
-      <strong style={{ color: "var(--warning-500)" }}>
+      <strong style={{ color: "var(--warning-text)" }}>
         Migración pendiente para usar {feature}.
       </strong>
       <p style={{ margin: 0, fontSize: 14 }}>
@@ -36,14 +36,14 @@ export function MigrationNeeded({
           className="mono"
           style={{
             padding: "2px 6px",
-            background: "rgba(0,0,0,0.3)",
+            background: "rgba(var(--fg),0.08)",
             borderRadius: 4,
             fontSize: 12,
           }}
         >
           {migration}
         </code>{" "}
-        en el SQL editor de Supabase (proyecto SUAAS · Marketplace de Vercel).
+        en el SQL editor de Supabase (proyecto supabase-erin-mirror).
         Hasta entonces esta sección queda inactiva.
       </p>
       {details && (

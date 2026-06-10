@@ -103,6 +103,7 @@ Reglas:
 | `.surface-feature` | Fondo `ink-900`, texto blanco, títulos accent. |
 | `.surface-paper` | Fondo `paper`. |
 | `.surface-tone` | Fondo `ink-50` neutro. |
+| `.spin` | Rotación continua (1s, lineal) para iconos de carga tipo `Loader2`. No redefinir el keyframe `spin` en cada página: ya es global. |
 
 ## Patrón "Razonamiento" colapsable (CoT)
 

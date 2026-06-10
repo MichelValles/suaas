@@ -305,8 +305,8 @@ function SummaryBar({
       >
         <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
           <Stat label="Filas detectadas" value={stats.total} />
-          <Stat label="Válidas" value={stats.ok} color="var(--success-500)" />
-          <Stat label="Con errores" value={stats.ko} color="var(--error-500)" />
+          <Stat label="Válidas" value={stats.ok} color="var(--success-text)" />
+          <Stat label="Con errores" value={stats.ko} color="var(--error-text)" />
           <Stat label="Separador" value={separator === "," ? "," : ";"} />
         </div>
         {doneResult ? (
@@ -351,7 +351,7 @@ function SummaryBar({
 function Stat({
   label,
   value,
-  color = "#fff",
+  color = "var(--text-strong)",
 }: {
   label: string;
   value: number | string;

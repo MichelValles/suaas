@@ -1,6 +1,6 @@
 # Proyecto
 
-> **Estado de este documento**: refleja el código a fecha de `v0.30.4` (2026-06). Si tocas estructura, schema o flujos, actualízalo en la misma sesión (regla `CLAUDE.md`).
+> **Estado de este documento**: refleja el código a fecha de `v0.34.0` (2026-06). Si tocas estructura, schema o flujos, actualízalo en la misma sesión (regla `CLAUDE.md`).
 
 ## Qué es
 
@@ -8,7 +8,7 @@
 
 - **Dominio**: `suaas.flat101.business`.
 - **Hosting**: Vercel (proyecto independiente, no comparte deploy con `flat101business`).
-- **Acceso**: contraseña global (cookie `auth_suaas`). Las funciones operativas más sensibles (sembrar ejemplos) tienen un **segundo gate** con cookie `seed_access` y env `SEED_PASSWORD`.
+- **Acceso**: contraseña global (cookie `auth_suaas`). Las funciones operativas más sensibles (sembrar ejemplos y perfiles) tienen un **segundo gate** con cookie `seed_access` y env `SEED_PASSWORD`.
 
 ## Cliente
 
@@ -47,15 +47,14 @@ app/
   page.tsx                              Home: panel 3x3 (9 cards: claridad, embudos, AB, copy, pricing, campañas, perfiles, tokens, diag) + tutorial 4 pasos
 
   diag/
-    page.tsx                            Estado visual del esquema (audita tablas + columnas críticas de runs)
+    page.tsx                            Estado visual del esquema (audita tablas + columnas críticas de varias tablas, cada una con su migración asociada)
   tokens/
     page.tsx                            Créditos del AI Gateway + acumulado interno por modelo/scope + serie 7d
   trash/
     page.tsx                            Papelera: lista soft-deleted con acciones restore / hard delete
     trash-row.tsx                       Client: cada fila con sus botones de acción
   seed-examples/
-    page.tsx                            Sembrar ejemplos en los 6 módulos (server + gate)
-    seed-gate.tsx                       Client: formulario de pass adicional (SEED_PASSWORD)
+    page.tsx                            Sembrar ejemplos en los 6 módulos (server + gate seed_access)
     client.tsx                          Client: tarjetas por módulo (clarity, copy, pricing, ab, funnel, campaign) + lanzar
   login/
     page.tsx                            Pantalla de contraseña (Server, wrapper Suspense)
@@ -80,7 +79,7 @@ app/
       import-client.tsx                 Dropzone + parser + preview por fila
       actions.ts                        importProfilesAction (≤500 filas, sólo válidas)
     seed/
-      page.tsx                          /profiles/seed (genera N perfiles con LLM)
+      page.tsx                          /profiles/seed (genera N perfiles con LLM, tras el gate seed_access)
       seed-client.tsx                   Selector N + progreso en vivo (NDJSON stream)
 
   targets/
@@ -137,12 +136,12 @@ app/
       access/route.ts                   POST valida SEED_PASSWORD, setea seed_access (8h). DELETE limpia.
       examples/route.ts                 POST seed multi-módulo. Acepta { kinds, launch }. Protegido por seed_access.
     og-image/route.ts                   GET ?url=... resuelve og:image (con assertPublicUrl anti-SSRF)
-    diag/route.ts                       GET estado del esquema + columnas críticas
+    diag/route.ts                       GET estado del esquema: tablas + columnas críticas con su migración. JSON con columns / missing_columns / pending_migrations
     chat/route.ts                       POST chat con perfil: Reasoner + Talker streaming NDJSON
     profiles/
       [id]/route.ts                     DELETE perfil
-      seed/route.ts                     POST stream NDJSON de generación de N perfiles
-    trash/[type]/[id]/route.ts          POST a papelera, DELETE definitivo, PATCH restaurar
+      seed/route.ts                     POST stream NDJSON de generación de N perfiles. Protegido por seed_access (401 sin cookie)
+    trash/[type]/[id]/route.ts          POST a papelera, DELETE definitivo, PATCH restaurar. 409 si falta la migración 0017
     runs/
       five-second/route.ts              POST runFiveSecondTest
       funnel/route.ts                   POST runFunnelTest
@@ -157,7 +156,7 @@ lib/
   error-response.ts                     internalError / validationError / serviceUnavailable (anti-leak de e.message)
   url-safety.ts                         assertPublicUrl: DNS lookup + reglas IPv4/IPv6 anti-SSRF
   version.ts                            APP_VERSION (espejo de package.json, manual sync)
-  supabase.ts                           getServerClient (singleton service role), isMissingTableError, isMissingColumnError
+  supabase.ts                           getServerClient (singleton service role), isMissingTableError, isMissingColumnError, MigrationPendingError
   gateway.ts                            DEFAULT_MODEL, REASONER_MODEL, isGatewayConfigured (true en Vercel via OIDC)
   blob.ts                               uploadDataUrlToBlob (acepta image|video|audio data:URL)
   utils.ts                              cx() helper
@@ -177,12 +176,13 @@ lib/
   image-source.ts                       resolveImageForApi (descarga + valida mime + base64 para Anthropic multimodal)
   usage.ts                              UsageScope (incluye campaign_probe, campaign_landing, campaign_ideal), recordUsage, getUsageSummary, getGatewayCredits
 
-  targets.ts                            TargetInputSchema + CRUD + resolveOgImageDetailed (con anti-SSRF, 5s timeout, max-redirects=3, body 1.5MB)
-  funnels.ts                            FunnelInputSchema + CRUD
-  ab.ts                                 AbTestInputSchema + CRUD + linkAbTestRun
-  copy.ts                               CopyDeckInputSchema + CRUD
-  pricing.ts                            PricingOfferInputSchema + CRUD
-  campaigns.ts                          CHANNEL_VALUES, STRATEGY_VALUES, CREATIVE_ROLE_VALUES, CTA_VALUES, CampaignInputSchema con superRefine por strategy + CRUD + normalizeCampaign (defensivo)
+  targets.ts                            TargetInputSchema + CRUD + getTargetWithTrashed + resolveOgImageDetailed (con anti-SSRF, 5s timeout, max-redirects=3, body 1.5MB)
+  funnels.ts                            FunnelInputSchema + CRUD + getFunnelWithTrashed
+  ab.ts                                 AbTestInputSchema + CRUD + linkAbTestRun + getAbTestWithTrashed
+  copy.ts                               CopyDeckInputSchema + CRUD + getCopyDeckWithTrashed
+  pricing.ts                            PricingOfferInputSchema + CRUD + getPricingOfferWithTrashed
+  campaigns.ts                          CHANNEL_VALUES, STRATEGY_VALUES, CREATIVE_ROLE_VALUES, CTA_VALUES, CampaignInputSchema con superRefine por strategy + CRUD + normalizeCampaign (defensivo) + getCampaignWithTrashed
+                                        (patrón v0.34: los getters normales filtran papelera; las variantes WithTrashed no filtran deleted_at y alimentan las vistas de resultados históricos para que no rompan)
   trash.ts                              TRASH_TYPES (9 tipos: targets, funnels, ab, copy, pricing, campaign, geo, momentum, profiles), sendToTrash/restoreFromTrash/hardDelete despachan por tipo
 
   experiments/
@@ -200,6 +200,7 @@ components/
   info-tooltip.tsx                      Tooltip CSS-only (hover/focus)
   result-bar.tsx                        Barra de progreso 0..1 con label + porcentaje + hint
   migration-needed.tsx                  Aviso estándar "aplica esta migración" cuando isMissingTableError
+  seed-gate.tsx                         Client: formulario del pass seed_access (SEED_PASSWORD); compartido por /seed-examples y /profiles/seed
   profile-form.tsx                      ProfileForm compartido new + edit (Big Five con step 0.01, COM-B, géneros, etc.)
   profile-explorer.tsx                  Grid / tabla con filtros, sort, paginación 30, sel + acciones (manage|picker|standalone)
   profile-launch-panel.tsx              CTA colapsable + ProfileExplorer picker + POST endpoint + redirect a resultados
@@ -262,8 +263,10 @@ Flujo:
 Sólo se aplica a las rutas operativas que consumen tokens del Gateway en lote:
 - `GET /seed-examples` (la página)
 - `POST /api/seed/examples` (el endpoint)
+- `GET /profiles/seed` (la página, desde v0.34)
+- `POST /api/profiles/seed` (el endpoint, desde v0.34)
 
-Cookie `seed_access=ok` (`httpOnly`, 8h). Verificada en server-side por la `page.tsx` y el endpoint. Si falta, la page muestra `<SeedGate>` (formulario de password) y el endpoint responde 401 / 503 según el caso.
+Cookie `seed_access=ok` (`httpOnly`, 8h). Verificada en server-side por las `page.tsx` y los endpoints. Si falta, la page muestra `<SeedGate>` (formulario de password, `components/seed-gate.tsx`, compartido por ambas páginas) y el endpoint responde 401 / 503 según el caso.
 
 `SEED_PASSWORD` env. En producción es obligatoria (sin ella, 503 con `code: seed_password_unset`). En dev cae a `michel101` si falta.
 
@@ -275,7 +278,7 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 
 | Tabla | Propósito | Notas |
 |---|---|---|
-| `profiles` | Vignettes grounded: `demographics` jsonb (edad/género/ocupación/ingresos/geo), `big_five` jsonb (O/C/E/A/N 0..1), `com_b_barriers` jsonb (capability/opportunity/motivation arrays), `backstory` text, `source`, `intent_context` text (JTBD, v0.29, se inyecta en todos los system prompts del perfil). | Trigger `updated_at`. `deleted_at` desde 0017: el borrado de UI es soft (el duro, solo desde /trash, destruye runs y respuestas en cascada). `listProfilesByIds` NO filtra `deleted_at` para que los históricos de runs sigan mostrando el perfil. |
+| `profiles` | Vignettes grounded: `demographics` jsonb (edad/género/ocupación/ingresos/geo), `big_five` jsonb (O/C/E/A/N 0..1), `com_b_barriers` jsonb (capability/opportunity/motivation arrays), `backstory` text, `source`, `intent_context` text (JTBD, v0.29, se inyecta en todos los system prompts del perfil). | Trigger `updated_at`. `deleted_at` desde 0017: el borrado de UI es soft (el duro, solo desde /trash, destruye runs y respuestas en cascada). `listProfilesByIds` NO filtra `deleted_at` para que los históricos de runs sigan mostrando el perfil. Mismo patrón en el resto de entidades vía las variantes `getXWithTrashed` (v0.34): los getters normales filtran papelera y las vistas de resultados históricos usan la variante para no romper. |
 | `targets` | Pantalla evaluable. `kind` + `payload` jsonb (kind `5s_test` con `main_promise`, `image_url`, `source_url?`). | `deleted_at` desde 0007. |
 | `runs` | Sesión de simulación. `profile_id` (owner del run), `kind`, `status`, `params jsonb`, `created_at`, `finished_at`. FKs nullable: `target_id`, `funnel_id`, `ab_test_id`, `copy_deck_id`, `pricing_offer_id`, `campaign_id`. |
 | `messages` | Trazas por turno. `role`: `human | talker | reasoner | system`. `meta jsonb` con `model`, `tokens`, `latency`, `plan` (para reasoner). |
@@ -315,7 +318,7 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 17. `0017_trash_geo_momentum_profiles.sql` (v0.32: `deleted_at` en `geo_analyses`, `momentum_challenges` y `profiles`)
 18. `0018_campaigns_descriptions_fix.sql` (v0.32: check de `descriptions` 1..5 + índice `campaigns.deleted_at`)
 
-Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado.
+Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado; el campo `pending_migrations` del JSON de `/api/diag` es el atajo para saber qué archivos `.sql` faltan por aplicar.
 
 ## Módulo Campañas (Paid Ads): detalle
 
@@ -442,7 +445,7 @@ Simula cómo un buscador IA (Perplexity / Google AI Overview / ChatGPT Search) d
 
 ### 5. Momentum (Intent Momentum ante-touchpoint): `lib/momentum.ts`
 
-Define **Triggers** (escenarios de activación JTBD) y simula cómo cada perfil los abordaría en su vida real, antes de que ninguna marca entre en su radar. Por perfil: `intent_narrative` (1ª persona), `intensity`, `direction`, `velocity`, `first_steps`, `channels`, `barriers`, `jtbd_expressed`. Runner serie por perfil (`runMomentumChallenge`), scope `momentum_probe`. Rutas: `/momentum` (lista), `/momentum/new`, `/momentum/[id]`. API: `POST /api/momentum` (crear), `POST /api/momentum/run` `{ challengeId }`. Tabla `momentum_challenges`. Migración `0016`.
+Define **Triggers** (escenarios de activación JTBD) y simula cómo cada perfil los abordaría en su vida real, antes de que ninguna marca entre en su radar. Por perfil: `intent_narrative` (1ª persona), `intensity`, `direction`, `velocity`, `first_steps`, `channels`, `barriers`, `jtbd_expressed`. Runner serie por perfil (`runMomentumChallenge`), scope `momentum_probe`. Rutas: `/momentum` (lista), `/momentum/new` (la creación va por server action, `app/momentum/new/actions.ts`), `/momentum/[id]`. API: `POST /api/momentum/run` `{ challengeId }`. Tabla `momentum_challenges`. Migración `0016`.
 
 > **Patrón de estado de GEO/Momentum**: el análisis vive entero en la fila (`status` + `results jsonb`), no usa la tabla `runs`. El runner marca `status='running'`, itera en serie y al final escribe `status='done'` con los resultados. Si la función se mata por timeout (sin excepción JS), el `catch` que pone `status='error'` no llega a ejecutarse y la fila queda en `running` (ver auditoría: deadlock sin reset). No hay cap combinacional como en Campañas.
 
@@ -477,7 +480,7 @@ Si la key del Gateway no está visible (modo OIDC implícito en runtime), la con
 
 `lib/error-response.ts`: cualquier 500 al cliente devuelve sólo `"Error interno."`. El detalle (stack, cause, mensaje original) queda en `console.error` visible en logs de Vercel. Los 400 (zod) sí pasan el mensaje porque viene del schema del propio body.
 
-Endpoints higienizados: todos los `/api/runs/*`, `/api/chat`, `/api/profiles/[id]`, `/api/trash/[type]/[id]`, `/api/og-image`, `/api/geo`, `/api/geo/run`, `/api/momentum`, `/api/momentum/run` (estos cuatro desde v0.32; los endpoints de run mantienen una lista blanca de mensajes de negocio propios que sí llegan al cliente con 409). `/api/seed/examples` mantiene detalle porque está tras doble gate (login + seed pass).
+Endpoints higienizados: todos los `/api/runs/*`, `/api/chat`, `/api/profiles/[id]`, `/api/trash/[type]/[id]`, `/api/og-image`, `/api/geo/run`, `/api/momentum/run` (estos dos desde v0.32; mantienen una lista blanca de mensajes de negocio propios que sí llegan al cliente con 409). `/api/trash/[type]/[id]` responde 409 con el mensaje seguro de `MigrationPendingError` (solo nombra el archivo de migración) cuando falta `0017_trash_geo_momentum_profiles.sql`. `/api/seed/examples` mantiene detalle porque está tras doble gate (login + seed pass).
 
 ### `SEED_PASSWORD` obligatoria en producción
 

@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
-import { getServerClient, isSupabaseConfigured } from "@/lib/supabase";
-import { updateProfileIntentContext, type Profile } from "@/lib/profiles";
+import { isSupabaseConfigured } from "@/lib/supabase";
+import { listProfiles, updateProfileIntentContext, type Profile } from "@/lib/profiles";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -68,18 +68,13 @@ export async function POST(req: Request) {
     /* force remains false */
   }
 
-  const supa = getServerClient();
-  const { data, error } = await supa
-    .from("profiles")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .limit(10);
-
-  if (error) {
+  // listProfiles ya filtra la papelera (deleted_at) y ordena por fecha desc.
+  let profiles: Profile[];
+  try {
+    profiles = (await listProfiles()).slice(0, 10);
+  } catch {
     return NextResponse.json({ error: "Error interno." }, { status: 500 });
   }
-
-  const profiles = (data ?? []) as Profile[];
   const results: {
     id: string;
     name: string;

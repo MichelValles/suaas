@@ -20,6 +20,7 @@ export type AbTest = {
   hypothesis: string | null;
   target_a_id: string;
   target_b_id: string;
+  deleted_at?: string | null;
 };
 
 export type AbTestRun = {
@@ -74,6 +75,22 @@ export async function getAbTest(id: string): Promise<AbTest | null> {
       .eq("id", id)
       .maybeSingle());
   }
+  if (error) throw new Error(error.message);
+  return (data ?? null) as AbTest | null;
+}
+
+/**
+ * No filtra `deleted_at`: lo usan las vistas de resultados históricos
+ * (comparativa A/B) y deben seguir mostrando el test aunque esté en
+ * la papelera.
+ */
+export async function getAbTestWithTrashed(id: string): Promise<AbTest | null> {
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("ab_tests")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   return (data ?? null) as AbTest | null;
 }

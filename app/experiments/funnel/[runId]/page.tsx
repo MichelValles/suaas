@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { ResultBar } from "@/components/result-bar";
-import { getFunnel } from "@/lib/funnels";
+import { getFunnelWithTrashed } from "@/lib/funnels";
 import {
   listFunnelStepResponses,
   summarizeFunnelResponses,
@@ -41,8 +41,10 @@ export default async function FunnelRunPage({
   const funnelId = run.funnel_id ?? (run.params?.funnelId as string | undefined);
   if (!funnelId) notFound();
 
+  // Vista de resultados históricos: el embudo se carga aunque esté en la
+  // papelera para no romper runs antiguos.
   const [funnel, responses] = await Promise.all([
-    getFunnel(funnelId),
+    getFunnelWithTrashed(funnelId),
     listFunnelStepResponses(runId),
   ]);
   if (!funnel) notFound();
@@ -67,8 +69,11 @@ export default async function FunnelRunPage({
         description={funnel.description ?? undefined}
         descriptionVariant="panel"
         actions={
-          <Link href={`/funnels/${funnel.id}`} className="btn-pill">
-            Volver al embudo
+          <Link
+            href={funnel.deleted_at ? "/funnels" : `/funnels/${funnel.id}`}
+            className="btn-pill"
+          >
+            {funnel.deleted_at ? "Volver al listado" : "Volver al embudo"}
           </Link>
         }
       />

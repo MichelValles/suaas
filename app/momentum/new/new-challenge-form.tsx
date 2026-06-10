@@ -82,7 +82,7 @@ function FilterPill({
         borderRadius: "var(--radius-pill)",
         border: active ? "1px solid var(--accent-500)" : "1px solid rgba(var(--fg),0.1)",
         background: active ? "rgba(var(--fg),0.05)" : "transparent",
-        color: active ? "#fff" : "rgba(var(--fg),0.4)",
+        color: active ? "var(--text-strong)" : "rgba(var(--fg),0.4)",
         cursor: "pointer",
         transition: "all 0.12s",
       }}

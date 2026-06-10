@@ -2,46 +2,81 @@ import { NextResponse } from "next/server";
 import { getServerClient, isSupabaseConfigured } from "@/lib/supabase";
 import { APP_VERSION } from "@/lib/version";
 
-const RUNS_REQUIRED_COLUMNS = [
-  "target_id",
-  "funnel_id",
-  "ab_test_id",
-  "copy_deck_id",
-  "pricing_offer_id",
-  "campaign_id",
-] as const;
-
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+// Cada tabla con la migración que la crea: si la tabla entera falta,
+// pending_migrations debe señalar esa migración (aplicar solo el ALTER
+// de una posterior fallaría con "relation does not exist").
+// Mantener en paridad con app/diag/page.tsx.
 const TABLES = [
-  "profiles",
-  "targets",
-  "runs",
-  "messages",
-  "metrics",
-  "five_second_responses",
-  "funnels",
-  "funnel_steps",
-  "funnel_step_responses",
-  "gateway_usage",
-  "ab_tests",
-  "ab_test_runs",
-  "copy_decks",
-  "copy_blocks",
-  "copy_responses",
-  "pricing_offers",
-  "pricing_prices",
-  "pricing_responses",
-  "campaigns",
-  "campaign_responses",
+  { table: "profiles", migration: "0001_initial.sql" },
+  { table: "targets", migration: "0001_initial.sql" },
+  { table: "runs", migration: "0001_initial.sql" },
+  { table: "messages", migration: "0001_initial.sql" },
+  { table: "metrics", migration: "0001_initial.sql" },
+  { table: "five_second_responses", migration: "0002_five_second.sql" },
+  { table: "funnels", migration: "0003_funnels.sql" },
+  { table: "funnel_steps", migration: "0003_funnels.sql" },
+  { table: "funnel_step_responses", migration: "0004_funnel_runs.sql" },
+  { table: "gateway_usage", migration: "0005_gateway_usage.sql" },
+  { table: "ab_tests", migration: "0006_ab_copy_pricing.sql" },
+  { table: "ab_test_runs", migration: "0006_ab_copy_pricing.sql" },
+  { table: "copy_decks", migration: "0006_ab_copy_pricing.sql" },
+  { table: "copy_blocks", migration: "0006_ab_copy_pricing.sql" },
+  { table: "copy_responses", migration: "0006_ab_copy_pricing.sql" },
+  { table: "pricing_offers", migration: "0006_ab_copy_pricing.sql" },
+  { table: "pricing_prices", migration: "0006_ab_copy_pricing.sql" },
+  { table: "pricing_responses", migration: "0006_ab_copy_pricing.sql" },
+  { table: "campaigns", migration: "0008_campaigns.sql" },
+  { table: "campaign_responses", migration: "0008_campaigns.sql" },
+  { table: "geo_analyses", migration: "0015_gravity_model.sql" },
+  { table: "momentum_challenges", migration: "0016_momentum.sql" },
+] as const;
+
+// Columnas añadidas por migraciones posteriores a la creación de cada tabla.
+// No basta con que la tabla exista: una migración a medio aplicar deja la
+// columna fuera y el módulo correspondiente roto. Mantener en paridad con
+// app/diag/page.tsx.
+const CRITICAL_COLUMNS = [
+  // runs: enlaces opcionales hacia cada módulo testeable
+  { table: "runs", column: "target_id", migration: "0001_initial.sql" },
+  { table: "runs", column: "funnel_id", migration: "0004_funnel_runs.sql" },
+  { table: "runs", column: "ab_test_id", migration: "0006_ab_copy_pricing.sql" },
+  { table: "runs", column: "copy_deck_id", migration: "0006_ab_copy_pricing.sql" },
+  { table: "runs", column: "pricing_offer_id", migration: "0006_ab_copy_pricing.sql" },
+  { table: "runs", column: "campaign_id", migration: "0008_campaigns.sql" },
+  // papelera (soft delete)
+  { table: "targets", column: "deleted_at", migration: "0007_trash.sql" },
+  { table: "funnels", column: "deleted_at", migration: "0007_trash.sql" },
+  { table: "ab_tests", column: "deleted_at", migration: "0007_trash.sql" },
+  { table: "copy_decks", column: "deleted_at", migration: "0007_trash.sql" },
+  { table: "pricing_offers", column: "deleted_at", migration: "0007_trash.sql" },
+  { table: "campaigns", column: "deleted_at", migration: "0008_campaigns.sql" },
+  { table: "profiles", column: "deleted_at", migration: "0017_trash_geo_momentum_profiles.sql" },
+  { table: "geo_analyses", column: "deleted_at", migration: "0017_trash_geo_momentum_profiles.sql" },
+  { table: "momentum_challenges", column: "deleted_at", migration: "0017_trash_geo_momentum_profiles.sql" },
+  // campañas: multicanal y estrategia
+  { table: "campaigns", column: "channels", migration: "0011_campaigns_multichannel.sql" },
+  { table: "campaigns", column: "strategy", migration: "0013_campaigns_strategy.sql" },
+  // Gravity Model
+  { table: "profiles", column: "intent_context", migration: "0015_gravity_model.sql" },
+  { table: "five_second_responses", column: "behavior_class", migration: "0015_gravity_model.sql" },
 ] as const;
 
 type TableStatus = {
   table: string;
+  migration: string;
   ok: boolean;
   count: number | null;
   error: string | null;
+};
+
+type ColumnStatus = {
+  table: string;
+  column: string;
+  migration: string;
+  present: boolean;
 };
 
 export async function GET() {
@@ -54,12 +89,13 @@ export async function GET() {
 
   const supa = getServerClient();
   const results: TableStatus[] = await Promise.all(
-    TABLES.map(async (table) => {
+    TABLES.map(async ({ table, migration }) => {
       const { count, error } = await supa
         .from(table)
         .select("*", { count: "exact", head: true });
       return {
         table,
+        migration,
         ok: !error,
         count: count ?? null,
         error: error?.message ?? null,
@@ -67,29 +103,39 @@ export async function GET() {
     }),
   );
 
-  // Auditar columnas críticas de `runs` (no basta con que la tabla
-  // exista; algunas migraciones alteran columnas y pueden quedarse
-  // parcialmente aplicadas).
-  const runsColumns: { name: string; present: boolean }[] = await Promise.all(
-    RUNS_REQUIRED_COLUMNS.map(async (col) => {
+  // Auditar columnas críticas: select head sobre la columna concreta.
+  // present = !error (si la tabla entera falta, la columna también cuenta
+  // como ausente, lo cual es correcto).
+  const columns: ColumnStatus[] = await Promise.all(
+    CRITICAL_COLUMNS.map(async ({ table, column, migration }) => {
       const { error } = await supa
-        .from("runs")
-        .select(col, { head: true, count: "exact" })
+        .from(table)
+        .select(column, { head: true, count: "exact" })
         .limit(1);
-      return { name: col, present: !error };
+      return { table, column, migration, present: !error };
     }),
   );
-  const missingRunsColumns = runsColumns.filter((c) => !c.present).map((c) => c.name);
+  const missingColumns = columns.filter((c) => !c.present);
+  // Tablas ausentes primero: su migración creadora precede a cualquier
+  // ALTER posterior sobre ellas.
+  const missingTables = results.filter((r) => !r.ok);
+  const pendingMigrations = [
+    ...new Set([
+      ...missingTables.map((t) => t.migration),
+      ...missingColumns.map((c) => c.migration),
+    ]),
+  ].sort();
 
-  const allOk = results.every((r) => r.ok) && missingRunsColumns.length === 0;
+  const allOk = results.every((r) => r.ok) && missingColumns.length === 0;
   return NextResponse.json(
     {
       version: APP_VERSION,
       supabase: "configurado",
       schema_ok: allOk,
       tables: results,
-      runs_columns: runsColumns,
-      missing_runs_columns: missingRunsColumns,
+      columns,
+      missing_columns: missingColumns,
+      pending_migrations: pendingMigrations,
     },
     { status: allOk ? 200 : 500 },
   );

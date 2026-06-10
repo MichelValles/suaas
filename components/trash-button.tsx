@@ -11,18 +11,22 @@ import type { TrashType } from "@/lib/trash";
  * de Momentum o perfil) a la papelera. Pide confirmación, llama al
  * endpoint POST /api/trash/[type]/[id] y refresca la página.
  *
- * Pensado para encajar en una esquina de las cards de listado (overlay).
+ * Dos variantes: «overlay» (por defecto, posicionado en una esquina de la
+ * card con fondo y blur) e «inline», un icono plano sin fondo ni borde
+ * para encajar dentro del flujo de la card.
  */
 export function SendToTrashButton({
   type,
   id,
   name,
   size = 32,
+  variant = "overlay",
 }: {
   type: TrashType;
   id: string;
   name: string;
   size?: number;
+  variant?: "overlay" | "inline";
 }) {
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -54,6 +58,9 @@ export function SendToTrashButton({
     }
   }
 
+  const inline = variant === "inline";
+  const restColor = inline ? "rgba(var(--fg),0.25)" : "rgba(var(--fg),0.7)";
+
   return (
     <button
       type="button"
@@ -62,31 +69,35 @@ export function SendToTrashButton({
       title="Enviar a papelera"
       aria-label={`Enviar ${name} a la papelera`}
       style={{
-        position: "absolute",
-        top: 12,
-        right: 12,
-        zIndex: 2,
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        width: size,
-        height: size,
-        background: "rgba(10,11,13,0.72)",
-        border: "1px solid rgba(var(--fg),0.12)",
-        borderRadius: "var(--radius-sm)",
-        color: "rgba(var(--fg),0.7)",
+        color: restColor,
         cursor: busy || pending ? "wait" : "pointer",
-        backdropFilter: "blur(6px)",
         transition:
           "color var(--dur-short) var(--ease-out), border-color var(--dur-short) var(--ease-out)",
+        ...(inline
+          ? { background: "none", border: "none", padding: 4 }
+          : {
+              position: "absolute",
+              top: 12,
+              right: 12,
+              zIndex: 2,
+              width: size,
+              height: size,
+              background: "rgba(10,11,13,0.72)",
+              border: "1px solid rgba(var(--fg),0.12)",
+              borderRadius: "var(--radius-sm)",
+              backdropFilter: "blur(6px)",
+            }),
       }}
       onMouseEnter={(e) => {
-        e.currentTarget.style.color = "var(--error-500)";
-        e.currentTarget.style.borderColor = "var(--error-500)";
+        e.currentTarget.style.color = inline ? "var(--error-text)" : "var(--error-500)";
+        if (!inline) e.currentTarget.style.borderColor = "var(--error-500)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.color = "rgba(var(--fg),0.7)";
-        e.currentTarget.style.borderColor = "rgba(var(--fg),0.12)";
+        e.currentTarget.style.color = restColor;
+        if (!inline) e.currentTarget.style.borderColor = "rgba(var(--fg),0.12)";
       }}
     >
       <Trash2 size={14} />

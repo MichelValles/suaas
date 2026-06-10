@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { getAbTest, listAbTestRuns } from "@/lib/ab";
+import { getAbTestWithTrashed, listAbTestRuns } from "@/lib/ab";
 import {
   listFiveSecondResponses,
   summarizeResponses,
 } from "@/lib/experiments/five-second";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { getTarget } from "@/lib/targets";
+import { getTargetWithTrashed } from "@/lib/targets";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +24,9 @@ export default async function AbResultsPage({
       </AppShell>
     );
   }
-  const ab = await getAbTest(abTestId);
+  // Vista de resultados históricos: el A/B y sus targets se cargan aunque
+  // estén en la papelera. Sólo 404 si ya no existen (hard delete).
+  const ab = await getAbTestWithTrashed(abTestId);
   if (!ab) notFound();
 
   const links = await listAbTestRuns(ab.id);
@@ -40,8 +42,8 @@ export default async function AbResultsPage({
           eyebrow={`A/B · ${ab.name}`}
           title="Sin runs comparables todavía."
           actions={
-            <Link href={`/ab/${ab.id}`} className="btn-pill">
-              Volver al A/B
+            <Link href={ab.deleted_at ? "/ab" : `/ab/${ab.id}`} className="btn-pill">
+              {ab.deleted_at ? "Volver al listado" : "Volver al A/B"}
             </Link>
           }
         />
@@ -50,8 +52,8 @@ export default async function AbResultsPage({
   }
 
   const [targetA, targetB, respA, respB] = await Promise.all([
-    getTarget(ab.target_a_id),
-    getTarget(ab.target_b_id),
+    getTargetWithTrashed(ab.target_a_id),
+    getTargetWithTrashed(ab.target_b_id),
     listFiveSecondResponses(lastA.run_id),
     listFiveSecondResponses(lastB.run_id),
   ]);
@@ -68,8 +70,8 @@ export default async function AbResultsPage({
         description={ab.hypothesis ?? undefined}
         descriptionVariant="panel"
         actions={
-          <Link href={`/ab/${ab.id}`} className="btn-pill">
-            Volver al A/B
+          <Link href={ab.deleted_at ? "/ab" : `/ab/${ab.id}`} className="btn-pill">
+            {ab.deleted_at ? "Volver al listado" : "Volver al A/B"}
           </Link>
         }
       />

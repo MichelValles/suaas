@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Search, Trash2 } from "lucide-react";
-import { deleteGeoAnalysisAction } from "./actions";
+import { Search } from "lucide-react";
+import { SendToTrashButton } from "@/components/trash-button";
 import type { GeoAnalysis } from "@/lib/geo";
 
 const STATUS_LABEL: Record<string, string> = {
@@ -219,45 +219,7 @@ function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
         >
           {formatDate(analysis.created_at)}
         </span>
-        <form action={deleteGeoAnalysisAction}>
-          <input type="hidden" name="id" value={analysis.id} />
-          <button
-            type="submit"
-            aria-label="Enviar análisis a la papelera"
-            title="Enviar a papelera"
-            onClick={(e) => {
-              if (
-                !window.confirm(
-                  `¿Enviar «${analysis.name}» a la papelera? Podrás restaurarlo desde Sistema → Papelera.`,
-                )
-              ) {
-                e.preventDefault();
-              }
-            }}
-            style={{
-              background: "transparent",
-              border: "1px solid rgba(var(--fg),0.1)",
-              borderRadius: "var(--radius-sm)",
-              color: "rgba(var(--fg),0.3)",
-              padding: "4px 7px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              lineHeight: 1,
-              transition: "color var(--dur-micro), border-color var(--dur-micro)",
-            }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = "var(--error-text)";
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(248,113,113,0.35)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = "rgba(var(--fg),0.3)";
-              (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(var(--fg),0.1)";
-            }}
-          >
-            <Trash2 size={13} />
-          </button>
-        </form>
+        <SendToTrashButton type="geo" id={analysis.id} name={analysis.name} variant="inline" />
       </div>
 
       {/* Nombre y descripción (área clicable) */}

@@ -1,15 +1,20 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { SeedGate } from "@/components/seed-gate";
 import { isGatewayConfigured } from "@/lib/gateway";
+import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
 import { PROFILE_SEEDS } from "@/lib/seed-profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { SeedClient } from "./seed-client";
 
 export const dynamic = "force-dynamic";
 
-export default function ProfileSeedPage() {
+export default async function ProfileSeedPage() {
   const supaOk = isSupabaseConfigured();
   const gwOk = isGatewayConfigured();
+  const jar = await cookies();
+  const unlocked = jar.get(SEED_COOKIE)?.value === SEED_VALUE;
   return (
     <AppShell>
       <PageHeading
@@ -31,7 +36,8 @@ export default function ProfileSeedPage() {
           AI Gateway no está configurado. Verifica AI_GATEWAY_API_KEY.
         </Notice>
       )}
-      {supaOk && gwOk && (
+      {supaOk && !unlocked && <SeedGate />}
+      {supaOk && gwOk && unlocked && (
         <SeedClient maxN={PROFILE_SEEDS.length} defaultN={Math.min(48, PROFILE_SEEDS.length)} />
       )}
     </AppShell>
@@ -39,7 +45,7 @@ export default function ProfileSeedPage() {
 }
 
 function Notice({ children, tone }: { children: React.ReactNode; tone: "warn" }) {
-  const color = tone === "warn" ? "var(--warning-500)" : "var(--accent-500)";
+  const color = tone === "warn" ? "var(--warning-text)" : "var(--accent-500)";
   return (
     <div
       style={{

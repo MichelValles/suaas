@@ -50,6 +50,7 @@ export type Funnel = {
   created_at: string;
   name: string;
   description: string | null;
+  deleted_at?: string | null;
 };
 
 export type FunnelWithSteps = Funnel & { steps: FunnelStep[] };
@@ -111,6 +112,36 @@ export async function getFunnel(id: string): Promise<FunnelWithSteps | null> {
       .eq("id", id)
       .maybeSingle());
   }
+  if (error) throw new Error(error.message);
+  if (!funnel) return null;
+
+  const { data: steps, error: stepsErr } = await supa
+    .from("funnel_steps")
+    .select("*")
+    .eq("funnel_id", id)
+    .order("position", { ascending: true });
+  if (stepsErr) throw new Error(stepsErr.message);
+
+  return {
+    ...(funnel as Funnel),
+    steps: (steps ?? []) as FunnelStep[],
+  };
+}
+
+/**
+ * No filtra `deleted_at`: lo usan las vistas de resultados históricos
+ * (runs de embudo) y deben seguir mostrando el embudo aunque esté en
+ * la papelera.
+ */
+export async function getFunnelWithTrashed(
+  id: string,
+): Promise<FunnelWithSteps | null> {
+  const supa = getServerClient();
+  const { data: funnel, error } = await supa
+    .from("funnels")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
   if (error) throw new Error(error.message);
   if (!funnel) return null;
 

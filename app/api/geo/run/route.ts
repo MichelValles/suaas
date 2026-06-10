@@ -12,6 +12,7 @@ export const dynamic = "force-dynamic";
 const BUSINESS_ERRORS = new Set([
   "Análisis GEO no encontrado.",
   "El análisis ya está en marcha.",
+  "El análisis está en la papelera: restáuralo antes de lanzarlo.",
 ]);
 
 export async function POST(req: Request) {

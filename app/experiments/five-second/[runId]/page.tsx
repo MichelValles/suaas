@@ -10,7 +10,7 @@ import {
 import { listProfilesByIds } from "@/lib/profiles";
 import { getRun } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
-import { getTarget } from "@/lib/targets";
+import { getTargetWithTrashed } from "@/lib/targets";
 import { ResponsesTable } from "./responses-table";
 
 export const dynamic = "force-dynamic";
@@ -39,8 +39,10 @@ export default async function FiveSecondRunPage({
   const run = await getRun(runId);
   if (!run || run.kind !== "5s_test") notFound();
 
+  // Vista de resultados históricos: el target se carga aunque esté en la
+  // papelera para no romper runs antiguos.
   const [target, responses] = await Promise.all([
-    run.target_id ? getTarget(run.target_id) : Promise.resolve(null),
+    run.target_id ? getTargetWithTrashed(run.target_id) : Promise.resolve(null),
     listFiveSecondResponses(runId),
   ]);
 
@@ -63,8 +65,11 @@ export default async function FiveSecondRunPage({
         descriptionVariant="panel"
         actions={
           target && (
-            <Link href={`/targets/${target.id}`} className="btn-pill">
-              Volver al test
+            <Link
+              href={target.deleted_at ? "/targets" : `/targets/${target.id}`}
+              className="btn-pill"
+            >
+              {target.deleted_at ? "Volver al listado" : "Volver al test"}
             </Link>
           )
         }

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { getCopyDeck } from "@/lib/copy";
+import { getCopyDeckWithTrashed } from "@/lib/copy";
 import {
   listCopyResponses,
   summarizeCopyResponses,
@@ -30,8 +30,10 @@ export default async function CopyRunPage({
   const deckId = run.copy_deck_id ?? (run.params?.deckId as string | undefined);
   if (!deckId) notFound();
 
+  // Vista de resultados históricos: el deck se carga aunque esté en la
+  // papelera para no romper runs antiguos.
   const [deck, responses] = await Promise.all([
-    getCopyDeck(deckId),
+    getCopyDeckWithTrashed(deckId),
     listCopyResponses(runId),
   ]);
   if (!deck) notFound();
@@ -50,8 +52,11 @@ export default async function CopyRunPage({
         description={deck.description ?? deck.context ?? undefined}
         descriptionVariant="panel"
         actions={
-          <Link href={`/copy/${deck.id}`} className="btn-pill">
-            Volver al deck
+          <Link
+            href={deck.deleted_at ? "/copy" : `/copy/${deck.id}`}
+            className="btn-pill"
+          >
+            {deck.deleted_at ? "Volver al listado" : "Volver al deck"}
           </Link>
         }
       />

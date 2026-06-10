@@ -103,7 +103,7 @@ export function SeedGate() {
           />
         </label>
         {error && (
-          <span style={{ color: "var(--error-500)", fontSize: 13 }}>{error}</span>
+          <span style={{ color: "var(--error-text)", fontSize: 13 }}>{error}</span>
         )}
         <button
           type="submit"
@@ -120,7 +120,6 @@ export function SeedGate() {
           )}
         </button>
       </form>
-      <style>{`@keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } } .spin { animation: spin 1s linear infinite }`}</style>
     </section>
   );
 }

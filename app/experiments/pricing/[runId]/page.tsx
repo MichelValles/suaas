@@ -5,7 +5,7 @@ import {
   listPricingResponses,
   summarizePricingResponses,
 } from "@/lib/experiments/pricing";
-import { getPricingOffer } from "@/lib/pricing";
+import { getPricingOfferWithTrashed } from "@/lib/pricing";
 import { listProfilesByIds } from "@/lib/profiles";
 import { getRun } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -30,8 +30,10 @@ export default async function PricingRunPage({
   const offerId = run.pricing_offer_id ?? (run.params?.offerId as string | undefined);
   if (!offerId) notFound();
 
+  // Vista de resultados históricos: la oferta se carga aunque esté en la
+  // papelera para no romper runs antiguos.
   const [offer, responses] = await Promise.all([
-    getPricingOffer(offerId),
+    getPricingOfferWithTrashed(offerId),
     listPricingResponses(runId),
   ]);
   if (!offer) notFound();
@@ -54,8 +56,11 @@ export default async function PricingRunPage({
         description={offer.description}
         descriptionVariant="panel"
         actions={
-          <Link href={`/pricing/${offer.id}`} className="btn-pill">
-            Volver a la oferta
+          <Link
+            href={offer.deleted_at ? "/pricing" : `/pricing/${offer.id}`}
+            className="btn-pill"
+          >
+            {offer.deleted_at ? "Volver al listado" : "Volver a la oferta"}
           </Link>
         }
       />
