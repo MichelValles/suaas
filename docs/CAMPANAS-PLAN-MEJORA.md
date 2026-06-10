@@ -128,7 +128,7 @@ Paso final `synthesizeRecommendations` en `lib/experiments/campaign.ts` con `DEF
 
 **Por qué**: el loop central del producto (cambio un titular, vuelvo a testar) está roto: solo existen create y soft-delete, e iterar obliga a reteclear y resubir todo. Comparar iteraciones con muestras sintéticas distintas además invalida la comparación. Toda la fontanería necesaria ya existe. Es la mejora con mejor ratio impacto/coste del módulo.
 
-### Export a CSV y a formato Google Ads Editor · M · sin SQL
+### Export a CSV y a formato Google Ads Editor · M · sin SQL · ✅ hecho en v0.36.1
 
 Nueva ruta GET `app/api/export/campaign/[runId]/route.ts` (runtime nodejs, mismo gate de auth que el resto de `/api`): `getRun` + `getCampaignWithTrashed` + `listCampaignResponses`, respuesta `text/csv` con BOM UTF-8 y separador «;» (Excel en español), `Content-Disposition` attachment. Columnas: perfil, canal, query, intent, claridad, credibilidad, diferenciación, landing_match, barreras, perceived_offer y la versión ideal completa. Variante `?format=ads_editor` con cabeceras RSA (Campaign, Ad Group, Headline 1..15, Description 1..4, Final URL) mezclando los assets originales con el top de `ideal_headline`/`ideal_description` rankeados por intent y truncados a 30/90. Dos enlaces de descarga en la cabecera de resultados.
 

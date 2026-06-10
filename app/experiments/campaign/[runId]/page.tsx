@@ -71,12 +71,25 @@ export default async function CampaignRunPage({
         description={campaign.brief ?? undefined}
         descriptionVariant="panel"
         actions={
-          <Link
-            href={campaign.deleted_at ? "/campaigns" : `/campaigns/${campaign.id}`}
-            className="btn-pill"
-          >
-            {campaign.deleted_at ? "Volver al listado" : "Volver a la campaña"}
-          </Link>
+          <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+            <a href={`/api/export/campaign/${runId}`} className="btn-pill" download>
+              CSV
+            </a>
+            <a
+              href={`/api/export/campaign/${runId}?format=ads_editor`}
+              className="btn-pill"
+              title="CSV con cabeceras RSA para Google Ads Editor: fila con los assets originales y fila con el top de versiones ideales"
+              download
+            >
+              Ads Editor
+            </a>
+            <Link
+              href={campaign.deleted_at ? "/campaigns" : `/campaigns/${campaign.id}`}
+              className="btn-pill"
+            >
+              {campaign.deleted_at ? "Volver al listado" : "Volver a la campaña"}
+            </Link>
+          </div>
         }
       />
 
