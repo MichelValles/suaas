@@ -187,6 +187,7 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 Primera release del plan de mejora del módulo de campañas (`docs/CAMPANAS-PLAN-MEJORA.md`). Cada mejora se publica de una en una con su propio ciclo de deploy.
 
 - [x] **v0.35.0 · El persona ya no ve el brief del anunciante**: `probeCampaignSnippet` (`lib/experiments/campaign.ts`) inyectaba «Nota del anunciante (no la verías tú, sólo contexto)» con el brief en el user content del persona, el sesgo de cámara de eco que prohíbe `CONOCIMIENTO-USUARIOS-SINTETICOS.md` §6.1. Eliminado: el brief queda para la UI y como contexto de futuros jueces neutrales. Los scores de runs nuevos pueden bajar ligeramente respecto al histórico (señal de que el sesgo existía).
+- [x] **v0.35.1 · Razonamiento antes del score con anclas verbales**: `SnippetEvalSchema` reordenado (`perceived_offer` → `reasoning` nuevo → `barriers` → scores; zod preserva el orden de claves y `generateObject` genera en ese orden) y el system del probe sustituye los bullets «0..1» por bandas verbales por métrica (0,0-0,2 lo ignorarías … 0,8-1,0 click casi seguro) más la instrucción de usar todo el rango. El `reasoning` se persiste en `campaign_responses.meta` (jsonb, sin migración; `meta` deja de ser write-only), `CampaignResponse` lo expone (`null` en filas antiguas) y el drill-down por perfil lo muestra en cursiva.
 
 ## v0.34.0 · Papelera coherente en históricos + MigrationPendingError + diag de migraciones pendientes
 

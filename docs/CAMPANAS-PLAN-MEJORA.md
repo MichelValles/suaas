@@ -32,7 +32,7 @@ Eliminar el bloque de `lib/experiments/campaign.ts:322-324` que inyecta «Nota d
 
 **Por qué**: el persona conoce la intención interna del anuncio antes de interpretarlo. Es la corrección de fidelidad más barata del módulo.
 
-### 2. Razonamiento antes del score (S)
+### 2. Razonamiento antes del score (S) · ✅ hecho en v0.35.1
 
 En `lib/experiments/campaign.ts`: (1) reordenar `SnippetEvalSchema` a `perceived_offer`, `reasoning` (campo nuevo, 1-2 frases en la voz del perfil antes de decidir), `barriers` y al final los cuatro scores (zod preserva el orden de claves y `generateObject` genera en ese orden); (2) sustituir los bullets «0..1» del system del probe por bandas verbales tipo `judgeComprehension` (0,0-0,2 lo ignorarías; 0,3-0,4 lo leerías sin click; 0,5-0,7 click probable; 0,8-1,0 click casi seguro) más la instrucción de usar todo el rango; (3) persistir `reasoning` en `campaign_responses.meta` (jsonb existente, sin migración) y mostrarlo en el drill-down de `app/experiments/campaign/[runId]/page.tsx`. De paso, `meta` deja de ser write-only.
 

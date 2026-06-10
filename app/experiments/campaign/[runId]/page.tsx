@@ -519,6 +519,19 @@ function ProfileBlock({
             <p style={{ color: "rgba(var(--fg),0.85)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
               «{r.perceived_offer}»
             </p>
+            {r.reasoning && (
+              <p
+                style={{
+                  color: "rgba(var(--fg),0.65)",
+                  fontSize: 12,
+                  margin: 0,
+                  lineHeight: 1.55,
+                  fontStyle: "italic",
+                }}
+              >
+                Razonamiento: {r.reasoning}
+              </p>
+            )}
             {r.barriers.length > 0 && (
               <p style={{ color: "rgba(var(--fg),0.6)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
                 Barreras: {r.barriers.join(", ")}

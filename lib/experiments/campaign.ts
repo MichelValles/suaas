@@ -31,13 +31,26 @@ const PROFILE_CHUNK = 4;
 // Schemas de salida del LLM
 // ============================================================
 
+// El orden de las claves importa: zod lo preserva y generateObject genera
+// en ese orden. Percepción y razonamiento van ANTES de los scores para que
+// el número salga del texto y no al revés (evita el clustering en valores
+// medios que produce pedir primero la cifra).
 export const SnippetEvalSchema = z.object({
+  perceived_offer: z.string().min(1).describe("Qué crees que te ofrece el anuncio. 1 frase."),
+  reasoning: z
+    .string()
+    .min(1)
+    .describe(
+      "Tu razonamiento en 1-2 frases, en tu voz, ANTES de puntuar: qué te llama, qué te frena.",
+    ),
+  barriers: z
+    .array(z.string())
+    .describe("Lista corta de fricciones percibidas. Vacío si no hay."),
   intent_to_click: z
     .number()
     .min(0)
     .max(1)
     .describe("0..1 probabilidad subjetiva de hacer click bajo la query"),
-  perceived_offer: z.string().min(1).describe("Qué crees que te ofrece el anuncio. 1 frase."),
   clarity: z.number().min(0).max(1).describe("0..1 según lo claro que entiendes la oferta"),
   credibility: z
     .number()
@@ -49,9 +62,6 @@ export const SnippetEvalSchema = z.object({
     .min(0)
     .max(1)
     .describe("0..1 cuánto te diferencia este anuncio frente a otros que verías para la misma búsqueda"),
-  barriers: z
-    .array(z.string())
-    .describe("Lista corta de fricciones percibidas. Vacío si no hay."),
 });
 export type SnippetEval = z.infer<typeof SnippetEvalSchema>;
 
@@ -93,6 +103,8 @@ export type CampaignResponse = {
   query: string;
   intent_to_click: number;
   perceived_offer: string;
+  /** Razonamiento del perfil antes de puntuar. Vive en meta (jsonb); null en filas anteriores a v0.35.1. */
+  reasoning: string | null;
   clarity: number;
   credibility: number;
   differentiation: number;
@@ -355,13 +367,15 @@ async function probeCampaignSnippet(
       buildSystemPrompt(profile),
       "",
       "## Tarea de este turno",
-      "- Estás en un test de anuncio de Paid Search.",
-      "- 'intent_to_click' es subjetivo: ¿harías click TÚ con tu vida y tu intención de búsqueda?",
-      "- 'perceived_offer' es lo que crees que te ofrece el anuncio, en tu voz, 1 frase.",
-      "- 'clarity' 0..1: lo entiendes a la primera o te quedas dudando.",
-      "- 'credibility' 0..1: te lo crees o suena a humo.",
-      "- 'differentiation' 0..1: este anuncio te diferencia frente a otros 5 resultados de la misma búsqueda.",
-      "- 'barriers' lista fricciones concretas (jerga, promesa vaga, precio oculto, sector no encaja, etc.). Vacío si no las viste.",
+      "- Estás en un test de anuncio de Paid Search. Primero interpreta, luego razona y solo al final puntúa.",
+      "- 'perceived_offer': lo que crees que te ofrece el anuncio, en tu voz, 1 frase.",
+      "- 'reasoning': 1-2 frases tuyas pensando en voz alta ANTES de decidir: qué te llama, qué te frena.",
+      "- 'barriers': fricciones concretas (jerga, promesa vaga, precio oculto, sector no encaja, etc.). Vacío si no las viste.",
+      "- Después puntúa usando TODO el rango 0..1. No te refugies en valores medios: si lo ignorarías, dilo con un score bajo; si te convence, dilo con uno alto.",
+      "- 'intent_to_click': 0,0-0,2 lo ignorarías por completo; 0,3-0,4 lo leerías pero sin click; 0,5-0,7 click probable; 0,8-1,0 click casi seguro.",
+      "- 'clarity': 0,0-0,2 no entiendes qué venden; 0,3-0,4 te quedas dudando; 0,5-0,7 lo entiendes con algún hueco; 0,8-1,0 lo entiendes a la primera.",
+      "- 'credibility': 0,0-0,2 suena a humo; 0,3-0,4 dudas bastante; 0,5-0,7 plausible con reservas; 0,8-1,0 te lo crees.",
+      "- 'differentiation': 0,0-0,2 indistinguible de otros 5 resultados de la misma búsqueda; 0,3-0,4 poco distinto; 0,5-0,7 algo destaca; 0,8-1,0 claramente diferente.",
       "- No inventes características que no aparecen escritas. Habla desde tu perspectiva.",
     ].join("\n"),
     messages: [{ role: "user", content }],
@@ -650,6 +664,7 @@ async function probeProfileAllQueries(
         query,
         intent_to_click: snippet.output.intent_to_click,
         perceived_offer: snippet.output.perceived_offer,
+        reasoning: snippet.output.reasoning,
         clarity: snippet.output.clarity,
         credibility: snippet.output.credibility,
         differentiation: snippet.output.differentiation,
@@ -688,6 +703,7 @@ async function probeProfileAllQueries(
             model_ideal: DEFAULT_MODEL,
             latency_ms_snippet: snippet.latencyMs,
             latency_ms_ideal: ideal.latencyMs,
+            reasoning: row.reasoning,
           },
         },
         { onConflict: "run_id,profile_id,query,channel" },
@@ -719,6 +735,10 @@ export async function listCampaignResponses(
     query: r.query as string,
     intent_to_click: Number(r.intent_to_click),
     perceived_offer: r.perceived_offer as string,
+    reasoning:
+      typeof (r.meta as Record<string, unknown> | null)?.reasoning === "string"
+        ? ((r.meta as Record<string, unknown>).reasoning as string)
+        : null,
     clarity: Number(r.clarity),
     credibility: Number(r.credibility),
     differentiation: Number(r.differentiation),
