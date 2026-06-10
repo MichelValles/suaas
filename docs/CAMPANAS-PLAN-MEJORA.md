@@ -38,7 +38,7 @@ En `lib/experiments/campaign.ts`: (1) reordenar `SnippetEvalSchema` a `perceived
 
 **Por qué**: `intent_to_click` es hoy el primer campo del schema y no hay campo `reasoning`, a diferencia de funnel y five-second. La evidencia reciente (arXiv 2510.08338) muestra que elicitar texto antes del número produce distribuciones realistas; pedir el número primero produce clustering.
 
-### 3. Paquete de bugs latentes del runner (S)
+### 3. Paquete de bugs latentes del runner (S) · ✅ hecho en v0.35.2
 
 Todo en `lib/experiments/campaign.ts` salvo lo indicado:
 

@@ -27,6 +27,33 @@ import { recordUsage } from "@/lib/usage";
 const LANDING_THRESHOLD = 0.5;
 const PROFILE_CHUNK = 4;
 
+/**
+ * Query placeholder para estrategias sin queries (Display): el runner genera
+ * al menos 1 respuesta por perfil × canal bajo este contexto. La UI la
+ * traduce a una etiqueta legible.
+ */
+export const GENERAL_CONTEXT_QUERY = "(contexto general)";
+
+/**
+ * Caché por run de imágenes ya resueltas para la API multimodal. Sin él,
+ * la landing y las creatividades se descargan una vez por combinación
+ * perfil × canal × query (hasta cientos de veces por run). Cachea la
+ * Promise para que las combinaciones en paralelo compartan la descarga;
+ * si falla, se desaloja para permitir un reintento en la siguiente.
+ */
+type ImageCache = Map<string, Promise<string>>;
+
+function resolveImageCached(url: string, cache: ImageCache): Promise<string> {
+  const hit = cache.get(url);
+  if (hit) return hit;
+  const p = resolveImageForApi(url).catch((err) => {
+    cache.delete(url);
+    throw err;
+  });
+  cache.set(url, p);
+  return p;
+}
+
 // ============================================================
 // Schemas de salida del LLM
 // ============================================================
@@ -75,12 +102,14 @@ export const LandingMatchSchema = z.object({
 });
 export type LandingMatch = z.infer<typeof LandingMatchSchema>;
 
+// Sin .max() duros en headline/description: un LLM que devuelve 31
+// caracteres lanzaría NoObjectGeneratedError y mataría el run entero.
+// El límite vive en el describe (instrucción) y se trunca al persistir.
 export const IdealVersionSchema = z.object({
-  ideal_headline: z.string().min(1).max(30).describe("Tu titular ideal en máximo 30 caracteres"),
+  ideal_headline: z.string().min(1).describe("Tu titular ideal en máximo 30 caracteres"),
   ideal_description: z
     .string()
     .min(1)
-    .max(90)
     .describe("Tu descripción ideal en máximo 90 caracteres"),
   ideal_promise: z
     .string()
@@ -318,6 +347,7 @@ async function probeCampaignSnippet(
   campaign: Campaign,
   channel: Channel,
   query: string,
+  imageCache: ImageCache,
 ): Promise<{ output: SnippetEval; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
 
@@ -353,7 +383,7 @@ async function probeCampaignSnippet(
         : c.url;
     if (!candidate) continue;
     try {
-      const image = await resolveImageForApi(candidate);
+      const image = await resolveImageCached(candidate, imageCache);
       content.push({ type: "image", image });
     } catch {
       // si una creatividad no se puede normalizar, seguimos con el resto
@@ -398,9 +428,10 @@ async function judgeLandingMatch(
   channel: Channel,
   query: string,
   snippet: SnippetEval,
+  imageCache: ImageCache,
 ): Promise<{ output: LandingMatch; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
-  const image = await resolveImageForApi(campaign.landing_image_url);
+  const image = await resolveImageCached(campaign.landing_image_url, imageCache);
   const channelHook =
     channel === "google"
       ? "Acabas de hacer click en un anuncio de Paid Search"
@@ -525,7 +556,7 @@ export async function runCampaignTest(
   // Para estrategias sin queries (Display), usamos 1 placeholder de contexto
   // general para que el runner genere al menos 1 respuesta por perfil × canal.
   const queriesToUse =
-    campaign.queries.length > 0 ? campaign.queries : ["(contexto general)"];
+    campaign.queries.length > 0 ? campaign.queries : [GENERAL_CONTEXT_QUERY];
 
   // Cap defensivo del techo combinatorio. 20 × 5 × 5 = 500 snippets en peor
   // caso es demasiado para maxDuration=300. Bloqueamos por encima de 200
@@ -552,10 +583,11 @@ export async function runCampaignTest(
 
   try {
     const collected: CampaignResponse[] = [];
+    const imageCache: ImageCache = new Map();
     for (const chunk of chunks(profiles, PROFILE_CHUNK)) {
       const results = await Promise.all(
         chunk.map((profile) =>
-          probeProfileAllQueries(run.id, campaign, profile, queriesToUse),
+          probeProfileAllQueries(run.id, campaign, profile, queriesToUse, imageCache),
         ),
       );
       for (const arr of results) collected.push(...arr);
@@ -608,23 +640,31 @@ async function probeProfileAllQueries(
   campaign: Campaign,
   profile: Profile,
   queries: string[],
+  imageCache: ImageCache,
 ): Promise<CampaignResponse[]> {
   const out: CampaignResponse[] = [];
   const supa = getServerClient();
   for (const channel of campaign.channels) {
     for (const query of queries) {
-      const snippet = await probeCampaignSnippet(profile, campaign, channel, query);
+      const snippet = await probeCampaignSnippet(
+        profile,
+        campaign,
+        channel,
+        query,
+        imageCache,
+      );
       await recordUsage({
         runId,
         scope: "campaign_probe",
         model: REASONER_MODEL,
         usage: snippet.usage,
-        meta: { latency_ms: snippet.latencyMs, query, channel },
+        meta: { latency_ms: snippet.latencyMs, query, channel, profile_id: profile.id },
       }).catch(() => {});
 
       let landingEvaluated = false;
       let landingMatch: number | null = null;
       let landingCritique: string | null = null;
+      let landingError: string | null = null;
       if (snippet.output.intent_to_click >= LANDING_THRESHOLD) {
         try {
           const landing = await judgeLandingMatch(
@@ -633,6 +673,7 @@ async function probeProfileAllQueries(
             channel,
             query,
             snippet.output,
+            imageCache,
           );
           landingEvaluated = true;
           landingMatch = landing.output.landing_match;
@@ -642,10 +683,16 @@ async function probeProfileAllQueries(
             scope: "campaign_landing",
             model: REASONER_MODEL,
             usage: landing.usage,
-            meta: { latency_ms: landing.latencyMs, query, channel },
+            meta: { latency_ms: landing.latencyMs, query, channel, profile_id: profile.id },
           }).catch(() => {});
-        } catch {
-          // si falla la landing eval seguimos sin ella
+        } catch (err) {
+          // El run sigue sin landing eval, pero el fallo queda trazado:
+          // landing_error en meta distingue fallo técnico de gating por intent.
+          landingError = (err as Error).message;
+          console.error(
+            `[campaign] landing eval falló (profile=${profile.id}, channel=${channel}, query=${query}):`,
+            landingError,
+          );
         }
       }
 
@@ -655,7 +702,7 @@ async function probeProfileAllQueries(
         scope: "campaign_ideal",
         model: DEFAULT_MODEL,
         usage: ideal.usage,
-        meta: { latency_ms: ideal.latencyMs, query, channel },
+        meta: { latency_ms: ideal.latencyMs, query, channel, profile_id: profile.id },
       }).catch(() => {});
 
       const row: CampaignResponse = {
@@ -672,8 +719,9 @@ async function probeProfileAllQueries(
         landing_evaluated: landingEvaluated,
         landing_match: landingMatch,
         landing_critique: landingCritique,
-        ideal_headline: ideal.output.ideal_headline,
-        ideal_description: ideal.output.ideal_description,
+        // El límite RSA (30/90) se instruye en el prompt; aquí se garantiza.
+        ideal_headline: ideal.output.ideal_headline.slice(0, 30),
+        ideal_description: ideal.output.ideal_description.slice(0, 90),
         ideal_promise: ideal.output.ideal_promise,
         ideal_free_text: ideal.output.ideal_free_text ?? null,
       };
@@ -704,6 +752,7 @@ async function probeProfileAllQueries(
             latency_ms_snippet: snippet.latencyMs,
             latency_ms_ideal: ideal.latencyMs,
             reasoning: row.reasoning,
+            landing_error: landingError,
           },
         },
         { onConflict: "run_id,profile_id,query,channel" },
@@ -779,7 +828,7 @@ function summarize(
       mean_differentiation: 0,
       mean_landing_match: null,
       click_rate: 0,
-      byQuery: campaign.queries.map((q) => emptyByQuery(q)),
+      byQuery: [],
       byChannel: campaign.channels.map((c) => emptyByChannel(c)),
       top_barriers: [],
     };
@@ -797,11 +846,23 @@ function summarize(
   const clicks = rs.filter((r) => r.intent_to_click >= LANDING_THRESHOLD).length;
   const clickRate = clicks / n;
 
-  const byQuery: CampaignByQuery[] = campaign.queries.map((query) => {
-    const subset = rs.filter((r) => r.query === query);
-    if (subset.length === 0) return emptyByQuery(query);
-    return aggregateBy(subset, "query", query) as CampaignByQuery;
-  });
+  // Las queries salen de las respuestas reales, no de campaign.queries:
+  // un run de Display usa el placeholder GENERAL_CONTEXT_QUERY (que no está
+  // en campaign.queries) y un run antiguo puede tener queries que la campaña
+  // ya no declara. Se conserva el orden de la campaña y las extra van al final.
+  const present = new Set(rs.map((r) => r.query));
+  const orderedQueries = [
+    ...campaign.queries.filter((q) => present.has(q)),
+    ...[...present].filter((q) => !campaign.queries.includes(q)),
+  ];
+  const byQuery: CampaignByQuery[] = orderedQueries.map(
+    (query) =>
+      aggregateBy(
+        rs.filter((r) => r.query === query),
+        "query",
+        query,
+      ) as CampaignByQuery,
+  );
 
   const byChannel: CampaignByChannel[] = campaign.channels.map((channel) => {
     const subset = rs.filter((r) => r.channel === channel);
@@ -848,20 +909,6 @@ function aggregateBy(
     return { channel: value as Channel, ...base };
   }
   return { query: value, ...base };
-}
-
-function emptyByQuery(query: string): CampaignByQuery {
-  return {
-    query,
-    n: 0,
-    mean_intent_to_click: 0,
-    mean_clarity: 0,
-    mean_credibility: 0,
-    mean_differentiation: 0,
-    mean_landing_match: null,
-    click_rate: 0,
-    top_barriers: [],
-  };
 }
 
 function emptyByChannel(channel: Channel): CampaignByChannel {

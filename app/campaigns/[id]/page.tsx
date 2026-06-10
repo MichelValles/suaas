@@ -469,7 +469,7 @@ export default async function CampaignDetailPage({
         title="Lanzar campaign test"
         endpoint="/api/runs/campaign"
         extraBody={{ campaignId: campaign.id }}
-        progressLabel={`Cada perfil evaluará el anuncio bajo ${campaign.channels.length} ${campaign.channels.length === 1 ? "canal" : "canales"} × ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} (snippet + landing condicional + versión ideal). Estimado ~${Math.ceil(campaign.channels.length * campaign.queries.length * 18)}s por perfil.`}
+        progressLabel={`Cada perfil evaluará el anuncio bajo ${campaign.channels.length} ${campaign.channels.length === 1 ? "canal" : "canales"} × ${Math.max(1, campaign.queries.length)} ${campaign.queries.length > 1 ? "queries" : campaign.queries.length === 1 ? "query" : "contexto de interés"} (snippet + landing condicional + versión ideal). Estimado ~${Math.ceil(campaign.channels.length * Math.max(1, campaign.queries.length) * 18)}s por perfil.`}
         kind="campaign"
         profiles={profiles}
       />

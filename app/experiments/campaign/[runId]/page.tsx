@@ -4,6 +4,7 @@ import { AppShell, PageHeading } from "@/components/app-shell";
 import { ChannelIcon } from "@/components/channel-icon";
 import { CHANNEL_LABEL, getCampaignWithTrashed } from "@/lib/campaigns";
 import {
+  GENERAL_CONTEXT_QUERY,
   listCampaignResponses,
   summarizeCampaignResponses,
   type CampaignByChannel,
@@ -19,6 +20,11 @@ export const dynamic = "force-dynamic";
 function fmtPct(v: number | null): string {
   if (v === null) return "·";
   return `${Math.round(v * 100)}%`;
+}
+
+/** El placeholder de runs sin queries (Display) se muestra con etiqueta legible. */
+function queryLabel(query: string): string {
+  return query === GENERAL_CONTEXT_QUERY ? "Contexto general" : query;
 }
 
 export default async function CampaignRunPage({
@@ -118,32 +124,34 @@ export default async function CampaignRunPage({
         </section>
       )}
 
-      {/* Por query */}
-      <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <SectionLabel>Métricas por query</SectionLabel>
-        <div style={{ overflowX: "auto" }}>
-          <table style={tableStyle}>
-            <thead>
-              <tr>
-                <Th>Query</Th>
-                <Th>N</Th>
-                <Th>Intent</Th>
-                <Th>CTR</Th>
-                <Th>Claridad</Th>
-                <Th>Credibilidad</Th>
-                <Th>Diferenciación</Th>
-                <Th>Match landing</Th>
-                <Th>Top barreras</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {summary.byQuery.map((q) => (
-                <QueryRow key={q.query} q={q} />
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      {/* Por query (oculta si el run no tiene respuestas) */}
+      {summary.byQuery.length > 0 && (
+        <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionLabel>Métricas por query</SectionLabel>
+          <div style={{ overflowX: "auto" }}>
+            <table style={tableStyle}>
+              <thead>
+                <tr>
+                  <Th>Query</Th>
+                  <Th>N</Th>
+                  <Th>Intent</Th>
+                  <Th>CTR</Th>
+                  <Th>Claridad</Th>
+                  <Th>Credibilidad</Th>
+                  <Th>Diferenciación</Th>
+                  <Th>Match landing</Th>
+                  <Th>Top barreras</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.byQuery.map((q) => (
+                  <QueryRow key={q.query} q={q} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {/* Top barriers global */}
       {summary.top_barriers.length > 0 && (
@@ -275,7 +283,7 @@ function QueryRow({ q }: { q: CampaignByQuery }) {
     <tr style={{ borderTop: "1px solid rgba(var(--fg),0.06)" }}>
       <Td>
         <span className="mono" style={{ fontSize: 12 }}>
-          {q.query}
+          {queryLabel(q.query)}
         </span>
       </Td>
       <Td>{q.n}</Td>
@@ -367,7 +375,7 @@ function IdealCard({
             color: "var(--accent-text)",
           }}
         >
-          · {resp.query}
+          · {queryLabel(resp.query)}
         </span>
       </div>
       <div>
@@ -510,7 +518,7 @@ function ProfileBlock({
                 }}
               >
                 <ChannelIcon channel={r.channel} size={12} />
-                {CHANNEL_LABEL[r.channel].split(" ")[0]} · {r.query}
+                {CHANNEL_LABEL[r.channel].split(" ")[0]} · {queryLabel(r.query)}
               </span>
               <span className="mono" style={{ fontSize: 10, color: "rgba(var(--fg),0.55)" }}>
                 intent {fmtPct(r.intent_to_click)} · claridad {fmtPct(r.clarity)} · credibilidad {fmtPct(r.credibility)} · diferenciación {fmtPct(r.differentiation)}
