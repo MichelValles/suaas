@@ -182,6 +182,12 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.41.x+ · Campañas: requisitos por estrategia según las specs oficiales de Google
+
+Adaptación de los requisitos de cada estrategia a las páginas oficiales de specs de Google Ads (answers 17092074, 17091269, 17091270, 17091672 y la especificación del feed de Merchant Center 7052112), extraídas y verificadas contra las fuentes el 2026-06-11.
+
+- [x] **v0.41.0 · Search según la spec oficial RSA**: Google exige mínimo 3 titulares y 2 descripciones para crear un RSA (la tabla de specs admite desde 1, pero el editor de creación exige 3/2; validamos lo exigible). `superRefine` de search gana `headlines >= 3`; el formulario marca los 3 primeros titulares como obligatorios en Search, impide bajar de 3 filas y lo explica con una nota. Los caps existentes (30c por titular, 90c por descripción, máximo 15/4) ya coincidían con la spec.
+
 ## v0.40.0 · Campañas: muestreo RSA y ranking por asset (plan CAMPANAS-PLAN-MEJORA, release 6 de 6)
 
 - [x] **v0.40.0 · Muestreo de combinaciones RSA reales y rendimiento por asset**: en Search/Google el persona deja de ver los 15 titulares y 4 descripciones a la vez (nadie ve eso: validez ecológica rota) y pasa a ver UNA combinación muestreada de 3 titulares + 2 descripciones (`sampleRsaCombination`, RNG determinista mulberry32 sembrado por `profileId + query`: el mismo perfil ve la misma combinación al repetir el run con la misma muestra, exposición equilibrada en expectativa). La combinación se persiste en `shown_headlines`/`shown_descriptions` (columnas de la 0019, fallback conjunto a `meta`). El summary gana `byAsset` (n, intent medio y delta vs la media del run por titular y descripción, solo filas donde el asset estuvo presente) y la página de resultados la sección «Rendimiento por asset» ordenada por intent con las filas de n < 5 atenuadas (muestra insuficiente). **Cambio de semántica documentado en PROYECTO.md: las respuestas evalúan una combinación, no el conjunto; los runs anteriores a v0.40 no son comparables con los posteriores.** Display y feed mantienen su render. Cierra el plan de mejora de campañas (16 de 16).

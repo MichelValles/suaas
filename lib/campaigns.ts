@@ -216,6 +216,16 @@ export const CampaignInputSchema = z
           message: "Search exige al menos 1 query.",
         });
       }
+      // Spec oficial RSA (support.google.com/google-ads/answer/17092074 +
+      // 7684791): para crear el anuncio Google exige mínimo 3 titulares
+      // y 2 descripciones.
+      if (data.headlines.length < 3) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["headlines"],
+          message: "Search (RSA) exige mínimo 3 titulares.",
+        });
+      }
       if (data.descriptions.length < 2) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,

@@ -560,18 +560,34 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             headlines.length < (strategy === "display" ? 5 : 15)
           }
         >
+          {strategy === "search" && (
+            <p
+              style={{
+                margin: 0,
+                fontSize: 12,
+                lineHeight: 1.5,
+                color: "rgba(var(--fg),0.5)",
+              }}
+            >
+              Google exige mínimo 3 titulares para crear un RSA (spec oficial).
+            </p>
+          )}
           {headlines.map((h, i) => (
             <RowWithRemove
               key={i}
-              canRemove={headlines.length > 1}
+              canRemove={headlines.length > (strategy === "search" ? 3 : 1)}
               onRemove={() => removeHeadline(i)}
             >
               <CharCountedInput
-                label={`Titular ${i + 1}${i === 0 ? " · obligatorio" : " · opcional"}`}
+                label={`Titular ${i + 1}${
+                  i === 0 || (strategy === "search" && i < 3)
+                    ? " · obligatorio"
+                    : " · opcional"
+                }`}
                 value={h}
                 onChange={(v) => setHeadlines(updateAt(headlines, i, v))}
                 max={HEADLINE_MAX}
-                required={i === 0}
+                required={i === 0 || (strategy === "search" && i < 3)}
                 placeholder="Hipoteca fija al 2,90% TAE"
               />
             </RowWithRemove>
