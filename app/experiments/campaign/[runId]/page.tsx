@@ -79,6 +79,13 @@ export default async function CampaignRunPage({
     ? recParsed.data
     : null;
 
+  // Último error registrado por el runner (v0.47.1): solo se pinta si el
+  // run terminó en error.
+  const lastError =
+    run.params && typeof run.params.last_error === "string"
+      ? run.params.last_error
+      : null;
+
   return (
     <AppShell>
       <PageHeading
@@ -117,6 +124,31 @@ export default async function CampaignRunPage({
         expected={expected}
         startedAt={run.created_at}
       />
+
+      {/* Detalle del fallo: el runner guarda el último error de combinación
+          en runs.params.last_error (v0.47.1) para no depender de los logs. */}
+      {run.status === "error" && lastError && (
+        <section
+          style={{
+            border: "1px solid rgba(var(--fg),0.14)",
+            borderRadius: "var(--radius-md)",
+            padding: "14px 18px",
+            display: "grid",
+            gap: 6,
+          }}
+        >
+          <span className="eyebrow" style={{ color: "var(--error-text)" }}>
+            Por qué falló el run
+          </span>
+          <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "rgba(var(--fg),0.75)" }}>
+            {lastError}
+          </p>
+          <p style={{ margin: 0, fontSize: 12, color: "rgba(var(--fg),0.5)" }}>
+            Es el último error registrado por el runner. «Retomar» reintenta
+            solo las combinaciones que faltan.
+          </p>
+        </section>
+      )}
 
       {/* Summary global */}
       <section

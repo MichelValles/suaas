@@ -79,9 +79,12 @@ export function RunProgress({
   const stale =
     status === "running" && Date.now() - new Date(startedAt).getTime() > STALE_MS;
   const interrupted = status === "error" && done > 0 && done < expected;
+  // Error sin ni una respuesta: también se ofrece «Retomar» (reencola todo).
+  const failedEmpty = status === "error" && done === 0;
   const pct = expected > 0 ? Math.min(100, Math.round((done / expected) * 100)) : 0;
 
-  if (status === "done" || (status === "error" && !interrupted)) return null;
+  if (status === "done" || (status === "error" && !interrupted && !failedEmpty))
+    return null;
 
   return (
     <section
@@ -117,7 +120,11 @@ export function RunProgress({
           }}
         >
           {status === "running" && <Loader2 size={13} className="spin" />}
-          {interrupted ? "Run interrumpido" : "Run en marcha"}
+          {failedEmpty
+            ? "Run fallido"
+            : interrupted
+              ? "Run interrumpido"
+              : "Run en marcha"}
         </span>
         <span className="mono" style={{ fontSize: 12, color: "rgba(var(--fg),0.7)" }}>
           {done} / {expected} respuestas
@@ -143,12 +150,14 @@ export function RunProgress({
       </div>
 
       <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: "rgba(var(--fg),0.6)" }}>
-        {interrupted
-          ? `El run quedó interrumpido: se muestran ${done} respuestas parciales de ${expected}.`
-          : "Los resultados de abajo se completan según llegan las respuestas. La página se refresca sola al terminar."}
+        {failedEmpty
+          ? "El run falló sin completar ninguna respuesta. Puedes relanzarlo entero con «Retomar»."
+          : interrupted
+            ? `El run quedó interrumpido: se muestran ${done} respuestas parciales de ${expected}.`
+            : "Los resultados de abajo se completan según llegan las respuestas. La página se refresca sola al terminar."}
       </p>
 
-      {(stale || interrupted) && (
+      {(stale || interrupted || failedEmpty) && (
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <button
             type="button"

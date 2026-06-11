@@ -674,7 +674,7 @@ async function probeCampaignSnippet(
   query: string,
   imageCache: ImageCache,
   shown: ShownCombination | null,
-): Promise<{ output: SnippetEval; latencyMs: number; usage: unknown }> {
+): Promise<{ output: SnippetEval; latencyMs: number; usage: unknown; model: string }> {
   const startedAt = Date.now();
 
   const content: Array<
@@ -716,8 +716,14 @@ async function probeCampaignSnippet(
     }
   }
 
+  // Mismatch conocido del gateway: Opus 4.7 + generateObject + imágenes
+  // devuelve la respuesta envuelta en XML de tool-call y el AI SDK no parsea
+  // el JSON interno (mismo caso documentado en five-second). Con imágenes
+  // adjuntas el probe usa DEFAULT_MODEL; en texto puro mantiene el reasoner.
+  const hasImages = content.some((c) => c.type === "image");
+  const model = hasImages ? DEFAULT_MODEL : REASONER_MODEL;
   const result = await generateObject({
-    model: REASONER_MODEL,
+    model,
     schema: SnippetEvalSchema,
     system: [
       buildSystemPrompt(profile),
@@ -742,6 +748,7 @@ async function probeCampaignSnippet(
     output: result.object,
     latencyMs: Date.now() - startedAt,
     usage: result.usage ?? null,
+    model,
   };
 }
 
@@ -767,8 +774,10 @@ async function judgeLandingMatch(
     channel === "google"
       ? `Tu búsqueda fue: «${query}».`
       : `Tu interés / contexto era: «${query}».`;
+  // Siempre multimodal (lleva el screenshot de la landing): DEFAULT_MODEL
+  // por el mismo mismatch de Opus + generateObject + imágenes del probe.
   const result = await generateObject({
-    model: REASONER_MODEL,
+    model: DEFAULT_MODEL,
     schema: LandingMatchSchema,
     system: [
       buildSystemPrompt(profile),
@@ -1050,6 +1059,7 @@ export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<voi
 
   let failedCount = 0;
   let skippedByDeadline = 0;
+  let lastComboError: string | null = null;
 
   try {
     // Combinaciones ya persistidas (resume): se saltan. El upsert es
@@ -1090,9 +1100,10 @@ export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<voi
             await processCombo(runId, campaign, combo, imageCache);
           } catch (err) {
             failedCount += 1;
+            lastComboError = (err as Error).message;
             console.error(
               `[campaign] combinación falló tras reintento (profile=${combo.profile.id}, channel=${combo.channel}, query=${combo.query}):`,
-              (err as Error).message,
+              lastComboError,
             );
           }
         }
@@ -1105,7 +1116,31 @@ export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<voi
       ),
     );
   } catch (err) {
-    console.error(`[campaign] el pool del run ${runId} reventó:`, (err as Error).message);
+    lastComboError = (err as Error).message;
+    console.error(`[campaign] el pool del run ${runId} reventó:`, lastComboError);
+  }
+
+  // El último error de combinación se persiste en runs.params: la página del
+  // run lo enseña cuando el run acaba en error, en vez de un fallo mudo que
+  // solo vive en los logs de Vercel. Un resume sin fallos lo limpia.
+  try {
+    const { data: run } = await supa
+      .from("runs")
+      .select("params")
+      .eq("id", runId)
+      .maybeSingle();
+    await supa
+      .from("runs")
+      .update({
+        params: {
+          ...((run?.params as object) ?? {}),
+          last_error: lastComboError ? lastComboError.slice(0, 600) : null,
+          failed_count: failedCount,
+        },
+      })
+      .eq("id", runId);
+  } catch {
+    // sin params no se bloquea el cierre del run
   }
 
   // Cierre garantizado: summarize con TODO lo persistido (lo de antes del
@@ -1343,7 +1378,7 @@ async function processCombo(
   await recordUsage({
     runId,
     scope: "campaign_probe",
-    model: REASONER_MODEL,
+    model: snippet.model,
     usage: snippet.usage,
     meta: { latency_ms: snippet.latencyMs, query, channel, profile_id: profile.id },
   }).catch(() => {});
@@ -1368,7 +1403,7 @@ async function processCombo(
       await recordUsage({
         runId,
         scope: "campaign_landing",
-        model: REASONER_MODEL,
+        model: DEFAULT_MODEL,
         usage: landing.usage,
         meta: { latency_ms: landing.latencyMs, query, channel, profile_id: profile.id },
       }).catch(() => {});
@@ -1427,8 +1462,8 @@ async function processCombo(
   }).catch(() => {});
 
   const meta = {
-    model_snippet: REASONER_MODEL,
-    model_landing: REASONER_MODEL,
+    model_snippet: snippet.model,
+    model_landing: DEFAULT_MODEL,
     model_ideal: DEFAULT_MODEL,
     latency_ms_snippet: snippet.latencyMs,
     latency_ms_ideal: ideal.latencyMs,

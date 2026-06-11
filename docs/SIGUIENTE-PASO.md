@@ -1,9 +1,14 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-11 tras v0.40.0 (plan de mejora de campañas COMPLETO: 16 mejoras en 16 deploys, v0.35.0 a v0.40.0).
+> Última actualización: 2026-06-11 tras v0.47.1 (fix de los runs de campaña con creatividades).
 
-## Estado actual (v0.46.0 desplegada)
+## Estado actual (v0.47.1 desplegada)
+
+- **Fix crítico de los runs de campaña (v0.47.1)**: los runs de las campañas IVI (y cualquier campaña con creatividades) cerraban en `error` con 0 respuestas. Causa: Opus 4.7 + `generateObject` + imágenes devuelve el JSON envuelto en XML que el AI SDK no parsea (mismatch ya documentado en `five-second.ts`). El probe elige modelo según contenido (imágenes → `DEFAULT_MODEL`), `judgeLandingMatch` pasa a `DEFAULT_MODEL`, el runner persiste `runs.params.last_error`, la página del run lo muestra y «Retomar» también aparece con 0 respuestas. **Pendiente de validar**: relanzar los 6 runs IVI desde la página de cada run (botón «Retomar», requiere sesión) o desde la tarjeta de `/seed-examples`.
+- **Seed «Campañas IVI: las 6 estrategias» (v0.47.0)**: tarjeta en `/seed-examples` que crea 6 campañas reales sobre ivi.es (una por estrategia) y lanza los 6 runs con perfiles de 28 a 45 años en `after()`.
+
+## Estado anterior (v0.46.0)
 
 - **Migraciones 0019 y 0020 APLICADAS** por el operador (2026-06-11). Migraciones aplicadas: 0001 a 0020. El tracking vive en la tabla `suaas_migrations` y se ve en `/diag → Tracking de migraciones`; convención: cada migración nueva inserta su propia fila al final. Los fallbacks legacy de `lib/campaigns.ts` (channels pre-0011, strategy pre-0013, intended_message, product, deleted_at) se podaron en v0.46.0; los del runner que leen `meta` se conservan para las filas históricas.
 - **Formulario de campaña reorganizado (v0.46.0)**: comunes primero (nombre, brief, mensaje pretendido, URL final, landing), luego canal + estrategia, luego los específicos. Previews por estrategia: SERP con empresa y logo (Search), banner (Display/PMax), tarjeta de feed (Demand Gen), pre-roll con miniatura (Video) y ficha de producto (Shopping). Fix global de los `<option>` de los selects (fondo del tema).
