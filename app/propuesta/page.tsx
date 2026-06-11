@@ -4,6 +4,8 @@ import { TIERS } from "@/lib/landing-pricing";
 import { isInternalUnlocked } from "@/lib/landing-auth";
 import { AiCostModule } from "./ai-module";
 import { PricingCalculator } from "./calculator";
+import { FlatLogo } from "./flat-logo";
+import { LandingNav } from "./nav";
 import { UnlockForm } from "./unlock-form";
 
 export const dynamic = "force-dynamic";
@@ -47,44 +49,8 @@ export default async function PropuestaPage() {
 
   return (
     <div id="top">
-      {/* ── Nav con anclas ── */}
-      <nav
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 20,
-          background: "var(--surface-app)",
-          borderBottom: "1px solid rgba(var(--fg),0.08)",
-          padding: "14px clamp(16px, 5vw, 64px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 16,
-          flexWrap: "wrap",
-        }}
-      >
-        <a href="#top" style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <FlatLogo size={52} />
-          <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: 20, color: "var(--text-strong)" }}>
-            {BRAND}
-          </span>
-        </a>
-        <div style={{ display: "flex", alignItems: "center", gap: "6px 20px", flexWrap: "wrap" }}>
-          {NAV.map((n) => (
-            <a
-              key={n.href}
-              href={n.href}
-              className="mono"
-              style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(var(--fg),0.6)" }}
-            >
-              {n.label}
-            </a>
-          ))}
-          <a href="#paquetes" className="btn-pill solid" style={{ padding: "10px 20px" }}>
-            Hablemos →
-          </a>
-        </div>
-      </nav>
+      {/* ── Nav con anclas (aparecen al hacer scroll up) ── */}
+      <LandingNav brand={BRAND} items={NAV} />
 
       {/* ── Hero ── */}
       <Band gap={26}>
@@ -108,9 +74,9 @@ export default async function PropuestaPage() {
           tu cliente real. Resultados en minutos, por una fracción de lo que cuesta un estudio con
           usuarios reales.
         </p>
-        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
-          <a href="#paquetes" className="btn-pill solid">Ver paquetes →</a>
-          <a href="#metodologia" className="btn-pill">Cómo funciona</a>
+        <div style={{ display: "flex", gap: 8, flexWrap: "nowrap", marginTop: 4 }}>
+          <a href="#paquetes" className="btn-pill solid" style={{ padding: "11px 14px", fontSize: 12, letterSpacing: "0.04em", whiteSpace: "nowrap" }}>Ver paquetes →</a>
+          <a href="#metodologia" className="btn-pill" style={{ padding: "11px 14px", fontSize: 12, letterSpacing: "0.04em", whiteSpace: "nowrap" }}>Cómo funciona</a>
         </div>
       </Band>
 
@@ -257,22 +223,20 @@ export default async function PropuestaPage() {
       {/* ── Motor de IA (interactivo) ── */}
       <Band id="motor" gap={28}>
         <SectionHead label="Motor de IA" title="Elige proveedor y presupuesto. El resultado no cambia." />
-        <p style={{ fontSize: 15, color: "rgba(var(--fg),0.6)", lineHeight: 1.6 }}>
-          La plataforma corre sobre el Vercel AI Gateway: puede usar Anthropic (motor actual), OpenAI,
-          Google Gemini o Perplexity sin cambiar el producto. Un{" "}
-          <em style={{ fontStyle: "normal", color: "rgba(var(--fg),0.85)" }}>run estándar</em> (un
-          experimento sobre una cohorte pequeña, ~20.000 tokens de entrada y 2.500 de salida) cuesta lo
-          de la tabla. Mueve el presupuesto y mira cuántos runs entran al mes con cada modelo.
+        <p style={{ fontSize: 15, color: "rgba(var(--fg),0.65)", lineHeight: 1.6 }}>
+          Funciona con la IA que prefieras: Anthropic (la que usamos hoy), OpenAI, Google o Perplexity.
+          Cada test cuesta unos céntimos. Pon el presupuesto que quieras dedicar al mes y mira cuántos
+          tests salen con cada una.
         </p>
-        <AiCostModule defaultBudget={30} />
+        <AiCostModule defaultBudget={50} />
       </Band>
 
       {/* ── Calculadora ── */}
       <Band id="calculadora" gap={28}>
         <SectionHead label="Calculadora" title="Tarificador y rentabilidad." />
         <p style={{ fontSize: 15, color: "rgba(var(--fg),0.6)", lineHeight: 1.6 }}>
-          Ajusta paquete, número de clientes, motor de IA y uso para ver la tarifa y lo que incluye. La
-          vista interna (rentabilidad bruta y neta) se desbloquea con la contraseña del pie de página.
+          Herramienta interna para echar cuentas: cuántos paquetes de cada tipo, qué cuesta la
+          infraestructura y qué rentabilidad sale. Se desbloquea con la contraseña del pie de página.
         </p>
         <PricingCalculator unlocked={unlocked} />
       </Band>
@@ -492,29 +456,5 @@ function Dot({ r, dur, delay, opacity = 1 }: { r: number; dur: string; delay: st
         } as CSSProperties
       }
     />
-  );
-}
-
-function FlatLogo({ size = 64 }: { size?: number }) {
-  return (
-    <svg
-      viewBox="0 0 150 40"
-      width={size}
-      height={(size * 40) / 150}
-      role="img"
-      aria-label="Flat 101"
-      style={{ color: "var(--text-strong)", flexShrink: 0 }}
-    >
-      <g transform="scale(0.199) translate(5.5, 0)" fill="currentColor">
-        <path fillRule="evenodd" clipRule="evenodd" d="M599.256 0.210449C576.664 0.210449 563.733 14.9163 563.733 42.4163V158.005C563.733 185.505 576.367 200.21 599.256 200.21C622.144 200.21 634.778 185.505 634.778 158.005V42.4163C634.778 14.9163 621.921 0.210449 599.256 0.210449ZM624.151 158.593C624.151 179.549 615.307 189.769 599.256 189.769C583.204 189.769 574.36 179.549 574.36 158.593V41.8281C574.36 20.8722 583.204 10.6516 599.256 10.6516C615.307 10.6516 624.151 20.5781 624.151 41.8281V158.519V158.593Z" />
-        <path fillRule="evenodd" clipRule="evenodd" d="M600.698 0.210449C578.106 0.210449 565.176 14.9163 565.176 42.4163V158.005C565.176 185.505 577.809 200.21 600.698 200.21C623.587 200.21 636.22 185.505 636.22 158.005V42.4163C636.22 14.9163 623.364 0.210449 600.698 0.210449ZM625.593 158.593C625.593 179.549 616.75 189.769 600.698 189.769C584.646 189.769 575.803 179.549 575.803 158.593V41.8281C575.803 20.8722 584.646 10.6516 600.698 10.6516C616.75 10.6516 625.593 20.5781 625.593 41.8281V158.519V158.593Z" />
-        <path fillRule="evenodd" clipRule="evenodd" d="M109.157 186.902V3.07812H98.6045V197.343H150.104V186.902H109.157Z" />
-        <path fillRule="evenodd" clipRule="evenodd" d="M0.65918 197.343H11.2861V106.166H47.3283V95.6517H11.2861V13.5193H51.9358V3.07812H0.65918V197.343Z" />
-        <path fillRule="evenodd" clipRule="evenodd" d="M296.426 13.5193H325.334V197.343H335.589V13.5193H364.497V3.07812H296.426V13.5193Z" />
-        <path d="M510.894 3.07812H500.268V197.416H510.894V3.07812Z" />
-        <path d="M698.099 3.07812H687.472V197.416H698.099V3.07812Z" />
-        <path fillRule="evenodd" clipRule="evenodd" d="M236.828 3.07812H225.978L190.753 197.343H201.603L231.403 26.2399L261.203 197.343H272.052L236.828 3.07812Z" />
-      </g>
-    </svg>
   );
 }

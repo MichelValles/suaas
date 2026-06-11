@@ -11,8 +11,8 @@ function eur(n: number, decimals = 0): string {
   })} €`;
 }
 
-const MIN_BUDGET = 5;
-const MAX_BUDGET = 1000;
+const MIN_BUDGET = 10;
+const MAX_BUDGET = 200;
 
 const cellStyle: CSSProperties = {
   textAlign: "right",
@@ -20,7 +20,7 @@ const cellStyle: CSSProperties = {
   fontFamily: "var(--font-mono)",
   fontVariantNumeric: "tabular-nums",
   color: "rgba(var(--fg),0.7)",
-  padding: "10px 12px",
+  padding: "9px 8px",
   borderBottom: "1px solid rgba(var(--fg),0.05)",
 };
 
@@ -107,21 +107,21 @@ export function AiCostModule({ defaultBudget = 30 }: { defaultBudget?: number })
               </span>
               <span style={{ fontSize: 12, color: "rgba(var(--fg),0.45)" }}>{p.note}</span>
             </div>
-            <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 420 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed" }}>
                 <thead>
                   <tr>
-                    {["Modelo", "Coste/run", `Runs con ${budget} $/mes`].map((h, i) => (
+                    {["Modelo", "Coste/run", `Runs con ${budget} $`].map((h, i) => (
                       <th
                         key={h}
                         style={{
                           textAlign: i === 0 ? "left" : "right",
+                          width: i === 0 ? "44%" : "28%",
                           fontSize: 10,
-                          letterSpacing: "0.12em",
+                          letterSpacing: "0.08em",
                           textTransform: "uppercase",
                           color: "rgba(var(--fg),0.4)",
                           fontWeight: 500,
-                          padding: "6px 12px",
+                          padding: "6px 8px",
                           borderBottom: "1px solid rgba(var(--fg),0.1)",
                         }}
                       >
@@ -149,7 +149,6 @@ export function AiCostModule({ defaultBudget = 30 }: { defaultBudget?: number })
                   ))}
                 </tbody>
               </table>
-            </div>
             {p.provider === "Perplexity" && (
               <span style={{ fontSize: 11, color: "rgba(var(--fg),0.4)" }}>
                 Perplexity cobra un fee por request además de los tokens (incluido en el coste/run).

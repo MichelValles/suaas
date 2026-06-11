@@ -1,20 +1,18 @@
 "use client";
 
+import { Lock } from "lucide-react";
+import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 import {
-  AI_PROVIDERS,
   EUR_PER_USD,
-  FIXED_OVERHEAD_EUR,
-  INFRA_PER_CLIENT_EUR,
-  type AiModel,
+  SUPABASE_MICRO_EUR,
+  SUPABASE_ORG_BASE_EUR,
   TIERS,
-  runCostEur,
-  runsForBudget,
+  VERCEL_COMPUTE_EUR,
+  VERCEL_SEAT_EUR,
+  INFRA_PER_CLIENT_EUR,
+  FIXED_OVERHEAD_EUR,
 } from "@/lib/landing-pricing";
-
-const ALL_MODELS: { provider: string; model: AiModel }[] = AI_PROVIDERS.flatMap(
-  (p) => p.models.map((model) => ({ provider: p.provider, model })),
-);
 
 function eur(n: number, decimals = 0): string {
   return `${n.toLocaleString("es-ES", {
@@ -22,331 +20,204 @@ function eur(n: number, decimals = 0): string {
     maximumFractionDigits: decimals,
   })} €`;
 }
-
 function pct(n: number): string {
   return `${(n * 100).toLocaleString("es-ES", { maximumFractionDigits: 0 })} %`;
 }
 
-const labelStyle: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 6,
-};
-const captionStyle: React.CSSProperties = {
+const captionStyle: CSSProperties = {
   fontSize: 11,
   letterSpacing: "0.16em",
   textTransform: "uppercase",
   color: "rgba(var(--fg),0.45)",
 };
-const fieldStyle: React.CSSProperties = {
+const fieldStyle: CSSProperties = {
   background: "rgba(var(--fg),0.05)",
   border: "1px solid rgba(var(--fg),0.14)",
   borderRadius: "var(--radius-sm)",
   padding: "11px 13px",
   color: "var(--text-strong)",
-  fontSize: 14,
+  fontSize: 15,
   outline: "none",
-  fontFamily: "var(--font-sans)",
+  fontFamily: "var(--font-mono)",
+  width: "100%",
 };
 
+const TIER_BY_ID = Object.fromEntries(TIERS.map((t) => [t.id, t]));
+
 export function PricingCalculator({ unlocked = false }: { unlocked?: boolean }) {
-  // Sin desbloquear (landing pública) sólo existe el modo cliente: ni toggle
-  // ni márgenes. Con la contraseña interna del footer, arranca en interno.
-  const [mode, setMode] = useState<"cliente" | "interno">(
-    unlocked ? "interno" : "cliente",
-  );
-  const showInternal = unlocked && mode === "interno";
-  const [tierId, setTierId] = useState("pro");
-  const [clients, setClients] = useState(5);
-  const [modelId, setModelId] = useState("anthropic/claude-sonnet-4.6");
-  const [runsPerClient, setRunsPerClient] = useState(150);
+  if (!unlocked) {
+    return (
+      <div
+        style={{
+          border: "1px dashed rgba(var(--fg),0.16)",
+          borderRadius: "var(--radius-md)",
+          padding: "28px 26px",
+          display: "flex",
+          alignItems: "center",
+          gap: 14,
+          color: "rgba(var(--fg),0.6)",
+        }}
+      >
+        <Lock size={18} color="var(--accent-500)" />
+        <span style={{ fontSize: 14, lineHeight: 1.5 }}>
+          Herramienta interna de Flat 101. Introduce la contraseña en el pie de página para echar
+          cuentas de escenarios (cuántos paquetes de cada tipo, infraestructura y rentabilidad).
+        </span>
+      </div>
+    );
+  }
+  return <WhatIf />;
+}
+
+function WhatIf() {
+  const [counts, setCounts] = useState<Record<string, number>>({ starter: 2, pro: 4, agency: 1 });
+  const [usagePct, setUsagePct] = useState(80);
   const [gestionEur, setGestionEur] = useState(150);
-  const [customPrice, setCustomPrice] = useState<number | null>(null);
 
-  const tier = TIERS.find((t) => t.id === tierId) ?? TIERS[1];
-  const model =
-    ALL_MODELS.find((m) => m.model.id === modelId)?.model ?? ALL_MODELS[0].model;
+  const set = (id: string, v: number) =>
+    setCounts((c) => ({ ...c, [id]: Math.max(0, Math.round(v) || 0) }));
 
-  const calc = useMemo(() => {
-    const price = customPrice ?? tier.priceMonth;
-    const costPerRun = runCostEur(model);
-    const runsIncluded = runsForBudget(model, tier.apiBudgetUsd);
-    // El budget de la key es el corte duro: no se pueden correr más runs que
-    // los incluidos en el plan.
-    const effectiveRuns = Math.min(runsPerClient, runsIncluded);
-    const overBudget = runsPerClient > runsIncluded;
-    const apiCogs = effectiveRuns * costPerRun;
-    const cogsPerClient = INFRA_PER_CLIENT_EUR + apiCogs;
-    const grossPerClient = price - cogsPerClient;
+  const r = useMemo(() => {
+    const total = TIERS.reduce((s, t) => s + (counts[t.id] ?? 0), 0);
+    const mrr = TIERS.reduce((s, t) => s + (counts[t.id] ?? 0) * t.priceMonth, 0);
+    const setupTotal = TIERS.reduce((s, t) => s + (counts[t.id] ?? 0) * t.setup, 0);
+    const apiTotal = TIERS.reduce(
+      (s, t) => s + (counts[t.id] ?? 0) * t.apiBudgetUsd * EUR_PER_USD * (usagePct / 100),
+      0,
+    );
+    const supaMicro = SUPABASE_MICRO_EUR * total;
+    const vercelCompute = VERCEL_COMPUTE_EUR * total;
+    const fixed = total > 0 ? SUPABASE_ORG_BASE_EUR + VERCEL_SEAT_EUR : 0;
+    const gestion = total > 0 ? gestionEur : 0;
 
-    const revenueMrr = clients * price;
-    const variableCogs = clients * cogsPerClient;
-    const grossProfit = revenueMrr - variableCogs;
-    const netProfit = grossProfit - FIXED_OVERHEAD_EUR - gestionEur;
-    const setupRevenue = clients * tier.setup;
+    const infraVariable = supaMicro + vercelCompute;
+    const cogsVariable = infraVariable + apiTotal;
+    const cogsTotal = cogsVariable + fixed + gestion;
+    const gross = mrr - cogsVariable;
+    const net = mrr - cogsTotal;
 
     return {
-      price,
-      costPerRun,
-      runsIncluded,
-      effectiveRuns,
-      overBudget,
-      apiCogs,
-      cogsPerClient,
-      grossPerClient,
-      revenueMrr,
-      grossProfit,
-      netProfit,
-      grossMargin: revenueMrr > 0 ? grossProfit / revenueMrr : 0,
-      netMargin: revenueMrr > 0 ? netProfit / revenueMrr : 0,
-      setupRevenue,
+      total,
+      mrr,
+      setupTotal,
+      apiTotal,
+      supaMicro,
+      vercelCompute,
+      fixed,
+      gestion,
+      cogsTotal,
+      gross,
+      net,
+      grossMargin: mrr > 0 ? gross / mrr : 0,
+      netMargin: mrr > 0 ? net / mrr : 0,
+      perInstance: total > 0 ? cogsTotal / total : 0,
     };
-  }, [tier, model, clients, runsPerClient, gestionEur, customPrice]);
+  }, [counts, usagePct, gestionEur]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      {/* Toggle modo (sólo en vista interna desbloqueada) */}
-      {unlocked && (
-      <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
-        <span style={captionStyle}>Vista</span>
-        <div
-          style={{
-            display: "inline-flex",
-            border: "1px solid rgba(var(--fg),0.14)",
-            borderRadius: "var(--radius-pill)",
-            overflow: "hidden",
-          }}
-        >
-          {(["cliente", "interno"] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className="mono"
-              style={{
-                padding: "8px 18px",
-                fontSize: 11,
-                letterSpacing: "0.14em",
-                textTransform: "uppercase",
-                background: mode === m ? "var(--accent-500)" : "transparent",
-                color: mode === m ? "var(--ink-900)" : "rgba(var(--fg),0.6)",
-                fontWeight: 700,
-              }}
-            >
-              {m === "cliente" ? "Cliente" : "Interno"}
-            </button>
-          ))}
-        </div>
-        <span style={{ fontSize: 12, color: "rgba(var(--fg),0.4)" }}>
-          {showInternal
-            ? "Muestra coste, rentabilidad bruta y neta. No compartir con el cliente."
-            : "Sólo tarifa y lo que incluye. Modo seguro para presentar."}
-        </span>
-      </div>
-      )}
+      <span style={{ ...captionStyle, color: "var(--accent-text)" }}>
+        Escenario what-if · vista interna
+      </span>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-          gap: 28,
-          alignItems: "start",
-        }}
-      >
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 28, alignItems: "start" }}>
         {/* ── Inputs ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          <label style={labelStyle}>
-            <span style={captionStyle}>Paquete</span>
-            <select
-              value={tierId}
-              onChange={(e) => {
-                setTierId(e.target.value);
-                setCustomPrice(null);
-              }}
-              style={fieldStyle}
-            >
-              {TIERS.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name} · {eur(t.priceMonth)}/mes
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label style={labelStyle}>
-            <span style={captionStyle}>
-              Precio al cliente (€/mes){customPrice !== null ? " · personalizado" : ""}
-            </span>
-            <input
-              type="number"
-              min={0}
-              value={calc.price}
-              onChange={(e) => {
-                const v = e.target.value;
-                // Campo vacío vuelve al precio del tier; entrada inválida no
-                // propaga NaN al resto de la calculadora.
-                setCustomPrice(v === "" ? null : Math.max(0, Number(v) || 0));
-              }}
-              style={fieldStyle}
-            />
-          </label>
-
-          <label style={labelStyle}>
-            <span style={captionStyle}>Nº de clientes</span>
-            <input
-              type="number"
-              min={1}
-              value={clients}
-              onChange={(e) => setClients(Math.max(1, Number(e.target.value)))}
-              style={fieldStyle}
-            />
-          </label>
-
-          <label style={labelStyle}>
-            <span style={captionStyle}>Motor de IA</span>
-            <select
-              value={modelId}
-              onChange={(e) => setModelId(e.target.value)}
-              style={fieldStyle}
-            >
-              {AI_PROVIDERS.map((p) => (
-                <optgroup key={p.provider} label={p.provider}>
-                  {p.models.map((m) => (
-                    <option key={m.id} value={m.id}>
-                      {m.label}
-                      {m.current ? " (actual)" : ""} · {eur(runCostEur(m), 3)}/run
-                    </option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-          </label>
-
-          <label style={labelStyle}>
-            <span style={captionStyle}>Runs/mes por cliente</span>
-            <input
-              type="number"
-              min={0}
-              value={runsPerClient}
-              onChange={(e) => setRunsPerClient(Math.max(0, Number(e.target.value)))}
-              style={fieldStyle}
-            />
-            <span style={{ fontSize: 11, color: "rgba(var(--fg),0.4)" }}>
-              Incluidos en el plan: ~{calc.runsIncluded.toLocaleString("es-ES")} runs/mes
-              {calc.overBudget ? " · pides más de los incluidos (subir tier)" : ""}
-            </span>
-          </label>
-
-          {showInternal && (
-            <label style={labelStyle}>
-              <span style={captionStyle}>Coste de gestión (€/mes)</span>
+          {TIERS.map((t) => (
+            <label key={t.id} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <span style={captionStyle}>
+                {t.name} · {eur(t.priceMonth)}/mes
+              </span>
               <input
                 type="number"
                 min={0}
-                value={gestionEur}
-                onChange={(e) => setGestionEur(Math.max(0, Number(e.target.value)))}
+                value={counts[t.id] ?? 0}
+                onChange={(e) => set(t.id, Number(e.target.value))}
                 style={fieldStyle}
               />
-              <span style={{ fontSize: 11, color: "rgba(var(--fg),0.4)" }}>
-                Tu tiempo de mantenimiento amortizado sobre la flota.
-              </span>
             </label>
-          )}
-        </div>
-
-        {/* ── Outputs ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Por cliente */}
-          <div
-            style={{
-              border: "1px solid rgba(var(--fg),0.1)",
-              borderRadius: "var(--radius-md)",
-              padding: "20px 22px",
-              background: "rgba(var(--fg),0.02)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-            }}
-          >
-            <span style={captionStyle}>Por cliente</span>
-            <Row label="Tarifa mensual" value={eur(calc.price)} strong />
-            <Row label="Setup (una vez)" value={eur(tier.setup)} />
-            <Row
-              label="Runs/mes incluidos"
-              value={`~${calc.runsIncluded.toLocaleString("es-ES")}`}
+          ))}
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={captionStyle}>Uso medio de IA: {usagePct} %</span>
+            <input
+              type="range"
+              min={10}
+              max={100}
+              step={5}
+              value={usagePct}
+              onChange={(e) => setUsagePct(Number(e.target.value))}
+              style={{ width: "100%", accentColor: "var(--accent-500)" }}
             />
-            {showInternal && (
-              <>
-                <Divider />
-                <Row label="Coste infra" value={eur(INFRA_PER_CLIENT_EUR)} dim />
-                <Row label="Coste IA estimado" value={eur(calc.apiCogs, 2)} dim />
-                <Row label="Coste total/cliente" value={eur(calc.cogsPerClient, 2)} dim />
-                <Row
-                  label="Margen bruto/cliente"
-                  value={`${eur(calc.grossPerClient)} · ${pct(
-                    calc.price > 0 ? calc.grossPerClient / calc.price : 0,
-                  )}`}
-                  accent
-                />
-              </>
-            )}
+            <span style={{ fontSize: 11, color: "rgba(var(--fg),0.4)" }}>
+              Porcentaje del presupuesto de IA incluido que consume el cliente. 100% = peor caso.
+            </span>
+          </label>
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={captionStyle}>Coste de gestión (€/mes)</span>
+            <input
+              type="number"
+              min={0}
+              value={gestionEur}
+              onChange={(e) => setGestionEur(Math.max(0, Number(e.target.value) || 0))}
+              style={fieldStyle}
+            />
+          </label>
+        </div>
+
+        {/* ── KPIs + desglose ── */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div style={panel}>
+            <Row label="Instancias" value={String(r.total)} />
+            <Row label="Ingreso recurrente (MRR)" value={`${eur(r.mrr)}/mes`} strong />
+            <Row label="Setup total (una vez)" value={eur(r.setupTotal)} dim />
+            <Divider />
+            <Row label="Rentabilidad bruta" value={`${eur(r.gross)}/mes · ${pct(r.grossMargin)}`} accent />
+            <Row label="Rentabilidad neta" value={`${eur(r.net)}/mes · ${pct(r.netMargin)}`} accent strong />
+            <Row label="Coste por instancia" value={r.total > 0 ? `${eur(r.perInstance, 0)}/mes` : "-"} dim />
           </div>
 
-          {/* Flota */}
-          <div
-            style={{
-              border: "1px solid rgba(var(--fg),0.1)",
-              borderRadius: "var(--radius-md)",
-              padding: "20px 22px",
-              background: "rgba(var(--fg),0.02)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 12,
-            }}
-          >
-            <span style={captionStyle}>
-              {clients} cliente{clients === 1 ? "" : "s"}
-            </span>
-            <Row label="Ingreso recurrente (MRR)" value={eur(calc.revenueMrr)} strong />
-            <Row label="Setup total (una vez)" value={eur(calc.setupRevenue)} />
-            {showInternal && (
-              <>
-                <Divider />
-                <Row
-                  label="Rentabilidad bruta"
-                  value={`${eur(calc.grossProfit)}/mes · ${pct(calc.grossMargin)}`}
-                  accent
-                />
-                <Row
-                  label="Overhead fijo + gestión"
-                  value={`− ${eur(FIXED_OVERHEAD_EUR + gestionEur)}`}
-                  dim
-                />
-                <Row
-                  label="Rentabilidad neta"
-                  value={`${eur(calc.netProfit)}/mes · ${pct(calc.netMargin)}`}
-                  accent
-                  strong
-                />
-                <span style={{ fontSize: 11, color: "rgba(var(--fg),0.4)", lineHeight: 1.5 }}>
-                  Bruta = ingresos − (infra + IA). Neta = bruta − seat Vercel y base
-                  Supabase ({eur(FIXED_OVERHEAD_EUR)}) − gestión. La IA está capada por
-                  el budget de la key: el coste nunca supera lo incluido.
-                </span>
-              </>
-            )}
-            {!showInternal && (
-              <span style={{ fontSize: 12, color: "rgba(var(--fg),0.45)", lineHeight: 1.5 }}>
-                Instancia dedicada con tu marca, aislamiento de datos y presupuesto de IA
-                incluido. Sin coste por participante ni esperas de reclutamiento.
-              </span>
-            )}
+          <div style={panel}>
+            <span style={captionStyle}>Infraestructura (€/mes)</span>
+            <Row
+              label={`Supabase (base ${eur(SUPABASE_ORG_BASE_EUR)} + ${r.total}×${eur(SUPABASE_MICRO_EUR)})`}
+              value={eur((r.total > 0 ? SUPABASE_ORG_BASE_EUR : 0) + r.supaMicro)}
+              dim
+            />
+            <Row
+              label={`Vercel (seat ${eur(VERCEL_SEAT_EUR)} + ${r.total}×${eur(VERCEL_COMPUTE_EUR)})`}
+              value={eur((r.total > 0 ? VERCEL_SEAT_EUR : 0) + r.vercelCompute)}
+              dim
+            />
+            <Row label={`IA (${usagePct}% del presupuesto)`} value={eur(r.apiTotal)} dim />
+            <Row label="Gestión" value={eur(r.gestion)} dim />
+            <Divider />
+            <Row label="Coste total" value={`${eur(r.cogsTotal)}/mes`} />
           </div>
         </div>
+      </div>
+
+      {/* ── Gráfica de amortización ── */}
+      <div style={panel}>
+        <span style={captionStyle}>Coste de infraestructura por instancia, según cuántas tengas</span>
+        <p style={{ fontSize: 12, color: "rgba(var(--fg),0.5)", lineHeight: 1.5, margin: 0 }}>
+          El coste fijo (seat de Vercel y base de Supabase) se reparte entre todas las instancias:
+          a más clientes, menos cuesta cada uno. Tiende a {eur(INFRA_PER_CLIENT_EUR)}/mes.
+        </p>
+        <AmortizationChart current={r.total} />
       </div>
     </div>
   );
 }
+
+const panel: CSSProperties = {
+  border: "1px solid rgba(var(--fg),0.1)",
+  borderRadius: "var(--radius-md)",
+  padding: "20px 22px",
+  background: "rgba(var(--fg),0.02)",
+  display: "flex",
+  flexDirection: "column",
+  gap: 12,
+};
 
 function Row({
   label,
@@ -363,24 +234,13 @@ function Row({
 }) {
   return (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
-      <span
-        style={{
-          fontSize: 13,
-          color: dim ? "rgba(var(--fg),0.45)" : "rgba(var(--fg),0.65)",
-        }}
-      >
-        {label}
-      </span>
+      <span style={{ fontSize: 13, color: dim ? "rgba(var(--fg),0.45)" : "rgba(var(--fg),0.65)" }}>{label}</span>
       <span
         className="mono"
         style={{
           fontSize: strong ? 17 : 14,
           fontWeight: strong ? 700 : 500,
-          color: accent
-            ? "var(--accent-text)"
-            : dim
-              ? "rgba(var(--fg),0.6)"
-              : "var(--text-strong)",
+          color: accent ? "var(--accent-text)" : dim ? "rgba(var(--fg),0.6)" : "var(--text-strong)",
           whiteSpace: "nowrap",
         }}
       >
@@ -392,4 +252,78 @@ function Row({
 
 function Divider() {
   return <div style={{ height: 1, background: "rgba(var(--fg),0.08)", margin: "2px 0" }} />;
+}
+
+// ── Gráfica de amortización (SVG, sin librerías) ──
+
+function AmortizationChart({ current }: { current: number }) {
+  const W = 600;
+  const H = 220;
+  const m = { left: 42, right: 14, top: 14, bottom: 30 };
+  const maxK = Math.max(20, current + 2);
+  const yMax = 50;
+  const plotW = W - m.left - m.right;
+  const plotH = H - m.top - m.bottom;
+
+  const costAt = (k: number) => INFRA_PER_CLIENT_EUR + FIXED_OVERHEAD_EUR / k;
+  const xFor = (k: number) => m.left + ((k - 1) / (maxK - 1)) * plotW;
+  const yFor = (v: number) => m.top + (1 - Math.min(v, yMax) / yMax) * plotH;
+
+  const pts: string[] = [];
+  for (let k = 1; k <= maxK; k += 1) pts.push(`${xFor(k).toFixed(1)},${yFor(costAt(k)).toFixed(1)}`);
+
+  const xTicks = [1, 5, 10, 15, 20].filter((k) => k <= maxK);
+  const yTicks = [0, 25, 50];
+  const floorY = yFor(INFRA_PER_CLIENT_EUR);
+  const showMarker = current >= 1 && current <= maxK;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Coste por instancia según número de instancias" style={{ marginTop: 4 }}>
+      {/* Ejes */}
+      <line x1={m.left} y1={m.top} x2={m.left} y2={H - m.bottom} stroke="rgba(var(--fg),0.2)" />
+      <line x1={m.left} y1={H - m.bottom} x2={W - m.right} y2={H - m.bottom} stroke="rgba(var(--fg),0.2)" />
+      {/* Ticks Y */}
+      {yTicks.map((v) => (
+        <g key={v}>
+          <line x1={m.left - 4} y1={yFor(v)} x2={W - m.right} y2={yFor(v)} stroke="rgba(var(--fg),0.06)" />
+          <text x={m.left - 8} y={yFor(v) + 3} textAnchor="end" fontSize="9" fill="rgba(var(--fg),0.4)" fontFamily="var(--font-mono)">
+            {v} €
+          </text>
+        </g>
+      ))}
+      {/* Suelo (coste marginal) */}
+      <line x1={m.left} y1={floorY} x2={W - m.right} y2={floorY} stroke="rgba(var(--fg),0.25)" strokeDasharray="4 4" />
+      <text x={W - m.right} y={floorY - 5} textAnchor="end" fontSize="9" fill="rgba(var(--fg),0.4)" fontFamily="var(--font-mono)">
+        suelo {INFRA_PER_CLIENT_EUR} €
+      </text>
+      {/* Curva */}
+      <polyline points={pts.join(" ")} fill="none" stroke="var(--accent-500)" strokeWidth="2" />
+      {/* Ticks X */}
+      {xTicks.map((k) => (
+        <text key={k} x={xFor(k)} y={H - m.bottom + 16} textAnchor="middle" fontSize="9" fill="rgba(var(--fg),0.4)" fontFamily="var(--font-mono)">
+          {k}
+        </text>
+      ))}
+      <text x={(m.left + W - m.right) / 2} y={H - 4} textAnchor="middle" fontSize="9" fill="rgba(var(--fg),0.35)" fontFamily="var(--font-mono)">
+        nº de instancias
+      </text>
+      {/* Marcador del escenario actual */}
+      {showMarker && (
+        <g>
+          <line x1={xFor(current)} y1={m.top} x2={xFor(current)} y2={H - m.bottom} stroke="var(--accent-500)" strokeOpacity="0.35" />
+          <circle cx={xFor(current)} cy={yFor(costAt(current))} r="4" fill="var(--accent-500)" />
+          <text
+            x={xFor(current) + (current <= 2 ? 6 : current >= maxK - 1 ? -6 : 0)}
+            y={yFor(costAt(current)) - 9}
+            textAnchor={current <= 2 ? "start" : current >= maxK - 1 ? "end" : "middle"}
+            fontSize="10"
+            fill="var(--accent-text)"
+            fontFamily="var(--font-mono)"
+          >
+            {eur(costAt(current), 0)}/inst.
+          </text>
+        </g>
+      )}
+    </svg>
+  );
 }

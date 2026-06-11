@@ -167,8 +167,15 @@ export const TIERS: Tier[] = [
 // Costes de infraestructura (para la calculadora de rentabilidad)
 // ============================================================
 
+// Desglose de infraestructura (EUR/mes). Por instancia: Supabase Micro + Vercel
+// compute. Fijo compartido por la flota: seat de Vercel + base de la org Supabase.
+export const SUPABASE_MICRO_EUR = 10;
+export const VERCEL_COMPUTE_EUR = 2;
+export const SUPABASE_ORG_BASE_EUR = 15;
+export const VERCEL_SEAT_EUR = 20;
+
 /** Coste marginal de infra por cliente/mes: Supabase Micro ~10 € + Vercel ~2 €. */
-export const INFRA_PER_CLIENT_EUR = 12;
+export const INFRA_PER_CLIENT_EUR = SUPABASE_MICRO_EUR + VERCEL_COMPUTE_EUR;
 
 /** Overhead fijo compartido por toda la flota/mes: seat Vercel ~20 € + base org Supabase ~15 €. */
-export const FIXED_OVERHEAD_EUR = 35;
+export const FIXED_OVERHEAD_EUR = SUPABASE_ORG_BASE_EUR + VERCEL_SEAT_EUR;
