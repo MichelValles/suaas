@@ -345,6 +345,11 @@ function renderSnippetText(
   if (campaign.strategy === "pmax") {
     return renderPmaxSnippet(campaign, shown);
   }
+  // Demand Gen: anuncio de imagen en feeds de Google (Discover, Gmail,
+  // YouTube), también con una combinación muestreada por impresión.
+  if (campaign.strategy === "demand_gen") {
+    return renderDemandGenSnippet(campaign, shown);
+  }
   switch (channel) {
     case "meta":
       return renderFeedSnippet(campaign, "Instagram / Facebook");
@@ -441,6 +446,33 @@ function renderPmaxSnippet(
   return lines.join("\n");
 }
 
+function renderDemandGenSnippet(
+  campaign: Campaign,
+  shown: ShownCombination | null,
+): string {
+  const headline = shown?.headlines[0] ?? campaign.headlines[0];
+  const description = shown?.descriptions[0] ?? campaign.descriptions[0];
+  const lines: string[] = [];
+  lines.push("Ves esta tarjeta patrocinada en el feed:");
+  lines.push("");
+  lines.push("---");
+  if (campaign.company_name) {
+    lines.push(`Anunciante: ${campaign.company_name} (${displayUrl(campaign.final_url)})`);
+  } else {
+    lines.push(`Anunciante: ${displayUrl(campaign.final_url)}`);
+  }
+  lines.push("");
+  lines.push(`Titular: ${headline}`);
+  lines.push("");
+  lines.push(`Descripción: ${description}`);
+  if (campaign.cta) {
+    lines.push("");
+    lines.push(`Botón CTA: [${campaign.cta}]`);
+  }
+  lines.push("---");
+  return lines.join("\n");
+}
+
 function renderFeedSnippet(campaign: Campaign, network: string): string {
   const lines: string[] = [];
   lines.push(`Ves este post patrocinado en tu feed de ${network}:`);
@@ -507,6 +539,17 @@ function framingByChannel(
       "Estás en una de las superficies de Google (Discover en el móvil, Gmail, YouTube o una web de su red).",
       context,
       "Aparece este anuncio entre el contenido. Lo ves de pasada y decides en 1-2 segundos si te interesa o sigues.",
+    ].join(" ");
+  }
+  if (campaign.strategy === "demand_gen") {
+    const context =
+      query && query !== GENERAL_CONTEXT_QUERY
+        ? `El algoritmo te lo enseña porque tus intereses encajan con: «${query}».`
+        : "Estás mirando el feed sin buscar nada en concreto.";
+    return [
+      "Estás pasando el feed de Discover en el móvil (o el feed de YouTube).",
+      context,
+      "Entre el contenido orgánico aparece esta tarjeta patrocinada con una imagen grande. Decides en 1-2 segundos si paras o sigues scrolleando.",
     ].join(" ");
   }
   switch (channel) {
@@ -1195,7 +1238,8 @@ async function processCombo(
   const shown =
     channel === "google" && campaign.strategy === "search"
       ? sampleRsaCombination(campaign, profile.id, query)
-      : channel === "google" && campaign.strategy === "pmax"
+      : channel === "google" &&
+          (campaign.strategy === "pmax" || campaign.strategy === "demand_gen")
         ? sampleRsaCombination(campaign, profile.id, query, 1, 1)
         : null;
   const snippet = await probeCampaignSnippet(

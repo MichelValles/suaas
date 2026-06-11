@@ -124,9 +124,17 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
   const [longHeadline, setLongHeadline] = useState(src?.long_headline ?? "");
   const [cta, setCta] = useState<string>(src?.cta ?? "");
 
-  // Estrategias con el set completo de assets (nombre de empresa, titular
-  // largo, CTA y creatividades con rol): Display y Performance Max.
-  const assetStrategy = strategy === "display" || strategy === "pmax";
+  // Estrategias con el set de assets visual (nombre de empresa, CTA y
+  // creatividades con rol): Display, Performance Max y Demand Gen.
+  const assetStrategy =
+    strategy === "display" || strategy === "pmax" || strategy === "demand_gen";
+  // El titular largo solo existe en Display y PMax (en Demand Gen es
+  // exclusivo del subformato vídeo, aún no modelado).
+  const usesLongHeadline = strategy === "display" || strategy === "pmax";
+  // Demand Gen admite titulares de 40 caracteres; el resto, 30.
+  const headlineMax = strategy === "demand_gen" ? 40 : HEADLINE_MAX;
+  const headlinesCap =
+    strategy === "display" || strategy === "demand_gen" ? 5 : 15;
 
   // Cuando el usuario cambia la URL final, invalidamos la imagen resuelta para
   // que vuelva a pulsar el botón explícitamente. Evita previews stale. Se
@@ -556,13 +564,11 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           title={
             strategy === "display"
               ? `Titulares cortos · ${headlines.length} / 5`
-              : `Titulares · ${headlines.length} / 15`
+              : `Titulares · ${headlines.length} / ${headlinesCap}`
           }
           onAdd={addHeadline}
           addLabel="+ Añadir titular"
-          canAdd={
-            headlines.length < (strategy === "display" ? 5 : 15)
-          }
+          canAdd={headlines.length < headlinesCap}
         >
           {strategy === "search" && (
             <p
@@ -590,7 +596,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 }`}
                 value={h}
                 onChange={(v) => setHeadlines(updateAt(headlines, i, v))}
-                max={HEADLINE_MAX}
+                max={headlineMax}
                 required={i === 0 || (strategy === "search" && i < 3)}
                 placeholder="Hipoteca fija al 2,90% TAE"
               />
@@ -598,7 +604,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           ))}
         </Section>
 
-        {assetStrategy && (
+        {usesLongHeadline && (
           <Section title="Titular largo">
             <CharCountedInput
               label="Titular largo (visible en banners grandes y feeds)"
@@ -836,6 +842,23 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             titular largo (máx. 90c), 2 descripciones, nombre de empresa (máx. 25c),
             CTA y creatividades con al menos 1 imagen landscape (1.91:1), 1 imagen
             square (1:1) y 1 logo square (1:1).
+          </p>
+        )}
+
+        {strategy === "demand_gen" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            Demand Gen exige: 1 a 5 titulares (máx. 40c, al menos uno de 30c o menos),
+            1 a 5 descripciones, nombre de empresa (máx. 25c) y creatividades con al
+            menos 1 imagen landscape (1.91:1), 1 imagen square (1:1) y 1 logo (1:1).
+            La CTA es opcional (automatizada por defecto).
           </p>
         )}
 

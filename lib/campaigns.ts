@@ -53,7 +53,7 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
   pmax:
     "Grupo de recursos multi-superficie (spec oficial 17091269). 3..15 titulares (30c, al menos uno de 15c o menos) + titular largo (90c) + 2..5 descripciones (90c) + nombre de empresa (25c) + CTA + imagen landscape (1.91:1) + square (1:1) + logo square (1:1). Opcional: portrait (4:5), logo landscape (4:1), vídeo (10s o más; Google lo autogenera si falta). Las queries actúan como señales de audiencia (opcionales).",
   demand_gen:
-    "Subformatos single image, carousel o video. Imagen landscape + square + logo + titulares (40c) + descripciones + nombre de empresa + CTA. Para carousel: ≥2 tarjetas (imagen + headline + URL).",
+    "Anuncio de imagen en feeds (Discover, Gmail, YouTube; spec oficial 17091672). 1..5 titulares (40c, al menos uno de 30c o menos) + 1..5 descripciones (90c) + nombre de empresa (25c) + imagen landscape (1.91:1) + square (1:1) + logo (1:1). Opcional: portrait (4:5), vertical (9:16), CTA (automatizada por defecto). Subformatos carousel y video aún no modelados.",
   video:
     "YouTube. Vídeo subido + URL final. Skippable / non-skippable / bumper / in-feed con titulares y descripciones según subformato. Companion banner opcional.",
   app:
@@ -63,7 +63,7 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
 };
 
 export function isStrategyImplemented(s: Strategy): boolean {
-  return s === "search" || s === "display" || s === "pmax";
+  return s === "search" || s === "display" || s === "pmax" || s === "demand_gen";
 }
 
 export const CreativeKindSchema = z.enum(["image", "video", "youtube"]);
@@ -167,12 +167,14 @@ export const CampaignInputSchema = z
       .array(z.string().min(2, "Cada query tiene mínimo 2 caracteres.").max(120))
       .max(5, "Máximo 5 queries por campaign.")
       .default([]),
+    // Cap global 40c (Demand Gen); el límite de 30c de Search, Display y
+    // PMax se valida por estrategia en el superRefine.
     headlines: z
       .array(
         z
           .string()
           .min(1, "Titular vacío.")
-          .max(30, "Cada titular admite máximo 30 caracteres."),
+          .max(40, "Cada titular admite máximo 40 caracteres."),
       )
       .min(1, "Al menos 1 titular.")
       .max(15, "Máximo 15 titulares."),
@@ -208,6 +210,15 @@ export const CampaignInputSchema = z
     cta: z.string().optional().nullable(),
   })
   .superRefine((data, ctx) => {
+    // Titulares de 30c en todas las estrategias salvo Demand Gen (40c,
+    // spec oficial 17091672).
+    if (data.strategy !== "demand_gen" && data.headlines.some((h) => h.length > 30)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["headlines"],
+        message: "Los titulares admiten máximo 30 caracteres en esta estrategia.",
+      });
+    }
     if (data.strategy === "search") {
       if (data.queries.length < 1) {
         ctx.addIssue({
@@ -355,6 +366,63 @@ export const CampaignInputSchema = z
           code: z.ZodIssueCode.custom,
           path: ["creatives"],
           message: "Performance Max exige al menos 1 logo square (1:1).",
+        });
+      }
+    }
+    // Demand Gen (imagen única): spec oficial 17091672. 1..5 titulares de
+    // 40c (al menos uno de 30c o menos para no caer en «Incompleto»),
+    // 1..5 descripciones, nombre de empresa, landscape + square + logo.
+    // CTA opcional (automatizada por defecto).
+    if (data.strategy === "demand_gen") {
+      if (data.headlines.length > 5) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["headlines"],
+          message: "Demand Gen admite máximo 5 titulares.",
+        });
+      }
+      if (!data.headlines.some((h) => h.trim().length > 0 && h.trim().length <= 30)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["headlines"],
+          message: "Demand Gen exige al menos 1 titular de 30 caracteres o menos.",
+        });
+      }
+      if (data.descriptions.length > 5) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["descriptions"],
+          message: "Demand Gen admite máximo 5 descripciones.",
+        });
+      }
+      if (!data.company_name || !data.company_name.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["company_name"],
+          message: "Demand Gen exige nombre de empresa (max 25c).",
+        });
+      }
+      const creatives = data.creatives ?? [];
+      const has = (role: CreativeRole) => creatives.some((c) => c.role === role);
+      if (!has("landscape_image")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["creatives"],
+          message: "Demand Gen exige al menos 1 imagen landscape (1.91:1).",
+        });
+      }
+      if (!has("square_image")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["creatives"],
+          message: "Demand Gen exige al menos 1 imagen square (1:1).",
+        });
+      }
+      if (!has("logo_square")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["creatives"],
+          message: "Demand Gen exige al menos 1 logo (1:1).",
         });
       }
     }
