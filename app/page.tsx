@@ -281,7 +281,6 @@ function IntentMomentumSection() {
             color: "rgba(var(--fg),0.5)",
             lineHeight: 1.6,
             margin: 0,
-            maxWidth: 560,
           }}
         >
           Cada perfil emite un vector de tres dimensiones en cada interacción. Los módulos
@@ -388,7 +387,6 @@ function GravityVisual() {
               color: "rgba(var(--fg),0.6)",
               lineHeight: 1.65,
               margin: 0,
-              maxWidth: 420,
             }}
           >
             La intención no es binaria: tiene{" "}
@@ -466,8 +464,6 @@ function GravityVisual() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          width: "100%",
-          maxWidth: 300,
           margin: "0 auto",
         }}
       >
@@ -638,7 +634,6 @@ function PlaneSection({
             color: "rgba(var(--fg),0.5)",
             lineHeight: 1.6,
             margin: 0,
-            maxWidth: 640,
           }}
         >
           {description}
