@@ -124,6 +124,10 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
   const [longHeadline, setLongHeadline] = useState(src?.long_headline ?? "");
   const [cta, setCta] = useState<string>(src?.cta ?? "");
 
+  // Estrategias con el set completo de assets (nombre de empresa, titular
+  // largo, CTA y creatividades con rol): Display y Performance Max.
+  const assetStrategy = strategy === "display" || strategy === "pmax";
+
   // Cuando el usuario cambia la URL final, invalidamos la imagen resuelta para
   // que vuelva a pulsar el botón explícitamente. Evita previews stale. Se
   // salta el mount: al duplicar, finalUrl y resolvedLanding llegan sembrados
@@ -375,7 +379,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             required
             placeholder="Hipoteca fija agosto 2026"
           />
-          {strategy === "display" && (
+          {assetStrategy && (
             <CharCountedInput
               label="Nombre de empresa (visible en el anuncio)"
               value={companyName}
@@ -517,7 +521,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           title={
             strategy === "display"
               ? `Intereses / contexto · ${queries.length} / 5 (opcional)`
-              : `Queries · ${queries.length} / 5`
+              : strategy === "pmax"
+                ? `Señales de audiencia · ${queries.length} / 5 (opcional)`
+                : `Queries · ${queries.length} / 5`
           }
           onAdd={addQuery}
           addLabel="+ Añadir"
@@ -531,15 +537,13 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             >
               <Controlled
                 label={
-                  strategy === "display"
-                    ? `Interés ${i + 1}`
-                    : `Query ${i + 1}`
+                  assetStrategy ? `Interés / señal ${i + 1}` : `Query ${i + 1}`
                 }
                 value={q}
                 onChange={(v) => setQueries(updateAt(queries, i, v))}
                 required={strategy === "search" && i === 0}
                 placeholder={
-                  strategy === "display"
+                  assetStrategy
                     ? "lector de tech, edad 30-45"
                     : "hipoteca fija madrid"
                 }
@@ -594,10 +598,10 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           ))}
         </Section>
 
-        {strategy === "display" && (
+        {assetStrategy && (
           <Section title="Titular largo">
             <CharCountedInput
-              label="Titular largo (visible en banners grandes)"
+              label="Titular largo (visible en banners grandes y feeds)"
               value={longHeadline}
               onChange={setLongHeadline}
               max={90}
@@ -609,15 +613,13 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
 
         <Section
           title={
-            strategy === "display"
+            assetStrategy
               ? `Descripciones · ${descriptions.length} / 5`
               : `Descripciones · ${descriptions.length} / 4`
           }
           onAdd={addDescription}
           addLabel="+ Añadir descripción"
-          canAdd={
-            descriptions.length < (strategy === "display" ? 5 : 4)
-          }
+          canAdd={descriptions.length < (assetStrategy ? 5 : 4)}
         >
           {descriptions.map((d, i) => (
             <RowWithRemove
@@ -632,14 +634,18 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 value={d}
                 onChange={(v) => setDescriptions(updateAt(descriptions, i, v))}
                 max={DESCRIPTION_MAX}
-                required={i === 0 || strategy === "search"}
+                required={
+                  i === 0 ||
+                  strategy === "search" ||
+                  (strategy === "pmax" && i < 2)
+                }
                 placeholder="Sin comisiones de apertura. Decisión en 48h."
               />
             </RowWithRemove>
           ))}
         </Section>
 
-        {strategy === "display" && (
+        {assetStrategy && (
           <Section title="CTA">
             <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <Label>Botón Call To Action (visible en el anuncio)</Label>
@@ -648,7 +654,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 onChange={(e) => setCta(e.currentTarget.value)}
                 style={inputStyle}
               >
-                <option value="">sin CTA</option>
+                <option value="">
+                  {strategy === "pmax" ? "elige una CTA (obligatoria)" : "sin CTA"}
+                </option>
                 {CTA_VALUES.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -669,11 +677,12 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           addLabel="+ Añadir"
           canAdd={creatives.length < 20}
         >
-          {strategy === "display" ? (
+          {assetStrategy ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
-              Display exige al menos <strong>1 imagen landscape (1.91:1)</strong>,
+              {STRATEGY_LABEL[strategy]} exige al menos <strong>1 imagen landscape (1.91:1)</strong>,
               <strong> 1 imagen square (1:1)</strong> y <strong>1 logo square (1:1)</strong>.
-              Recomendado: añade portrait (4:5) para mobile y vídeo YouTube si lo tienes.
+              Recomendado: añade portrait (4:5) para mobile y vídeo YouTube si lo tienes
+              {strategy === "pmax" ? " (sin vídeo, Google autogenera uno)" : ""}.
             </p>
           ) : (
             creatives.length === 0 && (
@@ -716,7 +725,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                   label="YouTube"
                 />
               </div>
-              {strategy === "display" && (
+              {assetStrategy && (
                 <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   <Label>Rol en el anuncio</Label>
                   <select
@@ -813,6 +822,23 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           </p>
         )}
 
+        {strategy === "pmax" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            Performance Max exige: mínimo 3 titulares (al menos uno de 15c o menos),
+            titular largo (máx. 90c), 2 descripciones, nombre de empresa (máx. 25c),
+            CTA y creatividades con al menos 1 imagen landscape (1.91:1), 1 imagen
+            square (1:1) y 1 logo square (1:1).
+          </p>
+        )}
+
         <Submit />
         </>
         )}
@@ -839,7 +865,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
         >
           Vista previa · {STRATEGY_LABEL[strategy]}
         </span>
-        {strategy === "display" ? (
+        {assetStrategy ? (
           <DisplayAdPreview
             companyName={companyName}
             longHeadline={longHeadline}

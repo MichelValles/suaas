@@ -312,13 +312,19 @@ export function sampleRsaCombination(
   campaign: Campaign,
   profileId: string,
   query: string,
+  nHeadlines = 3,
+  nDescriptions = 2,
 ): ShownCombination {
   const rng = mulberry32(hashSeed(`${profileId}|${query}`));
   return {
-    headlines: pickN(campaign.headlines, Math.min(3, campaign.headlines.length), rng),
+    headlines: pickN(
+      campaign.headlines,
+      Math.min(nHeadlines, campaign.headlines.length),
+      rng,
+    ),
     descriptions: pickN(
       campaign.descriptions,
-      Math.min(2, campaign.descriptions.length),
+      Math.min(nDescriptions, campaign.descriptions.length),
       rng,
     ),
   };
@@ -333,6 +339,11 @@ function renderSnippetText(
   // depende del canal externo (siempre se ve dentro de Google Display Network).
   if (campaign.strategy === "display") {
     return renderDisplaySnippet(campaign);
+  }
+  // Performance Max combina los recursos automáticamente: el persona ve UNA
+  // combinación (titular corto + titular largo + descripción) muestreada.
+  if (campaign.strategy === "pmax") {
+    return renderPmaxSnippet(campaign, shown);
   }
   switch (channel) {
     case "meta":
@@ -398,6 +409,38 @@ function renderDisplaySnippet(campaign: Campaign): string {
   return lines.join("\n");
 }
 
+function renderPmaxSnippet(
+  campaign: Campaign,
+  shown: ShownCombination | null,
+): string {
+  const headline = shown?.headlines[0] ?? campaign.headlines[0];
+  const description = shown?.descriptions[0] ?? campaign.descriptions[0];
+  const lines: string[] = [];
+  lines.push(
+    "Ves este anuncio (generado automáticamente con los recursos del anunciante) en una superficie de Google:",
+  );
+  lines.push("");
+  lines.push("---");
+  if (campaign.company_name) {
+    lines.push(`Anunciante: ${campaign.company_name} (${displayUrl(campaign.final_url)})`);
+  } else {
+    lines.push(`Anunciante: ${displayUrl(campaign.final_url)}`);
+  }
+  lines.push("");
+  if (campaign.long_headline) {
+    lines.push(`Titular largo: ${campaign.long_headline}`);
+  }
+  lines.push(`Titular: ${headline}`);
+  lines.push("");
+  lines.push(`Descripción: ${description}`);
+  if (campaign.cta) {
+    lines.push("");
+    lines.push(`Botón CTA: [${campaign.cta}]`);
+  }
+  lines.push("---");
+  return lines.join("\n");
+}
+
 function renderFeedSnippet(campaign: Campaign, network: string): string {
   const lines: string[] = [];
   lines.push(`Ves este post patrocinado en tu feed de ${network}:`);
@@ -453,6 +496,17 @@ function framingByChannel(
       context,
       "En medio del contenido aparece un banner patrocinado de la red de Display de Google.",
       "Lo ves un instante mientras scrolleas. Decides en 1-2 segundos si te quedas mirando o sigues.",
+    ].join(" ");
+  }
+  if (campaign.strategy === "pmax") {
+    const context =
+      query && query !== GENERAL_CONTEXT_QUERY
+        ? `Google te lo enseña porque tu actividad reciente encaja con: «${query}».`
+        : "Estás navegando sin un interés específico.";
+    return [
+      "Estás en una de las superficies de Google (Discover en el móvil, Gmail, YouTube o una web de su red).",
+      context,
+      "Aparece este anuncio entre el contenido. Lo ves de pasada y decides en 1-2 segundos si te interesa o sigues.",
     ].join(" ");
   }
   switch (channel) {
@@ -1134,12 +1188,16 @@ async function processCombo(
   imageCache: ImageCache,
 ): Promise<void> {
   const supa = getServerClient();
-  // Search en Google: el persona ve UNA combinación RSA muestreada
-  // (determinista por perfil + query). El resto de renders no cambian.
+  // Search en Google: el persona ve UNA combinación RSA muestreada (3
+  // titulares + 2 descripciones, determinista por perfil + query). PMax
+  // combina automáticamente: 1 titular corto + 1 descripción por impresión.
+  // El resto de renders no cambian.
   const shown =
-    campaign.strategy === "search" && channel === "google"
+    channel === "google" && campaign.strategy === "search"
       ? sampleRsaCombination(campaign, profile.id, query)
-      : null;
+      : channel === "google" && campaign.strategy === "pmax"
+        ? sampleRsaCombination(campaign, profile.id, query, 1, 1)
+        : null;
   const snippet = await probeCampaignSnippet(
     profile,
     campaign,

@@ -51,7 +51,7 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
   display:
     "Anuncio responsive de Display. URL final + nombre de empresa + titulares cortos/largos + descripciones + imágenes landscape (1.91:1), square (1:1) y logo. Opcional: portrait (4:5), logo landscape, vídeo (YouTube).",
   pmax:
-    "Asset group multi-canal. Logo + ≥3 imágenes (al menos una landscape y una square) + 3+ titulares + 1+ titular largo + 2 descripciones + CTA. Vídeo opcional pero Google lo autogenera si no lo subes. Señales de audiencia.",
+    "Grupo de recursos multi-superficie (spec oficial 17091269). 3..15 titulares (30c, al menos uno de 15c o menos) + titular largo (90c) + 2..5 descripciones (90c) + nombre de empresa (25c) + CTA + imagen landscape (1.91:1) + square (1:1) + logo square (1:1). Opcional: portrait (4:5), logo landscape (4:1), vídeo (10s o más; Google lo autogenera si falta). Las queries actúan como señales de audiencia (opcionales).",
   demand_gen:
     "Subformatos single image, carousel o video. Imagen landscape + square + logo + titulares (40c) + descripciones + nombre de empresa + CTA. Para carousel: ≥2 tarjetas (imagen + headline + URL).",
   video:
@@ -63,7 +63,7 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
 };
 
 export function isStrategyImplemented(s: Strategy): boolean {
-  return s === "search" || s === "display";
+  return s === "search" || s === "display" || s === "pmax";
 }
 
 export const CreativeKindSchema = z.enum(["image", "video", "youtube"]);
@@ -285,6 +285,76 @@ export const CampaignInputSchema = z
           code: z.ZodIssueCode.custom,
           path: ["creatives"],
           message: "Display exige al menos 1 logo square (1:1).",
+        });
+      }
+    }
+    // Performance Max: spec oficial 17091269. Combinación mínima del grupo
+    // de recursos: 3 titulares (uno de 15c o menos), titular largo, 2
+    // descripciones, nombre de empresa, CTA, landscape + square + logo.
+    if (data.strategy === "pmax") {
+      if (data.headlines.length < 3) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["headlines"],
+          message: "Performance Max exige mínimo 3 titulares.",
+        });
+      }
+      if (!data.headlines.some((h) => h.trim().length > 0 && h.trim().length <= 15)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["headlines"],
+          message: "Performance Max exige al menos 1 titular de 15 caracteres o menos.",
+        });
+      }
+      if (!data.long_headline || !data.long_headline.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["long_headline"],
+          message: "Performance Max exige titular largo (max 90c).",
+        });
+      }
+      if (data.descriptions.length < 2) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["descriptions"],
+          message: "Performance Max exige mínimo 2 descripciones.",
+        });
+      }
+      if (!data.company_name || !data.company_name.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["company_name"],
+          message: "Performance Max exige nombre de empresa (max 25c).",
+        });
+      }
+      if (!data.cta || !data.cta.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["cta"],
+          message: "Performance Max exige una CTA.",
+        });
+      }
+      const creatives = data.creatives ?? [];
+      const has = (role: CreativeRole) => creatives.some((c) => c.role === role);
+      if (!has("landscape_image")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["creatives"],
+          message: "Performance Max exige al menos 1 imagen landscape (1.91:1).",
+        });
+      }
+      if (!has("square_image")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["creatives"],
+          message: "Performance Max exige al menos 1 imagen square (1:1).",
+        });
+      }
+      if (!has("logo_square")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["creatives"],
+          message: "Performance Max exige al menos 1 logo square (1:1).",
         });
       }
     }
