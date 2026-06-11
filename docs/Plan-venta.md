@@ -59,6 +59,28 @@ Tiers sugeridos (el budget de la key es el corte duro: el cliente nunca gasta m�
 | Vercel (proyecto extra en team Pro) | **~2 $** | Proyectos ilimitados sin coste por proyecto; se paga uso. Coste dominante: memoria aprovisionada durante runs largos (~1,60 $/mes con 30 runs/día de 300 s en iad1). El crédito de 20 $/mes del team absorbe ~8-10 instancias antes de facturar. |
 | **Total marginal por instancia** | **~10-12 $** | Más la base fija compartida: seat Vercel Pro (20 $/mes) y org Supabase Pro (25 $/mes). |
 
+### Cómo escala: Vercel se comparte, Supabase no
+
+La distinción que más afecta a la cuenta: de los tres costes, **solo el de Vercel es realmente plano para todas las instancias**. El de Supabase no lo es.
+
+- **Vercel (~20 $ del seat)**: compartido, cubre todas las instancias. Cada app pequeña añade ~2 $ de compute, pero el crédito de 20 $/mes del team lo absorbe hasta ~10 instancias; a partir de ahí, +2 $ cada una. Límite técnico: 150 proyectos por repositorio (irrelevante a esta escala).
+- **Supabase (25 $ de la org)**: cubre la organización **más una sola instancia** (vía el crédito de 10 $ de compute incluido). Cada cliente adicional es un proyecto Micro nuevo a **10 $/mes fijos**. No hay forma de meter varios clientes bajo unos 25 $ planos de Supabase: es el coste que escala de verdad.
+- **API (30 $ por cliente)**: NO es coste de la agencia, es el consumo del cliente pagado contra el budget de *su* key. Si se refactura, es pass-through y no limita cuántas instancias se pueden tener.
+
+Coste de infraestructura (lo que paga la agencia, sin la API del cliente):
+
+| Instancias | Vercel | Supabase | **Infra/mes** | Por instancia |
+|---|---|---|---|---|
+| 1 | ~20 $ | 25 $ | **~45 $** | 45 $ |
+| 3 | ~20 $ | 45 $ | **~65 $** | 22 $ |
+| 5 | ~20 $ | 65 $ | **~85 $** | 17 $ |
+| 10 | ~20 $ | 115 $ | **~135 $** | 13 $ |
+| 15 | ~30 $ | 165 $ | **~195 $** | 13 $ |
+
+Supabase sigue la fórmula `15 + 10·N $/mes` (org 25 $ + 10 $ por Micro − 10 $ de crédito del primero). El coste por instancia converge a ~12-13 $/mes de infra según crece N. **No hay un número máximo de instancias por límite de coste: es lineal.** Si se pone 25 $ Vercel + 25 $ Supabase como techo duro, entra 1 instancia completa; como base que escala, las que se quieran a ~12 $ de infra cada una más los 30 $ de API que paga el cliente. El margen por cliente es lo que se cobre por encima de esos ~12 $ (más los 30 $ de API si van incluidos en el plan).
+
+Matiz de divisa: Vercel y Supabase facturan en dólares (20 $ y 25 $); sumar ~8-10 % de cambio EUR/USD y el IVA si aplica.
+
 ### Consumo LLM (lo que pasa por la API key del cliente)
 
 Costes unitarios con el runner actual (todo Sonnet, imágenes a 1024px, v0.49+): combinación de campaña ~0,03 $; test 5s ~0,015 $/perfil; mensaje de chat ~0,025 $ (el reasoner va en Opus); perfil sembrado ~0,02 $; run de campaña a tope (200 combos) ~5-6 $.
