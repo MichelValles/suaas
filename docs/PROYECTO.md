@@ -177,6 +177,7 @@ lib/
   usage.ts                              UsageScope (incluye campaign_probe, campaign_landing, campaign_ideal), recordUsage, getUsageSummary (paginado), getScopeAverages (split prompt/completion), getGatewayCredits
   model-pricing.ts                      tarifas $/MTok por modelo (con fallback por familia), usdForTokens, formatUsd (es-ES); módulo puro importable desde cliente
   estimate.ts                           estimador de coste por acción: EstimatePart, estimateAction, estimateManyUsd, partsForKind (fórmulas de llamadas por kind); alimenta GET /api/estimate/run y los costes server-side de los botones
+  landing-pricing.ts                    datos de la landing comercial /propuesta: catálogo de modelos de IA (Anthropic/OpenAI/Gemini/Perplexity con precios verificados), tiers, runCostEur, runsForBudget; módulo puro para page (server) y calculadora (client)
 
   targets.ts                            TargetInputSchema + CRUD + getTargetWithTrashed + resolveOgImageDetailed (con anti-SSRF, 5s timeout, max-redirects=3, body 1.5MB)
   funnels.ts                            FunnelInputSchema + CRUD + getFunnelWithTrashed

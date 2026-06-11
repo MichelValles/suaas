@@ -159,6 +159,10 @@ El patrón 2026 es **sintético para el 80 % inicial** (iteración rápida, mess
 
 Con producto propio y coste marginal casi nulo, el budget de la API key es el corte duro que protege el margen: un cliente nunca puede consumir más que su plan (el gateway corta con un 429). El COGS por instancia no supera nunca infra + budget del tier, así que los márgenes del 93-95 % de la tabla son reales, no optimistas. La palanca de crecimiento es la **expansión** (subir de tier al crecer el uso, módulos premium), no competir por precio: la especialización vertical de Flat101 en CRO/UX permite primas del 35-40 % sobre un reseller genérico.
 
+### Landing comercial (`/propuesta`)
+
+Existe una landing de venta para directivos en la ruta `/propuesta` (detrás del login, para no exponer los márgenes). No usa el nombre interno del producto: la marca comercial vive en la constante `BRAND` de `app/propuesta/page.tsx` («Prisma», placeholder editable en un solo sitio). Incluye el pitch ejecutivo, los paquetes, el **módulo de coste de IA** (tabla comparativa de Anthropic, OpenAI, Gemini y Perplexity con coste por run y runs por presupuesto) y una **calculadora de tarificador y rentabilidad** (`app/propuesta/calculator.tsx`) con toggle cliente/interno: en interno calcula rentabilidad bruta y neta de la flota según paquete, número de clientes, motor de IA y uso. Para enviar un enlace a un cliente sin que vea márgenes, habría que extraer una versión pública sólo con el pitch (pendiente, ver `ROADMAP.md → v0.51.0`).
+
 ## 6. Plan de mantenimiento
 
 ### Por release (cada cambio)
