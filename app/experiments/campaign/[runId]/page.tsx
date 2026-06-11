@@ -6,10 +6,12 @@ import { InfoTooltip } from "@/components/info-tooltip";
 import { CHANNEL_LABEL, getCampaignWithTrashed } from "@/lib/campaigns";
 import {
   GENERAL_CONTEXT_QUERY,
+  RecommendationsSchema,
   listCampaignResponses,
   summarizeCampaignResponses,
   type CampaignByChannel,
   type CampaignByQuery,
+  type CampaignRecommendations,
   type CampaignResponse,
 } from "@/lib/experiments/campaign";
 import { listProfilesByIds, type Profile } from "@/lib/profiles";
@@ -69,6 +71,13 @@ export default async function CampaignRunPage({
     totalProfiles *
     ((run.params?.channels as string[] | undefined)?.length ?? 1) *
     ((run.params?.queries as string[] | undefined)?.length ?? 1);
+
+  // Síntesis «Qué cambiar» (v0.39.3): validada con zod por si el jsonb
+  // trae cualquier otra cosa. Null en runs anteriores o si la síntesis falló.
+  const recParsed = RecommendationsSchema.safeParse(run.params?.recommendations);
+  const recommendations: CampaignRecommendations | null = recParsed.success
+    ? recParsed.data
+    : null;
 
   return (
     <AppShell>
@@ -163,6 +172,109 @@ export default async function CampaignRunPage({
           ? " Las creatividades de vídeo se evalúan por su miniatura (el modelo no procesa vídeo)."
           : ""}
       </p>
+
+      {/* Qué cambiar: síntesis accionable del run */}
+      {recommendations && (
+        <section
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 16,
+            border: "1px solid var(--accent-500)",
+            borderRadius: "var(--radius-md)",
+            padding: "26px 28px",
+            background: "rgba(250,204,13,0.04)",
+          }}
+        >
+          <SectionLabel>Qué cambiar</SectionLabel>
+          <ul
+            style={{
+              listStyle: "none",
+              padding: 0,
+              margin: 0,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
+            {recommendations.key_findings.map((f) => (
+              <li
+                key={f}
+                style={{
+                  color: "rgba(var(--fg),0.85)",
+                  fontSize: 14,
+                  lineHeight: 1.6,
+                  paddingLeft: 18,
+                  position: "relative",
+                }}
+              >
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    color: "var(--accent-text)",
+                  }}
+                >
+                  ·
+                </span>
+                {f}
+              </li>
+            ))}
+          </ul>
+          {(recommendations.recommended_headlines.length > 0 ||
+            recommendations.recommended_descriptions.length > 0) && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <span
+                className="mono"
+                style={{
+                  fontSize: 10,
+                  letterSpacing: "0.22em",
+                  textTransform: "uppercase",
+                  color: "rgba(var(--fg),0.55)",
+                }}
+              >
+                Copy listo para pegar
+              </span>
+              {recommendations.recommended_headlines.map((h) => (
+                <p key={h} className="serp-link" style={{ margin: 0, fontSize: 15, lineHeight: 1.4 }}>
+                  {h}
+                </p>
+              ))}
+              {recommendations.recommended_descriptions.map((d) => (
+                <p
+                  key={d}
+                  style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: "rgba(var(--fg),0.78)" }}
+                >
+                  {d}
+                </p>
+              ))}
+            </div>
+          )}
+          {recommendations.barrier_fixes.length > 0 && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <span
+                className="mono"
+                style={{
+                  fontSize: 10,
+                  letterSpacing: "0.22em",
+                  textTransform: "uppercase",
+                  color: "rgba(var(--fg),0.55)",
+                }}
+              >
+                Cómo desactivar las barreras
+              </span>
+              {recommendations.barrier_fixes.map((b) => (
+                <p
+                  key={b}
+                  style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "rgba(var(--fg),0.7)" }}
+                >
+                  {b}
+                </p>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
 
       {/* Por canal (sólo si la campaña tenía más de uno) */}
       {summary.byChannel.length > 1 && (

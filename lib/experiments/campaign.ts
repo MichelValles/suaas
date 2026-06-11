@@ -124,6 +124,25 @@ export const AdJudgeSchema = z.object({
 });
 export type AdJudge = z.infer<typeof AdJudgeSchema>;
 
+// Sin .max() duros (un exceso de caracteres del LLM no debe tirar la
+// síntesis): los límites se instruyen y se truncan al persistir.
+export const RecommendationsSchema = z.object({
+  key_findings: z
+    .array(z.string())
+    .min(1)
+    .describe("3-5 hallazgos clave del run, en frases completas y accionables"),
+  recommended_headlines: z
+    .array(z.string())
+    .describe("Hasta 3 titulares listos para usar, máximo 30 caracteres cada uno"),
+  recommended_descriptions: z
+    .array(z.string())
+    .describe("Hasta 2 descripciones listas para usar, máximo 90 caracteres cada una"),
+  barrier_fixes: z
+    .array(z.string())
+    .describe("Cómo desactivar cada barrera top, 1 frase por barrera"),
+});
+export type CampaignRecommendations = z.infer<typeof RecommendationsSchema>;
+
 export const IdealVersionSchema = z.object({
   ideal_headline: z.string().min(1).describe("Tu titular ideal en máximo 30 caracteres"),
   ideal_description: z
@@ -889,11 +908,116 @@ export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<voi
       value: skippedByDeadline,
       unit: "count",
     });
+    // Síntesis «Qué cambiar»: una llamada extra, tolerante a fallos.
+    if (responses.length > 0) {
+      try {
+        await synthesizeRecommendations(runId, campaign, summary, responses);
+      } catch (err) {
+        console.error(
+          `[campaign] síntesis de recomendaciones falló (run ${runId}):`,
+          (err as Error).message,
+        );
+      }
+    }
     await markRunFinished(runId, responses.length > 0 ? "done" : "error");
   } catch (err) {
     console.error(`[campaign] cierre del run ${runId} falló:`, (err as Error).message);
     await markRunFinished(runId, "error").catch(() => {});
   }
+}
+
+/**
+ * Síntesis accionable del run («Qué cambiar»): una sola llamada que convierte
+ * las 200 filas en recomendaciones. Se persiste mergeada en runs.params
+ * (jsonb existente, sin migración) y la pinta la página de resultados.
+ */
+async function synthesizeRecommendations(
+  runId: string,
+  campaign: Campaign,
+  summary: CampaignSummary,
+  responses: CampaignResponse[],
+): Promise<void> {
+  const topIdeals = [...responses]
+    .sort((a, b) => b.intent_to_click - a.intent_to_click)
+    .slice(0, 10)
+    .map((r) => `- "${r.ideal_headline}" / "${r.ideal_description}" (intent ${r.intent_to_click.toFixed(2)})`);
+  const worstQueries = [...summary.byQuery]
+    .sort((a, b) => a.mean_intent_to_click - b.mean_intent_to_click)
+    .slice(0, 3)
+    .map(
+      (q) =>
+        `- "${q.query}": intent ${q.mean_intent_to_click.toFixed(2)}, claridad ${q.mean_clarity.toFixed(2)}`,
+    );
+
+  const startedAt = Date.now();
+  const result = await generateObject({
+    model: DEFAULT_MODEL,
+    schema: RecommendationsSchema,
+    system: [
+      "Eres un consultor senior de paid media y CRO. Resumes un test de anuncio con usuarios sintéticos en recomendaciones accionables para el equipo de marketing.",
+      "Escribe en castellano, con acentos correctos. No uses nunca el guion largo (em-dash); usa coma, dos puntos o paréntesis.",
+      "Los titulares recomendados deben caber en 30 caracteres y las descripciones en 90 (formato Google Ads RSA).",
+      "Apóyate en los datos: no inventes hallazgos que los números no respalden.",
+    ].join("\n"),
+    prompt: [
+      `Campaña: ${campaign.name} (${campaign.strategy}).`,
+      `Titulares actuales: ${campaign.headlines.join(" | ")}`,
+      `Descripciones actuales: ${campaign.descriptions.join(" | ")}`,
+      "",
+      `Resultados del run (${summary.n_responses} respuestas de ${summary.n_profiles} perfiles):`,
+      `- Intent medio: ${summary.mean_intent_to_click.toFixed(2)} (desviación ${summary.intent_stddev.toFixed(2)})`,
+      `- Claridad ${summary.mean_clarity.toFixed(2)} · credibilidad ${summary.mean_credibility.toFixed(2)} · diferenciación ${summary.mean_differentiation.toFixed(2)}`,
+      summary.mean_ad_comprehension !== null
+        ? `- Comprensión del mensaje pretendido (juez): ${summary.mean_ad_comprehension.toFixed(2)}`
+        : "",
+      summary.mean_landing_match !== null
+        ? `- Match landing: ${summary.mean_landing_match.toFixed(2)}`
+        : "",
+      `- Conducta: ${summary.behavior_counts.optima} óptima / ${summary.behavior_counts.repesca} repesca / ${summary.behavior_counts.fuga} fuga`,
+      "",
+      `Barreras top: ${summary.top_barriers.map((b) => `${b.label} (${b.count})`).join(", ") || "ninguna"}`,
+      worstQueries.length > 0 ? `Queries más débiles:\n${worstQueries.join("\n")}` : "",
+      topIdeals.length > 0
+        ? `Mejores versiones ideales propuestas por los perfiles:\n${topIdeals.join("\n")}`
+        : "",
+      "",
+      "Devuelve los hallazgos clave, titulares y descripciones recomendados (puedes refinar las versiones ideales) y cómo desactivar cada barrera.",
+    ]
+      .filter(Boolean)
+      .join("\n"),
+  });
+  await recordUsage({
+    runId,
+    scope: "campaign_synthesis",
+    model: DEFAULT_MODEL,
+    usage: result.usage ?? null,
+    meta: { latency_ms: Date.now() - startedAt },
+  }).catch(() => {});
+
+  // Truncado suave a los límites RSA y a los tamaños prometidos.
+  const recommendations: CampaignRecommendations = {
+    key_findings: result.object.key_findings.slice(0, 5),
+    recommended_headlines: result.object.recommended_headlines
+      .slice(0, 3)
+      .map((h) => h.slice(0, 30)),
+    recommended_descriptions: result.object.recommended_descriptions
+      .slice(0, 2)
+      .map((d) => d.slice(0, 90)),
+    barrier_fixes: result.object.barrier_fixes.slice(0, 5),
+  };
+
+  const supa = getServerClient();
+  const { data: run, error: readErr } = await supa
+    .from("runs")
+    .select("params")
+    .eq("id", runId)
+    .maybeSingle();
+  if (readErr) throw new Error(readErr.message);
+  const { error } = await supa
+    .from("runs")
+    .update({ params: { ...((run?.params as object) ?? {}), recommendations } })
+    .eq("id", runId);
+  if (error) throw new Error(error.message);
 }
 
 /**

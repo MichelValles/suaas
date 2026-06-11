@@ -113,7 +113,7 @@ Extraer `VariantBlock`, `DeltaBar`, `Bar` y `pickWinner` de `app/experiments/ab/
 
 **Por qué**: iterar copy sin vista de antes/después es trabajar a ciegas. Combinado con duplicar y repetir con la misma muestra cierra el flujo metodológico completo: duplicar, cambiar una cosa, relanzar sobre los mismos perfiles, comparar.
 
-### Síntesis accionable «Qué cambiar» por run · M · sin SQL
+### Síntesis accionable «Qué cambiar» por run · M · sin SQL · ✅ hecho en v0.39.3
 
 Paso final `synthesizeRecommendations` en `lib/experiments/campaign.ts` con `DEFAULT_MODEL` (una sola llamada por run): `generateObject` con `key_findings` (3-5 frases), `recommended_headlines` (hasta 3, truncado suave a 30c, nunca `.max` fatal), `recommended_descriptions` (hasta 2) y `barrier_fixes`, alimentado con `top_barriers`, las peores filas de `byQuery` y las mejores versiones ideales; persistir mergeando en `runs.params` (jsonb existente, sin migración). Sección superior «Qué cambiar» en resultados con los hallazgos y el copy listo para pegar (y para el export de Ads Editor).
 
