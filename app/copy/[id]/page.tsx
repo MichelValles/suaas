@@ -104,6 +104,7 @@ export default async function CopyDeckDetailPage({
         title="Lanzar copy test"
         endpoint="/api/runs/copy"
         extraBody={{ deckId: deck.id }}
+        estimateEndpoint={`/api/estimate/run?kind=copy&perProfile=${deck.blocks.length}`}
         progressLabel={`Cada perfil reaccionará a los ${deck.blocks.length} bloques. Estimado ~${Math.ceil(deck.blocks.length * 6)}s por perfil.`}
         kind="copy"
         profiles={profiles}

@@ -174,7 +174,9 @@ lib/
   prompts.ts                            buildSystemPrompt(profile) con negative prompts y voice anchors
   agents.ts                             ReasonerPlanSchema, reason() (generateObject Opus), talkStream() (streamText Sonnet)
   image-source.ts                       resolveImageForApi (descarga + valida mime + redimensiona a 1024px de lado largo con sharp + base64 para Anthropic multimodal)
-  usage.ts                              UsageScope (incluye campaign_probe, campaign_landing, campaign_ideal), recordUsage, getUsageSummary, getGatewayCredits
+  usage.ts                              UsageScope (incluye campaign_probe, campaign_landing, campaign_ideal), recordUsage, getUsageSummary (paginado), getScopeAverages (split prompt/completion), getGatewayCredits
+  model-pricing.ts                      tarifas $/MTok por modelo (con fallback por familia), usdForTokens, formatUsd (es-ES); módulo puro importable desde cliente
+  estimate.ts                           estimador de coste por acción: EstimatePart, estimateAction, estimateManyUsd, partsForKind (fórmulas de llamadas por kind); alimenta GET /api/estimate/run y los costes server-side de los botones
 
   targets.ts                            TargetInputSchema + CRUD + getTargetWithTrashed + resolveOgImageDetailed (con anti-SSRF, 5s timeout, max-redirects=3, body 1.5MB)
   funnels.ts                            FunnelInputSchema + CRUD + getFunnelWithTrashed

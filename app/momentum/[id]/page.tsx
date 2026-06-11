@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { estimateAction, partsForKind } from "@/lib/estimate";
 import {
   getMomentumChallenge,
   type MomentumChallenge,
@@ -59,6 +60,12 @@ export default async function MomentumDetailPage({
   const trashed = Boolean(challenge.deleted_at);
   const canRun =
     !trashed && (challenge.status === "pending" || challenge.status === "error");
+  // Coste estimado del análisis (1 llamada por perfil asignado), para el botón.
+  const runEstimate = canRun
+    ? await estimateAction(
+        partsForKind("momentum", { profiles: challenge.profile_ids.length }),
+      ).catch(() => null)
+    : null;
 
   return (
     <AppShell>
@@ -69,7 +76,12 @@ export default async function MomentumDetailPage({
         descriptionVariant="panel"
         actions={
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            {canRun && <MomentumRunButton challengeId={challenge.id} />}
+            {canRun && (
+              <MomentumRunButton
+                challengeId={challenge.id}
+                estimatedUsd={runEstimate?.est_usd ?? null}
+              />
+            )}
             <Link href="/momentum" className="btn-pill">Volver</Link>
           </div>
         }

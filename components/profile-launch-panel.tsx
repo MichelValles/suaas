@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { ProfileExplorer } from "@/components/profile-explorer";
+import { formatUsd } from "@/lib/model-pricing";
 import type { Profile } from "@/lib/profiles";
 
 /**
@@ -90,6 +91,7 @@ export function ProfileLaunchPanel({
   const [progress, setProgress] = useState<string | null>(null);
   const [estimate, setEstimate] = useState<{
     est_tokens: number | null;
+    est_usd: number | null;
     est_seconds: number | null;
     budget: { limit: number; spent_24h: number } | null;
   } | null>(null);
@@ -109,6 +111,7 @@ export function ProfileLaunchPanel({
         if (res.ok && json.ok) {
           setEstimate({
             est_tokens: json.est_tokens ?? null,
+            est_usd: json.est_usd ?? null,
             est_seconds: json.est_seconds ?? null,
             budget: json.budget ?? null,
           });
@@ -303,7 +306,8 @@ export function ProfileLaunchPanel({
             : `${selected.length}/${Math.min(profiles.length, 20)} seleccionados.`}
           {estimate?.est_tokens != null && selected.length > 0 && (
             <>
-              {" "}· estimado ~{Math.round(estimate.est_tokens / 1000).toLocaleString("es-ES")}k tokens
+              {estimate.est_usd != null && ` · coste ~${formatUsd(estimate.est_usd)}`}
+              {" "}· ~{Math.round(estimate.est_tokens / 1000).toLocaleString("es-ES")}k tokens
               {estimate.est_seconds != null && ` · ~${estimate.est_seconds}s`}
               {estimate.budget &&
                 ` · presupuesto 24h: ${Math.round((estimate.budget.spent_24h / estimate.budget.limit) * 100)}% usado`}

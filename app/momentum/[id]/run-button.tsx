@@ -2,8 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { formatUsd } from "@/lib/model-pricing";
 
-export function MomentumRunButton({ challengeId }: { challengeId: string }) {
+export function MomentumRunButton({
+  challengeId,
+  estimatedUsd,
+}: {
+  challengeId: string;
+  /** Coste estimado del análisis en dólares (calculado server-side). */
+  estimatedUsd?: number | null;
+}) {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -35,7 +43,11 @@ export function MomentumRunButton({ challengeId }: { challengeId: string }) {
       onClick={handleClick}
       disabled={loading}
     >
-      {loading ? "Analizando..." : "Analizar"}
+      {loading
+        ? "Analizando..."
+        : estimatedUsd != null
+          ? `Analizar · ~${formatUsd(estimatedUsd)}`
+          : "Analizar"}
     </button>
   );
 }

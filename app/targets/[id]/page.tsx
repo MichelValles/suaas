@@ -122,6 +122,7 @@ export default async function TargetDetailPage({
         title="Lanzar test 5s"
         endpoint="/api/runs/five-second"
         extraBody={{ targetId: target.id }}
+        estimateEndpoint="/api/estimate/run?kind=five_second"
         progressLabel="Lanzando run, esto puede tardar 30-60 s para 5 perfiles."
         kind="five-second"
         profiles={profiles}

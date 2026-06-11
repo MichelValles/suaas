@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { SeedGate } from "@/components/seed-gate";
+import { estimateAction, partsForKind } from "@/lib/estimate";
 import { isGatewayConfigured } from "@/lib/gateway";
 import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
 import { PROFILE_SEEDS } from "@/lib/seed-profiles";
@@ -15,6 +16,13 @@ export default async function ProfileSeedPage() {
   const gwOk = isGatewayConfigured();
   const jar = await cookies();
   const unlocked = jar.get(SEED_COOKIE)?.value === SEED_VALUE;
+  // Coste estimado por perfil (1 llamada Opus): el cliente lo multiplica por n.
+  const seedEstimate =
+    supaOk && gwOk && unlocked
+      ? await estimateAction(partsForKind("seed_profiles", { profiles: 1 })).catch(
+          () => null,
+        )
+      : null;
   return (
     <AppShell>
       <PageHeading
@@ -38,7 +46,11 @@ export default async function ProfileSeedPage() {
       )}
       {supaOk && !unlocked && <SeedGate />}
       {supaOk && gwOk && unlocked && (
-        <SeedClient maxN={PROFILE_SEEDS.length} defaultN={Math.min(48, PROFILE_SEEDS.length)} />
+        <SeedClient
+          maxN={PROFILE_SEEDS.length}
+          defaultN={Math.min(48, PROFILE_SEEDS.length)}
+          usdPerProfile={seedEstimate?.est_usd ?? null}
+        />
       )}
     </AppShell>
   );

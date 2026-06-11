@@ -141,7 +141,8 @@ export default async function FunnelDetailPage({
         title="Lanzar recorrido del embudo"
         endpoint="/api/runs/funnel"
         extraBody={{ funnelId: funnel.id }}
-        progressLabel={`Cada perfil recorrerá hasta ${funnel.steps.length} pasos. Estimado ~${Math.ceil(funnel.steps.length * 5)}s por perfil.`}
+        estimateEndpoint={`/api/estimate/run?kind=funnel&perProfile=${funnel.steps.length}`}
+        progressLabel={`Cada perfil recorrerá hasta ${funnel.steps.length} pasos (coste máximo: hay abandono). Estimado ~${Math.ceil(funnel.steps.length * 5)}s por perfil.`}
         kind="funnel"
         profiles={profiles}
       />

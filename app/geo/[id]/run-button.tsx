@@ -2,8 +2,16 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { formatUsd } from "@/lib/model-pricing";
 
-export function GeoRunButton({ geoId }: { geoId: string }) {
+export function GeoRunButton({
+  geoId,
+  estimatedUsd,
+}: {
+  geoId: string;
+  /** Coste estimado del análisis en dólares (calculado server-side). */
+  estimatedUsd?: number | null;
+}) {
   const [status, setStatus] = useState<"idle" | "running" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
   const router = useRouter();
@@ -39,7 +47,11 @@ export function GeoRunButton({ geoId }: { geoId: string }) {
         disabled={status === "running"}
         onClick={handleClick}
       >
-        {status === "running" ? "Analizando..." : "Analizar"}
+        {status === "running"
+          ? "Analizando..."
+          : estimatedUsd != null
+            ? `Analizar · ~${formatUsd(estimatedUsd)}`
+            : "Analizar"}
       </button>
       {error && (
         <span

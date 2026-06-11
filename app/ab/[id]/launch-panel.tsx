@@ -15,6 +15,7 @@ export function LaunchAbPanel({
       title="Lanzar A/B (dos runs en paralelo)"
       endpoint="/api/runs/ab"
       extraBody={{ abTestId }}
+      estimateEndpoint="/api/estimate/run?kind=ab"
       progressLabel="Lanzando dos runs 5s en paralelo. Estimado 30-60 s."
       kind="ab"
       redirectFallback={`/ab/${abTestId}`}

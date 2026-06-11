@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import { formatUsd } from "@/lib/model-pricing";
 
 type Momentum = {
   intensity: number;
@@ -42,7 +43,14 @@ type DoneFrame = { type: "done"; latencyMs: number; effortRatio: number | null }
 type ErrorFrame = { type: "error"; message: string };
 type Frame = MetaFrame | DeltaFrame | DoneFrame | ErrorFrame;
 
-export function ChatPanel({ profileId }: { profileId: string }) {
+export function ChatPanel({
+  profileId,
+  costPerTurnUsd,
+}: {
+  profileId: string;
+  /** Coste estimado por turno (reasoner Opus + talker Sonnet), server-side. */
+  costPerTurnUsd?: number | null;
+}) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [runId, setRunId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -290,6 +298,19 @@ export function ChatPanel({ profileId }: { profileId: string }) {
               : "Enviar"}
         </button>
       </form>
+      {costPerTurnUsd != null && (
+        <span
+          className="mono"
+          style={{
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            color: "rgba(var(--fg),0.5)",
+          }}
+        >
+          Coste estimado por mensaje: ~{formatUsd(costPerTurnUsd)} (sube con
+          conversaciones largas: el historial se reenvía entero).
+        </span>
+      )}
     </section>
   );
 }

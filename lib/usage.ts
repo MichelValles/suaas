@@ -135,6 +135,9 @@ export type ScopeAverage = {
   scope: UsageScope;
   /** Media de tokens por llamada en la muestra. 0 si no hay histórico. */
   avgTokens: number;
+  /** Split medio por llamada para preciar input/output por separado. 0 si el histórico no lo trae. */
+  avgPromptTokens: number;
+  avgCompletionTokens: number;
   /** Media de latencia (ms) si las filas guardan meta.latency_ms. */
   avgLatencyMs: number | null;
   n: number;
@@ -149,7 +152,14 @@ export async function getScopeAverages(
   sample = 200,
 ): Promise<ScopeAverage[]> {
   if (!isSupabaseConfigured()) {
-    return scopes.map((scope) => ({ scope, avgTokens: 0, avgLatencyMs: null, n: 0 }));
+    return scopes.map((scope) => ({
+      scope,
+      avgTokens: 0,
+      avgPromptTokens: 0,
+      avgCompletionTokens: 0,
+      avgLatencyMs: null,
+      n: 0,
+    }));
   }
   const supa = getServerClient();
   return Promise.all(
@@ -161,9 +171,18 @@ export async function getScopeAverages(
         .order("created_at", { ascending: false })
         .limit(sample);
       if (error || !data || data.length === 0) {
-        return { scope, avgTokens: 0, avgLatencyMs: null, n: 0 };
+        return {
+          scope,
+          avgTokens: 0,
+          avgPromptTokens: 0,
+          avgCompletionTokens: 0,
+          avgLatencyMs: null,
+          n: 0,
+        };
       }
       let tokens = 0;
+      let promptSum = 0;
+      let completionSum = 0;
       let latencySum = 0;
       let latencyN = 0;
       let counted = 0;
@@ -177,6 +196,8 @@ export async function getScopeAverages(
           (r.total_tokens as number | null) ??
           ((r.prompt_tokens as number | null) ?? 0) +
             ((r.completion_tokens as number | null) ?? 0);
+        promptSum += (r.prompt_tokens as number | null) ?? 0;
+        completionSum += (r.completion_tokens as number | null) ?? 0;
         const lat = (r.meta as Record<string, unknown> | null)?.latency_ms;
         if (typeof lat === "number") {
           latencySum += lat;
@@ -184,11 +205,20 @@ export async function getScopeAverages(
         }
       }
       if (counted === 0) {
-        return { scope, avgTokens: 0, avgLatencyMs: null, n: 0 };
+        return {
+          scope,
+          avgTokens: 0,
+          avgPromptTokens: 0,
+          avgCompletionTokens: 0,
+          avgLatencyMs: null,
+          n: 0,
+        };
       }
       return {
         scope,
         avgTokens: tokens / counted,
+        avgPromptTokens: promptSum / counted,
+        avgCompletionTokens: completionSum / counted,
         avgLatencyMs: latencyN > 0 ? latencySum / latencyN : null,
         n: counted,
       };

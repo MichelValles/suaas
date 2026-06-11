@@ -561,7 +561,7 @@ export default async function CampaignDetailPage({
         extraBody={{ campaignId: campaign.id }}
         initialSelected={initialSelected}
         combosPerProfile={campaign.channels.length * Math.max(1, campaign.queries.length)}
-        estimateEndpoint={`/api/estimate/campaign?campaignId=${campaign.id}`}
+        estimateEndpoint={`/api/estimate/run?kind=campaign&perProfile=${campaign.channels.length * Math.max(1, campaign.queries.length)}${campaign.intended_message ? "&judge=1" : ""}`}
         progressLabel={`Cada perfil evaluará el anuncio bajo ${campaign.channels.length} ${campaign.channels.length === 1 ? "canal" : "canales"} × ${Math.max(1, campaign.queries.length)} ${campaign.queries.length > 1 ? "queries" : campaign.queries.length === 1 ? "query" : "contexto de interés"} (snippet + landing condicional + versión ideal). Estimado ~${Math.ceil(campaign.channels.length * Math.max(1, campaign.queries.length) * 18)}s por perfil.`}
         kind="campaign"
         profiles={profiles}

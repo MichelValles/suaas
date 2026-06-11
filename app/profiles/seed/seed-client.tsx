@@ -3,6 +3,7 @@
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { formatUsd } from "@/lib/model-pricing";
 
 type Log =
   | { kind: "ok"; index: number; total: number; name: string; seed: string }
@@ -14,9 +15,12 @@ type Phase = "idle" | "running" | "done" | "error";
 export function SeedClient({
   maxN,
   defaultN,
+  usdPerProfile,
 }: {
   maxN: number;
   defaultN: number;
+  /** Coste estimado por perfil en dólares (Opus, calculado server-side). */
+  usdPerProfile?: number | null;
 }) {
   const router = useRouter();
   const [n, setN] = useState<number>(defaultN);
@@ -194,6 +198,8 @@ export function SeedClient({
             <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
               <Loader2 size={14} className="spin" /> Generando…
             </span>
+          ) : usdPerProfile != null ? (
+            `Generar ${n} perfiles · ~${formatUsd(usdPerProfile * Math.max(1, n))}`
           ) : (
             `Generar ${n} perfiles`
           )}

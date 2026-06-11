@@ -4,6 +4,7 @@ import { AppShell, PageHeading } from "@/components/app-shell";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { BIG_FIVE_INTRO, BIG_FIVE_TRAITS } from "@/lib/big-five";
 import { COM_B_BARRIERS, COM_B_INTRO } from "@/lib/com-b";
+import { estimateAction, partsForKind } from "@/lib/estimate";
 import { getProfile } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { ChatPanel } from "./chat-panel";
@@ -31,6 +32,11 @@ export default async function ProfileDetailPage({
 
   const profile = await getProfile(id);
   if (!profile) notFound();
+
+  // Coste estimado por turno de chat (reasoner Opus + talker Sonnet).
+  const chatEstimate = await estimateAction(partsForKind("chat_turn")).catch(
+    () => null,
+  );
 
   const d = profile.demographics;
   const b = profile.big_five;
@@ -125,7 +131,10 @@ export default async function ProfileDetailPage({
           </div>
         </section>
 
-        <ChatPanel profileId={profile.id} />
+        <ChatPanel
+          profileId={profile.id}
+          costPerTurnUsd={chatEstimate?.est_usd ?? null}
+        />
       </div>
     </AppShell>
   );

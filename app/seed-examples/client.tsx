@@ -4,8 +4,9 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle2, Loader2, XCircle } from "lucide-react";
+import { formatUsd } from "@/lib/model-pricing";
 
-type Kind =
+export type Kind =
   | "clarity"
   | "copy"
   | "pricing"
@@ -40,7 +41,15 @@ type Response = {
   results: ResultRow[];
 };
 
-export function SeedExamplesClient() {
+/** Coste estimado de un kind: fijo (síntesis, segmentos) + variable por perfil. */
+export type KindCost = { fixedUsd: number; perProfileUsd: number };
+
+export function SeedExamplesClient({
+  costByKind,
+}: {
+  /** Costes estimados por kind (server-side); null si no hay estimación. */
+  costByKind?: Partial<Record<Kind, KindCost>> | null;
+}) {
   const router = useRouter();
   const [launch, setLaunch] = useState(3);
   const [brief, setBrief] = useState("");
@@ -48,6 +57,36 @@ export function SeedExamplesClient() {
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [pendingKind, setPendingKind] = useState<Kind | "all" | null>(null);
+
+  // Coste estimado de lanzar un kind con el launch actual. Sin launch los
+  // seeds estáticos no consumen LLM (el brief añade 1 llamada, despreciable).
+  function kindCost(kind: Kind): number | null {
+    if (!costByKind || launch === 0) return null;
+    const c = costByKind[kind];
+    if (!c) return null;
+    return c.fixedUsd + c.perProfileUsd * launch;
+  }
+
+  const allKinds: Kind[] = [
+    "clarity",
+    "copy",
+    "pricing",
+    "ab",
+    "funnel",
+    "campaign",
+    "geo",
+    "momentum",
+  ];
+  const allCost = (() => {
+    if (!costByKind || launch === 0) return null;
+    let sum = 0;
+    for (const k of allKinds) {
+      const c = kindCost(k);
+      if (c == null) return null;
+      sum += c;
+    }
+    return sum;
+  })();
 
   function trigger(kinds?: Kind[]) {
     setError(null);
@@ -183,7 +222,7 @@ export function SeedExamplesClient() {
               <Loader2 size={14} className="spin" /> Sembrando los 8…
             </span>
           ) : launch > 0 ? (
-            `Crear los 8 y lanzar (${launch} perfiles)`
+            `Crear los 8 y lanzar (${launch} perfiles)${allCost != null ? ` · ~${formatUsd(allCost)}` : ""}`
           ) : (
             "Crear los 8 (sin lanzar)"
           )}
@@ -204,6 +243,7 @@ export function SeedExamplesClient() {
         <li>
           <Recipe
             kind="clarity"
+            costUsd={kindCost("clarity")}
             title="Claridad 5s"
             body="Target Linear · landing del producto. Resolución de og:image en runtime."
             onTrigger={trigger}
@@ -214,6 +254,7 @@ export function SeedExamplesClient() {
         <li>
           <Recipe
             kind="copy"
+            costUsd={kindCost("copy")}
             title="Copy resonance"
             body="4 variantes de headline para el servicio CRO de Flat 101."
             onTrigger={trigger}
@@ -224,6 +265,7 @@ export function SeedExamplesClient() {
         <li>
           <Recipe
             kind="pricing"
+            costUsd={kindCost("pricing")}
             title="Pricing"
             body="Flat 101 Lab con 4 niveles: founder · actual · agency · enterprise."
             onTrigger={trigger}
@@ -234,6 +276,7 @@ export function SeedExamplesClient() {
         <li>
           <Recipe
             kind="ab"
+            costUsd={kindCost("ab")}
             title="A/B test"
             body="Vercel vs Netlify. Resolución de og:image en runtime."
             onTrigger={trigger}
@@ -244,6 +287,7 @@ export function SeedExamplesClient() {
         <li>
           <Recipe
             kind="funnel"
+            costUsd={kindCost("funnel")}
             title="Embudo"
             body="Onboarding Stripe · home → producto → casos → precios."
             onTrigger={trigger}
@@ -254,6 +298,7 @@ export function SeedExamplesClient() {
         <li>
           <Recipe
             kind="campaign"
+            costUsd={kindCost("campaign")}
             title="Campaña Paid Search"
             body="Anuncio RSA de Vercel con 5 titulares, 2 descripciones y 3 queries objetivo."
             onTrigger={trigger}
@@ -264,6 +309,7 @@ export function SeedExamplesClient() {
         <li>
           <Recipe
             kind="campaign_strategies"
+            costUsd={kindCost("campaign_strategies")}
             title="Campañas IVI · las 6 estrategias"
             body="Una campaña por estrategia (Search, Display, PMax, Demand Gen, Video y Shopping) sobre ivi.es, con imágenes reales y su spot de YouTube. Los runs usan perfiles de 28 a 45 años y corren en segundo plano."
             onTrigger={trigger}
@@ -274,6 +320,7 @@ export function SeedExamplesClient() {
         <li>
           <Recipe
             kind="geo"
+            costUsd={kindCost("geo")}
             title="GEO Tester"
             body="Visibilidad de Flat 101 en buscadores IA con 3 segmentos de intención JTBD."
             onTrigger={trigger}
@@ -284,6 +331,7 @@ export function SeedExamplesClient() {
         <li>
           <Recipe
             kind="momentum"
+            costUsd={kindCost("momentum")}
             title="Momentum"
             body="Trigger de activación (urgencia dental) asignado a perfiles aleatorios."
             onTrigger={trigger}
@@ -321,6 +369,7 @@ function Recipe({
   onTrigger,
   pending,
   pendingKind,
+  costUsd,
 }: {
   kind: Kind;
   title: string;
@@ -328,6 +377,8 @@ function Recipe({
   onTrigger: (kinds?: Kind[]) => void;
   pending: boolean;
   pendingKind: Kind | "all" | null;
+  /** Coste estimado de sembrar este kind con el launch actual; null sin estimación. */
+  costUsd?: number | null;
 }) {
   const isMine = pendingKind === kind;
   return (
@@ -376,6 +427,8 @@ function Recipe({
           <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
             <Loader2 size={12} className="spin" /> Sembrando…
           </span>
+        ) : costUsd != null ? (
+          `Sembrar sólo este · ~${formatUsd(costUsd)}`
         ) : (
           "Sembrar sólo este"
         )}

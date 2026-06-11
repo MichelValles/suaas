@@ -108,6 +108,7 @@ export default async function PricingDetailPage({
         title="Lanzar test de pricing"
         endpoint="/api/runs/pricing"
         extraBody={{ offerId: offer.id }}
+        estimateEndpoint={`/api/estimate/run?kind=pricing&perProfile=${offer.prices.length}`}
         progressLabel={`Cada perfil reaccionará a ${offer.prices.length} precios. Estimado ~${Math.ceil(offer.prices.length * 6)}s por perfil.`}
         kind="pricing"
         profiles={profiles}

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { estimateAction, partsForKind } from "@/lib/estimate";
 import { getGeoAnalysis, type GeoAnalysis, type SegmentInput, type SegmentResult } from "@/lib/geo";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { GeoRunButton } from "./run-button";
@@ -66,6 +67,12 @@ export default async function GeoDetailPage({
   const trashed = Boolean(analysis.deleted_at);
   const canRun =
     !trashed && (analysis.status === "pending" || analysis.status === "error");
+  // Coste estimado del análisis (1 llamada por segmento), para el botón.
+  const runEstimate = canRun
+    ? await estimateAction(
+        partsForKind("geo", { perProfile: analysis.segments.length }),
+      ).catch(() => null)
+    : null;
 
   return (
     <AppShell>
@@ -76,7 +83,12 @@ export default async function GeoDetailPage({
         descriptionVariant="panel"
         actions={
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            {canRun && <GeoRunButton geoId={analysis.id} />}
+            {canRun && (
+              <GeoRunButton
+                geoId={analysis.id}
+                estimatedUsd={runEstimate?.est_usd ?? null}
+              />
+            )}
             <Link href="/geo" className="btn-pill">
               Volver
             </Link>
