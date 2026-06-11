@@ -99,7 +99,10 @@ async function downscaleIfNeeded(
 ): Promise<{ buf: Buffer; mime: string }> {
   if (!RESIZABLE.has(mime)) return { buf, mime };
   try {
-    const img = sharp(buf, { failOn: "none" });
+    // .rotate() sin argumentos aplica la orientación EXIF a los píxeles:
+    // sharp descarta los metadatos al recomprimir y sin esto una foto de
+    // móvil con Orientation != 1 llegaría tumbada al modelo.
+    const img = sharp(buf, { failOn: "none" }).rotate();
     const meta = await img.metadata();
     const w = meta.width ?? 0;
     const h = meta.height ?? 0;

@@ -1,5 +1,6 @@
 import { NoObjectGeneratedError, generateObject } from "ai";
 import { z } from "zod";
+import { BudgetExceededError, assertBudget } from "@/lib/budget";
 import {
   type Campaign,
   type Channel,
@@ -1059,6 +1060,8 @@ export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<voi
 
   let failedCount = 0;
   let skippedByDeadline = 0;
+  let skippedByBudget = 0;
+  let budgetExhausted = false;
   let lastComboError: string | null = null;
 
   try {
@@ -1091,6 +1094,26 @@ export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<voi
         if (Date.now() - startedAt > RUNNER_DEADLINE_MS) {
           skippedByDeadline += 1;
           continue;
+        }
+        // El gate de la ruta solo se evalúa a la entrada: un run admitido
+        // con el presupuesto al límite podría desbordarlo por mucho. Re-check
+        // cada 25 combinaciones; lo saltado queda retomable con «Retomar».
+        if (budgetExhausted) {
+          skippedByBudget += 1;
+          continue;
+        }
+        if (i > 0 && i % 25 === 0) {
+          try {
+            await assertBudget();
+          } catch (err) {
+            if (err instanceof BudgetExceededError) {
+              budgetExhausted = true;
+              lastComboError = err.message;
+              skippedByBudget += 1;
+              continue;
+            }
+            // Fallo leyendo el consumo: no bloquea (telemetría best effort).
+          }
         }
         const combo = combos[i];
         try {
@@ -1218,18 +1241,20 @@ export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<voi
       value: skippedByDeadline,
       unit: "count",
     });
+    await upsertMetric({
+      run_id: runId,
+      key: "n_skipped_budget",
+      value: skippedByBudget,
+      unit: "count",
+    });
     // Síntesis «Qué cambiar»: una llamada extra, tolerante a fallos.
     if (responses.length > 0) {
       try {
         await synthesizeRecommendations(runId, campaign, summary, responses);
       } catch (err) {
-        await recordUsage({
-          runId,
-          scope: "campaign_synthesis",
-          model: DEFAULT_MODEL,
-          usage: usageFromError(err),
-          meta: { failed: true, error: (err as Error).message.slice(0, 300) },
-        }).catch(() => {});
+        // La fila failed (si el fallo fue del LLM) ya la registró la propia
+        // síntesis; aquí solo se traza para no duplicar contabilidad cuando
+        // lo que falla es la persistencia posterior.
         console.error(
           `[campaign] síntesis de recomendaciones falló (run ${runId}):`,
           (err as Error).message,
@@ -1267,6 +1292,9 @@ async function synthesizeRecommendations(
     );
 
   const startedAt = Date.now();
+  // La fila failed se registra aquí, pegada a la llamada: si lo que falla
+  // después es la persistencia en Supabase, la llamada LLM fue bien y ya
+  // quedó contabilizada (sin esto el catch del cierre duplicaba la fila).
   const result = await generateObject({
     model: DEFAULT_MODEL,
     schema: RecommendationsSchema,
@@ -1302,6 +1330,15 @@ async function synthesizeRecommendations(
     ]
       .filter(Boolean)
       .join("\n"),
+  }).catch(async (err: unknown) => {
+    await recordUsage({
+      runId,
+      scope: "campaign_synthesis",
+      model: DEFAULT_MODEL,
+      usage: usageFromError(err),
+      meta: { failed: true, error: (err as Error).message.slice(0, 300) },
+    }).catch(() => {});
+    throw err;
   });
   await recordUsage({
     runId,

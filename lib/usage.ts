@@ -95,26 +95,40 @@ export async function recordUsage(input: {
 // Presupuesto y estimación
 // ============================================================
 
+/**
+ * Tamaño de página para las lecturas de gateway_usage. PostgREST devuelve
+ * como máximo 1.000 filas por petición (db-max-rows): sin paginar, el
+ * presupuesto y los agregados se calculan sobre un subconjunto en cuanto
+ * hay carga (un run de campaña genera cientos de filas), que es justo
+ * cuando el freno más importa.
+ */
+const USAGE_PAGE = 1000;
+
 /** Tokens consumidos en las últimas 24 horas (todas las llamadas, todos los scopes). */
 export async function getTokensLast24h(): Promise<number> {
   if (!isSupabaseConfigured()) return 0;
   const supa = getServerClient();
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { data, error } = await supa
-    .from("gateway_usage")
-    .select("prompt_tokens, completion_tokens, total_tokens")
-    .gte("created_at", since);
-  if (error) {
-    console.warn("[getTokensLast24h] select failed", error.message);
-    return 0;
+  let total = 0;
+  for (let from = 0; ; from += USAGE_PAGE) {
+    const { data, error } = await supa
+      .from("gateway_usage")
+      .select("prompt_tokens, completion_tokens, total_tokens")
+      .gte("created_at", since)
+      .order("created_at", { ascending: true })
+      .range(from, from + USAGE_PAGE - 1);
+    if (error) {
+      console.warn("[getTokensLast24h] select failed", error.message);
+      return total;
+    }
+    for (const r of data ?? []) {
+      total +=
+        (r.total_tokens as number | null) ??
+        ((r.prompt_tokens as number | null) ?? 0) +
+          ((r.completion_tokens as number | null) ?? 0);
+    }
+    if (!data || data.length < USAGE_PAGE) return total;
   }
-  return (data ?? []).reduce((acc, r) => {
-    const t =
-      (r.total_tokens as number | null) ??
-      ((r.prompt_tokens as number | null) ?? 0) +
-        ((r.completion_tokens as number | null) ?? 0);
-    return acc + t;
-  }, 0);
 }
 
 export type ScopeAverage = {
@@ -152,7 +166,13 @@ export async function getScopeAverages(
       let tokens = 0;
       let latencySum = 0;
       let latencyN = 0;
+      let counted = 0;
       for (const r of data) {
+        // Las filas de llamadas fallidas (meta.failed, v0.47.2) suelen traer
+        // tokens null: contarlas como 0 deflactaría la media y haría que la
+        // estimación de coste pre-run infraestimara justo tras un incidente.
+        if ((r.meta as Record<string, unknown> | null)?.failed === true) continue;
+        counted += 1;
         tokens +=
           (r.total_tokens as number | null) ??
           ((r.prompt_tokens as number | null) ?? 0) +
@@ -163,11 +183,14 @@ export async function getScopeAverages(
           latencyN += 1;
         }
       }
+      if (counted === 0) {
+        return { scope, avgTokens: 0, avgLatencyMs: null, n: 0 };
+      }
       return {
         scope,
-        avgTokens: tokens / data.length,
+        avgTokens: tokens / counted,
         avgLatencyMs: latencyN > 0 ? latencySum / latencyN : null,
-        n: data.length,
+        n: counted,
       };
     }),
   );
@@ -204,15 +227,6 @@ export async function getUsageSummary(): Promise<UsageSummary> {
   if (!isSupabaseConfigured()) return empty;
 
   const supa = getServerClient();
-  const { data, error } = await supa
-    .from("gateway_usage")
-    .select("created_at, scope, model, prompt_tokens, completion_tokens, total_tokens")
-    .order("created_at", { ascending: false });
-  if (error) {
-    console.warn("[getUsageSummary] select failed", error.message);
-    return empty;
-  }
-  if (!data || data.length === 0) return empty;
 
   type Row = {
     created_at: string;
@@ -223,7 +237,23 @@ export async function getUsageSummary(): Promise<UsageSummary> {
     total_tokens: number | null;
   };
 
-  const rows = data as Row[];
+  // Paginado: sin .range() PostgREST corta a 1.000 filas y los totales de
+  // /tokens se congelarían al llegar a ese histórico.
+  const rows: Row[] = [];
+  for (let from = 0; ; from += USAGE_PAGE) {
+    const { data, error } = await supa
+      .from("gateway_usage")
+      .select("created_at, scope, model, prompt_tokens, completion_tokens, total_tokens")
+      .order("created_at", { ascending: false })
+      .range(from, from + USAGE_PAGE - 1);
+    if (error) {
+      console.warn("[getUsageSummary] select failed", error.message);
+      return empty;
+    }
+    rows.push(...((data ?? []) as Row[]));
+    if (!data || data.length < USAGE_PAGE) break;
+  }
+  if (rows.length === 0) return empty;
   const total = { prompt: 0, completion: 0, total: 0, calls: rows.length };
   const byModelMap = new Map<string, UsageBucket>();
   const byScopeMap = new Map<string, UsageBucket>();

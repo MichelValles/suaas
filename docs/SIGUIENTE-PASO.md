@@ -10,6 +10,7 @@
   - **v0.47.2**: runner de campañas íntegro en Sonnet (Opus fuera del probe también en texto puro) y telemetría de llamadas fallidas (`usageFromError` + `meta.failed=true` en probe, landing, juez, ideal y síntesis).
   - **v0.48.0**: `budgetGate` extendido a `/api/chat`, `/api/seed/examples` (si consume LLM), `/api/profiles/seed`, `/api/profiles/batch-intent` y `/api/onboard/submit` (429 genérico, ruta pública); `batch_intent` registra por fin su consumo (scope nuevo). C-02 mitigado y C-03 cerrado en la auditoría.
   - **v0.49.0**: `resolveImageForApi` redimensiona jpeg/png/webp a 1024px de lado largo con `sharp` (dependencia nueva) antes del base64; GIF pasa intacto.
+  - **v0.49.1**: fixes de la revisión adversarial del blindaje: paginado de `gateway_usage` (el cap de 1.000 filas de PostgREST dejaba ciego al presupuesto bajo carga), `.rotate()` EXIF en el redimensionado, filas failed excluidas de las medias de estimación y re-check de presupuesto cada 25 combinaciones en el runner (métrica `n_skipped_budget`). Pendientes anotados en `ROADMAP.md → v0.49.1`.
 
 ## Estado anterior (v0.47.1)
 
