@@ -498,6 +498,9 @@ function renderVideoSnippet(campaign: Campaign): string {
   lines.push(`Anunciante: ${displayUrl(campaign.final_url)}`);
   lines.push("");
   lines.push(`Titular: ${campaign.headlines[0]}`);
+  if (campaign.long_headline) {
+    lines.push(`Titular largo (in-feed): ${campaign.long_headline}`);
+  }
   lines.push("");
   lines.push(`Descripción: ${campaign.descriptions[0]}`);
   if (campaign.cta) {

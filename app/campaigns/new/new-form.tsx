@@ -145,9 +145,11 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
   // Nombre de empresa y roles de creatividad: también en Search (el bloque
   // «Business information» de la spec 17092074 exige nombre y logo 1:1).
   const showsBusinessAssets = assetStrategy || strategy === "search";
-  // El titular largo solo existe en Display y PMax (en Demand Gen es
-  // exclusivo del subformato vídeo, aún no modelado).
-  const usesLongHeadline = strategy === "display" || strategy === "pmax";
+  // El titular largo existe en Display y PMax (obligatorio) y en Video
+  // (opcional, según su tabla de text assets). En Demand Gen es exclusivo
+  // del subformato vídeo, aún no modelado.
+  const usesLongHeadline =
+    strategy === "display" || strategy === "pmax" || strategy === "video";
   // Demand Gen admite titulares de 40 caracteres; el resto, 30.
   const headlineMax = strategy === "demand_gen" ? 40 : HEADLINE_MAX;
   const headlinesCap =
@@ -695,13 +697,17 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
         )}
 
         {usesLongHeadline && (
-          <Section title="Titular largo">
+          <Section title={strategy === "video" ? "Titular largo (opcional)" : "Titular largo"}>
             <CharCountedInput
-              label="Titular largo (visible en banners grandes y feeds)"
+              label={
+                strategy === "video"
+                  ? "Titular largo (solo se muestra en anuncios in-feed)"
+                  : "Titular largo (visible en banners grandes y feeds)"
+              }
               value={longHeadline}
               onChange={setLongHeadline}
               max={90}
-              required
+              required={strategy !== "video"}
               placeholder="Hipoteca fija al 2,90% TAE sin comisiones de apertura"
             />
           </Section>
@@ -740,11 +746,10 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           <Section title="CTA">
             {strategy === "video" ? (
               <CharCountedInput
-                label="Texto del botón CTA (Google admite máximo 10 caracteres en Video)"
+                label="Texto del botón CTA (opcional; Google admite máximo 10 caracteres en Video)"
                 value={cta}
                 onChange={setCta}
                 max={10}
-                required
                 placeholder="Ver oferta"
               />
             ) : (
@@ -783,9 +788,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
         >
           {strategy === "video" ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
-              Video exige <strong>1 vídeo de YouTube</strong> (o subido) de 10 segundos
-              o más. El perfil sintético evalúa su miniatura junto al copy (los modelos
-              no procesan vídeo).
+              Video exige <strong>1 vídeo de YouTube</strong> (o subido); duración
+              recomendada 10 segundos o más. El perfil sintético evalúa su miniatura
+              junto al copy (los modelos no procesan vídeo).
             </p>
           ) : strategy === "shopping" ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
@@ -1003,8 +1008,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               maxWidth: 640,
             }}
           >
-            Video exige: 1 vídeo de YouTube (10s o más), 1 titular (máx. 30c),
-            1 descripción (máx. 90c) y CTA de máximo 10 caracteres.
+            Video lleva: 1 vídeo de YouTube (duración recomendada 10s o más),
+            1 titular (máx. 30c) y 1 descripción (máx. 90c). Opcionales: titular
+            largo (máx. 90c, solo in-feed) y CTA de máximo 10 caracteres.
           </p>
         )}
 

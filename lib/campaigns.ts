@@ -59,7 +59,7 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
   demand_gen:
     "Anuncio de imagen en feeds (Discover, Gmail, YouTube; spec oficial 17091672). 1..5 titulares (40c, al menos uno de 30c o menos) + 1..5 descripciones (90c) + nombre de empresa (25c) + CTA + imagen landscape (1.91:1) + square (1:1) + logo (1:1, mín 144x144). Opcional: imagen vertical (4:5) y vídeos (10-60s recomendados, hasta 3 por orientación). Subformatos carousel y video aún no modelados.",
   video:
-    "Video action campaign en YouTube (spec oficial 17091270). 1 vídeo de YouTube (10s o más) + 1 titular (30c) + 1 descripción (90c) + CTA (máx 10c) + URL final. El perfil sintético evalúa la miniatura y el copy (los modelos no procesan vídeo).",
+    "Video action campaign en YouTube (spec oficial 17091270). 1 vídeo (duración recomendada 10s o más) + 1 titular (30c) + 1 descripción (90c) + URL final. Opcional: titular largo (90c) y CTA (máx 10c). El perfil sintético evalúa la miniatura y el copy (los modelos no procesan vídeo).",
   app:
     "App vinculada de Play / App Store como baseline. 2+ titulares (30c) + 1+ descripción (90c). Hasta 20 imágenes y 20 vídeos en formatos 1.91:1, 1:1, 4:5, 9:16. HTML5 opcional.",
   shopping:
@@ -519,31 +519,27 @@ export const CampaignInputSchema = z
         });
       }
     }
-    // Video action campaign: spec oficial 17091270. Exactamente 1 titular
-    // (30c), 1 descripción (90c), CTA de hasta 10 caracteres y 1 vídeo de
-    // YouTube (10s o más; la duración no es verificable desde aquí).
+    // Video action campaign: spec oficial 17091270, tabla de text assets:
+    // Headline 30c, Long headline 90c, Description 90c, CTA 10c, Final URL.
+    // La página no declara cantidades ni obligatoriedad: el módulo modela
+    // 1 anuncio (1 titular + 1 descripción + 1 vídeo); el titular largo y
+    // la CTA son opcionales con sus límites.
     if (data.strategy === "video") {
       if (data.headlines.length !== 1) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["headlines"],
-          message: "Video exige exactamente 1 titular (max 30c).",
+          message: "Video lleva 1 titular por anuncio (max 30c).",
         });
       }
       if (data.descriptions.length !== 1) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["descriptions"],
-          message: "Video exige exactamente 1 descripción (max 90c).",
+          message: "Video lleva 1 descripción por anuncio (max 90c).",
         });
       }
-      if (!data.cta || !data.cta.trim()) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["cta"],
-          message: "Video exige una CTA (max 10 caracteres).",
-        });
-      } else if (data.cta.trim().length > 10) {
+      if (data.cta && data.cta.trim().length > 10) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["cta"],
@@ -555,7 +551,7 @@ export const CampaignInputSchema = z
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["creatives"],
-          message: "Video exige 1 vídeo (YouTube o subido) de 10 segundos o más.",
+          message: "Video exige 1 vídeo (YouTube o subido); duración recomendada 10 segundos o más.",
         });
       }
     }
