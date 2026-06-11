@@ -51,7 +51,7 @@ export const STRATEGY_LABEL: Record<Strategy, string> = {
 
 export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
   search:
-    "Anuncio RSA en el SERP. URL final + 3..15 titulares (30c) + 2..4 descripciones (90c). Opcional: rutas visibles, sitelinks, callouts, snippets, imágenes y logo.",
+    "Anuncio RSA en el SERP (spec oficial 17092074). URL final + 1..15 titulares (30c) + 1..4 descripciones (90c) + nombre de empresa (25c) + logo (1:1). Opcional: CTA automatizada e imágenes. El bloque de formatos asset-based (titulares de 25c) no está modelado.",
   display:
     "Anuncio responsive de Display. URL final + nombre de empresa + titulares cortos/largos + descripciones + imágenes landscape (1.91:1), square (1:1) y logo. Opcional: portrait (4:5), logo landscape, vídeo (YouTube).",
   pmax:
@@ -300,6 +300,12 @@ export const CampaignInputSchema = z
         });
       }
     }
+    // Search: spec oficial 17092074. Bloque «Responsive search ads»:
+    // titulares 30c 1-15 y descripciones 90c 1-4, ambos obligatorios
+    // (los mínimos de 1 los cubre el check común). Bloque «Business
+    // information»: nombre de empresa (25c) y logo 1:1, obligatorios.
+    // El bloque «Ad assets» (formatos asset-based, titulares de 25c)
+    // no está modelado.
     if (data.strategy === "search") {
       if (data.queries.length < 1) {
         ctx.addIssue({
@@ -308,28 +314,26 @@ export const CampaignInputSchema = z
           message: "Search exige al menos 1 query.",
         });
       }
-      // Spec oficial RSA (support.google.com/google-ads/answer/17092074 +
-      // 7684791): para crear el anuncio Google exige mínimo 3 titulares
-      // y 2 descripciones.
-      if (data.headlines.length < 3) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["headlines"],
-          message: "Search (RSA) exige mínimo 3 titulares.",
-        });
-      }
-      if (data.descriptions.length < 2) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["descriptions"],
-          message: "Search exige mínimo 2 descripciones.",
-        });
-      }
       if (data.descriptions.length > 4) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["descriptions"],
-          message: "Search admite máximo 4 descripciones.",
+          message: "Search (RSA) admite máximo 4 descripciones.",
+        });
+      }
+      if (!data.company_name || !data.company_name.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["company_name"],
+          message: "Search exige nombre de empresa (max 25c, bloque Business information).",
+        });
+      }
+      const creatives = data.creatives ?? [];
+      if (!creatives.some((c) => c.role === "logo_square")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["creatives"],
+          message: "Search exige 1 logo (1:1, bloque Business information).",
         });
       }
     }

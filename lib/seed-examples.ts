@@ -293,6 +293,12 @@ export async function seedCampaignExample(
   if (!img) {
     throw new Error(`No se pudo resolver og:image para ${spec.final_url}.`);
   }
+  // Search exige nombre de empresa y logo 1:1 desde v0.45.1 (bloque
+  // Business information de la spec 17092074): se derivan del dominio.
+  const host = new URL(spec.final_url).hostname.replace(/^www\./, "");
+  const companyName = (
+    host.split(".")[0].charAt(0).toUpperCase() + host.split(".")[0].slice(1)
+  ).slice(0, 25);
   const campaign = await createCampaign({
     name: spec.name,
     channels: ["google"],
@@ -304,7 +310,15 @@ export async function seedCampaignExample(
     queries: spec.queries,
     headlines: spec.headlines,
     descriptions: spec.descriptions,
-    creatives: [],
+    company_name: companyName,
+    creatives: [
+      {
+        kind: "image",
+        role: "logo_square",
+        url: `https://www.google.com/s2/favicons?domain=${host}&sz=128`,
+        label: "Logo (favicon del dominio)",
+      },
+    ],
   });
   return { campaignId: campaign.id };
 }

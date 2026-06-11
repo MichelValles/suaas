@@ -138,10 +138,13 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
     src?.product?.condition ?? "",
   );
 
-  // Estrategias con el set de assets visual (nombre de empresa, CTA y
-  // creatividades con rol): Display, Performance Max y Demand Gen.
+  // Estrategias con el set de assets visual (CTA de lista y preview de
+  // banner): Display, Performance Max y Demand Gen.
   const assetStrategy =
     strategy === "display" || strategy === "pmax" || strategy === "demand_gen";
+  // Nombre de empresa y roles de creatividad: también en Search (el bloque
+  // «Business information» de la spec 17092074 exige nombre y logo 1:1).
+  const showsBusinessAssets = assetStrategy || strategy === "search";
   // El titular largo solo existe en Display y PMax (en Demand Gen es
   // exclusivo del subformato vídeo, aún no modelado).
   const usesLongHeadline = strategy === "display" || strategy === "pmax";
@@ -419,7 +422,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             required
             placeholder="Hipoteca fija agosto 2026"
           />
-          {assetStrategy && (
+          {showsBusinessAssets && (
             <CharCountedInput
               label="Nombre de empresa (visible en el anuncio)"
               value={companyName}
@@ -672,34 +675,18 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           addLabel="+ Añadir titular"
           canAdd={headlines.length < headlinesCap}
         >
-          {strategy === "search" && (
-            <p
-              style={{
-                margin: 0,
-                fontSize: 12,
-                lineHeight: 1.5,
-                color: "rgba(var(--fg),0.5)",
-              }}
-            >
-              Google exige mínimo 3 titulares para crear un RSA (spec oficial).
-            </p>
-          )}
           {headlines.map((h, i) => (
             <RowWithRemove
               key={i}
-              canRemove={headlines.length > (strategy === "search" ? 3 : 1)}
+              canRemove={headlines.length > 1}
               onRemove={() => removeHeadline(i)}
             >
               <CharCountedInput
-                label={`Titular ${i + 1}${
-                  i === 0 || (strategy === "search" && i < 3)
-                    ? " · obligatorio"
-                    : " · opcional"
-                }`}
+                label={`Titular ${i + 1}${i === 0 ? " · obligatorio" : " · opcional"}`}
                 value={h}
                 onChange={(v) => setHeadlines(updateAt(headlines, i, v))}
                 max={headlineMax}
-                required={i === 0 || (strategy === "search" && i < 3)}
+                required={i === 0}
                 placeholder="Hipoteca fija al 2,90% TAE"
               />
             </RowWithRemove>
@@ -741,11 +728,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 value={d}
                 onChange={(v) => setDescriptions(updateAt(descriptions, i, v))}
                 max={DESCRIPTION_MAX}
-                required={
-                  i === 0 ||
-                  strategy === "search" ||
-                  (strategy === "pmax" && i < 2)
-                }
+                required={i === 0 || (strategy === "pmax" && i < 2)}
                 placeholder="Sin comisiones de apertura. Decisión en 48h."
               />
             </RowWithRemove>
@@ -753,7 +736,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
         </Section>
         )}
 
-        {(assetStrategy || strategy === "video") && (
+        {(assetStrategy || strategy === "video" || strategy === "search") && (
           <Section title="CTA">
             {strategy === "video" ? (
               <CharCountedInput
@@ -808,6 +791,11 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               500x500 px, sin marcas de agua ni texto promocional). Puedes añadir
               imágenes adicionales.
             </p>
+          ) : strategy === "search" ? (
+            <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
+              Search exige <strong>1 logo (1:1)</strong> (bloque Business information de la
+              spec). La imagen square (1:1) y la horizontal (1.91:1) son opcionales.
+            </p>
           ) : assetStrategy ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
               {STRATEGY_LABEL[strategy]} exige al menos <strong>1 imagen landscape (1.91:1)</strong>,
@@ -856,7 +844,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                   label="YouTube"
                 />
               </div>
-              {assetStrategy && (
+              {showsBusinessAssets && (
                 <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   <Label>Rol en el anuncio</Label>
                   <select
@@ -935,6 +923,22 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           >
             {state.error}
           </div>
+        )}
+
+        {strategy === "search" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            Search (RSA) exige: 1 a 15 titulares (máx. 30c), 1 a 4 descripciones
+            (máx. 90c), nombre de empresa (máx. 25c) y 1 logo (1:1). La CTA es
+            opcional (automatizada).
+          </p>
         )}
 
         {strategy === "display" && (

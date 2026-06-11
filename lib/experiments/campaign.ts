@@ -386,7 +386,13 @@ function renderSearchSnippet(
   lines.push("Ves este resultado de búsqueda patrocinado:");
   lines.push("");
   lines.push("---");
-  lines.push(`URL visible: ${displayUrl(campaign.final_url)}`);
+  if (campaign.company_name) {
+    lines.push(
+      `Anunciante: ${campaign.company_name} (con su logo) · ${displayUrl(campaign.final_url)}`,
+    );
+  } else {
+    lines.push(`URL visible: ${displayUrl(campaign.final_url)}`);
+  }
   lines.push("");
   lines.push(`Titular: ${headlines.join(" | ")}`);
   lines.push("");
