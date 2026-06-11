@@ -243,6 +243,8 @@ Cada listado mapea su entidad a `EntityListItem` (id, href, trash, title, descri
 
 Desde v0.13.0 las entidades soportan soft delete vía `deleted_at` (migración 0007; la 0017 lo extiende a geo, momentum y perfiles, 9 tipos en total). En cada card hay un botón `<SendToTrashButton>` que envía a la papelera (geo y momentum usan server actions propias con la misma semántica soft; perfiles usa `DELETE /api/profiles/[id]`, también soft); en `/trash` aparecen los elementos borrados con "Restaurar" y "Eliminar definitivamente". `lib/trash.ts` orquesta soft delete / restore / hard delete por tipo.
 
+No confundir con el borrado local de formularios: desde v0.54.5 las filas repetibles y creatividades del form de nueva campaña usan un icono plano de papelera (`RemoveIconButton`, local en `app/campaigns/new/new-form.tsx`, mismo lenguaje visual que la variante `inline` de `SendToTrashButton`) en lugar de un `btn-pill` «Eliminar», y el icono solo se muestra cuando la fila se puede eliminar. Eso desatura la interfaz de botones: los `btn-pill` quedan para añadir filas, alternar tipos y enviar.
+
 ## Espaciado vertical entre PageHeading y secciones
 
 Desde v0.26.2 `.app-shell-main` es `display: flex; flex-direction: column; gap: clamp(32px, 4vw, 56px)`. Esto da espacio consistente entre el `PageHeading` y la primera section / ol que renderice cada página. Las páginas que envuelven todo en un wrapper flex propio (home, `/trash`, `/seed-examples`) no se ven afectadas porque entonces main sólo tiene 1 hijo directo y el `gap` no aplica con un único elemento.

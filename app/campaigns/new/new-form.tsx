@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { Loader2 } from "lucide-react";
+import { Loader2, Trash2 } from "lucide-react";
 import { ChannelIcon } from "@/components/channel-icon";
 import { StrategyIcon } from "@/components/strategy-icon";
 import {
@@ -1179,14 +1179,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                     : `Creatividad ${i + 1}`}
               </legend>
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
-                <button
-                  type="button"
-                  onClick={() => removeCreative(i)}
-                  className="btn-pill"
-                  style={{ fontSize: 11 }}
-                >
-                  Eliminar
-                </button>
+                <RemoveIconButton onClick={() => removeCreative(i)} />
               </div>
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                 <ToggleButton
@@ -1990,18 +1983,63 @@ function RowWithRemove({
   onRemove: () => void;
 }) {
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8, alignItems: "end" }}>
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns: canRemove ? "1fr auto" : "1fr",
+        gap: 8,
+        alignItems: "end",
+      }}
+    >
       <div>{children}</div>
-      <button
-        type="button"
-        onClick={onRemove}
-        disabled={!canRemove}
-        className="btn-pill"
-        style={{ fontSize: 11, alignSelf: "end" }}
-      >
-        Eliminar
-      </button>
+      {canRemove && (
+        <RemoveIconButton onClick={onRemove} style={{ marginBottom: 6 }} />
+      )}
     </div>
+  );
+}
+
+/**
+ * Icono plano de papelera para quitar elementos del formulario (filas
+ * repetibles, creatividades). No toca la papelera del sistema: solo
+ * elimina del estado local. Mismo lenguaje visual que la variante
+ * «inline» de SendToTrashButton.
+ */
+function RemoveIconButton({
+  onClick,
+  style,
+}: {
+  onClick: () => void;
+  style?: React.CSSProperties;
+}) {
+  const restColor = "rgba(var(--fg),0.35)";
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Eliminar"
+      aria-label="Eliminar"
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "none",
+        border: "none",
+        padding: 6,
+        color: restColor,
+        cursor: "pointer",
+        transition: "color var(--dur-short) var(--ease-out)",
+        ...style,
+      }}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.color = "var(--error-text)";
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.color = restColor;
+      }}
+    >
+      <Trash2 size={15} />
+    </button>
   );
 }
 
