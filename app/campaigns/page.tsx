@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { ChannelIcon } from "@/components/channel-icon";
+import { CHANNEL_BRAND, ChannelIcon } from "@/components/channel-icon";
 import { EntityListView, type EntityListItem } from "@/components/entity-list";
 import { MigrationNeeded } from "@/components/migration-needed";
 import { StrategyIcon } from "@/components/strategy-icon";
@@ -78,27 +78,35 @@ export default async function CampaignsListPage() {
 }
 
 /**
- * Chips de cabecera de la card: canal(es) con su logo y estrategia con su
- * icono, clonando el patrón de la sección «Canal y estrategia» del detalle.
+ * Chips de cabecera de la card: canal(es) con su logo en el color de marca
+ * de cada red (CHANNEL_BRAND) y estrategia en chip neutro del tema.
  */
 function CampaignBadges({ campaign }: { campaign: Campaign }) {
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-      {campaign.channels.map((ch) => (
-        <span key={ch} className="mono" style={badgeStyle}>
-          <ChannelIcon channel={ch} size={12} />
-          {CHANNEL_LABEL[ch].split(" ")[0]}
-        </span>
-      ))}
-      <span
-        className="mono"
-        style={{
-          ...badgeStyle,
-          border: "1px solid var(--accent-500)",
-          background: "rgba(250,204,13,0.08)",
-          color: "var(--accent-text)",
-        }}
-      >
+      {campaign.channels.map((ch) => {
+        const brand = CHANNEL_BRAND[ch];
+        return (
+          <span
+            key={ch}
+            className="mono"
+            style={
+              brand
+                ? {
+                    ...badgeStyle,
+                    border: `1px solid ${brand.color}`,
+                    background: brand.bg,
+                    color: brand.color,
+                  }
+                : badgeStyle
+            }
+          >
+            <ChannelIcon channel={ch} size={12} />
+            {CHANNEL_LABEL[ch].split(" ")[0]}
+          </span>
+        );
+      })}
+      <span className="mono" style={badgeStyle}>
         <StrategyIcon strategy={campaign.strategy} size={12} />
         {STRATEGY_LABEL[campaign.strategy]}
       </span>

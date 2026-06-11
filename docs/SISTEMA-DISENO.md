@@ -84,6 +84,7 @@ Reglas:
 - Estados (done/running/error, approaching/stable/drifting, óptima/repesca/fuga) → tokens semánticos de texto, nunca hexes del semáforo Tailwind.
 - Contextos que no cambian de tema: clase `.theme-dark-fixed` (login HUD, `/onboard`). `.surface-feature`, `.surface-paper`, `.surface-tone` y los tooltips redefinen el canal localmente, así sus descendientes heredan la paleta correcta.
 - Los previews de anuncios (SERP, Display) emulan superficies reales: mantienen sus colores literales en ambos temas.
+- **Colores de marca de las redes publicitarias**: excepción consciente. Los chips de canal usan `CHANNEL_BRAND` (`components/channel-icon.tsx`): Google #4285F4, Meta #1877F2, LinkedIn #0A66C2, TikTok #FE2C55, elegidos para leerse en ambos temas. X no tiene color (su marca es blanco/negro) y usa el chip neutro del tema. No reutilizar estos hexes fuera de la identidad de canal.
 
 ## Clases semánticas disponibles
 

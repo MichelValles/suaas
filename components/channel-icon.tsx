@@ -6,6 +6,23 @@ import type { Channel } from "@/lib/campaigns";
  * simplificados a un solo path por icono para mantener consistencia visual
  * con los iconos de Lucide del resto de la app.
  */
+
+/**
+ * Colores de marca por canal para chips/badges. Excepción consciente a la
+ * regla «colores solo vía canal de tema»: son identidad corporativa de cada
+ * red (como el logo de Flat 101), elegidos para leerse en ambos temas. X no
+ * tiene color (su marca es blanco/negro): null = chip neutro del tema.
+ */
+export const CHANNEL_BRAND: Record<
+  Channel,
+  { color: string; bg: string } | null
+> = {
+  google: { color: "#4285F4", bg: "rgba(66,133,244,0.12)" },
+  meta: { color: "#1877F2", bg: "rgba(24,119,242,0.12)" },
+  linkedin: { color: "#0A66C2", bg: "rgba(10,102,194,0.14)" },
+  tiktok: { color: "#FE2C55", bg: "rgba(254,44,85,0.10)" },
+  x: null,
+};
 export function ChannelIcon({
   channel,
   size = 18,
