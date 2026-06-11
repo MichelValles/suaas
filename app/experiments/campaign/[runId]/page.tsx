@@ -221,6 +221,82 @@ export default async function CampaignRunPage({
         </section>
       )}
 
+      {/* Conducta predicha (Gravity Model). Solo si hay filas con clase:
+          los runs anteriores a v0.39.1 no la traen. */}
+      {summary.behavior_counts.optima +
+        summary.behavior_counts.fuga +
+        summary.behavior_counts.repesca >
+        0 && (
+        <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionLabel>Conducta predicha (Gravity Model)</SectionLabel>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+              gap: 16,
+            }}
+          >
+            <BehaviorCard
+              label="Óptima"
+              count={summary.behavior_counts.optima}
+              total={summary.n_responses}
+              color="var(--success-text)"
+              hint="Conecta con la intención del perfil: haría click."
+            />
+            <BehaviorCard
+              label="Repesca"
+              count={summary.behavior_counts.repesca}
+              total={summary.n_responses}
+              color="var(--warning-text)"
+              hint="Sin click ahora, pero la necesidad sigue viva: recuperable con otro mensaje."
+            />
+            <BehaviorCard
+              label="Fuga"
+              count={summary.behavior_counts.fuga}
+              total={summary.n_responses}
+              color="var(--error-text)"
+              hint="Lo ignora y sigue con lo suyo."
+            />
+          </div>
+          {summary.byQuery.length > 1 && (
+            <div style={{ overflowX: "auto" }}>
+              <table style={tableStyle}>
+                <thead>
+                  <tr>
+                    <Th>Query</Th>
+                    <Th>Óptima</Th>
+                    <Th>Repesca</Th>
+                    <Th>Fuga</Th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {summary.byQuery.map((q) => (
+                    <tr key={q.query} style={{ borderTop: "1px solid rgba(var(--fg),0.06)" }}>
+                      <Td>
+                        <span className="mono" style={{ fontSize: 12 }}>
+                          {queryLabel(q.query)}
+                        </span>
+                      </Td>
+                      <Td>{q.behavior_counts.optima}</Td>
+                      <Td>{q.behavior_counts.repesca}</Td>
+                      <Td>{q.behavior_counts.fuga}</Td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          {summary.behavior_inconsistencies > 0 && (
+            <p style={{ margin: 0, fontSize: 12, lineHeight: 1.55, color: "rgba(var(--fg),0.5)" }}>
+              Consistencia interna: {summary.behavior_inconsistencies}{" "}
+              {summary.behavior_inconsistencies === 1 ? "respuesta contradice" : "respuestas contradicen"}{" "}
+              su propio intent (fuga con intent ≥ 0,5 u óptima con intent &lt; 0,3). Un número alto
+              delata scoring poco fiable en este run.
+            </p>
+          )}
+        </section>
+      )}
+
       {/* Top barriers global */}
       {summary.top_barriers.length > 0 && (
         <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -699,6 +775,53 @@ function KpiCard({
       >
         {value}
       </span>
+    </div>
+  );
+}
+
+function BehaviorCard({
+  label,
+  count,
+  total,
+  color,
+  hint,
+}: {
+  label: string;
+  count: number;
+  total: number;
+  color: string;
+  hint: string;
+}) {
+  const pct = total > 0 ? Math.round((count / total) * 100) : 0;
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(var(--fg),0.08)",
+        borderRadius: "var(--radius-md)",
+        padding: 20,
+        background: "rgba(var(--fg),0.02)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+      }}
+    >
+      <span
+        className="mono"
+        style={{
+          fontSize: 10,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          color: "rgba(var(--fg),0.55)",
+        }}
+      >
+        {label}
+      </span>
+      <span style={{ fontSize: 26, color, letterSpacing: "-0.01em" }}>
+        {count} <span style={{ fontSize: 14, color: "rgba(var(--fg),0.5)" }}>· {pct}%</span>
+      </span>
+      <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: "rgba(var(--fg),0.55)" }}>
+        {hint}
+      </p>
     </div>
   );
 }

@@ -95,7 +95,7 @@ Migración manual: `alter table campaigns add column if not exists intended_mess
 
 **Por qué**: la matriz de la sección 4 del doc de conocimiento asocia estos tests a la tasa de comprensión fuzzy-match y five-second ya la implementa; campañas captura `perceived_offer` pero nunca la contrasta con lo pretendido, y el landing match actual lo juzga el propio persona anclado a su propia percepción (auto-confirmación).
 
-### `behavior_class` del Gravity Model en el snippet eval · M · necesita SQL
+### `behavior_class` del Gravity Model en el snippet eval · M · necesita SQL · ✅ hecho en v0.39.1 (SQL agrupado en la 0019; fallback a meta mientras esté pendiente)
 
 Añadir a `SnippetEvalSchema` el enum `behavior_class` (optima/fuga/repesca) con describe adaptado a ads (optima = conecta con tu intención y harías click; fuga = lo ignoras y sigues; repesca = no haces click pero la necesidad sigue viva), colocado tras `barriers` y antes de los scores (encaja con el reordenado del quick win 2). Migración manual espejo de la 0015: `alter table campaign_responses add column if not exists behavior_class text` con check. Persistir en el upsert, mapear en `listCampaignResponses` con null para filas antiguas, `behavior_counts` en `CampaignSummary` copiando el bucle de `five-second.ts`, y replicar la sección «Conducta predicha (Gravity Model)» en resultados con desglose por query. Bonus: el cruce `behavior_class` × intent sirve de check de consistencia interna (una «fuga» con intent 0,8 delata incoherencia).
 

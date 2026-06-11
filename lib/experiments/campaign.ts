@@ -77,6 +77,11 @@ export const SnippetEvalSchema = z.object({
   barriers: z
     .array(z.string())
     .describe("Lista corta de fricciones percibidas. Vacío si no hay."),
+  behavior_class: z
+    .enum(["optima", "fuga", "repesca"])
+    .describe(
+      "Clasifica TU propia conducta ante el anuncio: 'optima' = conecta con tu intención y harías click; 'fuga' = lo ignoras y sigues con lo tuyo; 'repesca' = no haces click ahora pero la necesidad sigue viva, otro mensaje podría recuperarte.",
+    ),
   intent_to_click: z
     .number()
     .min(0)
@@ -150,6 +155,8 @@ export type CampaignResponse = {
   reasoning: string | null;
   /** Juez neutral: cuánto coincide perceived_offer con campaign.intended_message. Null si no hay mensaje pretendido o la fila es anterior a v0.39.0. */
   comprehension_rate: number | null;
+  /** Conducta predicha del Gravity Model. Null en filas anteriores a v0.39.1. */
+  behavior_class: "optima" | "fuga" | "repesca" | null;
   clarity: number;
   credibility: number;
   differentiation: number;
@@ -163,6 +170,8 @@ export type CampaignResponse = {
   ideal_free_text: string | null;
 };
 
+export type BehaviorCounts = { optima: number; fuga: number; repesca: number };
+
 export type CampaignByQuery = {
   query: string;
   n: number;
@@ -173,6 +182,7 @@ export type CampaignByQuery = {
   mean_landing_match: number | null;
   click_rate: number;
   top_barriers: { label: string; count: number }[];
+  behavior_counts: BehaviorCounts;
 };
 
 export type CampaignByChannel = {
@@ -185,6 +195,7 @@ export type CampaignByChannel = {
   mean_landing_match: number | null;
   click_rate: number;
   top_barriers: { label: string; count: number }[];
+  behavior_counts: BehaviorCounts;
 };
 
 export type CampaignSummary = {
@@ -203,6 +214,13 @@ export type CampaignSummary = {
   byQuery: CampaignByQuery[];
   byChannel: CampaignByChannel[];
   top_barriers: { label: string; count: number }[];
+  /** Conducta predicha del Gravity Model. Solo cuenta filas con clase (las anteriores a v0.39.1 no la traen). */
+  behavior_counts: BehaviorCounts;
+  /**
+   * Check de consistencia interna: respuestas cuya clase contradice su
+   * intent («fuga» con intent ≥ 0,5 o «optima» con intent < 0,3).
+   */
+  behavior_inconsistencies: number;
 };
 
 // ============================================================
@@ -421,6 +439,7 @@ async function probeCampaignSnippet(
       "- 'perceived_offer': lo que crees que te ofrece el anuncio, en tu voz, 1 frase.",
       "- 'reasoning': 1-2 frases tuyas pensando en voz alta ANTES de decidir: qué te llama, qué te frena.",
       "- 'barriers': fricciones concretas (jerga, promesa vaga, precio oculto, sector no encaja, etc.). Vacío si no las viste.",
+      "- 'behavior_class': clasifica tu conducta. 'optima' = conecta con tu intención y harías click; 'fuga' = lo ignoras y sigues; 'repesca' = sin click ahora, pero la necesidad sigue viva y otro mensaje podría recuperarte.",
       "- Después puntúa usando TODO el rango 0..1. No te refugies en valores medios: si lo ignorarías, dilo con un score bajo; si te convence, dilo con uno alto.",
       "- 'intent_to_click': 0,0-0,2 lo ignorarías por completo; 0,3-0,4 lo leerías pero sin click; 0,5-0,7 click probable; 0,8-1,0 click casi seguro.",
       "- 'clarity': 0,0-0,2 no entiendes qué venden; 0,3-0,4 te quedas dudando; 0,5-0,7 lo entiendes con algún hueco; 0,8-1,0 lo entiendes a la primera.",
@@ -1024,14 +1043,33 @@ async function processCombo(
 
   let { error } = await supa
     .from("campaign_responses")
-    .upsert({ ...record, comprehension_rate: comprehensionRate, meta }, onConflict);
-  // 0019 pendiente: la columna no existe; el score viaja en meta y
-  // listCampaignResponses lo lee de ahí.
-  if (isMissingColumnError(error, "comprehension_rate")) {
+    .upsert(
+      {
+        ...record,
+        comprehension_rate: comprehensionRate,
+        behavior_class: snippet.output.behavior_class,
+        meta,
+      },
+      onConflict,
+    );
+  // 0019 pendiente: comprehension_rate y behavior_class faltan juntas
+  // (misma migración); los valores viajan en meta y listCampaignResponses
+  // los lee de ahí.
+  if (
+    isMissingColumnError(error, "comprehension_rate") ||
+    isMissingColumnError(error, "behavior_class")
+  ) {
     ({ error } = await supa
       .from("campaign_responses")
       .upsert(
-        { ...record, meta: { ...meta, comprehension_rate: comprehensionRate } },
+        {
+          ...record,
+          meta: {
+            ...meta,
+            comprehension_rate: comprehensionRate,
+            behavior_class: snippet.output.behavior_class,
+          },
+        },
         onConflict,
       ));
   }
@@ -1069,6 +1107,9 @@ export async function listCampaignResponses(
             "number"
           ? ((r.meta as Record<string, unknown>).comprehension_rate as number)
           : null,
+    behavior_class: parseBehaviorClass(
+      r.behavior_class ?? (r.meta as Record<string, unknown> | null)?.behavior_class,
+    ),
     clarity: Number(r.clarity),
     credibility: Number(r.credibility),
     differentiation: Number(r.differentiation),
@@ -1114,6 +1155,8 @@ function summarize(
       byQuery: [],
       byChannel: campaign.channels.map((c) => emptyByChannel(c)),
       top_barriers: [],
+      behavior_counts: { optima: 0, fuga: 0, repesca: 0 },
+      behavior_inconsistencies: 0,
     };
   }
 
@@ -1171,7 +1214,23 @@ function summarize(
     byQuery,
     byChannel,
     top_barriers: topBarriers(rs),
+    behavior_counts: behaviorCounts(rs),
+    behavior_inconsistencies: rs.filter(
+      (r) =>
+        (r.behavior_class === "fuga" && r.intent_to_click >= LANDING_THRESHOLD) ||
+        (r.behavior_class === "optima" && r.intent_to_click < 0.3),
+    ).length,
   };
+}
+
+function behaviorCounts(rs: CampaignResponse[]): BehaviorCounts {
+  const counts: BehaviorCounts = { optima: 0, fuga: 0, repesca: 0 };
+  for (const r of rs) {
+    if (r.behavior_class === "optima") counts.optima++;
+    else if (r.behavior_class === "fuga") counts.fuga++;
+    else if (r.behavior_class === "repesca") counts.repesca++;
+  }
+  return counts;
 }
 
 function aggregateBy(
@@ -1193,6 +1252,7 @@ function aggregateBy(
       subset.filter((r) => r.intent_to_click >= LANDING_THRESHOLD).length /
       subset.length,
     top_barriers: topBarriers(subset),
+    behavior_counts: behaviorCounts(subset),
   };
   if (field === "channel") {
     return { channel: value as Channel, ...base };
@@ -1211,7 +1271,14 @@ function emptyByChannel(channel: Channel): CampaignByChannel {
     mean_landing_match: null,
     click_rate: 0,
     top_barriers: [],
+    behavior_counts: { optima: 0, fuga: 0, repesca: 0 },
   };
+}
+
+function parseBehaviorClass(
+  v: unknown,
+): "optima" | "fuga" | "repesca" | null {
+  return v === "optima" || v === "fuga" || v === "repesca" ? v : null;
 }
 
 function avg(xs: number[]): number {
