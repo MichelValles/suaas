@@ -45,9 +45,9 @@ Tiers sugeridos (el budget de la key es el corte duro: el cliente nunca gasta m�
 
 | Tier | Budget key/mes | Tokens/día | Módulos |
 |---|---|---|---|
-| Starter | 10 $ | ~1,5M | Básicos (5s, copy, pricing) |
-| Pro | 30 $ | ~4M | Todos |
-| Agency | 100 $ | Sin límite diario | Todos + marca blanca |
+| Starter | 30 $ | ~3M | Básicos (5s, copy, pricing) |
+| Pro | 70 $ | ~7M | Todos |
+| Agency | 200 $ | Sin límite diario | Todos + marca blanca |
 
 ## 4. Estimación de costes por instancia
 
@@ -127,19 +127,20 @@ SUAAS se posiciona **muy por encima del software-ceiling y muy por debajo del en
 
 Modelo híbrido (tiers públicos + custom enterprise), que logra ~30% más de ACV y retiene mejor (churn recurrente 1,6 %/mes vs 4,2 % por proyecto):
 
-- **Setup de calibración** (one-time): montar la instancia, cargar el VoC y las personas del cliente y aplicar su marca. Es trabajo real de onboarding: ancla valor desde el minuto cero, filtra clientes no serios y sube el switching cost.
+- **Perfiles incluidos**: cada paquete incluye la generación de 50 perfiles calibrados según el target del proyecto. Es lo que hace el test fiel desde el primer día.
+- **Calibración opcional** (one-time): un onboarding más profundo (cargar el VoC y las personas a medida del cliente). Opcional, no una barrera de entrada: ancla valor y sube el switching cost cuando el cliente la contrata.
 - **Suscripción mensual por instancia dedicada**: el grueso del MRR. La instancia single-tenant (aislamiento de datos, marca del cliente) justifica de forma natural el escalón premium.
 - **Oferta «land»**: un test puntual de bajo compromiso (una campaña o una auditoría 5s) que convierte a suscripción.
 
 ### Tiers recomendados (EUR, mercado España/EU)
 
-Los nombres mapean 1:1 con la configuración técnica de la sección 3 (budget de key, módulos). El COGS es el peor caso (infra ~12 € + budget de API completo del tier); el margen es bruto.
+Cada paquete incluye la generación de 50 perfiles calibrados al target y un presupuesto de IA (Starter 30 $, Pro 70 $, Agency 200 $/mes). La calibración profunda es un añadido opcional, no un setup obligatorio. El COGS es el peor caso (infra ~12 € + budget de API completo del tier en EUR); el margen es bruto.
 
-| Tier | Precio/mes | Setup | Incluye | Cliente objetivo | COGS/mes | Margen |
+| Tier | Precio/mes | Calibración opcional | Incluye | Cliente objetivo | COGS/mes | Margen |
 |---|---|---|---|---|---|---|
-| **Starter** | 290 € | 1.200 € | Módulos básicos (5s, copy, pricing), API ~10 $/mes, marca SUAAS | PYME pequeña (<1 M facturación) | ~21 € | ~93 % |
-| **Pro** (objetivo) | 790 € | 1.800 € | Todos los módulos (campañas, GEO, Momentum), marca del cliente, API ~30 $/mes | PYME media / empresa mediana (1-5 M) | ~40 € | ~95 % |
-| **Agency** | 1.900 € | 2.500 € | Todo + sin límite diario, calibración VoC profunda, SLA y soporte prioritario | Empresa mediana grande (>5 M) | ~100 € | ~95 % |
+| **Starter** | 290 € | 1.200 € | 50 perfiles calibrados, módulos básicos (5s, copy, pricing), API ~30 $/mes | PYME pequeña (<1 M facturación) | ~40 € | ~86 % |
+| **Pro** (objetivo) | 790 € | 1.800 € | 50 perfiles calibrados, todos los módulos (campañas, GEO, Momentum), marca del cliente, API ~70 $/mes | PYME media / empresa mediana (1-5 M) | ~76 € | ~90 % |
+| **Agency** | 1.900 € | 2.500 € | 50 perfiles calibrados, todo + sin límite diario, SLA y soporte prioritario, API ~200 $/mes | Empresa mediana grande (>5 M) | ~196 € | ~90 % |
 | **Enterprise** | a medida (>2.900 €) | a medida | Multi-marca, integraciones, formación, varias instancias | Grandes cuentas / grupos | variable | alto |
 
 - **Land (puntual)**: 490-790 € por un test único (una campaña o auditoría), descontable de la primera mensualidad si convierte.

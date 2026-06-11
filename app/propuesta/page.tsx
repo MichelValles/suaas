@@ -175,7 +175,7 @@ export default async function PropuestaPage() {
                 <span style={{ fontFamily: "var(--font-display)", fontSize: 40, color: "var(--text-strong)", lineHeight: 1 }}>{eur(t.priceMonth)}</span>
                 <span style={{ fontSize: 13, color: "rgba(var(--fg),0.5)" }}>/mes</span>
               </div>
-              <span style={{ fontSize: 12, color: "rgba(var(--fg),0.45)" }}>+ {eur(t.setup)} de setup de calibración</span>
+              <span style={{ fontSize: 12, color: "rgba(var(--fg),0.45)" }}>Calibración opcional: {eur(t.setup)} (una vez)</span>
               <p style={{ fontSize: 13, color: "rgba(var(--fg),0.7)", lineHeight: 1.5, margin: 0 }}>{t.blurb}</p>
               <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "flex", flexDirection: "column", gap: 8 }}>
                 {t.features.map((f) => (

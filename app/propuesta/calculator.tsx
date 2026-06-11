@@ -4,6 +4,7 @@ import { Lock } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useMemo, useState } from "react";
 import {
+  EUR_PER_USD,
   SUPABASE_MICRO_EUR,
   SUPABASE_ORG_BASE_EUR,
   TIERS,
@@ -70,7 +71,6 @@ export function PricingCalculator({ unlocked = false }: { unlocked?: boolean }) 
 
 function WhatIf() {
   const [counts, setCounts] = useState<Record<string, number>>({ starter: 2, pro: 4, agency: 1 });
-  const [aiPerInstance, setAiPerInstance] = useState(25);
   const [gestionEur, setGestionEur] = useState(150);
 
   const set = (id: string, v: number) =>
@@ -80,7 +80,11 @@ function WhatIf() {
     const total = TIERS.reduce((s, t) => s + (counts[t.id] ?? 0), 0);
     const mrr = TIERS.reduce((s, t) => s + (counts[t.id] ?? 0) * t.priceMonth, 0);
     const setupTotal = TIERS.reduce((s, t) => s + (counts[t.id] ?? 0) * t.setup, 0);
-    const apiTotal = aiPerInstance * total;
+    // Coste de IA = presupuesto incluido por paquete (tope que se aprovisiona).
+    const apiTotal = TIERS.reduce(
+      (s, t) => s + (counts[t.id] ?? 0) * t.apiBudgetUsd * EUR_PER_USD,
+      0,
+    );
     const supaMicro = SUPABASE_MICRO_EUR * total;
     const vercelCompute = VERCEL_COMPUTE_EUR * total;
     const fixed = total > 0 ? SUPABASE_ORG_BASE_EUR + VERCEL_SEAT_EUR : 0;
@@ -108,7 +112,7 @@ function WhatIf() {
       netMargin: mrr > 0 ? net / mrr : 0,
       perInstance: total > 0 ? cogsTotal / total : 0,
     };
-  }, [counts, aiPerInstance, gestionEur]);
+  }, [counts, gestionEur]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
@@ -134,19 +138,6 @@ function WhatIf() {
             </label>
           ))}
           <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <span style={captionStyle}>Presupuesto de IA por instancia (€/mes)</span>
-            <input
-              type="number"
-              min={0}
-              value={aiPerInstance}
-              onChange={(e) => setAiPerInstance(Math.max(0, Number(e.target.value) || 0))}
-              style={fieldStyle}
-            />
-            <span style={{ fontSize: 11, color: "rgba(var(--fg),0.4)" }}>
-              Presupuesto de IA adicional que aprovisionas por instancia. La key del cliente lo limita.
-            </span>
-          </label>
-          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
             <span style={captionStyle}>Coste de gestión (€/mes)</span>
             <input
               type="number"
@@ -163,7 +154,7 @@ function WhatIf() {
           <div style={panel}>
             <Row label="Instancias" value={String(r.total)} />
             <Row label="Ingreso recurrente (MRR)" value={`${eur(r.mrr)}/mes`} strong />
-            <Row label="Setup total (una vez)" value={eur(r.setupTotal)} dim />
+            <Row label="Calibración opcional (una vez)" value={eur(r.setupTotal)} dim />
             <Divider />
             <Row label="Rentabilidad bruta" value={`${eur(r.gross)}/mes · ${pct(r.grossMargin)}`} accent />
             <Row label="Rentabilidad neta" value={`${eur(r.net)}/mes · ${pct(r.netMargin)}`} accent strong />
@@ -182,7 +173,7 @@ function WhatIf() {
               value={eur((r.total > 0 ? VERCEL_SEAT_EUR : 0) + r.vercelCompute)}
               dim
             />
-            <Row label={`IA (${r.total} × ${eur(aiPerInstance)})`} value={eur(r.apiTotal)} dim />
+            <Row label="IA (presupuesto incluido por paquete)" value={eur(r.apiTotal)} dim />
             <Row label="Gestión" value={eur(r.gestion)} dim />
             <Divider />
             <Row label="Coste total" value={`${eur(r.cogsTotal)}/mes`} />

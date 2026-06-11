@@ -103,7 +103,7 @@ export type Tier = {
   name: string;
   /** Precio recurrente en EUR/mes. */
   priceMonth: number;
-  /** Setup de calibración, EUR one-time. */
+  /** Calibración (opcional), EUR one-time. */
   setup: number;
   /** Presupuesto de IA incluido (budget de la API key), USD/mes. */
   apiBudgetUsd: number;
@@ -120,13 +120,13 @@ export const TIERS: Tier[] = [
     name: "Starter",
     priceMonth: 290,
     setup: 1200,
-    apiBudgetUsd: 10,
+    apiBudgetUsd: 30,
     blurb: "Para validar rápido lo esencial antes de tocar la web.",
     features: [
+      "Generación de 50 perfiles calibrados según el target del proyecto",
       "Módulos básicos: claridad 5s, copy y pricing",
-      "Cohortes de perfiles modelados calibradas",
       "Resultados en minutos, no en semanas",
-      "Presupuesto de IA ~10 $/mes incluido",
+      "Presupuesto de IA ~30 $/mes incluido",
     ],
     target: "PYME pequeña (facturación < 1 M)",
   },
@@ -135,13 +135,13 @@ export const TIERS: Tier[] = [
     name: "Pro",
     priceMonth: 790,
     setup: 1800,
-    apiBudgetUsd: 30,
+    apiBudgetUsd: 70,
     blurb: "El estándar: todos los módulos y tu marca en la plataforma.",
     features: [
+      "Generación de 50 perfiles calibrados según el target del proyecto",
       "Todos los módulos: campañas, embudos, GEO y momentum",
       "Tu marca en la plataforma (white-label)",
-      "Cohortes ampliadas y calibración con tu VoC",
-      "Presupuesto de IA ~30 $/mes incluido",
+      "Presupuesto de IA ~70 $/mes incluido",
     ],
     target: "PYME media / empresa mediana (1-5 M)",
     featured: true,
@@ -151,13 +151,13 @@ export const TIERS: Tier[] = [
     name: "Agency",
     priceMonth: 1900,
     setup: 2500,
-    apiBudgetUsd: 100,
-    blurb: "Instancia dedicada premium, calibración profunda y SLA.",
+    apiBudgetUsd: 200,
+    blurb: "Instancia dedicada premium, sin límites y con SLA.",
     features: [
+      "Generación de 50 perfiles calibrados según el target del proyecto",
       "Todo lo de Pro, sin límite diario de uso",
-      "Calibración VoC profunda y personas a medida",
       "SLA y soporte prioritario",
-      "Presupuesto de IA ~100 $/mes incluido",
+      "Presupuesto de IA ~200 $/mes incluido",
     ],
     target: "Empresa mediana grande (> 5 M)",
   },
