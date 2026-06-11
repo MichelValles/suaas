@@ -1,40 +1,10 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { FlatLogo } from "./flat-logo";
 
-type Item = { href: string; label: string };
-
 /**
- * Nav sticky. Contraído deja sólo logo + marca + CTA. Las anclas aparecen al
- * hacer scroll hacia arriba (y arriba del todo) y se ocultan al bajar.
+ * Nav sticky simple: logo + marca + CTA. Sin anclas (en móvil el toggle por
+ * scroll parpadeaba). Las secciones siguen teniendo id para enlaces directos.
  */
-export function LandingNav({ brand, items }: { brand: string; items: Item[] }) {
-  const [showAnchors, setShowAnchors] = useState(true);
-
-  useEffect(() => {
-    let last = window.scrollY;
-    let ticking = false;
-    function update() {
-      const y = window.scrollY;
-      if (y < 80) setShowAnchors(true);
-      else if (y > last + 6) setShowAnchors(false);
-      else if (y < last - 6) setShowAnchors(true);
-      last = y;
-      ticking = false;
-    }
-    function onScroll() {
-      if (!ticking) {
-        ticking = true;
-        window.requestAnimationFrame(update);
-      }
-    }
-    // Sincroniza con la posición real al montar (recarga con scroll ya bajado).
-    setShowAnchors(window.scrollY < 80);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
+export function LandingNav({ brand }: { brand: string }) {
   return (
     <nav
       style={{
@@ -48,7 +18,6 @@ export function LandingNav({ brand, items }: { brand: string; items: Item[] }) {
         alignItems: "center",
         justifyContent: "space-between",
         gap: 14,
-        flexWrap: "wrap",
       }}
     >
       <a href="#top" style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -57,22 +26,9 @@ export function LandingNav({ brand, items }: { brand: string; items: Item[] }) {
           {brand}
         </span>
       </a>
-      <div style={{ display: "flex", alignItems: "center", gap: "6px 18px", flexWrap: "wrap", justifyContent: "flex-end" }}>
-        {showAnchors &&
-          items.map((n) => (
-            <a
-              key={n.href}
-              href={n.href}
-              className="mono"
-              style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(var(--fg),0.6)" }}
-            >
-              {n.label}
-            </a>
-          ))}
-        <a href="#paquetes" className="btn-pill solid" style={{ padding: "9px 18px" }}>
-          Ver paquetes →
-        </a>
-      </div>
+      <a href="#paquetes" className="btn-pill solid" style={{ padding: "9px 18px", whiteSpace: "nowrap" }}>
+        Ver paquetes →
+      </a>
     </nav>
   );
 }

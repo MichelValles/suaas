@@ -19,14 +19,6 @@ export const metadata: Metadata = {
 // para renombrarlo en toda la landing.
 const BRAND = "Gravity";
 
-const NAV = [
-  { href: "#metodologia", label: "Metodología" },
-  { href: "#incluye", label: "Qué incluye" },
-  { href: "#paquetes", label: "Paquetes" },
-  { href: "#motor", label: "Motor de IA" },
-  { href: "#calculadora", label: "Calculadora" },
-];
-
 function eur(n: number, decimals = 0): string {
   return `${n.toLocaleString("es-ES", {
     minimumFractionDigits: decimals,
@@ -49,8 +41,8 @@ export default async function PropuestaPage() {
 
   return (
     <div id="top">
-      {/* ── Nav con anclas (aparecen al hacer scroll up) ── */}
-      <LandingNav brand={BRAND} items={NAV} />
+      {/* ── Nav ── */}
+      <LandingNav brand={BRAND} />
 
       {/* ── Hero ── */}
       <Band gap={26}>
