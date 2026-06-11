@@ -102,7 +102,64 @@ El gasto exacto por cliente sale del dashboard del AI Gateway (gasto por API key
 - **Región UE**: Supabase cuesta lo mismo en región europea; el compute de Vercel en `fra1` sube ~45% (seguiría siendo ~3 $/mes por instancia). Valorarlo si el cliente exige datos en la UE.
 - **RPO**: los backups de Supabase Pro son diarios con 7 días de retención (RPO 24 h). Declararlo en el contrato. PITR es un add-on caro (~100 $/mes por proyecto) que no compensa a este tamaño.
 
-## 5. Plan de mantenimiento
+## 5. Precio de venta y plan comercial
+
+### Principio: precio por valor, anclado al presupuesto de servicio
+
+El coste marginal de una instancia es de ~12-42 €/mes (infra + API del cliente). **El precio NO se fija sobre ese coste.** Con producto propio y coste casi nulo, hay margen para fijar precio por el valor que percibe el cliente, que es lo que cuesta el research que sustituye:
+
+- Un test de UX/CRO moderado real cuesta **4.000-10.000 €** y un estudio completo **3.000-25.000 €** (agencia: 15.000-75.000 €+).
+- Cada participante real cuesta **100-500 €** «fully loaded» (incentivo + reclutamiento + tiempo de researcher), y reclutar se lleva **2-4 semanas** mientras las decisiones de diseño avanzan sin evidencia.
+- SUAAS ataca exactamente esos tres costes: elimina el incentivo, el fee de reclutamiento y las semanas de espera, dejando el coste marginal en tokens.
+
+El error a evitar es anclar al techo de «software puro» de una PYME española (100-1.000 €/mes). El ancla correcta es el **presupuesto de servicio de marketing/CRO** (1.500-5.000 €/mes), que es 3-5x mayor. Flat101 vende esto como agencia de CRO a clientes que YA pagan por research y optimización, no como «otra herramienta SaaS».
+
+### Referencias de mercado (2026)
+
+- **Usuarios sintéticos self-serve barato**: Delve AI ~0,99 $/usuario, Synthetic Users ~2-60 $/entrevista, round-table.ai 30-200 $/mes.
+- **Usuarios sintéticos enterprise**: Yabble 8.900-80.000 $/año, Outset ~20.000 $/seat·año, Listen Labs ~20.000 $ + 300-400 $/sesión, Aaru/Evidenza seis cifras.
+- **Testing UX/CRO tradicional**: UserTesting 12.000-100.000 $+/año, Maze 99 $/mes a 72.000 $/año, Lyssna 165 $/mes.
+- **Servicios de CRO**: 1.500-31.000 $/mes; gasto medio en herramientas de CRO ~2.000 $/mes.
+
+SUAAS se posiciona **muy por encima del software-ceiling y muy por debajo del enterprise**: el hueco mid-market self-serve para PYME y agencias, donde casi nadie ataca UX/CRO directamente (el competidor más alineado es Uxia, con free + custom).
+
+### Estructura: setup + suscripción recurrente + oferta «land»
+
+Modelo híbrido (tiers públicos + custom enterprise), que logra ~30% más de ACV y retiene mejor (churn recurrente 1,6 %/mes vs 4,2 % por proyecto):
+
+- **Setup de calibración** (one-time): montar la instancia, cargar el VoC y las personas del cliente y aplicar su marca. Es trabajo real de onboarding: ancla valor desde el minuto cero, filtra clientes no serios y sube el switching cost.
+- **Suscripción mensual por instancia dedicada**: el grueso del MRR. La instancia single-tenant (aislamiento de datos, marca del cliente) justifica de forma natural el escalón premium.
+- **Oferta «land»**: un test puntual de bajo compromiso (una campaña o una auditoría 5s) que convierte a suscripción.
+
+### Tiers recomendados (EUR, mercado España/EU)
+
+Los nombres mapean 1:1 con la configuración técnica de la sección 3 (budget de key, módulos). El COGS es el peor caso (infra ~12 € + budget de API completo del tier); el margen es bruto.
+
+| Tier | Precio/mes | Setup | Incluye | Cliente objetivo | COGS/mes | Margen |
+|---|---|---|---|---|---|---|
+| **Starter** | 290 € | 1.200 € | Módulos básicos (5s, copy, pricing), API ~10 $/mes, marca SUAAS | PYME pequeña (<1 M facturación) | ~21 € | ~93 % |
+| **Pro** (objetivo) | 790 € | 1.800 € | Todos los módulos (campañas, GEO, Momentum), marca del cliente, API ~30 $/mes | PYME media / empresa mediana (1-5 M) | ~40 € | ~95 % |
+| **Agency** | 1.900 € | 2.500 € | Todo + sin límite diario, calibración VoC profunda, SLA y soporte prioritario | Empresa mediana grande (>5 M) | ~100 € | ~95 % |
+| **Enterprise** | a medida (>2.900 €) | a medida | Multi-marca, integraciones, formación, varias instancias | Grandes cuentas / grupos | variable | alto |
+
+- **Land (puntual)**: 490-790 € por un test único (una campaña o auditoría), descontable de la primera mensualidad si convierte.
+- **Descuento anual**: 2 meses gratis (~17 %) en pago anual por adelantado. Mensual sin compromiso para el SMB (baja la barrera de entrada); anual para asegurar MRR y reducir churn.
+
+El tier **Pro es el objetivo**: está dentro del presupuesto de servicio de una PYME media (donde el decisor aprueba sin comité si el ROI es claro), a ~50-60 % por debajo del ancla Agency, y cuesta menos que un único estudio real al trimestre.
+
+### Argumento de venta (ROI)
+
+«Un solo test de UX/CRO moderado cuesta 4.000-10.000 € y tarda 2-4 semanas solo en reclutar participantes. El tier Pro (790 €/mes) cuesta menos que un único estudio al trimestre y entrega resultados en minutos. Si evita una sola iteración de diseño equivocada o sube la conversión un 1 %, el retorno es inmediato.» Enmarcar el precio como inversión con retorno, no como gasto, y reforzar que cada tier desbloquea 2-3x el valor del anterior.
+
+### Honestidad metodológica (protege la reputación de Flat101)
+
+El patrón 2026 es **sintético para el 80 % inicial** (iteración rápida, message testing, descartar conceptos, generar hipótesis) y reservar el research humano caro para el **20 % final** (decisión go/no-go, insight emocional, edge cases). Vender SUAAS como complemento que acelera y abarata el grueso del research, no como sustituto total, es lo que hacen los players serios (Synthetic Users, Outset) y lo que sostiene la credibilidad de una agencia de CRO. La base teórica de fidelidad está en `CONOCIMIENTO-USUARIOS-SINTETICOS.md`.
+
+### Por qué funciona el margen
+
+Con producto propio y coste marginal casi nulo, el budget de la API key es el corte duro que protege el margen: un cliente nunca puede consumir más que su plan (el gateway corta con un 429). El COGS por instancia no supera nunca infra + budget del tier, así que los márgenes del 93-95 % de la tabla son reales, no optimistas. La palanca de crecimiento es la **expansión** (subir de tier al crecer el uso, módulos premium), no competir por precio: la especialización vertical de Flat101 en CRO/UX permite primas del 35-40 % sobre un reseller genérico.
+
+## 6. Plan de mantenimiento
 
 ### Por release (cada cambio)
 
@@ -141,11 +198,17 @@ El gasto exacto por cliente sale del dashboard del AI Gateway (gasto por API key
 
 ~2-4 h/mes de base (releases + revisiones) más ~0,5-1 h/mes por instancia. Con 5 clientes: 5-8 h/mes una vez scriptados aprovisionamiento y migraciones. Onboarding de cliente nuevo: 1-2 h a mano, 15-30 min scriptado.
 
-## 6. Cuándo saltar a multi-tenant
+## 7. Cuándo saltar a multi-tenant
 
 Reevaluar la opción B cuando se cumpla alguna: más de 5-8 clientes activos, necesidad de alta self-service (registro sin intervención), o el coste de Supabase por instancia (10 $ × N) supere el coste del refactor. Los feature flags por env del punto 3 migran tal cual a una tabla `plans`.
 
-## Fuentes de precios (verificadas 2026-06-11)
+## Fuentes (verificadas 2026-06-11)
 
+Infraestructura:
 - supabase.com/pricing y docs de billing/compute (org Pro 25 $, Micro 0,01344 $/h ≈ 10 $/mes, ejemplo oficial: org con 2 Micro = 35 $/mes).
 - vercel.com/pricing y docs de functions/usage, domains y AI Gateway (Pro 20 $/seat con 20 $ de crédito, Active CPU 0,128 $/h y memoria 0,0106 $/GB·h en iad1, wildcard en Pro, Custom Reporting por api_key_name).
+
+Precios de mercado y estrategia (investigación multiagente 2026-06-11):
+- Usuarios sintéticos: syntheticusers.com, yabble.com/pricing, outset.ai/pricing, listenlabs.ai, delve.ai, aaru.com, uxia.app.
+- Testing UX/CRO tradicional y coste de research: usertesting.com/plans, maze.co/pricing, lyssna.com/pricing, userinterviews.com/pricing, respondent.io/pricing, cleverx.com (coste de research por método 2026), nngroup.com.
+- Estrategia de pricing y mercado España/EU: almcorp.com (white-label), getmonetizely.com (value-based, anclaje, 3 tiers), vwo.com (pricing CRO), laayudadigital.com y cajasiete.com (presupuestos PYME España).
