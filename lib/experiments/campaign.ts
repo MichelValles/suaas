@@ -176,6 +176,9 @@ export type CampaignResponse = {
   comprehension_rate: number | null;
   /** Conducta predicha del Gravity Model. Null en filas anteriores a v0.39.1. */
   behavior_class: "optima" | "fuga" | "repesca" | null;
+  /** Combinación RSA muestreada que vio el perfil. Null en filas anteriores a v0.40.0 o canales sin muestreo. */
+  shown_headlines: string[] | null;
+  shown_descriptions: string[] | null;
   clarity: number;
   credibility: number;
   differentiation: number;
@@ -190,6 +193,16 @@ export type CampaignResponse = {
 };
 
 export type BehaviorCounts = { optima: number; fuga: number; repesca: number };
+
+export type AssetPerformance = {
+  asset: string;
+  kind: "headline" | "description";
+  /** Respuestas en las que el asset estuvo presente en la combinación mostrada. */
+  n: number;
+  mean_intent: number;
+  /** Diferencia frente al intent medio del run: positivo = el asset tira hacia arriba. */
+  delta_vs_run: number;
+};
 
 export type CampaignByQuery = {
   query: string;
@@ -235,6 +248,8 @@ export type CampaignSummary = {
   top_barriers: { label: string; count: number }[];
   /** Conducta predicha del Gravity Model. Solo cuenta filas con clase (las anteriores a v0.39.1 no la traen). */
   behavior_counts: BehaviorCounts;
+  /** Rendimiento por asset (solo runs con muestreo de combinaciones, v0.40+). Ordenado por intent medio desc. */
+  byAsset: AssetPerformance[];
   /**
    * Check de consistencia interna: respuestas cuya clase contradice su
    * intent («fuga» con intent ≥ 0,5 o «optima» con intent < 0,3).
@@ -246,7 +261,74 @@ export type CampaignSummary = {
 // 1) Snippet eval (multimodal con creatividades si hay)
 // ============================================================
 
-function renderSnippetText(campaign: Campaign, channel: Channel): string {
+/** Combinación RSA concreta mostrada a un perfil bajo una query. */
+export type ShownCombination = {
+  headlines: string[];
+  descriptions: string[];
+};
+
+/** Hash FNV-1a de 32 bits: semilla estable a partir de un string. */
+function hashSeed(s: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < s.length; i += 1) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+/** mulberry32: RNG determinista pequeño y suficiente para muestreo. */
+function mulberry32(seed: number): () => number {
+  let a = seed;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** Fisher-Yates parcial determinista: n elementos sin repetición. */
+function pickN<T>(items: T[], n: number, rng: () => number): T[] {
+  const pool = [...items];
+  const out: T[] = [];
+  while (out.length < n && pool.length > 0) {
+    const i = Math.floor(rng() * pool.length);
+    out.push(pool.splice(i, 1)[0]);
+  }
+  return out;
+}
+
+/**
+ * Muestrea la combinación RSA que ve un perfil bajo una query: 3 titulares
+ * y 2 descripciones, como un anuncio responsive real (nadie ve los 15
+ * titulares a la vez). Determinista por profileId + query: el mismo perfil
+ * ve la misma combinación al repetir el run con la misma muestra, lo que
+ * mantiene comparables las iteraciones. La exposición de assets queda
+ * equilibrada en expectativa (selección uniforme sin repetición).
+ */
+export function sampleRsaCombination(
+  campaign: Campaign,
+  profileId: string,
+  query: string,
+): ShownCombination {
+  const rng = mulberry32(hashSeed(`${profileId}|${query}`));
+  return {
+    headlines: pickN(campaign.headlines, Math.min(3, campaign.headlines.length), rng),
+    descriptions: pickN(
+      campaign.descriptions,
+      Math.min(2, campaign.descriptions.length),
+      rng,
+    ),
+  };
+}
+
+function renderSnippetText(
+  campaign: Campaign,
+  channel: Channel,
+  shown: ShownCombination | null,
+): string {
   // Display Ads tienen render propio (banner con titular largo + CTA) que no
   // depende del canal externo (siempre se ve dentro de Google Display Network).
   if (campaign.strategy === "display") {
@@ -263,22 +345,27 @@ function renderSnippetText(campaign: Campaign, channel: Channel): string {
       return renderFeedSnippet(campaign, "X (Twitter)");
     case "google":
     default:
-      return renderSearchSnippet(campaign);
+      return renderSearchSnippet(campaign, shown);
   }
 }
 
-function renderSearchSnippet(campaign: Campaign): string {
+function renderSearchSnippet(
+  campaign: Campaign,
+  shown: ShownCombination | null,
+): string {
+  // Desde v0.40.0 el persona ve UNA combinación muestreada (validez
+  // ecológica: así sirve Google un RSA), no el inventario completo.
+  const headlines = shown?.headlines ?? campaign.headlines;
+  const descriptions = shown?.descriptions ?? campaign.descriptions;
   const lines: string[] = [];
-  lines.push("Ves esta cabecera de resultado de búsqueda patrocinado:");
+  lines.push("Ves este resultado de búsqueda patrocinado:");
   lines.push("");
   lines.push("---");
   lines.push(`URL visible: ${displayUrl(campaign.final_url)}`);
   lines.push("");
-  lines.push("Titulares (uno será el principal según el algoritmo):");
-  for (const h of campaign.headlines) lines.push(`- ${h}`);
+  lines.push(`Titular: ${headlines.join(" | ")}`);
   lines.push("");
-  lines.push("Descripciones:");
-  for (const d of campaign.descriptions) lines.push(`- ${d}`);
+  lines.push(`Descripción: ${descriptions.join(" ")}`);
   lines.push("---");
   return lines.join("\n");
 }
@@ -405,6 +492,7 @@ async function probeCampaignSnippet(
   channel: Channel,
   query: string,
   imageCache: ImageCache,
+  shown: ShownCombination | null,
 ): Promise<{ output: SnippetEval; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
 
@@ -421,7 +509,7 @@ async function probeCampaignSnippet(
       text: [
         framingByChannel(channel, query, campaign),
         "",
-        renderSnippetText(campaign, channel),
+        renderSnippetText(campaign, channel, shown),
       ]
         .filter(Boolean)
         .join("\n"),
@@ -1046,12 +1134,19 @@ async function processCombo(
   imageCache: ImageCache,
 ): Promise<void> {
   const supa = getServerClient();
+  // Search en Google: el persona ve UNA combinación RSA muestreada
+  // (determinista por perfil + query). El resto de renders no cambian.
+  const shown =
+    campaign.strategy === "search" && channel === "google"
+      ? sampleRsaCombination(campaign, profile.id, query)
+      : null;
   const snippet = await probeCampaignSnippet(
     profile,
     campaign,
     channel,
     query,
     imageCache,
+    shown,
   );
   await recordUsage({
     runId,
@@ -1172,16 +1267,20 @@ async function processCombo(
         ...record,
         comprehension_rate: comprehensionRate,
         behavior_class: snippet.output.behavior_class,
+        shown_headlines: shown?.headlines ?? null,
+        shown_descriptions: shown?.descriptions ?? null,
         meta,
       },
       onConflict,
     );
-  // 0019 pendiente: comprehension_rate y behavior_class faltan juntas
-  // (misma migración); los valores viajan en meta y listCampaignResponses
-  // los lee de ahí.
+  // 0019 pendiente: comprehension_rate, behavior_class y shown_* faltan
+  // juntas (misma migración); los valores viajan en meta y
+  // listCampaignResponses los lee de ahí.
   if (
     isMissingColumnError(error, "comprehension_rate") ||
-    isMissingColumnError(error, "behavior_class")
+    isMissingColumnError(error, "behavior_class") ||
+    isMissingColumnError(error, "shown_headlines") ||
+    isMissingColumnError(error, "shown_descriptions")
   ) {
     ({ error } = await supa
       .from("campaign_responses")
@@ -1192,6 +1291,8 @@ async function processCombo(
             ...meta,
             comprehension_rate: comprehensionRate,
             behavior_class: snippet.output.behavior_class,
+            shown_headlines: shown?.headlines ?? null,
+            shown_descriptions: shown?.descriptions ?? null,
           },
         },
         onConflict,
@@ -1233,6 +1334,13 @@ export async function listCampaignResponses(
           : null,
     behavior_class: parseBehaviorClass(
       r.behavior_class ?? (r.meta as Record<string, unknown> | null)?.behavior_class,
+    ),
+    shown_headlines: parseStringArray(
+      r.shown_headlines ?? (r.meta as Record<string, unknown> | null)?.shown_headlines,
+    ),
+    shown_descriptions: parseStringArray(
+      r.shown_descriptions ??
+        (r.meta as Record<string, unknown> | null)?.shown_descriptions,
     ),
     clarity: Number(r.clarity),
     credibility: Number(r.credibility),
@@ -1280,6 +1388,7 @@ function summarize(
       byChannel: campaign.channels.map((c) => emptyByChannel(c)),
       top_barriers: [],
       behavior_counts: { optima: 0, fuga: 0, repesca: 0 },
+      byAsset: [],
       behavior_inconsistencies: 0,
     };
   }
@@ -1339,12 +1448,46 @@ function summarize(
     byChannel,
     top_barriers: topBarriers(rs),
     behavior_counts: behaviorCounts(rs),
+    byAsset: assetPerformance(campaign, rs, meanIntent),
     behavior_inconsistencies: rs.filter(
       (r) =>
         (r.behavior_class === "fuga" && r.intent_to_click >= LANDING_THRESHOLD) ||
         (r.behavior_class === "optima" && r.intent_to_click < 0.3),
     ).length,
   };
+}
+
+/**
+ * Rendimiento por asset: para cada titular y descripción de la campaña,
+ * intent medio de las respuestas donde el asset estuvo en la combinación
+ * mostrada y delta frente a la media del run. Vacío si el run no tiene
+ * muestreo (anterior a v0.40.0).
+ */
+function assetPerformance(
+  campaign: Campaign,
+  rs: CampaignResponse[],
+  runMeanIntent: number,
+): AssetPerformance[] {
+  const sampled = rs.filter((r) => r.shown_headlines !== null);
+  if (sampled.length === 0) return [];
+  const out: AssetPerformance[] = [];
+  const measure = (asset: string, kind: "headline" | "description") => {
+    const subset = sampled.filter((r) =>
+      (kind === "headline" ? r.shown_headlines : r.shown_descriptions)?.includes(asset),
+    );
+    if (subset.length === 0) return;
+    const mean = avg(subset.map((r) => r.intent_to_click));
+    out.push({
+      asset,
+      kind,
+      n: subset.length,
+      mean_intent: mean,
+      delta_vs_run: mean - runMeanIntent,
+    });
+  };
+  for (const h of campaign.headlines) measure(h, "headline");
+  for (const d of campaign.descriptions) measure(d, "description");
+  return out.sort((a, b) => b.mean_intent - a.mean_intent);
 }
 
 function behaviorCounts(rs: CampaignResponse[]): BehaviorCounts {
@@ -1403,6 +1546,12 @@ function parseBehaviorClass(
   v: unknown,
 ): "optima" | "fuga" | "repesca" | null {
   return v === "optima" || v === "fuga" || v === "repesca" ? v : null;
+}
+
+function parseStringArray(v: unknown): string[] | null {
+  return Array.isArray(v) && v.every((x) => typeof x === "string")
+    ? (v as string[])
+    : null;
 }
 
 function avg(xs: number[]): number {

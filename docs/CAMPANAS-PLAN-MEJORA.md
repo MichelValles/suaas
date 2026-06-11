@@ -134,7 +134,7 @@ Nueva ruta GET `app/api/export/campaign/[runId]/route.ts` (runtime nodejs, mismo
 
 **Por qué**: los equipos de marketing deciden en sheets y suben cambios con Ads Editor; las versiones ideales (hasta 100 propuestas de copy por run, el output más accionable) hoy viven encerradas en la UI. Convierte el run en entregable de consultoría sin migración ni JS cliente.
 
-### Muestreo de combinaciones RSA reales y ranking por asset · L · necesita SQL
+### Muestreo de combinaciones RSA reales y ranking por asset · L · necesita SQL · ✅ hecho en v0.40.0 (SQL agrupado en la 0019; fallback a meta mientras esté pendiente)
 
 En `lib/experiments/campaign.ts`, `renderSearchSnippet` pasa de volcar los 15 titulares y 4 descripciones (líneas 172-186) a muestrear una combinación realista (3 titulares + 2 descripciones) con RNG determinista sembrado por `profileId`+query (reproducible entre runs para comparar iteraciones con la misma muestra) y rotación round-robin para exposición equilibrada de assets; Display mantiene su render actual. Migración manual: `alter table campaign_responses add column if not exists shown_headlines text[], shown_descriptions text[]` (fallback en `meta` mientras esté pendiente). En summarize: bloque `byAsset` con n, intent medio y delta frente a la media del run por titular y por descripción, filtrando filas donde el asset estuvo presente. Sección «Rendimiento por asset» en resultados ordenada por intent con aviso de muestra insuficiente cuando n < 5. Documentar en `docs/PROYECTO.md` el cambio de semántica (las respuestas pasan a evaluar una combinación, no el conjunto).
 

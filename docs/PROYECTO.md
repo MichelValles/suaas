@@ -402,20 +402,22 @@ YouTube extrae `youtube_id` del URL con regex (`extractYouTubeId`) y guarda el t
 
 ### Runner (`lib/experiments/campaign.ts`)
 
-`runCampaignTest({ campaignId, profileIds })`:
+Arquitectura en dos fases desde v0.38.0: `prepareCampaignRun`/`prepareCampaignResume` (validación + creación o rehidratación del run, dentro del request) y `executeCampaignRun` (procesado en `after()` del route handler). `runCampaignTest` queda como wrapper síncrono para el sembrador.
 
 1. Carga campaña y perfiles. Valida: `search` exige queries, `channels` no vacío, `≤20` perfiles.
-2. Para estrategias sin queries (Display sin intereses), usa placeholder `"(contexto general)"`.
-3. **Cap combinacional**: `profiles × channels × queries ≤ 200`. Si excede, error claro.
-4. Crea `runs` con `kind="campaign"`.
-5. Itera `profile × channel × query` (en serie por perfil, paralelo entre perfiles en chunks de 4):
-   - `probeCampaignSnippet`: Reasoner multimodal. Render del snippet depende de strategy (`renderSearchSnippet`, `renderDisplaySnippet`) y framing por channel. Adjunta creatividades como imágenes (las video sólo si tienen `thumbnail_url`).
+2. Para estrategias sin queries (Display sin intereses), usa placeholder `GENERAL_CONTEXT_QUERY`.
+3. **Cap combinacional**: `profiles × channels × queries ≤ 200` (también validado en cliente desde v0.38.1).
+4. Crea `runs` con `kind="campaign"` y responde al instante; la página de resultados muestra el progreso con polling.
+5. Cola aplanada `profile × channel × query` con worker pool de 5, 1 reintento por combinación y deadline interno a 270s. Por combinación:
+   - **Muestreo RSA (v0.40)**: en Search/Google el persona ve UNA combinación muestreada (3 titulares + 2 descripciones) con RNG determinista por `profileId + query` (`sampleRsaCombination`), no el inventario completo: cada respuesta evalúa una combinación, no el conjunto. La combinación se persiste en `shown_headlines`/`shown_descriptions`. Los runs anteriores a v0.40 no son comparables con los posteriores.
+   - `probeCampaignSnippet`: Reasoner multimodal. Render del snippet depende de strategy (`renderSearchSnippet` con la combinación muestreada, `renderDisplaySnippet`) y framing por channel. Adjunta creatividades como imágenes (las video sólo si tienen `thumbnail_url`). El brief del anunciante NO se inyecta al persona (v0.35.0).
    - Si `intent_to_click >= 0.5` (LANDING_THRESHOLD): `judgeLandingMatch` (Reasoner multimodal con landing image).
+   - Si la campaña define `intended_message`: `judgeAdComprehension` (juez neutral sin persona, v0.39.0).
    - `proposeIdealVersion`: Sonnet, propuesta del perfil con misma estructura RSA + texto libre opcional.
-6. Persiste cada respuesta en `campaign_responses` con `onConflict: "run_id,profile_id,query,channel"`.
-7. Summary: globales + `byChannel` (si hay >1) + `byQuery` + top barreras.
+6. Persiste cada respuesta en `campaign_responses` con `onConflict: "run_id,profile_id,query,channel"` (idempotente: la reanudación con `resumeRunId` salta lo ya persistido).
+7. Cierre garantizado: summary (globales + `byChannel` + `byQuery` + top barreras + `behavior_counts` + `byAsset`) sobre TODO lo persistido, métricas `n_failed`/`n_skipped_deadline` y síntesis «Qué cambiar» (`synthesizeRecommendations`, persistida en `runs.params.recommendations`).
 
-Telemetría: `gateway_usage` con scopes `campaign_probe`, `campaign_landing`, `campaign_ideal`.
+Telemetría: `gateway_usage` con scopes `campaign_probe`, `campaign_landing`, `campaign_ideal`, `campaign_judge`, `campaign_synthesis`.
 
 ### Defensa frente a migraciones pendientes
 

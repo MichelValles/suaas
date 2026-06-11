@@ -410,6 +410,76 @@ export default async function CampaignRunPage({
         </section>
       )}
 
+      {/* Rendimiento por asset (solo runs con muestreo de combinaciones, v0.40+) */}
+      {summary.byAsset.length > 0 && (
+        <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionLabel>Rendimiento por asset</SectionLabel>
+          <p
+            style={{
+              color: "rgba(var(--fg),0.6)",
+              fontSize: 13,
+              lineHeight: 1.6,
+              margin: 0,
+              maxWidth: 720,
+            }}
+          >
+            Intent medio de las respuestas en cuya combinación apareció cada titular o
+            descripción, frente a la media del run. Con n bajo la señal es ruido: las filas
+            con menos de 5 apariciones se muestran atenuadas.
+          </p>
+          <div style={{ overflowX: "auto" }}>
+            <table style={tableStyle}>
+              <thead>
+                <tr>
+                  <Th>Asset</Th>
+                  <Th>Tipo</Th>
+                  <Th>N</Th>
+                  <Th>Intent medio</Th>
+                  <Th>Δ vs run</Th>
+                </tr>
+              </thead>
+              <tbody>
+                {summary.byAsset.map((a) => (
+                  <tr
+                    key={`${a.kind}-${a.asset}`}
+                    style={{
+                      borderTop: "1px solid rgba(var(--fg),0.06)",
+                      opacity: a.n < 5 ? 0.45 : 1,
+                    }}
+                  >
+                    <Td>
+                      <span style={{ fontSize: 13, whiteSpace: "normal" }}>{a.asset}</span>
+                    </Td>
+                    <Td>
+                      <span className="mono" style={{ fontSize: 11, color: "rgba(var(--fg),0.55)" }}>
+                        {a.kind === "headline" ? "Titular" : "Descripción"}
+                      </span>
+                    </Td>
+                    <Td>{a.n}</Td>
+                    <Td>{fmtPct(a.mean_intent)}</Td>
+                    <Td>
+                      <span
+                        style={{
+                          color:
+                            a.delta_vs_run > 0.005
+                              ? "var(--success-text)"
+                              : a.delta_vs_run < -0.005
+                                ? "var(--error-text)"
+                                : "rgba(var(--fg),0.55)",
+                        }}
+                      >
+                        {a.delta_vs_run > 0 ? "+" : ""}
+                        {Math.round(a.delta_vs_run * 100)}
+                      </span>
+                    </Td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
+
       {/* Top barriers global */}
       {summary.top_barriers.length > 0 && (
         <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
