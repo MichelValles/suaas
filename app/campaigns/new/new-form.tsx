@@ -7,18 +7,31 @@ import { ChannelIcon } from "@/components/channel-icon";
 import { StrategyIcon } from "@/components/strategy-icon";
 import {
   CHANNEL_LABEL,
+  CHANNEL_STRATEGIES,
   CHANNEL_VALUES,
   CREATIVE_ROLE_LABEL,
   CTA_VALUES,
+  DEFAULT_STRATEGY_BY_CHANNEL,
+  META_CTA_VALUES,
+  META_LIMITS,
+  META_OBJECTIVE_DESCRIPTION,
+  META_OBJECTIVE_LABEL,
+  META_OBJECTIVE_VALUES,
+  META_PLACEMENT_LABEL,
+  META_PLACEMENT_STRATEGIES,
+  META_PLACEMENT_VALUES,
   STRATEGY_DESCRIPTION,
   STRATEGY_LABEL,
-  STRATEGY_VALUES,
   extractYouTubeId,
+  isMetaStrategy,
   isStrategyImplemented,
+  isVerticalPlacement,
   youtubeThumbnail,
   type Campaign as CampaignEntity,
   type Channel,
   type CreativeRole,
+  type MetaObjective,
+  type MetaPlacement,
   type Strategy,
 } from "@/lib/campaigns";
 import {
@@ -38,6 +51,8 @@ type Creative = {
   label: string;
   youtube_id: string | null;
   thumbnail_url: string | null;
+  card_headline: string;
+  card_description: string;
 };
 const emptyCreative = (
   kind: CreativeKind = "image",
@@ -50,6 +65,8 @@ const emptyCreative = (
   label: "",
   youtube_id: null,
   thumbnail_url: null,
+  card_headline: "",
+  card_description: "",
 });
 
 const HEADLINE_MAX = 30;
@@ -117,12 +134,30 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             label: c.label ?? "",
             youtube_id: c.youtube_id ?? null,
             thumbnail_url: c.thumbnail_url ?? null,
+            card_headline: c.card_headline ?? "",
+            card_description: c.card_description ?? "",
           }))
       : [],
   );
   const [companyName, setCompanyName] = useState(src?.company_name ?? "");
   const [longHeadline, setLongHeadline] = useState(src?.long_headline ?? "");
   const [cta, setCta] = useState<string>(src?.cta ?? "");
+  // Meta: objetivo ODAX, placement de simulación, textos principales y
+  // enlace visible (channel_spec).
+  const [metaObjective, setMetaObjective] = useState<MetaObjective>(
+    src?.channel_spec?.objective ?? "traffic",
+  );
+  const [metaPlacement, setMetaPlacement] = useState<MetaPlacement>(
+    src?.channel_spec?.placement ?? "instagram_feed",
+  );
+  const [primaryTexts, setPrimaryTexts] = useState<string[]>(
+    src?.channel_spec?.primary_texts?.length
+      ? src.channel_spec.primary_texts
+      : [""],
+  );
+  const [displayLink, setDisplayLink] = useState(
+    src?.channel_spec?.display_link ?? "",
+  );
   // Producto (solo shopping): espejo de los atributos obligatorios del feed.
   const [productId, setProductId] = useState(src?.product?.id ?? "");
   const [productTitle, setProductTitle] = useState(src?.product?.title ?? "");
@@ -140,6 +175,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
     src?.product?.condition ?? "",
   );
 
+  const isMeta = isMetaStrategy(strategy);
   // Estrategias con el set de assets visual (CTA de lista y preview de
   // banner): Display, Performance Max y Demand Gen.
   const assetStrategy =
@@ -152,16 +188,25 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
   // del subformato vídeo, aún no modelado.
   const usesLongHeadline =
     strategy === "display" || strategy === "pmax" || strategy === "video";
-  // Demand Gen admite titulares de 40 caracteres; el resto, 30.
-  const headlineMax = strategy === "demand_gen" ? 40 : HEADLINE_MAX;
+  // Demand Gen admite titulares de 40 caracteres; el resto de Google, 30.
+  // En Meta el cap duro es el técnico de la API (255c) y los ~40 visibles
+  // se avisan sin bloquear.
+  const headlineMax = isMeta
+    ? META_LIMITS.headline.max
+    : strategy === "demand_gen"
+      ? 40
+      : HEADLINE_MAX;
   const headlinesCap =
     strategy === "video"
       ? 1
-      : strategy === "display" || strategy === "demand_gen"
+      : strategy === "display" || strategy === "demand_gen" || isMeta
         ? 5
         : 15;
   const descriptionsCap =
-    strategy === "video" ? 1 : assetStrategy ? 5 : 4;
+    strategy === "video" ? 1 : assetStrategy || isMeta ? 5 : 4;
+  // Formatos que admite el placement de Meta elegido (matriz oficial).
+  const placementAllows = META_PLACEMENT_STRATEGIES[metaPlacement];
+  const metaVertical = isVerticalPlacement(metaPlacement);
 
   // Cuando el usuario cambia la URL final, invalidamos la imagen resuelta para
   // que vuelva a pulsar el botón explícitamente. Evita previews stale. Se
@@ -207,7 +252,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
 
   // ============ descriptions ============
   function addDescription() {
-    if (descriptions.length >= 4) return;
+    if (descriptions.length >= descriptionsCap) return;
     setDescriptions([...descriptions, ""]);
   }
   function removeDescription(i: number) {
@@ -215,10 +260,21 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
     setDescriptions(descriptions.filter((_, idx) => idx !== i));
   }
 
+  // ============ primary texts (Meta) ============
+  function addPrimaryText() {
+    if (primaryTexts.length >= META_LIMITS.variants) return;
+    setPrimaryTexts([...primaryTexts, ""]);
+  }
+  function removePrimaryText(i: number) {
+    if (primaryTexts.length <= 1) return;
+    setPrimaryTexts(primaryTexts.filter((_, idx) => idx !== i));
+  }
+
   // ============ creatives ============
-  function addCreative(kind: CreativeKind = "image") {
-    if (creatives.length >= 6) return;
-    setCreatives([...creatives, emptyCreative(kind)]);
+  function addCreative(kind: CreativeKind = "image", role: CreativeRole = "generic") {
+    const cap = strategy === "meta_carousel" || strategy === "meta_collection" ? 12 : 6;
+    if (creatives.length >= cap) return;
+    setCreatives([...creatives, emptyCreative(kind, role)]);
   }
   function removeCreative(i: number) {
     setCreatives(creatives.filter((_, idx) => idx !== i));
@@ -298,6 +354,14 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
     strategy,
     brief: brief.trim() || null,
     intended_message: intendedMessage.trim() || null,
+    channel_spec: isMeta
+      ? {
+          objective: metaObjective,
+          placement: metaPlacement,
+          primary_texts: primaryTexts.map((t) => t.trim()).filter(Boolean),
+          display_link: displayLink.trim() || null,
+        }
+      : null,
     product:
       strategy === "shopping"
         ? {
@@ -508,7 +572,16 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             >
               ¿En qué red simulamos el anuncio?
             </span>
-            <ChannelTabs value={channel} onChange={setChannel} />
+            <ChannelTabs
+              value={channel}
+              onChange={(c) => {
+                setChannel(c);
+                const allowed = CHANNEL_STRATEGIES[c];
+                if (!allowed.includes(strategy)) {
+                  setStrategy(DEFAULT_STRATEGY_BY_CHANNEL[c] ?? allowed[0] ?? "search");
+                }
+              }}
+            />
             <p
               style={{
                 color: "rgba(var(--fg),0.55)",
@@ -518,9 +591,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               }}
             >
               Cada red tiene formato propio (caps de caracteres, creatividades,
-              targeting). Por ahora sólo Google Ads está implementado. Meta,
-              LinkedIn, TikTok y X llegarán como módulos específicos en futuras
-              versiones.
+              targeting). Google Ads y Meta Ads están implementados con sus
+              campos y límites reales. LinkedIn, TikTok y X llegarán como
+              módulos específicos en futuras versiones.
             </p>
           </div>
         </Section>
@@ -536,9 +609,11 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 color: "rgba(var(--fg),0.55)",
               }}
             >
-              Tipo de campaña dentro de {CHANNEL_LABEL[channel].split(" ")[0]}
+              {channel === "meta"
+                ? "Formato del anuncio en Meta"
+                : `Tipo de campaña dentro de ${CHANNEL_LABEL[channel].split(" ")[0]}`}
             </span>
-            <StrategyTabs value={strategy} onChange={setStrategy} />
+            <StrategyTabs channel={channel} value={strategy} onChange={setStrategy} />
             <p
               style={{
                 color: "rgba(var(--fg),0.55)",
@@ -558,22 +633,108 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
 
         {isStrategyImplemented(strategy) && (
         <>
-        {showsBusinessAssets && (
-          <Section title="Identidad de marca">
+        {isMeta && (
+          <Section title="Configuración de Meta">
+            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label>Objetivo de la campaña (ODAX)</Label>
+              <select
+                value={metaObjective}
+                onChange={(e) => setMetaObjective(e.currentTarget.value as MetaObjective)}
+                style={inputStyle}
+              >
+                {META_OBJECTIVE_VALUES.map((o) => (
+                  <option key={o} value={o}>
+                    {META_OBJECTIVE_LABEL[o]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              {META_OBJECTIVE_DESCRIPTION[metaObjective]}
+            </p>
+            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label>Placement de simulación (dónde lo ve el perfil)</Label>
+              <select
+                value={metaPlacement}
+                onChange={(e) => setMetaPlacement(e.currentTarget.value as MetaPlacement)}
+                style={inputStyle}
+              >
+                {META_PLACEMENT_VALUES.map((p) => {
+                  const allowed = META_PLACEMENT_STRATEGIES[p].includes(strategy);
+                  return (
+                    <option key={p} value={p} disabled={!allowed}>
+                      {META_PLACEMENT_LABEL[p]}
+                      {allowed ? "" : " · no admite este formato"}
+                    </option>
+                  );
+                })}
+              </select>
+            </label>
+            {!placementAllows.includes(strategy) && (
+              <p
+                style={{
+                  color: "var(--error-text)",
+                  fontSize: 12,
+                  lineHeight: 1.55,
+                  margin: 0,
+                }}
+              >
+                {META_PLACEMENT_LABEL[metaPlacement]} no admite el formato{" "}
+                {STRATEGY_LABEL[strategy]} (matriz oficial de placements). Elige
+                otro placement o cambia el formato.
+              </p>
+            )}
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              En la cuenta real activarías Advantage+ placements (todas las
+              ubicaciones). Aquí eliges UNA para simularla con fidelidad: el
+              contexto, los campos visibles y el truncado del copy cambian por
+              placement. Para testear otra ubicación, duplica la campaña.
+            </p>
+          </Section>
+        )}
+
+        {(showsBusinessAssets || isMeta) && (
+          <Section title={isMeta ? "Identidad y enlace" : "Identidad de marca"}>
             <CharCountedInput
-              label="Nombre de empresa (visible en el anuncio)"
+              label={
+                isMeta
+                  ? "Nombre de la página de Facebook (identidad del anuncio)"
+                  : "Nombre de empresa (visible en el anuncio)"
+              }
               value={companyName}
               onChange={setCompanyName}
-              max={25}
+              max={isMeta ? META_LIMITS.page_name.max : 25}
               required
-              placeholder="BBVA"
+              placeholder={isMeta ? "BBVA España" : "BBVA"}
             />
+            {isMeta && (
+              <Controlled
+                label="Enlace visible (display link, opcional; si no, se muestra el dominio de la URL final)"
+                value={displayLink}
+                onChange={setDisplayLink}
+                placeholder="miweb.com/hipotecas"
+              />
+            )}
           </Section>
         )}
 
         <Section
           title={
-            strategy === "display"
+            strategy === "display" || isMeta
               ? `Intereses / contexto · ${queries.length} / 5 (opcional)`
               : strategy === "pmax"
                 ? `Señales de audiencia · ${queries.length} / 5 (opcional)`
@@ -585,6 +746,20 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           addLabel="+ Añadir"
           canAdd={queries.length < 5}
         >
+          {isMeta && (
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              En Meta no hay búsqueda: estos intereses simulan por qué el
+              algoritmo le enseña el anuncio al perfil (targeting por afinidad).
+              Sin intereses, el perfil lo ve sin contexto previo.
+            </p>
+          )}
           {queries.map((q, i) => (
             <RowWithRemove
               key={i}
@@ -593,7 +768,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             >
               <Controlled
                 label={
-                  assetStrategy ? `Interés / señal ${i + 1}` : `Query ${i + 1}`
+                  assetStrategy || isMeta
+                    ? `Interés / señal ${i + 1}`
+                    : `Query ${i + 1}`
                 }
                 value={q}
                 onChange={(v) => setQueries(updateAt(queries, i, v))}
@@ -601,7 +778,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                   (strategy === "search" || strategy === "shopping") && i === 0
                 }
                 placeholder={
-                  assetStrategy
+                  assetStrategy || isMeta
                     ? "lector de tech, edad 30-45"
                     : "hipoteca fija madrid"
                 }
@@ -609,6 +786,52 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             </RowWithRemove>
           ))}
         </Section>
+
+        {isMeta && (
+          <Section
+            title={`Textos principales · ${primaryTexts.length} / ${META_LIMITS.variants}`}
+            onAdd={addPrimaryText}
+            addLabel="+ Añadir variante"
+            canAdd={primaryTexts.length < META_LIMITS.variants}
+          >
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              El texto principal aparece encima de la creatividad y es el copy
+              central del anuncio en Meta. Cada perfil ve UNA variante (como el
+              flexible ad format real). Máximo técnico 1.024 caracteres, pero el
+              feed corta con «Ver más» hacia los{" "}
+              {strategy === "meta_carousel" ? "80" : "125"}: el contador avisa
+              al pasarlos.
+            </p>
+            {primaryTexts.map((t, i) => (
+              <RowWithRemove
+                key={i}
+                canRemove={primaryTexts.length > 1}
+                onRemove={() => removePrimaryText(i)}
+              >
+                <CharCountedTextarea
+                  label={`Texto principal ${i + 1}${i === 0 ? " · obligatorio" : " · opcional"}`}
+                  value={t}
+                  onChange={(v) => setPrimaryTexts(updateAt(primaryTexts, i, v))}
+                  max={META_LIMITS.primary_text.max}
+                  recommended={
+                    strategy === "meta_carousel"
+                      ? META_LIMITS.primary_text.recommended_carousel
+                      : META_LIMITS.primary_text.recommended
+                  }
+                  required={i === 0}
+                  placeholder="Hipoteca fija sin comisiones de apertura. Respuesta en 48 horas, sin letra pequeña."
+                />
+              </RowWithRemove>
+            ))}
+          </Section>
+        )}
 
         {strategy === "shopping" && (
           <Section title="Producto (feed de Merchant Center)">
@@ -690,7 +913,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           </Section>
         )}
 
-        {strategy !== "shopping" && (
+        {strategy !== "shopping" && strategy !== "meta_carousel" && (
         <Section
           title={
             strategy === "display"
@@ -701,6 +924,24 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           addLabel="+ Añadir titular"
           canAdd={headlines.length < headlinesCap}
         >
+          {isMeta && (
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              El titular aparece junto al botón CTA, bajo la creatividad.
+              {metaVertical
+                ? " En Stories, Reels y Estados NO se muestra: el perfil solo verá el texto principal y la creatividad."
+                : " Visibles ~40 caracteres (27 en Feed de Facebook); el resto se trunca."}
+              {strategy === "meta_single"
+                ? " Cada perfil ve UNA variante muestreada."
+                : ""}
+            </p>
+          )}
           {headlines.map((h, i) => (
             <RowWithRemove
               key={i}
@@ -712,8 +953,11 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 value={h}
                 onChange={(v) => setHeadlines(updateAt(headlines, i, v))}
                 max={headlineMax}
+                recommended={isMeta ? META_LIMITS.headline.recommended : undefined}
                 required={i === 0}
-                placeholder="Hipoteca fija al 2,90% TAE"
+                placeholder={
+                  isMeta ? "Hipoteca fija sin comisiones" : "Hipoteca fija al 2,90% TAE"
+                }
               />
             </RowWithRemove>
           ))}
@@ -737,19 +981,35 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           </Section>
         )}
 
-        {strategy !== "shopping" && (
+        {strategy !== "shopping" &&
+          strategy !== "meta_carousel" &&
+          !(isMeta && metaVertical) && (
         <Section
-          title={`Descripciones · ${descriptions.length} / ${descriptionsCap}`}
+          title={`Descripciones · ${descriptions.length} / ${descriptionsCap}${isMeta ? " (opcional)" : ""}`}
           onAdd={addDescription}
           addLabel="+ Añadir descripción"
           canAdd={descriptions.length < descriptionsCap}
         >
+          {isMeta && (
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              La descripción del enlace solo se muestra en algunos placements
+              (bajo el titular, cuando Meta estima que hay espacio). Visibles
+              ~30 caracteres. Puedes dejarla vacía.
+            </p>
+          )}
           {descriptions.map((d, i) => (
             <RowWithRemove
               key={i}
               canRemove={
                 descriptions.length >
-                (strategy === "display" || strategy === "video" ? 1 : 2)
+                (strategy === "display" || strategy === "video" || isMeta ? 1 : 2)
               }
               onRemove={() => removeDescription(i)}
             >
@@ -757,8 +1017,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 label={`Descripción ${i + 1}`}
                 value={d}
                 onChange={(v) => setDescriptions(updateAt(descriptions, i, v))}
-                max={DESCRIPTION_MAX}
-                required={i === 0 || (strategy === "pmax" && i < 2)}
+                max={isMeta ? META_LIMITS.description.max : DESCRIPTION_MAX}
+                recommended={isMeta ? META_LIMITS.description.recommended : undefined}
+                required={!isMeta && (i === 0 || (strategy === "pmax" && i < 2))}
                 placeholder="Sin comisiones de apertura. Decisión en 48h."
               />
             </RowWithRemove>
@@ -766,7 +1027,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
         </Section>
         )}
 
-        {(assetStrategy || strategy === "video" || strategy === "search") && (
+        {(assetStrategy || strategy === "video" || strategy === "search" || isMeta) && (
           <Section title="CTA">
             {strategy === "video" ? (
               <CharCountedInput
@@ -776,6 +1037,25 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 max={10}
                 placeholder="Ver oferta"
               />
+            ) : isMeta ? (
+              <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <Label>
+                  Botón CTA (lista cerrada de Meta; el botón está siempre presente)
+                </Label>
+                <select
+                  value={cta}
+                  onChange={(e) => setCta(e.currentTarget.value)}
+                  required
+                  style={inputStyle}
+                >
+                  <option value="">elige el botón (obligatorio)</option>
+                  {META_CTA_VALUES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
             ) : (
               <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <Label>Botón Call To Action (visible en el anuncio)</Label>
@@ -804,13 +1084,57 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           title={
             strategy === "display"
               ? `Imágenes y vídeos · ${creatives.length}`
-              : `Creatividades · ${creatives.length} / 6 (opcional)`
+              : strategy === "meta_carousel"
+                ? `Tarjetas · ${creatives.filter((c) => c.role === "card").length} / 10`
+                : strategy === "meta_collection"
+                  ? `Portada y productos · ${creatives.length}`
+                  : strategy === "meta_single"
+                    ? `Creatividad · ${creatives.length}`
+                    : `Creatividades · ${creatives.length} / 6 (opcional)`
           }
-          onAdd={() => addCreative(strategy === "video" ? "youtube" : "image")}
-          addLabel="+ Añadir"
+          onAdd={() =>
+            addCreative(
+              strategy === "video" ? "youtube" : "image",
+              strategy === "meta_carousel"
+                ? "card"
+                : strategy === "meta_collection"
+                  ? creatives.some((c) => c.role === "cover")
+                    ? "card"
+                    : "cover"
+                  : "generic",
+            )
+          }
+          addLabel={strategy === "meta_carousel" ? "+ Añadir tarjeta" : "+ Añadir"}
           canAdd={creatives.length < 20}
         >
-          {strategy === "video" ? (
+          {strategy === "meta_single" ? (
+            <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
+              El anuncio único exige <strong>1 creatividad</strong>: imagen (JPG/PNG) o
+              vídeo con miniatura (el perfil sintético evalúa la miniatura, los
+              modelos no procesan vídeo). Ratio según placement:{" "}
+              {metaVertical
+                ? "9:16 a pantalla completa (deja libre el 14% superior, el 35% inferior y el 6% lateral: ahí va la interfaz)"
+                : "1:1 o 4:5 (recomendado 1440x1800)"}
+              .
+            </p>
+          ) : strategy === "meta_carousel" ? (
+            <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
+              La secuencia lleva <strong>de 2 a 10 tarjetas</strong>, cada una con su
+              imagen 1:1 (mínimo 1080x1080), su titular (45c recomendados) y su
+              descripción opcional (18c).
+              {metaPlacement === "threads_feed"
+                ? " En Threads las tarjetas solo pueden ser imágenes."
+                : " Puedes mezclar imagen y vídeo (con miniatura)."}{" "}
+              El perfil sintético ve las 4 primeras imágenes y la lista completa de titulares.
+            </p>
+          ) : strategy === "meta_collection" ? (
+            <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
+              La colección exige <strong>1 portada</strong> (imagen o vídeo con miniatura,
+              rol «Portada») y <strong>al menos 4 tiles de producto</strong> (rol «Tarjeta»,
+              con el nombre del producto como titular y el precio en la
+              descripción). Las imágenes de producto se recortan a 1:1.
+            </p>
+          ) : strategy === "video" ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
               Video exige <strong>1 vídeo de YouTube</strong> (o subido); duración
               recomendada 10 segundos o más. El perfil sintético evalúa su miniatura
@@ -846,7 +1170,13 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           {creatives.map((c, i) => (
             <fieldset key={i} style={fieldsetStyle}>
               <legend className="mono" style={legendStyle}>
-                Creatividad {i + 1}
+                {strategy === "meta_carousel"
+                  ? `Tarjeta ${i + 1}`
+                  : strategy === "meta_collection"
+                    ? c.role === "cover"
+                      ? "Portada"
+                      : `Producto ${i + 1}`
+                    : `Creatividad ${i + 1}`}
               </legend>
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <button
@@ -864,17 +1194,71 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                   onClick={() => changeCreativeKind(i, "image")}
                   label="Imagen"
                 />
-                <ToggleButton
-                  active={c.kind === "video"}
-                  onClick={() => changeCreativeKind(i, "video")}
-                  label="Vídeo"
-                />
-                <ToggleButton
-                  active={c.kind === "youtube"}
-                  onClick={() => changeCreativeKind(i, "youtube")}
-                  label="YouTube"
-                />
+                {!(isMeta && metaPlacement === "threads_feed" && c.role === "card") && (
+                  <ToggleButton
+                    active={c.kind === "video"}
+                    onClick={() => changeCreativeKind(i, "video")}
+                    label="Vídeo"
+                  />
+                )}
+                {!isMeta && (
+                  <ToggleButton
+                    active={c.kind === "youtube"}
+                    onClick={() => changeCreativeKind(i, "youtube")}
+                    label="YouTube"
+                  />
+                )}
               </div>
+              {strategy === "meta_collection" && (
+                <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <Label>Rol en la colección</Label>
+                  <select
+                    value={c.role === "cover" ? "cover" : "card"}
+                    onChange={(e) =>
+                      patchCreative(i, { role: e.currentTarget.value as CreativeRole })
+                    }
+                    style={inputStyle}
+                  >
+                    <option value="cover">Portada (1 obligatoria)</option>
+                    <option value="card">Tile de producto (mínimo 4)</option>
+                  </select>
+                </label>
+              )}
+              {isMeta && c.role === "card" && (
+                <>
+                  <CharCountedInput
+                    label={
+                      strategy === "meta_collection"
+                        ? "Nombre del producto"
+                        : "Titular de la tarjeta · obligatorio"
+                    }
+                    value={c.card_headline}
+                    onChange={(v) => patchCreative(i, { card_headline: v })}
+                    max={META_LIMITS.card_headline.max}
+                    recommended={META_LIMITS.card_headline.recommended}
+                    required
+                    placeholder={
+                      strategy === "meta_collection"
+                        ? "Zapatillas trail GTX azul"
+                        : "Hipoteca fija sin comisiones"
+                    }
+                  />
+                  <CharCountedInput
+                    label={
+                      strategy === "meta_collection"
+                        ? "Precio / detalle (opcional)"
+                        : "Descripción de la tarjeta (opcional)"
+                    }
+                    value={c.card_description}
+                    onChange={(v) => patchCreative(i, { card_description: v })}
+                    max={META_LIMITS.card_description.max}
+                    recommended={META_LIMITS.card_description.recommended}
+                    placeholder={
+                      strategy === "meta_collection" ? "89,95 EUR" : "Desde 2,90% TAE"
+                    }
+                  />
+                </>
+              )}
               {showsBusinessAssets && (
                 <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   <Label>Rol en el anuncio</Label>
@@ -1055,6 +1439,57 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           </p>
         )}
 
+        {strategy === "meta_single" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            El anuncio único de Meta exige: nombre de página, 1 a 5 textos
+            principales (se trunca con «Ver más» hacia los 125c), 1 a 5 titulares
+            (~40c visibles), botón CTA de la lista y 1 creatividad. Las
+            descripciones de enlace son opcionales. Cada perfil ve UNA combinación
+            muestreada, como sirve Meta el flexible ad format.
+          </p>
+        )}
+
+        {strategy === "meta_carousel" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            La secuencia de Meta exige: nombre de página, 1 a 5 textos principales
+            (80c recomendados), botón CTA y de 2 a 10 tarjetas, cada una con su
+            imagen 1:1 y su titular (45c recomendados). La descripción por tarjeta
+            (18c) es opcional.
+          </p>
+        )}
+
+        {strategy === "meta_collection" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            La colección de Meta exige: nombre de página, 1 a 5 textos principales,
+            1 titular (40c visibles), botón CTA, 1 portada y al menos 4 tiles de
+            producto. Solo placements móviles: feeds y Stories de Instagram.
+          </p>
+        )}
+
         <Submit />
         </>
         )}
@@ -1079,9 +1514,25 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             color: "var(--accent-text)",
           }}
         >
-          Vista previa · {STRATEGY_LABEL[strategy]}
+          Vista previa ·{" "}
+          {isMeta
+            ? `${STRATEGY_LABEL[strategy]} · ${META_PLACEMENT_LABEL[metaPlacement]}`
+            : STRATEGY_LABEL[strategy]}
         </span>
-        {strategy === "shopping" ? (
+        {isMeta ? (
+          <MetaAdPreview
+            strategy={strategy}
+            placement={metaPlacement}
+            companyName={companyName}
+            primaryText={primaryTexts.find(Boolean) ?? ""}
+            previewHeadline={headlines[0] ?? ""}
+            previewDescription={descriptions[0] ?? ""}
+            cta={cta}
+            displayLink={displayLink}
+            creatives={creatives}
+            finalUrl={finalUrl}
+          />
+        ) : strategy === "shopping" ? (
           <ShoppingAdPreview
             title={productTitle}
             price={productPrice}
@@ -1143,7 +1594,8 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
         )}
 
         {(headlines.filter(Boolean).length > 1 ||
-          descriptions.filter(Boolean).length > 1) && (
+          descriptions.filter(Boolean).length > 1 ||
+          (isMeta && primaryTexts.filter(Boolean).length > 1)) && (
           <div
             style={{
               border: "1px solid rgba(var(--fg),0.08)",
@@ -1155,6 +1607,46 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               gap: 12,
             }}
           >
+            {isMeta && primaryTexts.filter(Boolean).length > 1 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span
+                  className="mono"
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: "0.22em",
+                    color: "rgba(var(--fg),0.55)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Otros textos principales
+                </span>
+                <ul
+                  style={{
+                    listStyle: "none",
+                    padding: 0,
+                    margin: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                  }}
+                >
+                  {primaryTexts.slice(1).map((t, i) =>
+                    t ? (
+                      <li
+                        key={i}
+                        style={{
+                          color: "rgba(var(--fg),0.7)",
+                          fontSize: 12,
+                          lineHeight: 1.55,
+                        }}
+                      >
+                        T{i + 2}: {t.length > 140 ? `${t.slice(0, 140)}…` : t}
+                      </li>
+                    ) : null,
+                  )}
+                </ul>
+              </div>
+            )}
             {headlines.filter(Boolean).length > 1 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <span
@@ -1559,27 +2051,48 @@ function ControlledTextArea(props: {
   );
 }
 
+/**
+ * Contador con dos umbrales: `max` es el límite duro del input (técnico de
+ * la plataforma) y `recommended` el visible antes de truncar (Meta): al
+ * superarlo el contador avisa en ámbar sin bloquear el envío.
+ */
+function charCountColor(len: number, max: number, recommended?: number): string {
+  if (len > max) return "var(--error-500)";
+  if (recommended !== undefined && len > recommended) return "var(--warning-text)";
+  return "rgba(var(--fg),0.45)";
+}
+
 function CharCountedInput(props: {
   label: string;
   value: string;
   onChange: (v: string) => void;
   max: number;
+  recommended?: number;
   required?: boolean;
   placeholder?: string;
 }) {
-  const over = props.value.length > props.max;
+  const overRec =
+    props.recommended !== undefined && props.value.length > props.recommended;
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
         <Label>{props.label}</Label>
         <span
           className="mono"
+          title={
+            overRec
+              ? `Por encima de los ${props.recommended} caracteres recomendados: la plataforma lo trunca visualmente.`
+              : undefined
+          }
           style={{
             fontSize: 10,
-            color: over ? "var(--error-500)" : "rgba(var(--fg),0.45)",
+            color: charCountColor(props.value.length, props.max, props.recommended),
           }}
         >
-          {props.value.length}/{props.max}
+          {props.value.length}/
+          {props.recommended !== undefined
+            ? `${props.recommended} rec (${props.max} máx)`
+            : props.max}
         </span>
       </div>
       <input
@@ -1599,22 +2112,32 @@ function CharCountedTextarea(props: {
   value: string;
   onChange: (v: string) => void;
   max: number;
+  recommended?: number;
   required?: boolean;
   placeholder?: string;
 }) {
-  const over = props.value.length > props.max;
+  const overRec =
+    props.recommended !== undefined && props.value.length > props.recommended;
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
         <Label>{props.label}</Label>
         <span
           className="mono"
+          title={
+            overRec
+              ? `Por encima de los ${props.recommended} caracteres recomendados: la plataforma lo trunca visualmente.`
+              : undefined
+          }
           style={{
             fontSize: 10,
-            color: over ? "var(--error-500)" : "rgba(var(--fg),0.45)",
+            color: charCountColor(props.value.length, props.max, props.recommended),
           }}
         >
-          {props.value.length}/{props.max}
+          {props.value.length}/
+          {props.recommended !== undefined
+            ? `${props.recommended} rec (${props.max} máx)`
+            : props.max}
         </span>
       </div>
       <textarea
@@ -2218,10 +2741,491 @@ function DisplayAdPreview({
   );
 }
 
+// ============================================================
+// Previews de Meta: feed (single), 9:16 (stories/reels/status),
+// carousel y colección. Replican el truncado real del copy.
+// ============================================================
+
+function metaPreviewVisibleChars(strategy: Strategy, placement: MetaPlacement): number {
+  if (placement === "instagram_reels") return 72;
+  if (placement === "threads_feed") return 160;
+  if (strategy === "meta_carousel") return 80;
+  return 125;
+}
+
+function truncateVisible(text: string, visible: number): { text: string; truncated: boolean } {
+  if (text.length <= visible) return { text, truncated: false };
+  return { text: `${text.slice(0, visible).trimEnd()}…`, truncated: true };
+}
+
+function MetaPageHeader({
+  companyName,
+  logoSrc,
+}: {
+  companyName: string;
+  logoSrc: string;
+}) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+      {logoSrc ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={logoSrc}
+          alt="Página"
+          style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }}
+        />
+      ) : (
+        <span
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: "50%",
+            background: "rgba(var(--fg),0.08)",
+            display: "inline-block",
+          }}
+        />
+      )}
+      <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.25 }}>
+        <span style={{ color: "var(--text-strong)", fontSize: 13, fontWeight: 600 }}>
+          {companyName || "Tu página"}
+        </span>
+        <span
+          className="mono"
+          style={{ color: "rgba(var(--fg),0.45)", fontSize: 10 }}
+        >
+          Patrocinado
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function MetaPrimaryText({
+  text,
+  visible,
+}: {
+  text: string;
+  visible: number;
+}) {
+  const t = truncateVisible(text || "Tu texto principal aparecerá aquí.", visible);
+  return (
+    <p style={{ color: "rgba(var(--fg),0.85)", fontSize: 13, margin: 0, lineHeight: 1.5 }}>
+      {t.text}
+      {t.truncated && (
+        <span style={{ color: "rgba(var(--fg),0.45)" }}> Ver más</span>
+      )}
+    </p>
+  );
+}
+
+function MetaAdPreview({
+  strategy,
+  placement,
+  companyName,
+  primaryText,
+  previewHeadline,
+  previewDescription,
+  cta,
+  displayLink,
+  creatives,
+  finalUrl,
+}: {
+  strategy: Strategy;
+  placement: MetaPlacement;
+  companyName: string;
+  primaryText: string;
+  previewHeadline: string;
+  previewDescription: string;
+  cta: string;
+  displayLink: string;
+  creatives: Creative[];
+  finalUrl: string;
+}) {
+  const visible = metaPreviewVisibleChars(strategy, placement);
+  const link = displayLink || displayUrl(finalUrl);
+  const vertical = isVerticalPlacement(placement);
+  const logoSrc = ""; // Meta no pide logo aparte: el avatar es el de la página.
+
+  if (strategy === "meta_carousel") {
+    const cards = creatives.filter((c) => c.role === "card");
+    return (
+      <div style={metaCardShell}>
+        <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+          <MetaPageHeader companyName={companyName} logoSrc={logoSrc} />
+          <MetaPrimaryText text={primaryText} visible={visible} />
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: 8,
+            overflowX: "auto",
+            padding: "0 14px 12px",
+          }}
+        >
+          {(cards.length > 0 ? cards : [null, null]).map((c, i) => (
+            <div
+              key={i}
+              style={{
+                flex: "0 0 72%",
+                border: "1px solid rgba(var(--fg),0.08)",
+                borderRadius: "var(--radius-sm)",
+                overflow: "hidden",
+                background: "rgba(var(--fg),0.02)",
+              }}
+            >
+              <div
+                style={{
+                  aspectRatio: "1 / 1",
+                  background: "rgba(var(--fg),0.04)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "rgba(var(--fg),0.4)",
+                  fontSize: 10,
+                  fontFamily: "var(--font-mono)",
+                }}
+              >
+                {c && (c.upload_data || c.url || c.thumbnail_url) ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={
+                      c.kind === "video"
+                        ? c.thumbnail_url || c.upload_data || c.url
+                        : c.upload_data || c.url
+                    }
+                    alt={c.card_headline || `Tarjeta ${i + 1}`}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                ) : (
+                  `tarjeta ${i + 1} · 1:1`
+                )}
+              </div>
+              <div style={{ padding: "8px 10px", display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ color: "var(--text-strong)", fontSize: 12, fontWeight: 600, lineHeight: 1.3 }}>
+                  {truncateVisible(c?.card_headline || "Titular de la tarjeta", 45).text}
+                </span>
+                {c?.card_description && (
+                  <span style={{ color: "rgba(var(--fg),0.6)", fontSize: 11 }}>
+                    {truncateVisible(c.card_description, 18).text}
+                  </span>
+                )}
+                {cta && (
+                  <span
+                    className="btn-pill"
+                    style={{ alignSelf: "flex-start", fontSize: 10, marginTop: 4, pointerEvents: "none" }}
+                  >
+                    {cta}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (strategy === "meta_collection") {
+    const cover = creatives.find((c) => c.role === "cover");
+    const tiles = creatives.filter((c) => c.role === "card");
+    const coverSrc = cover
+      ? cover.kind === "video"
+        ? cover.thumbnail_url || cover.upload_data || cover.url
+        : cover.upload_data || cover.url
+      : "";
+    return (
+      <div style={metaCardShell}>
+        <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+          <MetaPageHeader companyName={companyName} logoSrc={logoSrc} />
+          <MetaPrimaryText text={primaryText} visible={visible} />
+        </div>
+        <div
+          style={{
+            aspectRatio: "1.91 / 1",
+            background: "rgba(var(--fg),0.04)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "rgba(var(--fg),0.4)",
+            fontSize: 11,
+            fontFamily: "var(--font-mono)",
+          }}
+        >
+          {coverSrc ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={coverSrc}
+              alt="Portada"
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            />
+          ) : (
+            "portada (imagen o vídeo)"
+          )}
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 2,
+            padding: 2,
+          }}
+        >
+          {Array.from({ length: 4 }).map((_, i) => {
+            const t = tiles[i];
+            const src = t ? t.upload_data || t.url || t.thumbnail_url || "" : "";
+            return (
+              <div
+                key={i}
+                style={{
+                  aspectRatio: "1 / 1",
+                  background: "rgba(var(--fg),0.04)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "rgba(var(--fg),0.35)",
+                  fontSize: 9,
+                  fontFamily: "var(--font-mono)",
+                  overflow: "hidden",
+                }}
+              >
+                {src ? (
+                  /* eslint-disable-next-line @next/next/no-img-element */
+                  <img
+                    src={src}
+                    alt={t?.card_headline ?? `Producto ${i + 1}`}
+                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                  />
+                ) : (
+                  `tile ${i + 1}`
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div
+          style={{
+            padding: "10px 14px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 8,
+            background: "rgba(var(--fg),0.03)",
+          }}
+        >
+          <span style={{ color: "var(--text-strong)", fontSize: 13, fontWeight: 600 }}>
+            {truncateVisible(previewHeadline || "Tu titular", 40).text}
+          </span>
+          {cta && (
+            <span className="btn-pill solid" style={{ fontSize: 10, pointerEvents: "none" }}>
+              {cta}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // meta_single
+  const main = creatives.find(
+    (c) =>
+      (c.kind === "image" && (c.upload_data || c.url)) ||
+      (c.kind === "video" && (c.thumbnail_url || c.upload_data || c.url)),
+  );
+  const mainSrc = main
+    ? main.kind === "video"
+      ? main.thumbnail_url || main.upload_data || main.url
+      : main.upload_data || main.url
+    : "";
+
+  if (vertical) {
+    return (
+      <div
+        style={{
+          ...metaCardShell,
+          position: "relative",
+          aspectRatio: "9 / 16",
+          maxHeight: 460,
+          overflow: "hidden",
+          background: "rgba(var(--fg),0.05)",
+        }}
+      >
+        {mainSrc ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={mainSrc}
+            alt="Creatividad"
+            style={{
+              position: "absolute",
+              inset: 0,
+              width: "100%",
+              height: "100%",
+              objectFit: "cover",
+            }}
+          />
+        ) : (
+          <span
+            className="mono"
+            style={{
+              position: "absolute",
+              inset: 0,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              color: "rgba(var(--fg),0.4)",
+              fontSize: 11,
+            }}
+          >
+            creatividad 9:16
+          </span>
+        )}
+        {/* Safe zones: 14% superior y 35% inferior reservados a la interfaz */}
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            padding: "10px 12px",
+            background: "linear-gradient(rgba(10,11,13,0.55), transparent)",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+          className="theme-dark-fixed"
+        >
+          <span
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              background: "rgba(255,255,255,0.25)",
+              display: "inline-block",
+            }}
+          />
+          <span style={{ color: "#ffffff", fontSize: 12, fontWeight: 600 }}>
+            {companyName || "Tu página"}
+          </span>
+          <span style={{ color: "rgba(255,255,255,0.7)", fontSize: 10 }}>
+            Patrocinado
+          </span>
+        </div>
+        <div
+          className="theme-dark-fixed"
+          style={{
+            position: "absolute",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            padding: "14px 12px",
+            background: "linear-gradient(transparent, rgba(10,11,13,0.65))",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          {primaryText && (
+            <p style={{ color: "rgba(255,255,255,0.92)", fontSize: 12, margin: 0, lineHeight: 1.4 }}>
+              {truncateVisible(primaryText, visible).text}
+            </p>
+          )}
+          <span
+            className="btn-pill solid"
+            style={{ alignSelf: "center", fontSize: 11, pointerEvents: "none" }}
+          >
+            {cta || "Más información"} ↑
+          </span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={metaCardShell}>
+      <div style={{ padding: "12px 14px", display: "flex", flexDirection: "column", gap: 8 }}>
+        <MetaPageHeader companyName={companyName} logoSrc={logoSrc} />
+        <MetaPrimaryText text={primaryText} visible={visible} />
+      </div>
+      <div
+        style={{
+          aspectRatio: placement === "threads_feed" ? "4 / 5" : "1 / 1",
+          maxHeight: 260,
+          background: "rgba(var(--fg),0.04)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "rgba(var(--fg),0.4)",
+          fontSize: 11,
+          fontFamily: "var(--font-mono)",
+          overflow: "hidden",
+        }}
+      >
+        {mainSrc ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={mainSrc}
+            alt="Creatividad"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        ) : (
+          "creatividad 1:1 / 4:5"
+        )}
+      </div>
+      <div
+        style={{
+          padding: "10px 14px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          background: "rgba(var(--fg),0.03)",
+        }}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0 }}>
+          <span className="mono" style={{ fontSize: 9, color: "rgba(var(--fg),0.45)", textTransform: "uppercase" }}>
+            {link}
+          </span>
+          <span
+            style={{
+              color: "var(--text-strong)",
+              fontSize: 13,
+              fontWeight: 600,
+              lineHeight: 1.3,
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {truncateVisible(previewHeadline || "Tu titular", 40).text}
+          </span>
+          {previewDescription && (
+            <span style={{ color: "rgba(var(--fg),0.55)", fontSize: 11 }}>
+              {truncateVisible(previewDescription, 30).text}
+            </span>
+          )}
+        </div>
+        <span className="btn-pill solid" style={{ fontSize: 11, pointerEvents: "none", flexShrink: 0 }}>
+          {cta || "Más información"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+const metaCardShell: React.CSSProperties = {
+  border: "1px solid rgba(var(--fg),0.08)",
+  borderRadius: "var(--radius-md)",
+  background: "rgba(var(--fg),0.02)",
+  overflow: "hidden",
+  display: "flex",
+  flexDirection: "column",
+};
+
 function StrategyTabs({
+  channel,
   value,
   onChange,
 }: {
+  channel: Channel;
   value: Strategy;
   onChange: (v: Strategy) => void;
 }) {
@@ -2236,7 +3240,7 @@ function StrategyTabs({
         overflowX: "auto",
       }}
     >
-      {STRATEGY_VALUES.map((s) => {
+      {CHANNEL_STRATEGIES[channel].map((s) => {
         const active = value === s;
         const implemented = isStrategyImplemented(s);
         const color = !implemented
@@ -2374,7 +3378,7 @@ function ChannelTabs({
     >
       {CHANNEL_VALUES.map((c) => {
         const active = value === c;
-        const disabled = c !== "google";
+        const disabled = CHANNEL_STRATEGIES[c].length === 0;
         const color = disabled
           ? "rgba(var(--fg),0.3)"
           : active

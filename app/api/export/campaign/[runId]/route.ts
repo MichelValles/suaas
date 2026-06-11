@@ -12,13 +12,18 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 /**
- * Export de un run de campaña. Dos formatos:
+ * Export de un run de campaña. Tres formatos:
  *  - (default)            CSV humano para Excel en español: BOM UTF-8,
  *                         separador «;», una fila por respuesta.
  *  - ?format=ads_editor   CSV para Google Ads Editor (separador «,»):
  *                         fila «Original» con los assets de la campaña y
  *                         fila «SUAAS ideas» con el top de versiones ideales
  *                         rankeadas por intent, truncadas a 30/90.
+ *  - ?format=meta         CSV con la estructura de un anuncio de Meta
+ *                         (Primary Text 1..5, Headline 1..5, Description
+ *                         1..5, CTA, URLs): fila «Original» y fila «SUAAS
+ *                         ideas» (titulares ideales a 40c y textos
+ *                         principales ideales a 125c).
  *
  * Tras el proxy de auth global, como el resto de /api no público.
  */
@@ -134,6 +139,77 @@ export async function GET(req: Request, ctx: Ctx) {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="ads-editor-${runId.slice(0, 8)}.csv"`,
+      },
+    });
+  }
+
+  if (format === "meta") {
+    // Estructura de un anuncio de Meta: hasta 5 variantes por campo de
+    // texto (asset_feed_spec). «SUAAS ideas» mezcla ideales y originales.
+    const header = [
+      "Campaign",
+      "Ad Name",
+      ...Array.from({ length: 5 }, (_, i) => `Primary Text ${i + 1}`),
+      ...Array.from({ length: 5 }, (_, i) => `Headline ${i + 1}`),
+      ...Array.from({ length: 5 }, (_, i) => `Description ${i + 1}`),
+      "Call To Action",
+      "Display Link",
+      "Website URL",
+    ];
+    const pad = (xs: string[], n: number) =>
+      Array.from({ length: n }, (_, i) => xs[i] ?? "");
+
+    const originalPrimaries = campaign.channel_spec?.primary_texts ?? [];
+    // El «texto principal ideal» de los perfiles viaja en ideal_description
+    // (así lo instruye el runner para Meta).
+    const idealPrimaries = topIdeals(responses, (r) => r.ideal_description, 125, 5);
+    const idealHeadlines = topIdeals(responses, (r) => r.ideal_headline, 40, 5);
+    const mixedPrimaries = [
+      ...idealPrimaries,
+      ...originalPrimaries.filter(
+        (t) => !idealPrimaries.some((x) => x.toLowerCase() === t.toLowerCase()),
+      ),
+    ].slice(0, 5);
+    const mixedHeadlines = [
+      ...idealHeadlines,
+      ...campaign.headlines.filter(
+        (h) => !idealHeadlines.some((x) => x.toLowerCase() === h.toLowerCase()),
+      ),
+    ].slice(0, 5);
+
+    const rows = [
+      csvLine(header, ","),
+      csvLine(
+        [
+          campaign.name,
+          "Original",
+          ...pad(originalPrimaries, 5),
+          ...pad(campaign.headlines, 5),
+          ...pad(campaign.descriptions, 5),
+          campaign.cta ?? "",
+          campaign.channel_spec?.display_link ?? "",
+          campaign.final_url,
+        ],
+        ",",
+      ),
+      csvLine(
+        [
+          campaign.name,
+          "SUAAS ideas",
+          ...pad(mixedPrimaries, 5),
+          ...pad(mixedHeadlines, 5),
+          ...pad(campaign.descriptions, 5),
+          campaign.cta ?? "",
+          campaign.channel_spec?.display_link ?? "",
+          campaign.final_url,
+        ],
+        ",",
+      ),
+    ];
+    return new Response("﻿" + rows.join("\r\n") + "\r\n", {
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="meta-ads-${runId.slice(0, 8)}.csv"`,
       },
     });
   }

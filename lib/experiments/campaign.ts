@@ -2,8 +2,13 @@ import { NoObjectGeneratedError, generateObject } from "ai";
 import { z } from "zod";
 import { BudgetExceededError, assertBudget } from "@/lib/budget";
 import {
+  META_OBJECTIVE_LABEL,
+  META_PLACEMENT_LABEL,
+  isMetaStrategy,
   type Campaign,
   type Channel,
+  type Creative,
+  type MetaPlacement,
   getCampaign,
   getCampaignWithTrashed,
 } from "@/lib/campaigns";
@@ -197,7 +202,7 @@ export type BehaviorCounts = { optima: number; fuga: number; repesca: number };
 
 export type AssetPerformance = {
   asset: string;
-  kind: "headline" | "description";
+  kind: "headline" | "description" | "primary_text";
   /** Respuestas en las que el asset estuvo presente en la combinación mostrada. */
   n: number;
   mean_intent: number;
@@ -262,10 +267,12 @@ export type CampaignSummary = {
 // 1) Snippet eval (multimodal con creatividades si hay)
 // ============================================================
 
-/** Combinación RSA concreta mostrada a un perfil bajo una query. */
+/** Combinación concreta mostrada a un perfil bajo una query (RSA o Meta). */
 export type ShownCombination = {
   headlines: string[];
   descriptions: string[];
+  /** Texto principal muestreado (solo Meta, flexible ad format). Null en Google. */
+  primary_text?: string | null;
 };
 
 /** Hash FNV-1a de 32 bits: semilla estable a partir de un string. */
@@ -331,11 +338,198 @@ export function sampleRsaCombination(
   };
 }
 
+/**
+ * Muestreo para Meta (flexible ad format real: Meta sirve UNA combinación
+ * de las hasta 5 variantes por campo): 1 texto principal + 1 titular +
+ * 1 descripción por impresión, determinista por profileId + query como
+ * el muestreo RSA.
+ */
+export function sampleMetaCombination(
+  campaign: Campaign,
+  profileId: string,
+  query: string,
+): ShownCombination {
+  const rng = mulberry32(hashSeed(`${profileId}|${query}`));
+  const primaryTexts = campaign.channel_spec?.primary_texts ?? [];
+  return {
+    primary_text: pickN(primaryTexts, Math.min(1, primaryTexts.length), rng)[0] ?? null,
+    headlines: pickN(campaign.headlines, Math.min(1, campaign.headlines.length), rng),
+    descriptions: pickN(
+      campaign.descriptions,
+      Math.min(1, campaign.descriptions.length),
+      rng,
+    ),
+  };
+}
+
+/**
+ * Caracteres del texto principal visibles antes del «… Ver más» según el
+ * placement (Ads Guide oficial 2026: feeds y Stories ~125, Reels 72,
+ * Threads 160). El runner trunca para que el perfil vea lo que vería un
+ * usuario real, no el texto completo.
+ */
+function metaVisiblePrimaryChars(placement: MetaPlacement): number {
+  switch (placement) {
+    case "instagram_reels":
+      return 72;
+    case "threads_feed":
+      return 160;
+    default:
+      return 125;
+  }
+}
+
+function metaPlacement(campaign: Campaign): MetaPlacement {
+  return campaign.channel_spec?.placement ?? "instagram_feed";
+}
+
+/** Placements 9:16 a pantalla completa donde no se muestra headline ni description. */
+function isMetaVertical(placement: MetaPlacement): boolean {
+  return (
+    placement === "instagram_stories" ||
+    placement === "instagram_reels" ||
+    placement === "whatsapp_status"
+  );
+}
+
+/** Primary text como lo ve el usuario: truncado con «… Ver más» si excede lo visible. */
+function metaShownPrimaryText(campaign: Campaign, shown: ShownCombination | null): string {
+  const full =
+    shown?.primary_text ?? campaign.channel_spec?.primary_texts[0] ?? "";
+  const visible = metaVisiblePrimaryChars(metaPlacement(campaign));
+  if (full.length <= visible) return full;
+  return `${full.slice(0, visible).trimEnd()}… [Ver más]`;
+}
+
+function metaAdvertiserLine(campaign: Campaign): string {
+  const page = campaign.company_name?.trim() || displayUrl(campaign.final_url);
+  return `Anunciante: ${page} (página verificable) · Patrocinado`;
+}
+
+function metaLinkLine(campaign: Campaign): string {
+  return campaign.channel_spec?.display_link?.trim() || displayUrl(campaign.final_url);
+}
+
+function renderMetaSingleSnippet(
+  campaign: Campaign,
+  shown: ShownCombination | null,
+): string {
+  const placement = metaPlacement(campaign);
+  const vertical = isMetaVertical(placement);
+  const headline = shown?.headlines[0] ?? campaign.headlines[0];
+  const description = shown?.descriptions[0] ?? campaign.descriptions[0];
+  const lines: string[] = [];
+  lines.push(
+    vertical
+      ? `Ves este anuncio a pantalla completa (9:16) en ${META_PLACEMENT_LABEL[placement]}:`
+      : `Ves este anuncio en ${META_PLACEMENT_LABEL[placement]}:`,
+  );
+  lines.push("");
+  lines.push("---");
+  lines.push(metaAdvertiserLine(campaign));
+  lines.push("");
+  const primary = metaShownPrimaryText(campaign, shown);
+  if (vertical) {
+    // En Stories/Reels/Status la creatividad ES el anuncio: el texto
+    // principal aparece como caption breve y el headline no se muestra.
+    lines.push("(La imagen adjunta ocupa toda la pantalla.)");
+    if (primary) lines.push(`Texto sobre el anuncio: ${primary}`);
+    lines.push("");
+    lines.push(`Botón CTA (parte inferior): [${campaign.cta ?? "Más información"}]`);
+  } else {
+    if (primary) lines.push(`Texto principal: ${primary}`);
+    lines.push("");
+    lines.push("(La imagen adjunta es la creatividad del anuncio.)");
+    lines.push("");
+    lines.push(`Enlace visible: ${metaLinkLine(campaign)}`);
+    if (headline) lines.push(`Titular (junto al botón): ${headline}`);
+    if (description) lines.push(`Descripción del enlace: ${description}`);
+    lines.push(`Botón CTA: [${campaign.cta ?? "Más información"}]`);
+  }
+  lines.push("---");
+  return lines.join("\n");
+}
+
+function renderMetaCarouselSnippet(
+  campaign: Campaign,
+  shown: ShownCombination | null,
+): string {
+  const placement = metaPlacement(campaign);
+  const cards = (campaign.creatives ?? []).filter((c) => c.role === "card");
+  const lines: string[] = [];
+  lines.push(
+    `Ves este anuncio por secuencia (carousel de ${cards.length} tarjetas deslizables) en ${META_PLACEMENT_LABEL[placement]}:`,
+  );
+  lines.push("");
+  lines.push("---");
+  lines.push(metaAdvertiserLine(campaign));
+  lines.push("");
+  const primary = metaShownPrimaryText(campaign, shown);
+  if (primary) lines.push(`Texto principal: ${primary}`);
+  lines.push("");
+  lines.push("Tarjetas (deslizas para ver las siguientes; las imágenes adjuntas son las primeras):");
+  cards.forEach((c, i) => {
+    const parts = [`Tarjeta ${i + 1}: ${c.card_headline ?? c.label ?? "(sin titular)"}`];
+    if (c.card_description) parts.push(`· ${c.card_description}`);
+    lines.push(`- ${parts.join(" ")}`);
+  });
+  lines.push("");
+  lines.push(`Enlace visible: ${metaLinkLine(campaign)}`);
+  lines.push(`Botón CTA en cada tarjeta: [${campaign.cta ?? "Más información"}]`);
+  lines.push("---");
+  return lines.join("\n");
+}
+
+function renderMetaCollectionSnippet(
+  campaign: Campaign,
+  shown: ShownCombination | null,
+): string {
+  const placement = metaPlacement(campaign);
+  const cards = (campaign.creatives ?? []).filter((c) => c.role === "card");
+  const headline = shown?.headlines[0] ?? campaign.headlines[0];
+  const lines: string[] = [];
+  lines.push(
+    `Ves este anuncio de colección en ${META_PLACEMENT_LABEL[placement]} (portada grande + cuadrícula de productos; al tocar se abre una experiencia a pantalla completa):`,
+  );
+  lines.push("");
+  lines.push("---");
+  lines.push(metaAdvertiserLine(campaign));
+  lines.push("");
+  const primary = metaShownPrimaryText(campaign, shown);
+  if (primary) lines.push(`Texto principal: ${primary}`);
+  lines.push("");
+  lines.push("(La primera imagen adjunta es la portada; las siguientes, los productos.)");
+  lines.push("");
+  if (headline) lines.push(`Titular (bajo la portada): ${headline}`);
+  lines.push("Productos en la cuadrícula:");
+  cards.slice(0, 4).forEach((c, i) => {
+    const parts = [`${i + 1}. ${c.card_headline ?? c.label ?? "(producto)"}`];
+    if (c.card_description) parts.push(`· ${c.card_description}`);
+    lines.push(`- ${parts.join(" ")}`);
+  });
+  if (cards.length > 4) lines.push(`(y ${cards.length - 4} productos más al tocar)`);
+  lines.push("");
+  lines.push(`Botón CTA: [${campaign.cta ?? "Más información"}]`);
+  lines.push("---");
+  return lines.join("\n");
+}
+
 function renderSnippetText(
   campaign: Campaign,
   channel: Channel,
   shown: ShownCombination | null,
 ): string {
+  // Formatos de Meta: el render depende del formato + placement declarado
+  // en channel_spec, no del canal genérico.
+  if (campaign.strategy === "meta_single") {
+    return renderMetaSingleSnippet(campaign, shown);
+  }
+  if (campaign.strategy === "meta_carousel") {
+    return renderMetaCarouselSnippet(campaign, shown);
+  }
+  if (campaign.strategy === "meta_collection") {
+    return renderMetaCollectionSnippet(campaign, shown);
+  }
   // Display Ads tienen render propio (banner con titular largo + CTA) que no
   // depende del canal externo (siempre se ve dentro de Google Display Network).
   if (campaign.strategy === "display") {
@@ -581,11 +775,55 @@ function networkLabel(channel: Channel): string {
   }
 }
 
+/**
+ * Framing de los formatos Meta: depende del placement de simulación (no
+ * del canal) y del objetivo ODAX, que matiza qué pasa tras el click.
+ */
+function metaFraming(query: string, campaign: Campaign): string {
+  const placement = metaPlacement(campaign);
+  const objective = campaign.channel_spec?.objective ?? "traffic";
+  const context =
+    query && query !== GENERAL_CONTEXT_QUERY
+      ? `El algoritmo te lo enseña porque tus intereses y tu actividad reciente encajan con: «${query}».`
+      : "No estás buscando nada en concreto: el algoritmo decidió enseñártelo.";
+  const scene: Record<MetaPlacement, string> = {
+    facebook_feed:
+      "Estás pasando el feed de Facebook en el móvil, entre publicaciones de conocidos y páginas que sigues.",
+    instagram_feed:
+      "Estás pasando el feed de Instagram en el móvil, entre fotos y vídeos de cuentas que sigues.",
+    instagram_stories:
+      "Estás viendo Stories de Instagram: historias de gente que sigues que pasan solas cada pocos segundos. Entre dos historias aparece este anuncio a pantalla completa (puedes saltarlo con un toque).",
+    instagram_reels:
+      "Estás encadenando Reels en Instagram: vídeos cortos a pantalla completa que pasas con un gesto. Entre dos Reels aparece este anuncio (decides en menos de 2 segundos si sigues deslizando).",
+    threads_feed:
+      "Estás leyendo el feed de Threads: conversaciones y posts cortos de texto. Entre los posts aparece este anuncio.",
+    whatsapp_status:
+      "Estás viendo los Estados de WhatsApp en la pestaña Novedades. Entre los estados de tus contactos aparece este anuncio a pantalla completa.",
+  };
+  const afterClick: Record<string, string> = {
+    awareness: "El anuncio busca que recuerdes la marca, sin pedirte nada más.",
+    traffic: "Si tocas el botón, te llevaría a la web del anunciante.",
+    engagement: "El anuncio invita a interactuar (mensaje, reacción o vídeo).",
+    leads: "Si tocas el botón, se abriría un formulario para dejar tus datos de contacto.",
+    app_promotion: "Si tocas el botón, irías a la tienda de aplicaciones a instalar la app.",
+    sales: "Si tocas el botón, irías a la página de compra del producto.",
+  };
+  return [
+    scene[placement],
+    context,
+    "Lo ves de pasada, en un hueco del día, sin intención de que te vendan nada.",
+    afterClick[objective],
+  ].join(" ");
+}
+
 function framingByChannel(
   channel: Channel,
   query: string,
   campaign: Campaign,
 ): string {
+  if (isMetaStrategy(campaign.strategy)) {
+    return metaFraming(query, campaign);
+  }
   if (campaign.strategy === "display") {
     const context = query
       ? `Tu interés / contexto actual: «${query}».`
@@ -668,6 +906,24 @@ function framingByChannel(
   }
 }
 
+/**
+ * Creatividades que se adjuntan al modelo (máximo 4). En las estrategias de
+ * Google se respeta el orden del array; en Meta se ordenan según lo que el
+ * render anuncia: colección = portada y luego tiles, carousel = tarjetas.
+ */
+function creativesForModel(campaign: Campaign): Creative[] {
+  const all = campaign.creatives ?? [];
+  if (campaign.strategy === "meta_collection") {
+    const cover = all.filter((c) => c.role === "cover");
+    const cards = all.filter((c) => c.role === "card");
+    return [...cover, ...cards].slice(0, 4);
+  }
+  if (campaign.strategy === "meta_carousel") {
+    return all.filter((c) => c.role === "card").slice(0, 4);
+  }
+  return all.slice(0, 4);
+}
+
 async function probeCampaignSnippet(
   profile: Profile,
   campaign: Campaign,
@@ -703,7 +959,9 @@ async function probeCampaignSnippet(
   // - youtube: el thumbnail (jpg) sí lo entiende el modelo.
   // - video: si trae thumbnail_url la usamos; si no, se ignora (el modelo no
   //   acepta vídeo). El perfil sintético no "ve" el vídeo, sólo su miniatura.
-  for (const c of (campaign.creatives ?? []).slice(0, 4)) {
+  // En Meta el orden importa (el render dice qué es cada imagen): colección =
+  // portada + primeros tiles; carousel = tarjetas en su orden.
+  for (const c of creativesForModel(campaign)) {
     const candidate =
       c.kind === "youtube" || c.kind === "video"
         ? c.thumbnail_url
@@ -730,7 +988,9 @@ async function probeCampaignSnippet(
       buildSystemPrompt(profile),
       "",
       "## Tarea de este turno",
-      "- Estás en un test de anuncio de Paid Search. Primero interpreta, luego razona y solo al final puntúa.",
+      isMetaStrategy(campaign.strategy)
+        ? "- Estás en un test de anuncio de social ads (Meta). Primero interpreta, luego razona y solo al final puntúa."
+        : "- Estás en un test de anuncio de Paid Search. Primero interpreta, luego razona y solo al final puntúa.",
       "- 'perceived_offer': lo que crees que te ofrece el anuncio, en tu voz, 1 frase.",
       "- 'reasoning': 1-2 frases tuyas pensando en voz alta ANTES de decidir: qué te llama, qué te frena.",
       "- 'barriers': fricciones concretas (jerga, promesa vaga, precio oculto, sector no encaja, etc.). Vacío si no las viste.",
@@ -767,12 +1027,13 @@ async function judgeLandingMatch(
 ): Promise<{ output: LandingMatch; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const image = await resolveImageCached(campaign.landing_image_url, imageCache);
-  const channelHook =
-    channel === "google"
+  const channelHook = isMetaStrategy(campaign.strategy)
+    ? `Acabas de tocar el anuncio que viste en ${META_PLACEMENT_LABEL[metaPlacement(campaign)]}`
+    : channel === "google"
       ? "Acabas de hacer click en un anuncio de Paid Search"
       : `Acabas de hacer click en el post patrocinado de ${networkLabel(channel)}`;
   const queryFraming =
-    channel === "google"
+    channel === "google" && !isMetaStrategy(campaign.strategy)
       ? `Tu búsqueda fue: «${query}».`
       : `Tu interés / contexto era: «${query}».`;
   // Siempre multimodal (lleva el screenshot de la landing): DEFAULT_MODEL,
@@ -871,14 +1132,15 @@ async function proposeIdealVersion(
   snippet: SnippetEval,
 ): Promise<{ output: IdealVersion; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
-  const formatHint =
-    campaign.strategy === "shopping"
+  const formatHint = isMetaStrategy(campaign.strategy)
+    ? "formato Meta Ads (titular máx 40 chars; la descripción es el texto principal que pararía tu scroll, máx 125)"
+    : campaign.strategy === "shopping"
       ? "título de ficha de producto (máx 150 chars) y argumento de compra (máx 90)"
       : channel === "google"
         ? "formato Google Ads RSA (titular máx 30 chars, descripción máx 90)"
         : `formato ${networkLabel(channel)} (texto corto que pueda pararte en feed)`;
   const queryFraming =
-    channel === "google"
+    channel === "google" && !isMetaStrategy(campaign.strategy)
       ? `Tu búsqueda fue: «${query}».`
       : `Tu interés / contexto era: «${query}».`;
   const result = await generateObject({
@@ -889,8 +1151,12 @@ async function proposeIdealVersion(
       "",
       "## Tarea de este turno",
       "- Después de ver el anuncio, escribe TU versión ideal del mismo anuncio, en tu voz.",
-      `- 'ideal_headline' es un titular alternativo. Máximo 30 caracteres (${formatHint}).`,
-      "- 'ideal_description' es una descripción alternativa. Máximo 90 caracteres.",
+      isMetaStrategy(campaign.strategy)
+        ? `- 'ideal_headline' es un titular alternativo. Máximo 40 caracteres (${formatHint}).`
+        : `- 'ideal_headline' es un titular alternativo. Máximo 30 caracteres (${formatHint}).`,
+      isMetaStrategy(campaign.strategy)
+        ? "- 'ideal_description' es tu texto principal alternativo (lo que leerías encima de la imagen). Máximo 125 caracteres."
+        : "- 'ideal_description' es una descripción alternativa. Máximo 90 caracteres.",
       "- 'ideal_promise' es la promesa central que TÚ querrías leer para hacer click.",
       "- 'ideal_free_text' es opcional, 1-2 frases sueltas con matiz extra. null si no añades nada.",
       "- Habla como tú: con tus dudas, tu sector, tu nivel de jerga. NO copies el anuncio original.",
@@ -1295,17 +1561,25 @@ async function synthesizeRecommendations(
   // La fila failed se registra aquí, pegada a la llamada: si lo que falla
   // después es la persistencia en Supabase, la llamada LLM fue bien y ya
   // quedó contabilizada (sin esto el catch del cierre duplicaba la fila).
+  const isMeta = isMetaStrategy(campaign.strategy);
   const result = await generateObject({
     model: DEFAULT_MODEL,
     schema: RecommendationsSchema,
     system: [
       "Eres un consultor senior de paid media y CRO. Resumes un test de anuncio con usuarios sintéticos en recomendaciones accionables para el equipo de marketing.",
       "Escribe en castellano, con acentos correctos. No uses nunca el guion largo (em-dash); usa coma, dos puntos o paréntesis.",
-      "Los titulares recomendados deben caber en 30 caracteres y las descripciones en 90 (formato Google Ads RSA).",
+      isMeta
+        ? "Los titulares recomendados deben caber en 40 caracteres y las descripciones son textos principales de Meta: deben enganchar antes del corte de 125 caracteres."
+        : "Los titulares recomendados deben caber en 30 caracteres y las descripciones en 90 (formato Google Ads RSA).",
       "Apóyate en los datos: no inventes hallazgos que los números no respalden.",
     ].join("\n"),
     prompt: [
-      `Campaña: ${campaign.name} (${campaign.strategy}).`,
+      isMeta && campaign.channel_spec
+        ? `Campaña: ${campaign.name} (Meta Ads · ${campaign.strategy} · objetivo ${META_OBJECTIVE_LABEL[campaign.channel_spec.objective]} · placement ${META_PLACEMENT_LABEL[campaign.channel_spec.placement]}).`
+        : `Campaña: ${campaign.name} (${campaign.strategy}).`,
+      isMeta && campaign.channel_spec
+        ? `Textos principales actuales: ${campaign.channel_spec.primary_texts.join(" | ")}`
+        : "",
       `Titulares actuales: ${campaign.headlines.join(" | ")}`,
       `Descripciones actuales: ${campaign.descriptions.join(" | ")}`,
       "",
@@ -1348,15 +1622,16 @@ async function synthesizeRecommendations(
     meta: { latency_ms: Date.now() - startedAt },
   }).catch(() => {});
 
-  // Truncado suave a los límites RSA y a los tamaños prometidos.
+  // Truncado suave a los límites del formato y a los tamaños prometidos
+  // (RSA 30/90, Meta 40/125).
   const recommendations: CampaignRecommendations = {
     key_findings: result.object.key_findings.slice(0, 5),
     recommended_headlines: result.object.recommended_headlines
       .slice(0, 3)
-      .map((h) => h.slice(0, 30)),
+      .map((h) => h.slice(0, isMeta ? 40 : 30)),
     recommended_descriptions: result.object.recommended_descriptions
       .slice(0, 2)
-      .map((d) => d.slice(0, 90)),
+      .map((d) => d.slice(0, isMeta ? 125 : 90)),
     barrier_fixes: result.object.barrier_fixes.slice(0, 5),
   };
 
@@ -1412,9 +1687,11 @@ async function processCombo(
   // Search en Google: el persona ve UNA combinación RSA muestreada (3
   // titulares + 2 descripciones, determinista por perfil + query). PMax
   // combina automáticamente: 1 titular corto + 1 descripción por impresión.
-  // El resto de renders no cambian.
-  const shown =
-    channel === "google" && campaign.strategy === "search"
+  // Meta sirve UNA combinación de las variantes (flexible ad format): 1
+  // texto principal + 1 titular + 1 descripción. El resto no cambia.
+  const shown = isMetaStrategy(campaign.strategy)
+    ? sampleMetaCombination(campaign, profile.id, query)
+    : channel === "google" && campaign.strategy === "search"
       ? sampleRsaCombination(campaign, profile.id, query)
       : channel === "google" &&
           (campaign.strategy === "pmax" || campaign.strategy === "demand_gen")
@@ -1602,17 +1879,34 @@ async function processCombo(
     landing_evaluated: landingEvaluated,
     landing_match: landingMatch,
     landing_critique: landingCritique,
-    // El límite RSA (30/90) se instruye en el prompt y aquí se garantiza;
-    // en Shopping el «titular ideal» es un título de ficha (150c).
+    // El límite del formato se instruye en el prompt y aquí se garantiza:
+    // RSA 30/90, Shopping 150 (título de ficha), Meta 40/125 (titular
+    // visible / texto principal antes del «Ver más»).
     ideal_headline: ideal.output.ideal_headline.slice(
       0,
-      campaign.strategy === "shopping" ? 150 : 30,
+      campaign.strategy === "shopping"
+        ? 150
+        : isMetaStrategy(campaign.strategy)
+          ? 40
+          : 30,
     ),
-    ideal_description: ideal.output.ideal_description.slice(0, 90),
+    ideal_description: ideal.output.ideal_description.slice(
+      0,
+      isMetaStrategy(campaign.strategy) ? 125 : 90,
+    ),
     ideal_promise: ideal.output.ideal_promise,
     ideal_free_text: ideal.output.ideal_free_text ?? null,
   };
   const onConflict = { onConflict: "run_id,profile_id,query,channel" };
+
+  // En Meta el texto principal mostrado se registra junto a la descripción
+  // en shown_descriptions (text[] genérico): assetPerformance lo recupera
+  // matcheando contra channel_spec.primary_texts.
+  const shownDescriptions = shown
+    ? shown.primary_text
+      ? [shown.primary_text, ...shown.descriptions]
+      : shown.descriptions
+    : null;
 
   let { error } = await supa
     .from("campaign_responses")
@@ -1622,7 +1916,7 @@ async function processCombo(
         comprehension_rate: comprehensionRate,
         behavior_class: snippet.output.behavior_class,
         shown_headlines: shown?.headlines ?? null,
-        shown_descriptions: shown?.descriptions ?? null,
+        shown_descriptions: shownDescriptions,
         meta,
       },
       onConflict,
@@ -1646,7 +1940,7 @@ async function processCombo(
             comprehension_rate: comprehensionRate,
             behavior_class: snippet.output.behavior_class,
             shown_headlines: shown?.headlines ?? null,
-            shown_descriptions: shown?.descriptions ?? null,
+            shown_descriptions: shownDescriptions,
           },
         },
         onConflict,
@@ -1825,7 +2119,7 @@ function assetPerformance(
   const sampled = rs.filter((r) => r.shown_headlines !== null);
   if (sampled.length === 0) return [];
   const out: AssetPerformance[] = [];
-  const measure = (asset: string, kind: "headline" | "description") => {
+  const measure = (asset: string, kind: AssetPerformance["kind"]) => {
     const subset = sampled.filter((r) =>
       (kind === "headline" ? r.shown_headlines : r.shown_descriptions)?.includes(asset),
     );
@@ -1841,6 +2135,9 @@ function assetPerformance(
   };
   for (const h of campaign.headlines) measure(h, "headline");
   for (const d of campaign.descriptions) measure(d, "description");
+  // Meta: el texto principal mostrado viaja en shown_descriptions y se
+  // recupera matcheando contra las variantes declaradas en channel_spec.
+  for (const p of campaign.channel_spec?.primary_texts ?? []) measure(p, "primary_text");
   return out.sort((a, b) => b.mean_intent - a.mean_intent);
 }
 

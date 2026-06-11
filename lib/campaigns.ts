@@ -18,10 +18,10 @@ export const CHANNEL_LABEL: Record<Channel, string> = {
 };
 
 // ============================================================
-// Estrategias dentro de un canal. Hoy sólo modelamos Google Ads.
-// Search (RSA) está implementado. Las demás se exponen como "En
-// construcción" hasta que tengan sus campos específicos (Display,
-// PMax, Demand Gen, Video / YouTube, App Campaigns, Shopping).
+// Estrategias dentro de un canal. Google Ads modela sus 7 tipos de
+// campaña; Meta Ads modela el FORMATO del anuncio (lo que determina
+// los campos y lo que ve el perfil), porque en Meta el tipo de campaña
+// es el objetivo ODAX y se guarda aparte en channel_spec.objective.
 // ============================================================
 
 export const STRATEGY_VALUES = [
@@ -32,6 +32,9 @@ export const STRATEGY_VALUES = [
   "video",
   "app",
   "shopping",
+  "meta_single",
+  "meta_carousel",
+  "meta_collection",
 ] as const;
 export type Strategy = (typeof STRATEGY_VALUES)[number];
 
@@ -43,7 +46,28 @@ export const STRATEGY_LABEL: Record<Strategy, string> = {
   video: "Video / YouTube",
   app: "App Campaigns",
   shopping: "Shopping",
+  meta_single: "Imagen / Vídeo",
+  meta_carousel: "Secuencia (carousel)",
+  meta_collection: "Colección",
 };
+
+/** Estrategias visibles por canal: las tabs del form se filtran con esto. */
+export const CHANNEL_STRATEGIES: Record<Channel, Strategy[]> = {
+  google: ["search", "display", "pmax", "demand_gen", "video", "app", "shopping"],
+  meta: ["meta_single", "meta_carousel", "meta_collection"],
+  linkedin: [],
+  tiktok: [],
+  x: [],
+};
+
+export const DEFAULT_STRATEGY_BY_CHANNEL: Partial<Record<Channel, Strategy>> = {
+  google: "search",
+  meta: "meta_single",
+};
+
+export function isMetaStrategy(s: Strategy): boolean {
+  return s === "meta_single" || s === "meta_carousel" || s === "meta_collection";
+}
 
 export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
   search:
@@ -60,11 +84,166 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
     "App vinculada de Play / App Store como baseline. 2+ titulares (30c) + 1+ descripción (90c). Hasta 20 imágenes y 20 vídeos en formatos 1.91:1, 1:1, 4:5, 9:16. HTML5 opcional.",
   shopping:
     "Ficha de producto generada desde el feed (spec Merchant Center 7052112): sin titulares ni descripciones redactados. Producto con id (50c) + título (150c) + descripción (5.000c) + precio con divisa + disponibilidad; marca (70c), GTIN, MPN (si no hay GTIN) y condición según el caso. La URL final es el link del producto y la imagen principal (500x500 o más) va en creatividades. Las queries son las búsquedas de producto.",
+  meta_single:
+    "Anuncio de imagen o vídeo único (Ads Guide oficial 2026). 1..5 textos principales (máx. técnico 1.024c, se trunca con «Ver más» hacia los 125c) + 1..5 titulares (máx. 255c, visibles ~27-40c) + 0..5 descripciones de enlace (solo se muestran en algunos placements) + nombre de página + CTA de la lista de Meta + 1 creatividad. Ratio según placement: 1:1 / 4:5 en feed, 9:16 en Stories y Reels.",
+  meta_carousel:
+    "Secuencia de 2 a 10 tarjetas, cada una con su imagen (mín. 1080x1080), titular (45c recomendados) y descripción opcional (18c recomendados). El texto principal es compartido (80c recomendados en feed). Disponible en feeds, Stories y Threads (en Threads solo tarjetas de imagen).",
+  meta_collection:
+    "Colección: portada (imagen o vídeo) + cuadrícula de productos (mínimo 4 tiles). Al tocar se abre una instant experience a pantalla completa. Solo ubicaciones móviles: feeds de Facebook e Instagram y Stories de Instagram. Texto principal (125c) + titular (40c).",
 };
 
 export function isStrategyImplemented(s: Strategy): boolean {
   return s !== "app";
 }
+
+// ============================================================
+// Meta Ads: objetivos ODAX, placements de simulación, CTAs y límites.
+// Números verificados contra el Ads Guide oficial y la Marketing API
+// (asset_feed_spec: body 1.024c, title/description 255c, 5 variantes).
+// ============================================================
+
+export const META_OBJECTIVE_VALUES = [
+  "awareness",
+  "traffic",
+  "engagement",
+  "leads",
+  "app_promotion",
+  "sales",
+] as const;
+export type MetaObjective = (typeof META_OBJECTIVE_VALUES)[number];
+
+export const META_OBJECTIVE_LABEL: Record<MetaObjective, string> = {
+  awareness: "Reconocimiento",
+  traffic: "Tráfico",
+  engagement: "Interacción",
+  leads: "Clientes potenciales",
+  app_promotion: "Promoción de la app",
+  sales: "Ventas",
+};
+
+export const META_OBJECTIVE_DESCRIPTION: Record<MetaObjective, string> = {
+  awareness:
+    "Maximiza alcance y recuerdo del anuncio. Para lanzamientos de marca y top-of-funnel, sin conversión medible.",
+  traffic:
+    "Maximiza clics o visitas a la página de destino. Atrae clicadores, no compradores: si el KPI es vender, usa Ventas.",
+  engagement:
+    "Maximiza mensajes, reproducciones de vídeo o interacción con la publicación. Para calentar audiencias.",
+  leads:
+    "Recopila datos de contacto vía formulario instantáneo, web o mensajes. Típico de B2B y alta consideración.",
+  app_promotion:
+    "Instalaciones y eventos de la app (Advantage+ activado por defecto desde 2025).",
+  sales:
+    "Encuentra personas con probabilidad de comprar (píxel + Conversions API). El flujo Advantage+ sales es el estándar desde 2025.",
+};
+
+export const META_PLACEMENT_VALUES = [
+  "facebook_feed",
+  "instagram_feed",
+  "instagram_stories",
+  "instagram_reels",
+  "threads_feed",
+  "whatsapp_status",
+] as const;
+export type MetaPlacement = (typeof META_PLACEMENT_VALUES)[number];
+
+export const META_PLACEMENT_LABEL: Record<MetaPlacement, string> = {
+  facebook_feed: "Feed de Facebook",
+  instagram_feed: "Feed de Instagram",
+  instagram_stories: "Stories de Instagram",
+  instagram_reels: "Reels de Instagram",
+  threads_feed: "Feed de Threads",
+  whatsapp_status: "Estados de WhatsApp",
+};
+
+/**
+ * Qué formatos admite cada placement (matriz oficial junio 2026): Reels y
+ * WhatsApp Status solo anuncio único; Threads no admite colección y sus
+ * carousels son solo de imágenes; la colección vive en feeds y Stories de IG.
+ */
+export const META_PLACEMENT_STRATEGIES: Record<MetaPlacement, Strategy[]> = {
+  facebook_feed: ["meta_single", "meta_carousel", "meta_collection"],
+  instagram_feed: ["meta_single", "meta_carousel", "meta_collection"],
+  instagram_stories: ["meta_single", "meta_carousel", "meta_collection"],
+  instagram_reels: ["meta_single", "meta_collection"],
+  threads_feed: ["meta_single", "meta_carousel"],
+  whatsapp_status: ["meta_single"],
+};
+
+/** Placements 9:16 a pantalla completa (sin headline visible en IG Stories/Reels). */
+export function isVerticalPlacement(p: MetaPlacement): boolean {
+  return p === "instagram_stories" || p === "instagram_reels" || p === "whatsapp_status";
+}
+
+/**
+ * Botones CTA de Meta tal como aparecen en Ads Manager en español
+ * (lista cerrada: Meta no admite texto libre en el botón).
+ */
+export const META_CTA_VALUES = [
+  "Más información",
+  "Comprar",
+  "Registrarte",
+  "Suscribirte",
+  "Descargar",
+  "Reservar",
+  "Ver más",
+  "Enviar solicitud",
+  "Realizar pedido",
+  "Solicitar cita",
+  "Escuchar",
+  "Enviar mensaje",
+  "Enviar mensaje de WhatsApp",
+  "Llamar ahora",
+  "Cómo llegar",
+  "Contactarnos",
+  "Jugar",
+  "Ver menú",
+  "Donar ahora",
+  "Obtener oferta",
+  "Solicitar presupuesto",
+  "Instalar ahora",
+  "Probar en cámara",
+] as const;
+export type MetaCta = (typeof META_CTA_VALUES)[number];
+
+/**
+ * Límites de copy de Meta: `max` es el máximo técnico oficial de la API
+ * (asset_feed_spec) y `recommended` el visible antes de truncar según el
+ * Ads Guide. El form valida contra max y avisa al superar recommended.
+ */
+export const META_LIMITS = {
+  primary_text: { max: 1024, recommended: 125, recommended_carousel: 80 },
+  headline: { max: 255, recommended: 40 },
+  description: { max: 255, recommended: 30 },
+  card_headline: { max: 255, recommended: 45 },
+  card_description: { max: 255, recommended: 18 },
+  page_name: { max: 75 },
+  variants: 5,
+  carousel_cards: { min: 2, max: 10 },
+  collection_products_min: 4,
+} as const;
+
+export const MetaSpecSchema = z.object({
+  objective: z.enum(META_OBJECTIVE_VALUES).default("traffic"),
+  placement: z.enum(META_PLACEMENT_VALUES).default("instagram_feed"),
+  primary_texts: z
+    .array(
+      z
+        .string()
+        .min(1, "Texto principal vacío.")
+        .max(
+          META_LIMITS.primary_text.max,
+          "El texto principal admite máximo 1.024 caracteres (límite técnico de Meta).",
+        ),
+    )
+    .min(1, "Meta exige al menos 1 texto principal.")
+    .max(META_LIMITS.variants, "Máximo 5 textos principales por anuncio."),
+  display_link: z
+    .string()
+    .max(255, "El enlace visible admite máximo 255 caracteres.")
+    .optional()
+    .nullable(),
+});
+export type MetaSpec = z.infer<typeof MetaSpecSchema>;
 
 // ============================================================
 // Producto de Shopping (espejo de los atributos obligatorios del feed
@@ -142,6 +321,8 @@ export const CREATIVE_ROLE_VALUES = [
   "logo_square", //     1:1   · obligatorio en Display
   "logo_landscape", //  4:1   · opcional
   "video_youtube", //   YouTube · opcional
+  "card", //            tarjeta de carousel / tile de colección (Meta)
+  "cover", //           portada de colección (Meta)
 ] as const;
 export type CreativeRole = (typeof CREATIVE_ROLE_VALUES)[number];
 
@@ -153,6 +334,8 @@ export const CREATIVE_ROLE_LABEL: Record<CreativeRole, string> = {
   logo_square: "Logo square (1:1)",
   logo_landscape: "Logo landscape (4:1)",
   video_youtube: "Vídeo YouTube",
+  card: "Tarjeta (1:1)",
+  cover: "Portada de colección",
 };
 
 export const CreativeSchema = z.object({
@@ -177,6 +360,19 @@ export const CreativeSchema = z.object({
     .optional()
     .nullable(),
   label: z.string().optional().nullable(),
+  // Solo tarjetas de Meta (role card): titular y descripción por tarjeta.
+  // Caps duros = máximo técnico de la API (255c); los recomendados de
+  // visualización (45c/18c) se avisan en el form sin bloquear.
+  card_headline: z
+    .string()
+    .max(255, "El titular de la tarjeta admite máximo 255 caracteres.")
+    .optional()
+    .nullable(),
+  card_description: z
+    .string()
+    .max(255, "La descripción de la tarjeta admite máximo 255 caracteres.")
+    .optional()
+    .nullable(),
 });
 export type Creative = z.infer<typeof CreativeSchema>;
 
@@ -232,16 +428,16 @@ export const CampaignInputSchema = z
       .array(z.string().min(2, "Cada query tiene mínimo 2 caracteres.").max(120))
       .max(5, "Máximo 5 queries por campaign.")
       .default([]),
-    // Cap global 40c (Demand Gen); el límite de 30c de Search, Display y
-    // PMax se valida por estrategia en el superRefine. Mínimo 0 porque
-    // Shopping no lleva titulares ni descripciones (los exige por
-    // estrategia el superRefine).
+    // Cap global 255c (máximo técnico de Meta Ads); los límites de Google
+    // (30c Search/Display/PMax, 40c Demand Gen) se validan por estrategia
+    // en el superRefine. Mínimo 0 porque Shopping no lleva titulares ni
+    // descripciones (los exige por estrategia el superRefine).
     headlines: z
       .array(
         z
           .string()
           .min(1, "Titular vacío.")
-          .max(40, "Cada titular admite máximo 40 caracteres."),
+          .max(255, "Cada titular admite máximo 255 caracteres."),
       )
       .max(15, "Máximo 15 titulares.")
       .default([]),
@@ -250,7 +446,7 @@ export const CampaignInputSchema = z
         z
           .string()
           .min(1, "Descripción vacía.")
-          .max(90, "Cada descripción admite máximo 90 caracteres."),
+          .max(255, "Cada descripción admite máximo 255 caracteres."),
       )
       .max(5, "Máximo 5 descripciones.")
       .default([]),
@@ -264,9 +460,11 @@ export const CampaignInputSchema = z
       .max(200, "El mensaje pretendido admite máximo 200 caracteres.")
       .optional()
       .nullable(),
+    // Cap global 75c (nombre de página de Facebook); el límite de 25c de
+    // Google se valida por estrategia en el superRefine.
     company_name: z
       .string()
-      .max(25, "Nombre de empresa máximo 25 caracteres.")
+      .max(75, "Nombre de empresa máximo 75 caracteres.")
       .optional()
       .nullable(),
     long_headline: z
@@ -276,21 +474,53 @@ export const CampaignInputSchema = z
       .nullable(),
     cta: z.string().optional().nullable(),
     product: ProductSchema.optional().nullable(),
+    /** Campos específicos del canal (hoy solo Meta). Null en Google. */
+    channel_spec: MetaSpecSchema.optional().nullable(),
   })
   .superRefine((data, ctx) => {
-    // Titulares de 30c en todas las estrategias salvo Demand Gen (40c,
-    // spec oficial 17091672).
-    if (data.strategy !== "demand_gen" && data.headlines.some((h) => h.length > 30)) {
+    const isMeta = isMetaStrategy(data.strategy);
+    // Titulares de 30c en las estrategias de Google salvo Demand Gen (40c,
+    // spec oficial 17091672). En Meta el cap duro es el técnico (255c).
+    if (
+      !isMeta &&
+      data.strategy !== "demand_gen" &&
+      data.headlines.some((h) => h.length > 30)
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["headlines"],
         message: "Los titulares admiten máximo 30 caracteres en esta estrategia.",
       });
     }
-    // Mínimos comunes de copy: aplican a todo salvo Shopping (la ficha se
-    // genera desde el producto). Search/PMax/Video tienen mínimos mayores
-    // en sus bloques.
-    if (data.strategy !== "shopping") {
+    if (data.strategy === "demand_gen" && data.headlines.some((h) => h.length > 40)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["headlines"],
+        message: "Demand Gen admite titulares de máximo 40 caracteres.",
+      });
+    }
+    // Descripciones de 90c en Google (RSA/Display/PMax/Demand Gen/Video).
+    if (!isMeta && data.descriptions.some((d) => d.length > 90)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["descriptions"],
+        message: "Las descripciones admiten máximo 90 caracteres en esta estrategia.",
+      });
+    }
+    // Nombre de empresa de 25c en Google (el cap global de 75c es el del
+    // nombre de página de Facebook).
+    if (!isMeta && data.company_name && data.company_name.length > 25) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["company_name"],
+        message: "El nombre de empresa admite máximo 25 caracteres en Google Ads.",
+      });
+    }
+    // Mínimos comunes de copy de Google: aplican a todo salvo Shopping (la
+    // ficha se genera desde el producto) y las estrategias de Meta (sus
+    // mínimos viven en el bloque Meta). Search/PMax/Video tienen mínimos
+    // mayores en sus bloques.
+    if (!isMeta && data.strategy !== "shopping") {
       if (data.headlines.length < 1) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -304,6 +534,138 @@ export const CampaignInputSchema = z
           path: ["descriptions"],
           message: "Al menos 1 descripción.",
         });
+      }
+    }
+    // ============ Meta Ads (formatos single / carousel / collection) ============
+    if (isMeta) {
+      const spec = data.channel_spec;
+      if (!spec) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["channel_spec"],
+          message:
+            "Las estrategias de Meta exigen objetivo, placement y al menos 1 texto principal.",
+        });
+      } else if (!META_PLACEMENT_STRATEGIES[spec.placement].includes(data.strategy)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["channel_spec"],
+          message: `${META_PLACEMENT_LABEL[spec.placement]} no admite el formato ${STRATEGY_LABEL[data.strategy]} (matriz oficial de placements).`,
+        });
+      }
+      if (spec && spec.objective === "app_promotion" && spec.placement === "whatsapp_status") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["channel_spec"],
+          message: "Estados de WhatsApp no está disponible para el objetivo Promoción de la app.",
+        });
+      }
+      if (!data.company_name || !data.company_name.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["company_name"],
+          message: "Meta exige el nombre de la página de Facebook (identidad del anuncio).",
+        });
+      }
+      if (data.company_name && data.company_name.length > META_LIMITS.page_name.max) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["company_name"],
+          message: "El nombre de página admite máximo 75 caracteres.",
+        });
+      }
+      if (!data.cta || !META_CTA_VALUES.includes(data.cta as MetaCta)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["cta"],
+          message:
+            "Meta exige un botón CTA de su lista cerrada (en Meta el botón está siempre presente; por defecto «Más información»).",
+        });
+      }
+      if (data.headlines.length > META_LIMITS.variants) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["headlines"],
+          message: "Meta admite máximo 5 titulares por anuncio (asset_feed_spec).",
+        });
+      }
+      const creatives = data.creatives ?? [];
+      const cards = creatives.filter((c) => c.role === "card");
+      const covers = creatives.filter((c) => c.role === "cover");
+      if (data.strategy === "meta_single") {
+        if (data.headlines.length < 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["headlines"],
+            message: "El anuncio único lleva al menos 1 titular (máx. 255c, visibles ~40).",
+          });
+        }
+        const visible = creatives.filter(
+          (c) =>
+            c.kind === "image" ||
+            ((c.kind === "video" || c.kind === "youtube") && c.thumbnail_url),
+        );
+        if (visible.length < 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["creatives"],
+            message:
+              "El anuncio único exige 1 creatividad: imagen, o vídeo con miniatura (el perfil sintético evalúa la miniatura).",
+          });
+        }
+      }
+      if (data.strategy === "meta_carousel") {
+        if (
+          cards.length < META_LIMITS.carousel_cards.min ||
+          cards.length > META_LIMITS.carousel_cards.max
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["creatives"],
+            message: "La secuencia lleva de 2 a 10 tarjetas (creatividades con rol «Tarjeta»).",
+          });
+        }
+        if (cards.some((c) => !c.card_headline || !c.card_headline.trim())) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["creatives"],
+            message: "Cada tarjeta de la secuencia exige su titular (45c recomendados).",
+          });
+        }
+        if (
+          spec?.placement === "threads_feed" &&
+          cards.some((c) => c.kind !== "image")
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["creatives"],
+            message: "En Threads el carousel solo admite tarjetas de imagen (spec oficial).",
+          });
+        }
+      }
+      if (data.strategy === "meta_collection") {
+        if (data.headlines.length < 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["headlines"],
+            message: "La colección lleva 1 titular (máx. 40c visibles junto al CTA).",
+          });
+        }
+        if (covers.length !== 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["creatives"],
+            message: "La colección exige exactamente 1 portada (imagen o vídeo con miniatura).",
+          });
+        }
+        if (cards.length < META_LIMITS.collection_products_min) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["creatives"],
+            message:
+              "La colección exige al menos 4 tiles de producto (creatividades con rol «Tarjeta», nombre del producto en el titular).",
+          });
+        }
       }
     }
     // Search: spec oficial 17092074. Bloque «Responsive search ads»:
@@ -612,6 +974,8 @@ export type Campaign = {
   cta: string | null;
   /** Producto del feed (solo shopping). Null en el resto de estrategias. */
   product: Product | null;
+  /** Campos específicos de Meta (objetivo, placement, textos principales). Null en Google. */
+  channel_spec: MetaSpec | null;
   deleted_at?: string | null;
 };
 
@@ -656,6 +1020,13 @@ const CampaignRowSchema = z.object({
     .unknown()
     .transform((v) => {
       const parsed = ProductSchema.safeParse(v);
+      return parsed.success ? parsed.data : null;
+    })
+    .catch(null),
+  channel_spec: z
+    .unknown()
+    .transform((v) => {
+      const parsed = MetaSpecSchema.safeParse(v);
       return parsed.success ? parsed.data : null;
     })
     .catch(null),
@@ -746,6 +1117,8 @@ export async function createCampaign(input: CampaignInput): Promise<Campaign> {
   // Insert directo: los fallbacks legacy (pre-0011 channels, pre-0013
   // strategy, 0019 intended_message, 0020 product) se podaron cuando esas
   // migraciones constaron aplicadas en suaas_migrations (v0.46.0).
+  // channel_spec (0021) solo se incluye cuando hay spec de Meta: así las
+  // campañas de Google siguen creándose aunque la 0021 no esté aplicada.
   const { data, error } = await supa
     .from("campaigns")
     .insert({
@@ -753,6 +1126,7 @@ export async function createCampaign(input: CampaignInput): Promise<Campaign> {
       intended_message: parsed.intended_message ?? null,
       product: parsed.product ?? null,
       channels: parsed.channels,
+      ...(parsed.channel_spec ? { channel_spec: parsed.channel_spec } : {}),
     })
     .select("*")
     .single();

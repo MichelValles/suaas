@@ -1,18 +1,21 @@
 import {
+  GalleryHorizontalEnd,
   Image as ImageIcon,
+  LayoutGrid,
   Play,
   Search,
   ShoppingBag,
   Smartphone,
   Sparkles,
+  SquarePlay,
   TrendingUp,
 } from "lucide-react";
 import type { Strategy } from "@/lib/campaigns";
 
 /**
- * Iconos para las 7 estrategias publicitarias dentro de un canal. Mezcla
- * de iconos lucide (monocromos, currentColor) elegidos por afinidad
- * semántica con cada estrategia de Google Ads.
+ * Iconos para las estrategias publicitarias dentro de cada canal (7 de
+ * Google Ads + 3 formatos de Meta). Mezcla de iconos lucide (monocromos,
+ * currentColor) elegidos por afinidad semántica.
  */
 export function StrategyIcon({
   strategy,
@@ -36,4 +39,7 @@ const ICONS: Record<
   video: Play,
   app: Smartphone,
   shopping: ShoppingBag,
+  meta_single: SquarePlay,
+  meta_carousel: GalleryHorizontalEnd,
+  meta_collection: LayoutGrid,
 };

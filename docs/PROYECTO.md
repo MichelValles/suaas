@@ -117,7 +117,7 @@ app/
     page.tsx                            Listado de campañas publicitarias
     new/
       page.tsx                          /campaigns/new
-      new-form.tsx                      Form con sub-pestañas Canal (Google único activo) y Estrategia (Search · Display activos · 5 en construcción). Preview en vivo del SERP o del banner Display
+      new-form.tsx                      Form con sub-pestañas Canal (Google y Meta activos) y Estrategia filtrada por canal (CHANNEL_STRATEGIES). Preview en vivo por estrategia: SERP, banner Display, feed/9:16/carousel/colección de Meta
       actions.ts                        createCampaignAction con superRefine condicional por strategy
     [id]/
       page.tsx                          Detalle: chips de canal y estrategia + secciones por campo + creatividades por rol + LaunchPanel
@@ -184,7 +184,7 @@ lib/
   ab.ts                                 AbTestInputSchema + CRUD + linkAbTestRun + getAbTestWithTrashed
   copy.ts                               CopyDeckInputSchema + CRUD + getCopyDeckWithTrashed
   pricing.ts                            PricingOfferInputSchema + CRUD + getPricingOfferWithTrashed
-  campaigns.ts                          CHANNEL_VALUES, STRATEGY_VALUES, CREATIVE_ROLE_VALUES, CTA_VALUES, CampaignInputSchema con superRefine por strategy + CRUD + normalizeCampaign (defensivo) + getCampaignWithTrashed
+  campaigns.ts                          CHANNEL_VALUES, STRATEGY_VALUES (7 Google + 3 Meta), CHANNEL_STRATEGIES, CREATIVE_ROLE_VALUES, CTA_VALUES + META_CTA_VALUES, META_OBJECTIVE/PLACEMENT_*, META_LIMITS, MetaSpecSchema, CampaignInputSchema con superRefine por strategy + CRUD + normalizeCampaign (defensivo) + getCampaignWithTrashed
                                         (patrón v0.34: los getters normales filtran papelera; las variantes WithTrashed no filtran deleted_at y alimentan las vistas de resultados históricos para que no rompan)
   trash.ts                              TRASH_TYPES (9 tipos: targets, funnels, ab, copy, pricing, campaign, geo, momentum, profiles), sendToTrash/restoreFromTrash/hardDelete despachan por tipo
 
@@ -213,7 +213,7 @@ components/
   runs-previous.tsx                     RunsPreviousGrid con tarjetas de runs previos + métricas configurable
   trash-button.tsx                      SendToTrashButton (icono en cada card) → POST /api/trash/[type]/[id]
   channel-icon.tsx                      SVGs monocromos para google · meta · linkedin · tiktok · x (Channel)
-  strategy-icon.tsx                     Iconos lucide para las 7 strategies (search · display · pmax · demand_gen · video · app · shopping)
+  strategy-icon.tsx                     Iconos lucide para las 10 strategies (7 de Google + meta_single · meta_carousel · meta_collection)
 
 public/
   logos/flat101.svg                     Logo de marca (ink → invertido sobre fondo oscuro)
@@ -240,6 +240,7 @@ supabase/
     0018_campaigns_descriptions_fix.sql descriptions check 1..5 (antes 2..4, drift con zod) + índice campaigns.deleted_at
     0019_consolidacion.sql              tabla suaas_migrations (tracking) + drop channel legacy + checks reales + RLS + columnas intended_message, comprehension_rate, behavior_class, shown_*
     0020_shopping.sql                   campaigns.product (jsonb): producto del feed para Shopping
+    0021_meta_ads.sql                   canal Meta: strategy check con meta_single/carousel/collection, company_name 75c, CTAs de Meta, campaigns.channel_spec (jsonb)
 
 proxy.ts                                Middleware: redirige a /login todo lo no público sin cookie
 next.config.ts                          experimental.serverActions.bodySizeLimit = "10mb"
@@ -325,12 +326,15 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 18. `0018_campaigns_descriptions_fix.sql` (v0.32: check de `descriptions` 1..5 + índice `campaigns.deleted_at`)
 19. `0019_consolidacion.sql` (v0.37: tabla `suaas_migrations` con backfill, drop del `channel` legacy, checks de arrays con coalesce y de Display, CTA del set o ≤ 10c, RLS en `campaigns`/`campaign_responses`, columnas `intended_message`, `comprehension_rate`, `behavior_class`, `shown_headlines`, `shown_descriptions`)
 20. `0020_shopping.sql` (v0.45: `campaigns.product` jsonb para Shopping)
+21. `0021_meta_ads.sql` (v0.54: canal Meta; check de `strategy` con los 3 formatos, `company_name` 75c, CTAs de Meta en el check de `cta`, columna `campaigns.channel_spec` jsonb) **← pendiente de aplicar**
 
-Las 20 constan aplicadas en `suaas_migrations` (2026-06-11). Convención desde la 0019: cada migración nueva inserta su propia fila al final. Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado (sección «Tracking de migraciones» y campo `migrations_tracking`); el campo `pending_migrations` del JSON de `/api/diag` es el atajo para saber qué archivos `.sql` faltan por aplicar.
+Las 20 primeras constan aplicadas en `suaas_migrations` (2026-06-11); la **0021 está pendiente de aplicar** (sin ella las campañas de Google siguen funcionando, pero crear una campaña de Meta falla con el check de `strategy`). Convención desde la 0019: cada migración nueva inserta su propia fila al final. Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado (sección «Tracking de migraciones» y campo `migrations_tracking`); el campo `pending_migrations` del JSON de `/api/diag` es el atajo para saber qué archivos `.sql` faltan por aplicar.
 
 ## Módulo Campañas (Paid Ads): detalle
 
-Es el módulo más complejo. Modela publicidad pagada **simulada en distintas redes y estrategias**. Hoy funcionan **6 de las 7 estrategias de Google Ads**, con requisitos verificados fila a fila contra las specs oficiales (answers 17092074, 17091269, 17091672, 17091270 y la spec del feed 7052112): **Search RSA** (1-15 titulares 30c, 1-4 descripciones 90c, empresa 25c + logo 1:1 obligatorios), **Display RDA**, **Performance Max** (3-15 titulares con ≥1 de ≤15c, titular largo, 2-5 descripciones, CTA, landscape+square+logo), **Demand Gen** (1-5 titulares de 40c con ≥1 de ≤30c, CTA obligatoria), **Video** (1 vídeo + 1 titular 30c + 1 descripción 90c; titular largo y CTA ≤10c opcionales) y **Shopping** (ficha generada desde `campaigns.product`: id, título 150c, descripción, precio ISO 4217, disponibilidad, marca/GTIN/MPN/condición). Solo **App Campaigns** y los 4 canales restantes (Meta / LinkedIn / TikTok / X) siguen como `Próx.`. El formulario presenta primero los campos comunes (nombre, brief, mensaje pretendido, URL final, landing), después canal + estrategia y por último los específicos, con vista previa propia por estrategia (SERP, banner, tarjeta de feed, pre-roll, ficha de producto).
+Es el módulo más complejo. Modela publicidad pagada **simulada en distintas redes y estrategias**. Hoy funcionan **6 de las 7 estrategias de Google Ads**, con requisitos verificados fila a fila contra las specs oficiales (answers 17092074, 17091269, 17091672, 17091270 y la spec del feed 7052112): **Search RSA** (1-15 titulares 30c, 1-4 descripciones 90c, empresa 25c + logo 1:1 obligatorios), **Display RDA**, **Performance Max** (3-15 titulares con ≥1 de ≤15c, titular largo, 2-5 descripciones, CTA, landscape+square+logo), **Demand Gen** (1-5 titulares de 40c con ≥1 de ≤30c, CTA obligatoria), **Video** (1 vídeo + 1 titular 30c + 1 descripción 90c; titular largo y CTA ≤10c opcionales) y **Shopping** (ficha generada desde `campaigns.product`: id, título 150c, descripción, precio ISO 4217, disponibilidad, marca/GTIN/MPN/condición). Solo **App Campaigns** queda como `Próx.` dentro de Google. El formulario presenta primero los campos comunes (nombre, brief, mensaje pretendido, URL final, landing), después canal + estrategia y por último los específicos, con vista previa propia por estrategia (SERP, banner, tarjeta de feed, pre-roll, ficha de producto).
+
+Desde v0.54.0 también funciona el **canal Meta Ads** con sus **3 formatos como estrategias** (`meta_single` imagen/vídeo único, `meta_carousel` secuencia de 2-10 tarjetas, `meta_collection` portada + ≥4 tiles de producto), con specs verificadas contra el Ads Guide oficial y la Marketing API (asset_feed_spec, placement-targeting) el 2026-06-12. En Meta el tipo de campaña es el **objetivo ODAX** (awareness/traffic/engagement/leads/app_promotion/sales) y no determina los campos del anuncio, así que vive junto al **placement de simulación** (Feed de Facebook, Feed de Instagram, Stories, Reels, Threads, Estados de WhatsApp), los **1..5 textos principales** y el enlace visible en `campaigns.channel_spec` (jsonb, migración 0021). Los caps de copy distinguen **máximo técnico** (primary 1.024c, headline/description 255c, 5 variantes por campo) de **recomendado visible antes de truncar** (125/40/30; el form avisa en ámbar sin bloquear y el runner trunca con «Ver más» según el placement: feed/Stories 125c, Reels 72c, Threads 160c). La CTA es obligatoria y sale de la lista cerrada de Meta en castellano; la identidad es el nombre de página de Facebook (75c). El runner muestrea UNA combinación texto principal + titular + descripción por impresión (flexible ad format real), framea por placement y objetivo, y el ranking por asset incluye los textos principales (`kind: primary_text`). LinkedIn, TikTok y X siguen como `Próx.`.
 
 ### Schema (`campaigns`)
 
@@ -343,15 +347,18 @@ brief text                        -- contexto del operador (no se enseña al per
 final_url text                    -- landing
 landing_image_url text            -- og:image resuelta o screenshot
 landing_source_url text           -- URL original si se resolvió por og
-queries text[] (1..5)             -- search: keywords. display: intereses opcionales
-headlines text[] (1..15)          -- search: 30c. display: 1..5 con 30c
-descriptions text[] (1..5)        -- search: 2..4 con 90c. display: 1..5 con 90c
-creatives jsonb [{kind, role, url, ...}]
+queries text[] (1..5)             -- search: keywords. display/meta: intereses opcionales
+headlines text[] (0..15)          -- google: 30c (40c demand_gen). meta: 0..5 con 255c (40 visibles)
+descriptions text[] (0..5)        -- google: 90c. meta: 0..5 con 255c (30 visibles), opcionales
+creatives jsonb [{kind, role, url, card_headline?, card_description?, ...}]
 channels text[] (1..5)            -- subset de {google, meta, linkedin, tiktok, x}
-strategy text                     -- {search, display, pmax, demand_gen, video, app, shopping}
-company_name text                 -- Display: max 25c
+strategy text                     -- google: {search, display, pmax, demand_gen, video, app, shopping}
+                                  -- meta:   {meta_single, meta_carousel, meta_collection}
+company_name text                 -- Display: max 25c. Meta: nombre de página, max 75c
 long_headline text                -- Display: max 90c
-cta text                          -- Display: CTA de un set predefinido
+cta text                          -- set de Google, set de Meta (castellano) o ≤10c (Video)
+product jsonb                     -- solo shopping: producto del feed de Merchant Center
+channel_spec jsonb                -- solo meta: {objective, placement, primary_texts[1..5] ≤1024c, display_link?}
 ```
 
 ### Schema (`campaign_responses`)
@@ -376,19 +383,22 @@ channel text                      -- duplicado de la fila padre para queries dir
 
 ### Canales
 
-`Channel = google | meta | linkedin | tiktok | x`. Hoy sólo `google` es seleccionable en el form. Los demás se muestran como `Próx.` (cada red tendrá sus propios campos y caps).
+`Channel = google | meta | linkedin | tiktok | x`. `google` y `meta` son seleccionables en el form (con sus propios campos y caps); LinkedIn, TikTok y X se muestran como `Próx.`. Las estrategias visibles por canal viven en `CHANNEL_STRATEGIES` y el default en `DEFAULT_STRATEGY_BY_CHANNEL`.
 
-### Estrategias dentro de Google Ads
+### Estrategias por canal
 
-`Strategy = search | display | pmax | demand_gen | video | app | shopping`. Implementadas:
+Google: `search | display | pmax | demand_gen | video | app | shopping` (todas implementadas salvo `app`). Meta: `meta_single | meta_carousel | meta_collection` (las tres implementadas). Ejemplos:
 
 - **search** (RSA): URL final + 3..15 titulares (30c) + 2..4 descripciones (90c) + 1..5 queries.
 - **display** (RDA): nombre de empresa (25c) + titular largo (90c) + 1..5 titulares cortos (30c) + 1..5 descripciones (90c) + CTA + creatividades obligatorias por rol (landscape 1.91:1, square 1:1, logo_square 1:1).
+- **meta_single**: nombre de página (75c) + 1..5 textos principales (≤1.024c, 125 visibles) + 1..5 titulares (≤255c, ~40 visibles; no se muestran en Stories/Reels/Status) + 0..5 descripciones + CTA de la lista de Meta + 1 creatividad (imagen o vídeo con miniatura).
+- **meta_carousel**: lo anterior sin titulares generales + 2..10 creatividades `role: card`, cada una con `card_headline` (45c rec) y `card_description` opcional (18c rec). En Threads solo tarjetas de imagen.
+- **meta_collection**: 1 `role: cover` + ≥4 `role: card` (tiles de producto) + 1 titular. Solo placements móviles (feeds y Stories de Instagram, feed de Facebook).
 
-`isStrategyImplemented(s)` central. Para añadir Performance Max, Demand Gen, Video, App o Shopping basta con:
+`isStrategyImplemented(s)` central. Para añadir una estrategia nueva basta con:
 1. Añadir campos específicos al schema (migración).
 2. Extender `CampaignInputSchema.superRefine` con sus reglas.
-3. Branch en el form (igual que ya hay search vs display).
+3. Branch en el form (igual que ya hay search vs display vs meta).
 4. Branch en el runner (`renderSnippetText`, `framingByChannel`).
 5. `isStrategyImplemented` devolverá `true`.
 
@@ -405,6 +415,10 @@ Cada `Creative` lleva `kind` (`image | video | youtube`) y `role`:
 | `logo_square` (1:1) | Display | sí, ≥1 |
 | `logo_landscape` (4:1) | Display | opcional |
 | `video_youtube` | Display, otros | opcional |
+| `card` (1:1) | Meta carousel/collection | carousel: 2..10 · collection: ≥4 |
+| `cover` | Meta collection | sí, exactamente 1 |
+
+Las tarjetas de Meta llevan además `card_headline` y `card_description` (texto por tarjeta; caps duros 255c con recomendados 45/18).
 
 YouTube extrae `youtube_id` del URL con regex (`extractYouTubeId`) y guarda el thumbnail (`youtubeThumbnail(id)`). El runner usa este thumbnail jpg como multimodal (los modelos no procesan vídeo).
 

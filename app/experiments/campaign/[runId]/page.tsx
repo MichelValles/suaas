@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { ChannelIcon } from "@/components/channel-icon";
 import { InfoTooltip } from "@/components/info-tooltip";
-import { CHANNEL_LABEL, getCampaignWithTrashed } from "@/lib/campaigns";
+import { CHANNEL_LABEL, getCampaignWithTrashed, isMetaStrategy } from "@/lib/campaigns";
 import {
   GENERAL_CONTEXT_QUERY,
   RecommendationsSchema,
@@ -98,14 +98,25 @@ export default async function CampaignRunPage({
             <a href={`/api/export/campaign/${runId}`} className="btn-pill" download>
               CSV
             </a>
-            <a
-              href={`/api/export/campaign/${runId}?format=ads_editor`}
-              className="btn-pill"
-              title="CSV con cabeceras RSA para Google Ads Editor: fila con los assets originales y fila con el top de versiones ideales"
-              download
-            >
-              Ads Editor
-            </a>
+            {isMetaStrategy(campaign.strategy) ? (
+              <a
+                href={`/api/export/campaign/${runId}?format=meta`}
+                className="btn-pill"
+                title="CSV con la estructura de un anuncio de Meta (5 textos principales, 5 titulares, 5 descripciones): fila con los assets originales y fila con el top de versiones ideales"
+                download
+              >
+                Meta Ads
+              </a>
+            ) : (
+              <a
+                href={`/api/export/campaign/${runId}?format=ads_editor`}
+                className="btn-pill"
+                title="CSV con cabeceras RSA para Google Ads Editor: fila con los assets originales y fila con el top de versiones ideales"
+                download
+              >
+                Ads Editor
+              </a>
+            )}
             <Link
               href={campaign.deleted_at ? "/campaigns" : `/campaigns/${campaign.id}`}
               className="btn-pill"
@@ -455,9 +466,9 @@ export default async function CampaignRunPage({
               maxWidth: 720,
             }}
           >
-            Intent medio de las respuestas en cuya combinación apareció cada titular o
-            descripción, frente a la media del run. Con n bajo la señal es ruido: las filas
-            con menos de 5 apariciones se muestran atenuadas.
+            Intent medio de las respuestas en cuya combinación apareció cada titular,
+            descripción o texto principal, frente a la media del run. Con n bajo la señal es
+            ruido: las filas con menos de 5 apariciones se muestran atenuadas.
           </p>
           <div style={{ overflowX: "auto" }}>
             <table style={tableStyle}>
@@ -484,7 +495,11 @@ export default async function CampaignRunPage({
                     </Td>
                     <Td>
                       <span className="mono" style={{ fontSize: 11, color: "rgba(var(--fg),0.55)" }}>
-                        {a.kind === "headline" ? "Titular" : "Descripción"}
+                        {a.kind === "headline"
+                          ? "Titular"
+                          : a.kind === "primary_text"
+                            ? "Texto principal"
+                            : "Descripción"}
                       </span>
                     </Td>
                     <Td>{a.n}</Td>

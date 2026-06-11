@@ -8,9 +8,11 @@ import {
   CHANNEL_VALUES,
   CREATIVE_ROLE_VALUES,
   CampaignInputSchema,
+  MetaSpecSchema,
   STRATEGY_VALUES,
   createCampaign,
   extractYouTubeId,
+  isMetaStrategy,
   youtubeThumbnail,
   type CampaignInput,
   type CreativeRole,
@@ -25,6 +27,9 @@ const CreativePayloadSchema = z.object({
   youtube_id: z.string().optional().nullable(),
   thumbnail_url: z.string().optional().nullable(),
   label: z.string().optional().default(""),
+  // Tarjetas de Meta (role card): titular y descripción por tarjeta.
+  card_headline: z.string().optional().nullable(),
+  card_description: z.string().optional().nullable(),
 });
 
 const PayloadSchema = z.object({
@@ -62,6 +67,7 @@ const PayloadSchema = z.object({
   headlines: z.array(z.string()),
   descriptions: z.array(z.string()),
   creatives: z.array(CreativePayloadSchema).optional().default([]),
+  channel_spec: MetaSpecSchema.optional().nullable(),
 });
 
 export type CreateCampaignState = { ok: boolean; error?: string };
@@ -102,6 +108,19 @@ export async function createCampaignAction(
     return { ok: false, error: readableError(err) };
   }
 
+  // channel_spec normalizado: solo para estrategias de Meta, con los textos
+  // principales sin vacíos. Para Google viaja null.
+  const channelSpec =
+    isMetaStrategy(payload.strategy) && payload.channel_spec
+      ? {
+          ...payload.channel_spec,
+          primary_texts: payload.channel_spec.primary_texts
+            .map((t) => t.trim())
+            .filter(Boolean),
+          display_link: payload.channel_spec.display_link?.trim() || null,
+        }
+      : null;
+
   // Pre-validación con URLs provisionales ANTES de subir nada a Blob: si los
   // requisitos de la estrategia no se cumplen (p.ej. creatividades de Display),
   // el error sale aquí y no quedan blobs huérfanos de un submit fallido.
@@ -114,6 +133,8 @@ export async function createCampaignAction(
       youtube_id?: string | null;
       thumbnail_url?: string | null;
       label?: string | null;
+      card_headline?: string | null;
+      card_description?: string | null;
     };
     const provisionalCreatives = payload.creatives.flatMap((c): ProvisionalCreative[] => {
       if (c.kind === "youtube") {
@@ -127,6 +148,8 @@ export async function createCampaignAction(
             youtube_id: id,
             thumbnail_url: c.thumbnail_url || youtubeThumbnail(id),
             label: c.label?.trim() || null,
+            card_headline: c.card_headline?.trim() || null,
+            card_description: c.card_description?.trim() || null,
           },
         ];
       }
@@ -140,6 +163,8 @@ export async function createCampaignAction(
           url: finalUrl,
           thumbnail_url: c.kind === "video" ? c.thumbnail_url?.trim() || null : null,
           label: c.label?.trim() || null,
+          card_headline: c.card_headline?.trim() || null,
+          card_description: c.card_description?.trim() || null,
         },
       ];
     });
@@ -163,6 +188,7 @@ export async function createCampaignAction(
       company_name: payload.company_name?.trim() || null,
       long_headline: payload.long_headline?.trim() || null,
       cta: payload.cta?.trim() || null,
+      channel_spec: channelSpec,
     });
     if (!provisional.success) {
       return { ok: false, error: readableError(provisional.error) };
@@ -216,10 +242,14 @@ export async function createCampaignAction(
     youtube_id?: string | null;
     thumbnail_url?: string | null;
     label?: string | null;
+    card_headline?: string | null;
+    card_description?: string | null;
   }[] = [];
   for (let i = 0; i < payload.creatives.length; i += 1) {
     const c = payload.creatives[i];
     const label = c.label?.trim() || null;
+    const cardHeadline = c.card_headline?.trim() || null;
+    const cardDescription = c.card_description?.trim() || null;
     if (c.kind === "youtube") {
       const id = c.youtube_id || (c.url ? extractYouTubeId(c.url) : null);
       if (!c.url || !id) continue;
@@ -230,6 +260,8 @@ export async function createCampaignAction(
         youtube_id: id,
         thumbnail_url: c.thumbnail_url || youtubeThumbnail(id),
         label,
+        card_headline: cardHeadline,
+        card_description: cardDescription,
       });
       continue;
     }
@@ -255,6 +287,8 @@ export async function createCampaignAction(
         url: finalUrl,
         thumbnail_url: c.thumbnail_url?.trim() || null,
         label,
+        card_headline: cardHeadline,
+        card_description: cardDescription,
       });
       continue;
     }
@@ -279,6 +313,8 @@ export async function createCampaignAction(
       role: c.role ?? "generic",
       url: finalUrl,
       label,
+      card_headline: cardHeadline,
+      card_description: cardDescription,
     });
   }
 
@@ -300,6 +336,7 @@ export async function createCampaignAction(
     company_name: payload.company_name?.trim() || null,
     long_headline: payload.long_headline?.trim() || null,
     cta: payload.cta?.trim() || null,
+    channel_spec: channelSpec,
   };
 
   let id: string;

@@ -1,9 +1,15 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-11 tras v0.49.0 (blindaje de costes del gateway, 3 releases).
+> Última actualización: 2026-06-12 tras v0.54.0 (canal Meta Ads).
 
-## Estado actual (v0.49.0 desplegada)
+## Estado actual (v0.54.0 desplegada)
+
+- **Canal Meta Ads completo (v0.54.0)**: 3 formatos como estrategias (`meta_single`, `meta_carousel`, `meta_collection`), objetivo ODAX + placement de simulación + 1..5 textos principales en `campaigns.channel_spec` (jsonb), caps oficiales (máximo técnico vs recomendado visible con truncado ecológico en el runner), CTAs de Meta en castellano, tarjetas/portada como roles de creatividad nuevos (`card`/`cover`), previews en vivo (feed, 9:16 con safe zones, carousel, colección), export `?format=meta` y ranking por asset con `primary_text`. Detalle en `ROADMAP.md → v0.54.0` y `PROYECTO.md → Módulo Campañas`.
+- **ACCIÓN PENDIENTE DEL OPERADOR: aplicar la migración `0021_meta_ads.sql`** (SQL editor de Supabase o `scripts/apply-migration.mjs`) y luego `NOTIFY pgrst, 'reload schema';`. Sin ella las campañas de Google siguen funcionando, pero crear una campaña de Meta falla con el check de `strategy` (y la columna `channel_spec` no existe).
+- **Validación recomendada tras la migración**: crear una campaña `meta_single` con placement Stories, lanzar un run con 2-3 perfiles y comprobar que (1) el snippet del perfil describe el contexto de Stories sin headline, (2) `shown_descriptions` registra el texto principal mostrado y (3) la sección «Rendimiento por asset» lista los textos principales.
+
+## Estado anterior (v0.49.0 a v0.53.0)
 
 - **Incidente de la cuota del AI Gateway (2026-06-11)**: la API key del gateway agotó su budget de 3$ (acumulado de por vida, refresh period `none`) y todos los runs fallaban con «Quota limit exceeded». Causa raíz: el seed IVI de v0.47.0 lanzó 6 runs en paralelo cuyo probe (Opus 4.7 + generateObject + imágenes sin redimensionar) fallaba siempre el parse, facturado x2 por el reintento y sin rastro en `gateway_usage`. **ACCIÓN PENDIENTE DEL OPERADOR**: subir el budget de la key en Vercel (scope equipo → AI Gateway → API Keys → ··· → Edit key) y cambiar el refresh period de `none` a monthly/daily; sin eso la key sigue bloqueada.
 - **Blindaje de costes en 3 releases**:
@@ -81,7 +87,8 @@
 | A/B tests | `/ab` | Estable desde v0.7.0 |
 | Copy resonance | `/copy` | Estable desde v0.7.0 |
 | Pricing | `/pricing` | Estable desde v0.7.0 |
-| Campañas · Google Ads | `/campaigns` | **Search RSA** (v0.21.0) + **Display RDA** (v0.26.0). Otras 5 estrategias (Performance Max, Demand Gen, Video / YouTube, App Campaigns, Shopping) están como sub-pestañas `Próx.` desde v0.25.0. |
+| Campañas · Google Ads | `/campaigns` | 6 de 7 estrategias implementadas según specs oficiales (v0.41-v0.45): Search RSA, Display, PMax, Demand Gen, Video, Shopping. Solo App Campaigns como `Próx.`. |
+| Campañas · Meta Ads | `/campaigns` | **3 formatos** (single, carousel, collection) con objetivo ODAX, placement de simulación y textos principales (v0.54.0). Requiere migración 0021. |
 | Perfiles | `/profiles` | Explorer con grid/tabla, filtros, CSV import/export, generación LLM (50 seeds). |
 
 Sistemas auxiliares: `/diag`, `/tokens`, `/trash` (soft delete con `deleted_at`, 9 tipos desde v0.32: incluye geo, momentum y perfiles), `/seed-examples` (siembra los 8 módulos en una pasada con gate; acepta un brief opcional para generar el contenido con IA a medida).
@@ -127,14 +134,14 @@ Las dos con más músculo son **Performance Max** y **Shopping** porque introduc
 
 **Demand Gen** y **Video / YouTube** son más visuales y dependen de un buen reproductor de vídeo en el preview.
 
-### B) Activar multi-canal real (Meta / LinkedIn / TikTok / X)
+### B) Activar el resto de canales (LinkedIn / TikTok / X)
 
-El esquema `channels text[]` ya está, pero el plan de campañas lo deja explícitamente aplazado (fidelidad falsa sin caps por red). Falta:
+**Meta quedó implementado en v0.54.0** siguiendo el patrón que conviene replicar para cada red nueva:
 
-1. Caps de caracteres reales por red en `lib/campaigns.ts` (hoy todas usan 30/90 de Search RSA).
-2. Framing por red en el runner (Meta-feed, LinkedIn-newsfeed, etc.).
-3. Roles de creatividad específicos (Stories 9:16, Reels, carousels...).
-4. Habilitar las 4 pestañas en `/campaigns/new` retirando los badges `Próx.`.
+1. Investigar las specs oficiales (formatos, placements, caps técnicos vs visibles, CTAs).
+2. Estrategias propias del canal en `STRATEGY_VALUES` + `CHANNEL_STRATEGIES` y campos específicos en `channel_spec` (jsonb, sin migración de columnas nuevas; sí amplía el check de `strategy`).
+3. Renders y framing por formato/placement en el runner + muestreo de variantes si la red lo hace.
+4. Branch en el form con previews y validación en el `superRefine`.
 
 ### C) Generación de perfiles desde datasets reales
 

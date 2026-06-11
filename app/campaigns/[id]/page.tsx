@@ -7,8 +7,11 @@ import { RunsPreviousGrid } from "@/components/runs-previous";
 import { StrategyIcon } from "@/components/strategy-icon";
 import {
   CHANNEL_LABEL,
+  META_OBJECTIVE_LABEL,
+  META_PLACEMENT_LABEL,
   STRATEGY_LABEL,
   getCampaign,
+  isMetaStrategy,
   type Creative,
 } from "@/lib/campaigns";
 import { listProfiles } from "@/lib/profiles";
@@ -125,11 +128,13 @@ export default async function CampaignDetailPage({
     <AppShell>
       <PageHeading
         eyebrow={
-          campaign.strategy === "display"
-            ? `Campaña · Display · ${campaign.headlines.length} titulares cortos · ${campaign.creatives.length} assets`
-            : campaign.strategy === "shopping"
-              ? `Campaña · Shopping · ${campaign.queries.length} ${campaign.queries.length === 1 ? "búsqueda" : "búsquedas"} · ${campaign.creatives.length} ${campaign.creatives.length === 1 ? "imagen" : "imágenes"}`
-              : `Campaña · ${STRATEGY_LABEL[campaign.strategy]} · ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} · ${campaign.headlines.length} titulares`
+          isMetaStrategy(campaign.strategy) && campaign.channel_spec
+            ? `Campaña · Meta · ${STRATEGY_LABEL[campaign.strategy]} · ${META_PLACEMENT_LABEL[campaign.channel_spec.placement]} · ${campaign.channel_spec.primary_texts.length} ${campaign.channel_spec.primary_texts.length === 1 ? "texto" : "textos"}`
+            : campaign.strategy === "display"
+              ? `Campaña · Display · ${campaign.headlines.length} titulares cortos · ${campaign.creatives.length} assets`
+              : campaign.strategy === "shopping"
+                ? `Campaña · Shopping · ${campaign.queries.length} ${campaign.queries.length === 1 ? "búsqueda" : "búsquedas"} · ${campaign.creatives.length} ${campaign.creatives.length === 1 ? "imagen" : "imágenes"}`
+                : `Campaña · ${STRATEGY_LABEL[campaign.strategy]} · ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} · ${campaign.headlines.length} titulares`
         }
         title={campaign.name}
         description={campaign.brief ?? undefined}
@@ -200,8 +205,93 @@ export default async function CampaignDetailPage({
             <StrategyIcon strategy={campaign.strategy} size={14} />
             {STRATEGY_LABEL[campaign.strategy]}
           </span>
+          {isMetaStrategy(campaign.strategy) && campaign.channel_spec && (
+            <>
+              <span className="mono" style={metaChipStyle}>
+                Objetivo · {META_OBJECTIVE_LABEL[campaign.channel_spec.objective]}
+              </span>
+              <span className="mono" style={metaChipStyle}>
+                {META_PLACEMENT_LABEL[campaign.channel_spec.placement]}
+              </span>
+            </>
+          )}
         </div>
       </section>
+
+      {/* Identidad y textos principales (solo Meta) */}
+      {isMetaStrategy(campaign.strategy) && campaign.channel_spec && (
+        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SectionLabel>Anuncio de Meta</SectionLabel>
+          <div
+            style={{
+              border: "1px solid rgba(var(--fg),0.08)",
+              borderRadius: "var(--radius-md)",
+              background: "rgba(var(--fg),0.02)",
+              padding: "16px 18px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            {campaign.company_name && (
+              <div>
+                <span className="mono" style={chipMonoStyle}>
+                  Página · {campaign.company_name.length}/75
+                </span>
+                <p style={{ color: "rgba(var(--fg),0.9)", fontSize: 18, margin: "4px 0 0" }}>
+                  {campaign.company_name}
+                </p>
+              </div>
+            )}
+            {campaign.channel_spec.display_link && (
+              <div>
+                <span className="mono" style={chipMonoStyle}>
+                  Enlace visible
+                </span>
+                <p
+                  style={{
+                    color: "rgba(var(--fg),0.7)",
+                    fontSize: 13,
+                    margin: "4px 0 0",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  {campaign.channel_spec.display_link}
+                </p>
+              </div>
+            )}
+            {campaign.cta && (
+              <div>
+                <span className="mono" style={chipMonoStyle}>
+                  CTA
+                </span>
+                <p style={{ color: "rgba(var(--fg),0.85)", fontSize: 14, margin: "4px 0 0" }}>
+                  [{campaign.cta}]
+                </p>
+              </div>
+            )}
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 12,
+            }}
+          >
+            {campaign.channel_spec.primary_texts.map((t, i) => (
+              <div key={i} style={cardStyle}>
+                <span className="mono" style={chipMonoStyle}>
+                  Texto principal {i + 1} · {t.length}c
+                  {t.length > 125 ? " · se trunca con «Ver más»" : ""}
+                </span>
+                <span style={{ color: "rgba(var(--fg),0.85)", fontSize: 14, lineHeight: 1.55 }}>
+                  {t}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Empresa y titular largo (sólo Display) */}
       {campaign.strategy === "display" && (
@@ -331,7 +421,7 @@ export default async function CampaignDetailPage({
             {displayUrl(campaign.final_url)} · {campaign.product.availability}
           </span>
         </section>
-      ) : campaign.headlines.length > 0 ? (
+      ) : campaign.headlines.length > 0 && !isMetaStrategy(campaign.strategy) ? (
         <section
           style={{
             border: "1px solid rgba(var(--fg),0.08)",
@@ -390,7 +480,7 @@ export default async function CampaignDetailPage({
       {campaign.queries.length > 0 && (
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <SectionLabel>
-          {campaign.strategy === "display"
+          {campaign.strategy === "display" || isMetaStrategy(campaign.strategy)
             ? "Intereses / contexto"
             : "Queries objetivo"}
         </SectionLabel>
@@ -417,6 +507,7 @@ export default async function CampaignDetailPage({
       )}
 
       {/* Headlines */}
+      {campaign.headlines.length > 0 && (
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <SectionLabel>Titulares · {campaign.headlines.length}</SectionLabel>
         <div
@@ -429,7 +520,10 @@ export default async function CampaignDetailPage({
           {campaign.headlines.map((h, i) => (
             <div key={i} style={cardStyle}>
               <span className="mono" style={chipMonoStyle}>
-                H{i + 1} · {h.length}/30
+                H{i + 1} ·{" "}
+                {isMetaStrategy(campaign.strategy)
+                  ? `${h.length}c${h.length > 40 ? " · se trunca (~40 visibles)" : ""}`
+                  : `${h.length}/30`}
               </span>
               <span style={{ color: "rgba(var(--fg),0.9)", fontSize: 14, lineHeight: 1.4 }}>
                 {h}
@@ -438,8 +532,10 @@ export default async function CampaignDetailPage({
           ))}
         </div>
       </section>
+      )}
 
       {/* Descriptions */}
+      {campaign.descriptions.length > 0 && (
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <SectionLabel>Descripciones · {campaign.descriptions.length}</SectionLabel>
         <div
@@ -452,7 +548,10 @@ export default async function CampaignDetailPage({
           {campaign.descriptions.map((d, i) => (
             <div key={i} style={cardStyle}>
               <span className="mono" style={chipMonoStyle}>
-                D{i + 1} · {d.length}/90
+                D{i + 1} ·{" "}
+                {isMetaStrategy(campaign.strategy)
+                  ? `${d.length}c${d.length > 30 ? " · se trunca (~30 visibles)" : ""}`
+                  : `${d.length}/90`}
               </span>
               <span style={{ color: "rgba(var(--fg),0.85)", fontSize: 14, lineHeight: 1.55 }}>
                 {d}
@@ -461,6 +560,7 @@ export default async function CampaignDetailPage({
           ))}
         </div>
       </section>
+      )}
 
       {/* Creatividades */}
       {campaign.creatives.length > 0 && (
@@ -478,7 +578,11 @@ export default async function CampaignDetailPage({
                 <CreativeRender creative={c} index={i} />
                 <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
                   <span className="mono" style={chipMonoStyle}>
-                    {creativeKindLabel(c.kind)}
+                    {c.role === "card"
+                      ? `Tarjeta · ${creativeKindLabel(c.kind)}`
+                      : c.role === "cover"
+                        ? `Portada · ${creativeKindLabel(c.kind)}`
+                        : creativeKindLabel(c.kind)}
                   </span>
                   {c.label && (
                     <span
@@ -491,6 +595,17 @@ export default async function CampaignDetailPage({
                     </span>
                   )}
                 </div>
+                {c.card_headline && (
+                  <span style={{ color: "rgba(var(--fg),0.9)", fontSize: 13, lineHeight: 1.4 }}>
+                    {c.card_headline}
+                    {c.card_description ? (
+                      <span style={{ color: "rgba(var(--fg),0.55)" }}>
+                        {" "}
+                        · {c.card_description}
+                      </span>
+                    ) : null}
+                  </span>
+                )}
               </div>
             ))}
           </div>
@@ -602,4 +717,18 @@ const chipMonoStyle: React.CSSProperties = {
   letterSpacing: "0.22em",
   textTransform: "uppercase",
   color: "var(--accent-text)",
+};
+
+const metaChipStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 8,
+  padding: "6px 12px",
+  borderRadius: "var(--radius-pill)",
+  border: "1px solid rgba(var(--fg),0.18)",
+  background: "rgba(var(--fg),0.04)",
+  color: "rgba(var(--fg),0.85)",
+  fontSize: 11,
+  letterSpacing: "0.16em",
+  textTransform: "uppercase",
 };
