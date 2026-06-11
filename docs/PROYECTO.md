@@ -173,7 +173,7 @@ lib/
   runs.ts                               Run/Message types, RunKind union, createRun (defensivo si schema cache stale), markRunFinished, nextTurn, appendMessage, upsertMetric, listMessages, listEffortValues, getRunsStatsByEntity, listRunsBy*
   prompts.ts                            buildSystemPrompt(profile) con negative prompts y voice anchors
   agents.ts                             ReasonerPlanSchema, reason() (generateObject Opus), talkStream() (streamText Sonnet)
-  image-source.ts                       resolveImageForApi (descarga + valida mime + base64 para Anthropic multimodal)
+  image-source.ts                       resolveImageForApi (descarga + valida mime + redimensiona a 1024px de lado largo con sharp + base64 para Anthropic multimodal)
   usage.ts                              UsageScope (incluye campaign_probe, campaign_landing, campaign_ideal), recordUsage, getUsageSummary, getGatewayCredits
 
   targets.ts                            TargetInputSchema + CRUD + getTargetWithTrashed + resolveOgImageDetailed (con anti-SSRF, 5s timeout, max-redirects=3, body 1.5MB)
@@ -192,6 +192,7 @@ lib/
     copy.ts                             reactToBlock + runCopyTest + listCopyResponses
     pricing.ts                          reactToPrice + runPricingTest + listPricingResponses
     campaign.ts                         probeCampaignSnippet (renderiza SERP search o banner display) + judgeLandingMatch + proposeIdealVersion + runCampaignTest + summary con byQuery y byChannel + cap combinacional 200
+    campaign-shared.ts                  constantes compartidas con componentes cliente (GENERAL_CONTEXT_QUERY); campaign.ts arrastra sharp/Supabase y no puede entrar en el bundle del navegador
 
 components/
   app-shell.tsx                         AppShell (sidebar + main + footer badges) + PageHeading (variants inline|panel)

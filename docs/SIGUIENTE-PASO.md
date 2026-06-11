@@ -1,9 +1,17 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-11 tras v0.47.1 (fix de los runs de campaña con creatividades).
+> Última actualización: 2026-06-11 tras v0.49.0 (blindaje de costes del gateway, 3 releases).
 
-## Estado actual (v0.47.1 desplegada)
+## Estado actual (v0.49.0 desplegada)
+
+- **Incidente de la cuota del AI Gateway (2026-06-11)**: la API key del gateway agotó su budget de 3$ (acumulado de por vida, refresh period `none`) y todos los runs fallaban con «Quota limit exceeded». Causa raíz: el seed IVI de v0.47.0 lanzó 6 runs en paralelo cuyo probe (Opus 4.7 + generateObject + imágenes sin redimensionar) fallaba siempre el parse, facturado x2 por el reintento y sin rastro en `gateway_usage`. **ACCIÓN PENDIENTE DEL OPERADOR**: subir el budget de la key en Vercel (scope equipo → AI Gateway → API Keys → ··· → Edit key) y cambiar el refresh period de `none` a monthly/daily; sin eso la key sigue bloqueada.
+- **Blindaje de costes en 3 releases**:
+  - **v0.47.2**: runner de campañas íntegro en Sonnet (Opus fuera del probe también en texto puro) y telemetría de llamadas fallidas (`usageFromError` + `meta.failed=true` en probe, landing, juez, ideal y síntesis).
+  - **v0.48.0**: `budgetGate` extendido a `/api/chat`, `/api/seed/examples` (si consume LLM), `/api/profiles/seed`, `/api/profiles/batch-intent` y `/api/onboard/submit` (429 genérico, ruta pública); `batch_intent` registra por fin su consumo (scope nuevo). C-02 mitigado y C-03 cerrado en la auditoría.
+  - **v0.49.0**: `resolveImageForApi` redimensiona jpeg/png/webp a 1024px de lado largo con `sharp` (dependencia nueva) antes del base64; GIF pasa intacto.
+
+## Estado anterior (v0.47.1)
 
 - **Fix crítico de los runs de campaña (v0.47.1)**: los runs de las campañas IVI (y cualquier campaña con creatividades) cerraban en `error` con 0 respuestas. Causa: Opus 4.7 + `generateObject` + imágenes devuelve el JSON envuelto en XML que el AI SDK no parsea (mismatch ya documentado en `five-second.ts`). El probe elige modelo según contenido (imágenes → `DEFAULT_MODEL`), `judgeLandingMatch` pasa a `DEFAULT_MODEL`, el runner persiste `runs.params.last_error`, la página del run lo muestra y «Retomar» también aparece con 0 respuestas. **Pendiente de validar**: relanzar los 6 runs IVI desde la página de cada run (botón «Retomar», requiere sesión) o desde la tarjeta de `/seed-examples`.
 - **Seed «Campañas IVI: las 6 estrategias» (v0.47.0)**: tarjeta en `/seed-examples` que crea 6 campañas reales sobre ivi.es (una por estrategia) y lanza los 6 runs con perfiles de 28 a 45 años en `after()`.

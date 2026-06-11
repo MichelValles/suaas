@@ -31,12 +31,12 @@ import { recordUsage } from "@/lib/usage";
 
 const LANDING_THRESHOLD = 0.5;
 
-/**
- * Query placeholder para estrategias sin queries (Display): el runner genera
- * al menos 1 respuesta por perfil × canal bajo este contexto. La UI la
- * traduce a una etiqueta legible.
- */
-export const GENERAL_CONTEXT_QUERY = "(contexto general)";
+// La constante vive en campaign-shared.ts (sin deps de servidor) para que
+// los componentes cliente no arrastren este módulo (sharp, Supabase) al
+// bundle del navegador. Se reexporta para los consumidores de servidor.
+import { GENERAL_CONTEXT_QUERY } from "./campaign-shared";
+
+export { GENERAL_CONTEXT_QUERY };
 
 /**
  * Caché por run de imágenes ya resueltas para la API multimodal. Sin él,

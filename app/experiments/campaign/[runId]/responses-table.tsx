@@ -4,10 +4,8 @@ import Link from "next/link";
 import { Fragment, useMemo, useState } from "react";
 import { ChannelIcon } from "@/components/channel-icon";
 import { CHANNEL_LABEL } from "@/lib/campaigns";
-import {
-  GENERAL_CONTEXT_QUERY,
-  type CampaignResponse,
-} from "@/lib/experiments/campaign";
+import { GENERAL_CONTEXT_QUERY } from "@/lib/experiments/campaign-shared";
+import type { CampaignResponse } from "@/lib/experiments/campaign";
 
 /**
  * Tabla interactiva de respuestas de un run de campaña (clon estructural de
