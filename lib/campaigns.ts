@@ -57,7 +57,7 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
   pmax:
     "Grupo de recursos multi-superficie (spec oficial 17091269). 3..15 titulares (30c, al menos uno de 15c o menos) + titular largo (90c) + 2..5 descripciones (90c) + nombre de empresa (25c) + CTA + imagen landscape (1.91:1) + square (1:1) + logo square (1:1). Opcional: portrait (4:5), logo landscape (4:1), vídeo (10s o más; Google lo autogenera si falta). Las queries actúan como señales de audiencia (opcionales).",
   demand_gen:
-    "Anuncio de imagen en feeds (Discover, Gmail, YouTube; spec oficial 17091672). 1..5 titulares (40c, al menos uno de 30c o menos) + 1..5 descripciones (90c) + nombre de empresa (25c) + imagen landscape (1.91:1) + square (1:1) + logo (1:1). Opcional: portrait (4:5), vertical (9:16), CTA (automatizada por defecto). Subformatos carousel y video aún no modelados.",
+    "Anuncio de imagen en feeds (Discover, Gmail, YouTube; spec oficial 17091672). 1..5 titulares (40c, al menos uno de 30c o menos) + 1..5 descripciones (90c) + nombre de empresa (25c) + CTA + imagen landscape (1.91:1) + square (1:1) + logo (1:1, mín 144x144). Opcional: imagen vertical (4:5) y vídeos (10-60s recomendados, hasta 3 por orientación). Subformatos carousel y video aún no modelados.",
   video:
     "Video action campaign en YouTube (spec oficial 17091270). 1 vídeo de YouTube (10s o más) + 1 titular (30c) + 1 descripción (90c) + CTA (máx 10c) + URL final. El perfil sintético evalúa la miniatura y el copy (los modelos no procesan vídeo).",
   app:
@@ -485,6 +485,14 @@ export const CampaignInputSchema = z
           code: z.ZodIssueCode.custom,
           path: ["company_name"],
           message: "Demand Gen exige nombre de empresa (max 25c).",
+        });
+      }
+      // La tabla oficial marca la CTA como obligatoria (1, «Automated»).
+      if (!data.cta || !data.cta.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["cta"],
+          message: "Demand Gen exige una CTA.",
         });
       }
       const creatives = data.creatives ?? [];

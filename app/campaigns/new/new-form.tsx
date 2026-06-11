@@ -756,7 +756,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                   style={inputStyle}
                 >
                   <option value="">
-                    {strategy === "pmax" ? "elige una CTA (obligatoria)" : "sin CTA"}
+                    {strategy === "pmax" || strategy === "demand_gen"
+                      ? "elige una CTA (obligatoria)"
+                      : "sin CTA"}
                   </option>
                   {CTA_VALUES.map((c) => (
                     <option key={c} value={c}>
@@ -985,9 +987,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             }}
           >
             Demand Gen exige: 1 a 5 titulares (máx. 40c, al menos uno de 30c o menos),
-            1 a 5 descripciones, nombre de empresa (máx. 25c) y creatividades con al
-            menos 1 imagen landscape (1.91:1), 1 imagen square (1:1) y 1 logo (1:1).
-            La CTA es opcional (automatizada por defecto).
+            1 a 5 descripciones, nombre de empresa (máx. 25c), CTA y creatividades con
+            al menos 1 imagen landscape (1.91:1), 1 imagen square (1:1) y 1 logo (1:1).
+            La imagen vertical (4:5) es opcional.
           </p>
         )}
 
