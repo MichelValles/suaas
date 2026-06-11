@@ -78,9 +78,11 @@ alter table campaigns drop constraint if exists campaigns_long_headline_len_chec
 alter table campaigns add constraint campaigns_long_headline_len_check
   check (long_headline is null or char_length(long_headline) <= 90);
 
+-- CTA: o un valor del set de Google Ads (Display/PMax/Demand Gen) o texto
+-- libre de hasta 10 caracteres (Video action campaigns, spec 17091270).
 alter table campaigns drop constraint if exists campaigns_cta_check;
 alter table campaigns add constraint campaigns_cta_check
-  check (cta is null or cta in (
+  check (cta is null or char_length(cta) <= 10 or cta in (
     'Más información', 'Comprar', 'Reservar ahora', 'Suscribirse',
     'Descargar', 'Instalar', 'Aprender más', 'Solicitar presupuesto',
     'Inscribirse', 'Ver más', 'Contactar', 'Aplicar ahora'

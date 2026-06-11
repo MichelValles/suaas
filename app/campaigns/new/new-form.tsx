@@ -134,7 +134,13 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
   // Demand Gen admite titulares de 40 caracteres; el resto, 30.
   const headlineMax = strategy === "demand_gen" ? 40 : HEADLINE_MAX;
   const headlinesCap =
-    strategy === "display" || strategy === "demand_gen" ? 5 : 15;
+    strategy === "video"
+      ? 1
+      : strategy === "display" || strategy === "demand_gen"
+        ? 5
+        : 15;
+  const descriptionsCap =
+    strategy === "video" ? 1 : assetStrategy ? 5 : 4;
 
   // Cuando el usuario cambia la URL final, invalidamos la imagen resuelta para
   // que vuelva a pulsar el botón explícitamente. Evita previews stale. Se
@@ -618,20 +624,17 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
         )}
 
         <Section
-          title={
-            assetStrategy
-              ? `Descripciones · ${descriptions.length} / 5`
-              : `Descripciones · ${descriptions.length} / 4`
-          }
+          title={`Descripciones · ${descriptions.length} / ${descriptionsCap}`}
           onAdd={addDescription}
           addLabel="+ Añadir descripción"
-          canAdd={descriptions.length < (assetStrategy ? 5 : 4)}
+          canAdd={descriptions.length < descriptionsCap}
         >
           {descriptions.map((d, i) => (
             <RowWithRemove
               key={i}
               canRemove={
-                descriptions.length > (strategy === "display" ? 1 : 2)
+                descriptions.length >
+                (strategy === "display" || strategy === "video" ? 1 : 2)
               }
               onRemove={() => removeDescription(i)}
             >
@@ -651,25 +654,36 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           ))}
         </Section>
 
-        {assetStrategy && (
+        {(assetStrategy || strategy === "video") && (
           <Section title="CTA">
-            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              <Label>Botón Call To Action (visible en el anuncio)</Label>
-              <select
+            {strategy === "video" ? (
+              <CharCountedInput
+                label="Texto del botón CTA (Google admite máximo 10 caracteres en Video)"
                 value={cta}
-                onChange={(e) => setCta(e.currentTarget.value)}
-                style={inputStyle}
-              >
-                <option value="">
-                  {strategy === "pmax" ? "elige una CTA (obligatoria)" : "sin CTA"}
-                </option>
-                {CTA_VALUES.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                onChange={setCta}
+                max={10}
+                required
+                placeholder="Ver oferta"
+              />
+            ) : (
+              <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <Label>Botón Call To Action (visible en el anuncio)</Label>
+                <select
+                  value={cta}
+                  onChange={(e) => setCta(e.currentTarget.value)}
+                  style={inputStyle}
+                >
+                  <option value="">
+                    {strategy === "pmax" ? "elige una CTA (obligatoria)" : "sin CTA"}
                   </option>
-                ))}
-              </select>
-            </label>
+                  {CTA_VALUES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            )}
           </Section>
         )}
 
@@ -679,11 +693,17 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               ? `Imágenes y vídeos · ${creatives.length}`
               : `Creatividades · ${creatives.length} / 6 (opcional)`
           }
-          onAdd={() => addCreative("image")}
+          onAdd={() => addCreative(strategy === "video" ? "youtube" : "image")}
           addLabel="+ Añadir"
           canAdd={creatives.length < 20}
         >
-          {assetStrategy ? (
+          {strategy === "video" ? (
+            <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
+              Video exige <strong>1 vídeo de YouTube</strong> (o subido) de 10 segundos
+              o más. El perfil sintético evalúa su miniatura junto al copy (los modelos
+              no procesan vídeo).
+            </p>
+          ) : assetStrategy ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
               {STRATEGY_LABEL[strategy]} exige al menos <strong>1 imagen landscape (1.91:1)</strong>,
               <strong> 1 imagen square (1:1)</strong> y <strong>1 logo square (1:1)</strong>.
@@ -859,6 +879,21 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             1 a 5 descripciones, nombre de empresa (máx. 25c) y creatividades con al
             menos 1 imagen landscape (1.91:1), 1 imagen square (1:1) y 1 logo (1:1).
             La CTA es opcional (automatizada por defecto).
+          </p>
+        )}
+
+        {strategy === "video" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            Video exige: 1 vídeo de YouTube (10s o más), 1 titular (máx. 30c),
+            1 descripción (máx. 90c) y CTA de máximo 10 caracteres.
           </p>
         )}
 

@@ -350,6 +350,11 @@ function renderSnippetText(
   if (campaign.strategy === "demand_gen") {
     return renderDemandGenSnippet(campaign, shown);
   }
+  // Video action campaign: pre-roll saltable en YouTube. El persona ve la
+  // miniatura del vídeo (multimodal) junto al copy y la CTA.
+  if (campaign.strategy === "video") {
+    return renderVideoSnippet(campaign);
+  }
   switch (channel) {
     case "meta":
       return renderFeedSnippet(campaign, "Instagram / Facebook");
@@ -473,6 +478,30 @@ function renderDemandGenSnippet(
   return lines.join("\n");
 }
 
+function renderVideoSnippet(campaign: Campaign): string {
+  const lines: string[] = [];
+  lines.push(
+    "Te aparece este anuncio de vídeo antes del contenido (podrás saltarlo a los 5 segundos):",
+  );
+  lines.push("");
+  lines.push("---");
+  lines.push(`Anunciante: ${displayUrl(campaign.final_url)}`);
+  lines.push("");
+  lines.push(`Titular: ${campaign.headlines[0]}`);
+  lines.push("");
+  lines.push(`Descripción: ${campaign.descriptions[0]}`);
+  if (campaign.cta) {
+    lines.push("");
+    lines.push(`Botón CTA: [${campaign.cta}]`);
+  }
+  lines.push("");
+  lines.push(
+    "(La imagen adjunta es la miniatura del vídeo: es lo único visual que conoces antes de decidir si lo saltas.)",
+  );
+  lines.push("---");
+  return lines.join("\n");
+}
+
 function renderFeedSnippet(campaign: Campaign, network: string): string {
   const lines: string[] = [];
   lines.push(`Ves este post patrocinado en tu feed de ${network}:`);
@@ -550,6 +579,17 @@ function framingByChannel(
       "Estás pasando el feed de Discover en el móvil (o el feed de YouTube).",
       context,
       "Entre el contenido orgánico aparece esta tarjeta patrocinada con una imagen grande. Decides en 1-2 segundos si paras o sigues scrolleando.",
+    ].join(" ");
+  }
+  if (campaign.strategy === "video") {
+    const context =
+      query && query !== GENERAL_CONTEXT_QUERY
+        ? `YouTube te lo sirve porque tu actividad encaja con: «${query}».`
+        : "Ibas a ver otro contenido.";
+    return [
+      "Estás en YouTube a punto de ver un vídeo.",
+      context,
+      "Antes del contenido aparece este anuncio saltable: decides en los primeros 5 segundos si lo saltas, lo dejas correr o haces click en la CTA.",
     ].join(" ");
   }
   switch (channel) {
