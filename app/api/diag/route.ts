@@ -63,6 +63,10 @@ const CRITICAL_COLUMNS = [
   // Gravity Model
   { table: "profiles", column: "intent_context", migration: "0015_gravity_model.sql" },
   { table: "five_second_responses", column: "behavior_class", migration: "0015_gravity_model.sql" },
+  // consolidación + estrategias nuevas
+  { table: "campaigns", column: "intended_message", migration: "0019_consolidacion.sql" },
+  { table: "campaign_responses", column: "behavior_class", migration: "0019_consolidacion.sql" },
+  { table: "campaigns", column: "product", migration: "0020_shopping.sql" },
 ] as const;
 
 type TableStatus = {

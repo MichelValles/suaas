@@ -123,6 +123,20 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
   const [companyName, setCompanyName] = useState(src?.company_name ?? "");
   const [longHeadline, setLongHeadline] = useState(src?.long_headline ?? "");
   const [cta, setCta] = useState<string>(src?.cta ?? "");
+  // Producto (solo shopping): espejo de los atributos obligatorios del feed.
+  const [productTitle, setProductTitle] = useState(src?.product?.title ?? "");
+  const [productDescription, setProductDescription] = useState(
+    src?.product?.description ?? "",
+  );
+  const [productPrice, setProductPrice] = useState(src?.product?.price ?? "");
+  const [productAvailability, setProductAvailability] = useState<string>(
+    src?.product?.availability ?? "in_stock",
+  );
+  const [productBrand, setProductBrand] = useState(src?.product?.brand ?? "");
+  const [productGtin, setProductGtin] = useState(src?.product?.gtin ?? "");
+  const [productCondition, setProductCondition] = useState<string>(
+    src?.product?.condition ?? "",
+  );
 
   // Estrategias con el set de assets visual (nombre de empresa, CTA y
   // creatividades con rol): Display, Performance Max y Demand Gen.
@@ -277,6 +291,18 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
     strategy,
     brief: brief.trim() || null,
     intended_message: intendedMessage.trim() || null,
+    product:
+      strategy === "shopping"
+        ? {
+            title: productTitle.trim(),
+            description: productDescription.trim(),
+            price: productPrice.trim(),
+            availability: productAvailability,
+            brand: productBrand.trim() || null,
+            gtin: productGtin.trim() || null,
+            condition: productCondition || null,
+          }
+        : null,
     final_url: finalUrl,
     landing_mode: landingMode,
     landing_upload_data: landingUpload,
@@ -537,7 +563,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               ? `Intereses / contexto · ${queries.length} / 5 (opcional)`
               : strategy === "pmax"
                 ? `Señales de audiencia · ${queries.length} / 5 (opcional)`
-                : `Queries · ${queries.length} / 5`
+                : strategy === "shopping"
+                  ? `Búsquedas de producto · ${queries.length} / 5`
+                  : `Queries · ${queries.length} / 5`
           }
           onAdd={addQuery}
           addLabel="+ Añadir"
@@ -555,7 +583,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 }
                 value={q}
                 onChange={(v) => setQueries(updateAt(queries, i, v))}
-                required={strategy === "search" && i === 0}
+                required={
+                  (strategy === "search" || strategy === "shopping") && i === 0
+                }
                 placeholder={
                   assetStrategy
                     ? "lector de tech, edad 30-45"
@@ -566,6 +596,72 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           ))}
         </Section>
 
+        {strategy === "shopping" && (
+          <Section title="Producto (feed de Merchant Center)">
+            <CharCountedInput
+              label="Título del producto"
+              value={productTitle}
+              onChange={setProductTitle}
+              max={150}
+              required
+              placeholder="Zapatillas trail Hombre GTX 42 azul"
+            />
+            <ControlledTextArea
+              label="Descripción del producto"
+              rows={3}
+              value={productDescription}
+              onChange={setProductDescription}
+              placeholder="Zapatillas de trail running con membrana impermeable…"
+            />
+            <Controlled
+              label="Precio con divisa (ISO 4217)"
+              value={productPrice}
+              onChange={setProductPrice}
+              required
+              placeholder="89.95 EUR"
+            />
+            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label>Disponibilidad</Label>
+              <select
+                value={productAvailability}
+                onChange={(e) => setProductAvailability(e.currentTarget.value)}
+                style={inputStyle}
+              >
+                <option value="in_stock">En stock</option>
+                <option value="out_of_stock">Agotado</option>
+                <option value="preorder">Reserva previa</option>
+                <option value="backorder">Bajo pedido</option>
+              </select>
+            </label>
+            <CharCountedInput
+              label="Marca (obligatoria en productos nuevos salvo libros, películas y música)"
+              value={productBrand}
+              onChange={setProductBrand}
+              max={70}
+              placeholder="Salomon"
+            />
+            <Controlled
+              label="GTIN (8 a 14 dígitos, muy recomendado si existe)"
+              value={productGtin}
+              onChange={setProductGtin}
+              placeholder="0613919012345"
+            />
+            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label>Condición (solo si no es nuevo)</Label>
+              <select
+                value={productCondition}
+                onChange={(e) => setProductCondition(e.currentTarget.value)}
+                style={inputStyle}
+              >
+                <option value="">nuevo (por defecto)</option>
+                <option value="refurbished">reacondicionado</option>
+                <option value="used">usado</option>
+              </select>
+            </label>
+          </Section>
+        )}
+
+        {strategy !== "shopping" && (
         <Section
           title={
             strategy === "display"
@@ -609,6 +705,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             </RowWithRemove>
           ))}
         </Section>
+        )}
 
         {usesLongHeadline && (
           <Section title="Titular largo">
@@ -623,6 +720,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           </Section>
         )}
 
+        {strategy !== "shopping" && (
         <Section
           title={`Descripciones · ${descriptions.length} / ${descriptionsCap}`}
           onAdd={addDescription}
@@ -653,6 +751,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             </RowWithRemove>
           ))}
         </Section>
+        )}
 
         {(assetStrategy || strategy === "video") && (
           <Section title="CTA">
@@ -702,6 +801,12 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               Video exige <strong>1 vídeo de YouTube</strong> (o subido) de 10 segundos
               o más. El perfil sintético evalúa su miniatura junto al copy (los modelos
               no procesan vídeo).
+            </p>
+          ) : strategy === "shopping" ? (
+            <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
+              Shopping exige <strong>la imagen principal del producto</strong> (mínimo
+              500x500 px, sin marcas de agua ni texto promocional). Puedes añadir
+              imágenes adicionales.
             </p>
           ) : assetStrategy ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
@@ -894,6 +999,23 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           >
             Video exige: 1 vídeo de YouTube (10s o más), 1 titular (máx. 30c),
             1 descripción (máx. 90c) y CTA de máximo 10 caracteres.
+          </p>
+        )}
+
+        {strategy === "shopping" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            Shopping exige: producto completo (título máx. 150c, descripción, precio
+            con divisa, disponibilidad), al menos 1 búsqueda de producto y la imagen
+            principal. La URL final es el link del producto; no hay titulares ni
+            descripciones redactados (la ficha la genera Google desde el feed).
           </p>
         )}
 

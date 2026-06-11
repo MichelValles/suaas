@@ -37,6 +37,18 @@ const PayloadSchema = z.object({
   strategy: z.enum(STRATEGY_VALUES).default("search"),
   brief: z.string().optional().nullable(),
   intended_message: z.string().optional().nullable(),
+  product: z
+    .object({
+      title: z.string(),
+      description: z.string(),
+      price: z.string(),
+      availability: z.string(),
+      brand: z.string().optional().nullable(),
+      gtin: z.string().optional().nullable(),
+      condition: z.string().optional().nullable(),
+    })
+    .optional()
+    .nullable(),
   company_name: z.string().optional().nullable(),
   long_headline: z.string().optional().nullable(),
   cta: z.string().optional().nullable(),
@@ -135,6 +147,7 @@ export async function createCampaignAction(
       strategy: payload.strategy,
       brief: payload.brief?.trim() || null,
       intended_message: payload.intended_message?.trim() || null,
+      product: payload.product ?? null,
       final_url: payload.final_url,
       landing_image_url:
         payload.landing_mode === "upload"
@@ -273,6 +286,8 @@ export async function createCampaignAction(
     strategy: payload.strategy,
     brief: payload.brief?.trim() || null,
     intended_message: payload.intended_message?.trim() || null,
+    // El shape fino (availability enum, límites) lo valida CampaignInputSchema.
+    product: (payload.product ?? null) as CampaignInput["product"],
     final_url: payload.final_url,
     landing_image_url: landingImageUrl,
     landing_source_url: landingSourceUrl ?? null,

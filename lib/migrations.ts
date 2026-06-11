@@ -27,6 +27,7 @@ export const KNOWN_MIGRATIONS = [
   "0017_trash_geo_momentum_profiles.sql",
   "0018_campaigns_descriptions_fix.sql",
   "0019_consolidacion.sql",
+  "0020_shopping.sql",
 ] as const;
 
 export type MigrationsStatus =

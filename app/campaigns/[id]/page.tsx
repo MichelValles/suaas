@@ -127,7 +127,9 @@ export default async function CampaignDetailPage({
         eyebrow={
           campaign.strategy === "display"
             ? `Campaña · Display · ${campaign.headlines.length} titulares cortos · ${campaign.creatives.length} assets`
-            : `Campaña · ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} · ${campaign.headlines.length} titulares`
+            : campaign.strategy === "shopping"
+              ? `Campaña · Shopping · ${campaign.queries.length} ${campaign.queries.length === 1 ? "búsqueda" : "búsquedas"} · ${campaign.creatives.length} ${campaign.creatives.length === 1 ? "imagen" : "imágenes"}`
+              : `Campaña · ${STRATEGY_LABEL[campaign.strategy]} · ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} · ${campaign.headlines.length} titulares`
         }
         title={campaign.name}
         description={campaign.brief ?? undefined}
@@ -269,59 +271,120 @@ export default async function CampaignDetailPage({
         </section>
       )}
 
-      {/* Vista tipo SERP: el primer titular + primera descripción como snippet representativo. */}
-      <section
-        style={{
-          border: "1px solid rgba(var(--fg),0.08)",
-          borderRadius: "var(--radius-md)",
-          background: "rgba(var(--fg),0.02)",
-          padding: "26px 28px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-        }}
-      >
-        <span
-          className="mono"
+      {/* Vista previa: ficha de producto en Shopping; snippet SERP en el resto. */}
+      {campaign.strategy === "shopping" && campaign.product ? (
+        <section
           style={{
-            fontSize: 10,
-            letterSpacing: "0.24em",
-            textTransform: "uppercase",
-            color: "var(--accent-text)",
+            border: "1px solid rgba(var(--fg),0.08)",
+            borderRadius: "var(--radius-md)",
+            background: "rgba(var(--fg),0.02)",
+            padding: "26px 28px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
           }}
         >
-          Vista previa · primer titular
-        </span>
-        <span
+          <span
+            className="mono"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.24em",
+              textTransform: "uppercase",
+              color: "var(--accent-text)",
+            }}
+          >
+            Ficha de producto · feed
+          </span>
+          <p className="serp-link" style={{ fontSize: 18, margin: 0, lineHeight: 1.35 }}>
+            {campaign.product.title}
+          </p>
+          <p
+            style={{
+              color: "var(--text-strong)",
+              fontSize: 16,
+              margin: 0,
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            {campaign.product.price}
+            {campaign.product.brand ? ` · ${campaign.product.brand}` : ""}
+          </p>
+          <p
+            style={{
+              color: "rgba(var(--fg),0.78)",
+              fontSize: 13,
+              margin: 0,
+              lineHeight: 1.55,
+            }}
+          >
+            {campaign.product.description.length > 220
+              ? `${campaign.product.description.slice(0, 220)}…`
+              : campaign.product.description}
+          </p>
+          <span
+            style={{
+              color: "rgba(var(--fg),0.55)",
+              fontSize: 12,
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            {displayUrl(campaign.final_url)} · {campaign.product.availability}
+          </span>
+        </section>
+      ) : campaign.headlines.length > 0 ? (
+        <section
           style={{
-            color: "rgba(var(--fg),0.55)",
-            fontSize: 12,
-            fontFamily: "var(--font-mono)",
+            border: "1px solid rgba(var(--fg),0.08)",
+            borderRadius: "var(--radius-md)",
+            background: "rgba(var(--fg),0.02)",
+            padding: "26px 28px",
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
           }}
         >
-          Anuncio · {displayUrl(campaign.final_url)}
-        </span>
-        <p
-          style={{
-            color: "var(--serp-link)",
-            fontSize: 20,
-            margin: 0,
-            lineHeight: 1.3,
-          }}
-        >
-          {campaign.headlines[0]}
-        </p>
-        <p
-          style={{
-            color: "rgba(var(--fg),0.78)",
-            fontSize: 14,
-            margin: 0,
-            lineHeight: 1.55,
-          }}
-        >
-          {campaign.descriptions[0]}
-        </p>
-      </section>
+          <span
+            className="mono"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.24em",
+              textTransform: "uppercase",
+              color: "var(--accent-text)",
+            }}
+          >
+            Vista previa · primer titular
+          </span>
+          <span
+            style={{
+              color: "rgba(var(--fg),0.55)",
+              fontSize: 12,
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            Anuncio · {displayUrl(campaign.final_url)}
+          </span>
+          <p
+            style={{
+              color: "var(--serp-link)",
+              fontSize: 20,
+              margin: 0,
+              lineHeight: 1.3,
+            }}
+          >
+            {campaign.headlines[0]}
+          </p>
+          <p
+            style={{
+              color: "rgba(var(--fg),0.78)",
+              fontSize: 14,
+              margin: 0,
+              lineHeight: 1.55,
+            }}
+          >
+            {campaign.descriptions[0]}
+          </p>
+        </section>
+      ) : null}
 
       {/* Queries / intereses */}
       {campaign.queries.length > 0 && (

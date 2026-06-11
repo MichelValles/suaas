@@ -59,13 +59,15 @@ alter table campaigns drop constraint if exists campaigns_queries_check;
 alter table campaigns add constraint campaigns_queries_check
   check (coalesce(array_length(queries, 1), 0) between 0 and 5);
 
+-- Mínimo 0: Shopping no lleva titulares ni descripciones (la ficha se
+-- genera desde el feed); los mínimos por estrategia los garantiza zod.
 alter table campaigns drop constraint if exists campaigns_headlines_check;
 alter table campaigns add constraint campaigns_headlines_check
-  check (coalesce(array_length(headlines, 1), 0) between 1 and 15);
+  check (coalesce(array_length(headlines, 1), 0) between 0 and 15);
 
 alter table campaigns drop constraint if exists campaigns_descriptions_check;
 alter table campaigns add constraint campaigns_descriptions_check
-  check (coalesce(array_length(descriptions, 1), 0) between 1 and 5);
+  check (coalesce(array_length(descriptions, 1), 0) between 0 and 5);
 
 -- ============================================================
 -- 4) Checks de Display (longitudes y CTA del set de Google Ads)

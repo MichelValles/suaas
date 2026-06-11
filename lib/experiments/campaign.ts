@@ -355,6 +355,10 @@ function renderSnippetText(
   if (campaign.strategy === "video") {
     return renderVideoSnippet(campaign);
   }
+  // Shopping: ficha de producto generada desde el feed.
+  if (campaign.strategy === "shopping") {
+    return renderShoppingSnippet(campaign);
+  }
   switch (channel) {
     case "meta":
       return renderFeedSnippet(campaign, "Instagram / Facebook");
@@ -502,6 +506,30 @@ function renderVideoSnippet(campaign: Campaign): string {
   return lines.join("\n");
 }
 
+function renderShoppingSnippet(campaign: Campaign): string {
+  const p = campaign.product;
+  const lines: string[] = [];
+  lines.push(
+    "Ves esta ficha de producto en el carrusel de Shopping, entre fichas de competidores:",
+  );
+  lines.push("");
+  lines.push("---");
+  lines.push(`Producto: ${p?.title ?? campaign.name}`);
+  if (p?.brand) lines.push(`Marca: ${p.brand}`);
+  if (p?.price) lines.push(`Precio: ${p.price}`);
+  if (p?.availability && p.availability !== "in_stock") {
+    lines.push(`Disponibilidad: ${p.availability}`);
+  }
+  if (p?.condition && p.condition !== "new") {
+    lines.push(`Condición: ${p.condition === "refurbished" ? "reacondicionado" : "usado"}`);
+  }
+  lines.push(`Tienda: ${displayUrl(campaign.final_url)}`);
+  lines.push("");
+  lines.push("(La imagen adjunta es la foto principal del producto en la ficha.)");
+  lines.push("---");
+  return lines.join("\n");
+}
+
 function renderFeedSnippet(campaign: Campaign, network: string): string {
   const lines: string[] = [];
   lines.push(`Ves este post patrocinado en tu feed de ${network}:`);
@@ -590,6 +618,13 @@ function framingByChannel(
       "Estás en YouTube a punto de ver un vídeo.",
       context,
       "Antes del contenido aparece este anuncio saltable: decides en los primeros 5 segundos si lo saltas, lo dejas correr o haces click en la CTA.",
+    ].join(" ");
+  }
+  if (campaign.strategy === "shopping") {
+    return [
+      `Acabas de buscar en Google: «${query}» con intención de compra.`,
+      "Arriba aparece el carrusel de Shopping con varias fichas de producto de tiendas distintas.",
+      "Comparas foto, título, precio y tienda en un vistazo antes de decidir en cuál haces click.",
     ].join(" ");
   }
   switch (channel) {
@@ -811,15 +846,18 @@ async function judgeAdComprehension(
 
 async function proposeIdealVersion(
   profile: Profile,
+  campaign: Campaign,
   channel: Channel,
   query: string,
   snippet: SnippetEval,
 ): Promise<{ output: IdealVersion; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const formatHint =
-    channel === "google"
-      ? "formato Google Ads RSA (titular máx 30 chars, descripción máx 90)"
-      : `formato ${networkLabel(channel)} (texto corto que pueda pararte en feed)`;
+    campaign.strategy === "shopping"
+      ? "título de ficha de producto (máx 150 chars) y argumento de compra (máx 90)"
+      : channel === "google"
+        ? "formato Google Ads RSA (titular máx 30 chars, descripción máx 90)"
+        : `formato ${networkLabel(channel)} (texto corto que pueda pararte en feed)`;
   const queryFraming =
     channel === "google"
       ? `Tu búsqueda fue: «${query}».`
@@ -886,8 +924,11 @@ export async function prepareCampaignRun(
 ): Promise<PreparedCampaignRun> {
   const campaign = await getCampaign(input.campaignId);
   if (!campaign) throw new Error("Campaign no encontrada.");
-  if (campaign.strategy === "search" && campaign.queries.length === 0) {
-    throw new Error("Search exige al menos 1 query.");
+  if (
+    (campaign.strategy === "search" || campaign.strategy === "shopping") &&
+    campaign.queries.length === 0
+  ) {
+    throw new Error("Esta estrategia exige al menos 1 query de búsqueda.");
   }
   if (!campaign.channels || campaign.channels.length === 0) {
     throw new Error("La campaign no tiene canales seleccionados.");
@@ -1361,7 +1402,13 @@ async function processCombo(
     }
   }
 
-  const ideal = await proposeIdealVersion(profile, channel, query, snippet.output);
+  const ideal = await proposeIdealVersion(
+    profile,
+    campaign,
+    channel,
+    query,
+    snippet.output,
+  );
   await recordUsage({
     runId,
     scope: "campaign_ideal",
@@ -1394,8 +1441,12 @@ async function processCombo(
     landing_evaluated: landingEvaluated,
     landing_match: landingMatch,
     landing_critique: landingCritique,
-    // El límite RSA (30/90) se instruye en el prompt; aquí se garantiza.
-    ideal_headline: ideal.output.ideal_headline.slice(0, 30),
+    // El límite RSA (30/90) se instruye en el prompt y aquí se garantiza;
+    // en Shopping el «titular ideal» es un título de ficha (150c).
+    ideal_headline: ideal.output.ideal_headline.slice(
+      0,
+      campaign.strategy === "shopping" ? 150 : 30,
+    ),
     ideal_description: ideal.output.ideal_description.slice(0, 90),
     ideal_promise: ideal.output.ideal_promise,
     ideal_free_text: ideal.output.ideal_free_text ?? null,

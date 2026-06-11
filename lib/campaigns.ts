@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { getRunsStatsByEntity } from "@/lib/runs";
-import { getServerClient, isMissingColumnError } from "@/lib/supabase";
+import {
+  getServerClient,
+  isMissingColumnError,
+  MigrationPendingError,
+} from "@/lib/supabase";
 
 // ============================================================
 // Schemas con los caps RSA reales de Google Ads.
@@ -59,18 +63,67 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
   app:
     "App vinculada de Play / App Store como baseline. 2+ titulares (30c) + 1+ descripción (90c). Hasta 20 imágenes y 20 vídeos en formatos 1.91:1, 1:1, 4:5, 9:16. HTML5 opcional.",
   shopping:
-    "Feed de Merchant Center, no anuncio individual. ID producto + título + descripción + link + imagen + disponibilidad + precio + GTIN/marca/MPN según categoría. Imágenes adicionales y promociones opcionales.",
+    "Ficha de producto generada desde el feed (spec Merchant Center 7052112): sin titulares ni descripciones redactados. Producto con título (150c) + descripción (5.000c) + precio con divisa + disponibilidad; marca (70c), GTIN y condición según el caso. La URL final es el link del producto y la imagen principal (500x500 o más) va en creatividades. Las queries son las búsquedas de producto.",
 };
 
 export function isStrategyImplemented(s: Strategy): boolean {
-  return (
-    s === "search" ||
-    s === "display" ||
-    s === "pmax" ||
-    s === "demand_gen" ||
-    s === "video"
-  );
+  return s !== "app";
 }
+
+// ============================================================
+// Producto de Shopping (espejo de los atributos obligatorios del feed
+// de Merchant Center, spec 7052112). El id del feed se omite: no aporta
+// a la simulación. El link es final_url y la imagen va en creatives.
+// ============================================================
+
+export const PRODUCT_AVAILABILITY_VALUES = [
+  "in_stock",
+  "out_of_stock",
+  "preorder",
+  "backorder",
+] as const;
+
+export const PRODUCT_AVAILABILITY_LABEL: Record<
+  (typeof PRODUCT_AVAILABILITY_VALUES)[number],
+  string
+> = {
+  in_stock: "En stock",
+  out_of_stock: "Agotado",
+  preorder: "Reserva previa",
+  backorder: "Bajo pedido",
+};
+
+export const PRODUCT_CONDITION_VALUES = ["new", "refurbished", "used"] as const;
+
+export const ProductSchema = z.object({
+  title: z
+    .string()
+    .min(1, "El producto exige título.")
+    .max(150, "El título del producto admite máximo 150 caracteres."),
+  description: z
+    .string()
+    .min(1, "El producto exige descripción.")
+    .max(5000, "La descripción del producto admite máximo 5.000 caracteres."),
+  price: z
+    .string()
+    .regex(
+      /^\d+([.,]\d+)?\s?[A-Z]{3}$/,
+      "Precio con divisa ISO 4217, p. ej. «15.00 EUR».",
+    ),
+  availability: z.enum(PRODUCT_AVAILABILITY_VALUES),
+  brand: z
+    .string()
+    .max(70, "La marca admite máximo 70 caracteres.")
+    .optional()
+    .nullable(),
+  gtin: z
+    .string()
+    .regex(/^\d{8,14}$/, "El GTIN tiene entre 8 y 14 dígitos.")
+    .optional()
+    .nullable(),
+  condition: z.enum(PRODUCT_CONDITION_VALUES).optional().nullable(),
+});
+export type Product = z.infer<typeof ProductSchema>;
 
 export const CreativeKindSchema = z.enum(["image", "video", "youtube"]);
 export type CreativeKind = z.infer<typeof CreativeKindSchema>;
@@ -174,7 +227,9 @@ export const CampaignInputSchema = z
       .max(5, "Máximo 5 queries por campaign.")
       .default([]),
     // Cap global 40c (Demand Gen); el límite de 30c de Search, Display y
-    // PMax se valida por estrategia en el superRefine.
+    // PMax se valida por estrategia en el superRefine. Mínimo 0 porque
+    // Shopping no lleva titulares ni descripciones (los exige por
+    // estrategia el superRefine).
     headlines: z
       .array(
         z
@@ -182,8 +237,8 @@ export const CampaignInputSchema = z
           .min(1, "Titular vacío.")
           .max(40, "Cada titular admite máximo 40 caracteres."),
       )
-      .min(1, "Al menos 1 titular.")
-      .max(15, "Máximo 15 titulares."),
+      .max(15, "Máximo 15 titulares.")
+      .default([]),
     descriptions: z
       .array(
         z
@@ -191,8 +246,8 @@ export const CampaignInputSchema = z
           .min(1, "Descripción vacía.")
           .max(90, "Cada descripción admite máximo 90 caracteres."),
       )
-      .min(1, "Al menos 1 descripción.")
-      .max(5, "Máximo 5 descripciones."),
+      .max(5, "Máximo 5 descripciones.")
+      .default([]),
     creatives: z
       .array(CreativeSchema)
       .max(20, "Máximo 20 creatividades.")
@@ -214,6 +269,7 @@ export const CampaignInputSchema = z
       .optional()
       .nullable(),
     cta: z.string().optional().nullable(),
+    product: ProductSchema.optional().nullable(),
   })
   .superRefine((data, ctx) => {
     // Titulares de 30c en todas las estrategias salvo Demand Gen (40c,
@@ -224,6 +280,25 @@ export const CampaignInputSchema = z
         path: ["headlines"],
         message: "Los titulares admiten máximo 30 caracteres en esta estrategia.",
       });
+    }
+    // Mínimos comunes de copy: aplican a todo salvo Shopping (la ficha se
+    // genera desde el producto). Search/PMax/Video tienen mínimos mayores
+    // en sus bloques.
+    if (data.strategy !== "shopping") {
+      if (data.headlines.length < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["headlines"],
+          message: "Al menos 1 titular.",
+        });
+      }
+      if (data.descriptions.length < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["descriptions"],
+          message: "Al menos 1 descripción.",
+        });
+      }
     }
     if (data.strategy === "search") {
       if (data.queries.length < 1) {
@@ -472,6 +547,33 @@ export const CampaignInputSchema = z
         });
       }
     }
+    // Shopping: la ficha se genera desde el producto del feed (spec
+    // Merchant Center 7052112). Exige producto completo, al menos 1 query
+    // (la búsqueda que dispara la ficha) y 1 imagen principal de producto.
+    if (data.strategy === "shopping") {
+      if (!data.product) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["product"],
+          message: "Shopping exige los datos del producto (título, descripción, precio, disponibilidad).",
+        });
+      }
+      if (data.queries.length < 1) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["queries"],
+          message: "Shopping exige al menos 1 búsqueda de producto.",
+        });
+      }
+      const creatives = data.creatives ?? [];
+      if (!creatives.some((c) => c.kind === "image")) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["creatives"],
+          message: "Shopping exige la imagen principal del producto (500x500 o más).",
+        });
+      }
+    }
   });
 export type CampaignInput = z.infer<typeof CampaignInputSchema>;
 
@@ -494,6 +596,8 @@ export type Campaign = {
   company_name: string | null;
   long_headline: string | null;
   cta: string | null;
+  /** Producto del feed (solo shopping). Null en el resto de estrategias. */
+  product: Product | null;
   deleted_at?: string | null;
 };
 
@@ -534,6 +638,13 @@ const CampaignRowSchema = z.object({
   company_name: z.string().nullable().catch(null),
   long_headline: z.string().nullable().catch(null),
   cta: z.string().nullable().catch(null),
+  product: z
+    .unknown()
+    .transform((v) => {
+      const parsed = ProductSchema.safeParse(v);
+      return parsed.success ? parsed.data : null;
+    })
+    .catch(null),
   deleted_at: z.string().nullable().catch(null),
 });
 
@@ -645,10 +756,27 @@ export async function createCampaign(input: CampaignInput): Promise<Campaign> {
     .insert({
       ...base,
       intended_message: parsed.intended_message ?? null,
+      product: parsed.product ?? null,
       channels: parsed.channels,
     })
     .select("*")
     .single();
+  // Si la 0020 aún no está aplicada (product no existe): una campaña
+  // shopping NO puede crearse sin su producto; el resto sigue sin la columna.
+  if (isMissingColumnError(error, "product")) {
+    if (parsed.strategy === "shopping") {
+      throw new MigrationPendingError("0020_shopping.sql");
+    }
+    ({ data, error } = await supa
+      .from("campaigns")
+      .insert({
+        ...base,
+        intended_message: parsed.intended_message ?? null,
+        channels: parsed.channels,
+      })
+      .select("*")
+      .single());
+  }
   // Si la 0019 aún no está aplicada (intended_message no existe), caemos a
   // un insert sin la columna (el juez de comprensión queda inactivo).
   if (isMissingColumnError(error, "intended_message")) {
