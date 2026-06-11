@@ -1,4 +1,4 @@
-import { generateObject } from "ai";
+import { NoObjectGeneratedError, generateObject } from "ai";
 import { z } from "zod";
 import {
   type Campaign,
@@ -6,7 +6,7 @@ import {
   getCampaign,
   getCampaignWithTrashed,
 } from "@/lib/campaigns";
-import { DEFAULT_MODEL, REASONER_MODEL } from "@/lib/gateway";
+import { DEFAULT_MODEL } from "@/lib/gateway";
 import { resolveImageForApi } from "@/lib/image-source";
 import { buildSystemPrompt } from "@/lib/prompts";
 import { type Profile, getProfile, listProfilesByIds } from "@/lib/profiles";
@@ -716,12 +716,12 @@ async function probeCampaignSnippet(
     }
   }
 
-  // Mismatch conocido del gateway: Opus 4.7 + generateObject + imágenes
-  // devuelve la respuesta envuelta en XML de tool-call y el AI SDK no parsea
-  // el JSON interno (mismo caso documentado en five-second). Con imágenes
-  // adjuntas el probe usa DEFAULT_MODEL; en texto puro mantiene el reasoner.
-  const hasImages = content.some((c) => c.type === "image");
-  const model = hasImages ? DEFAULT_MODEL : REASONER_MODEL;
+  // Todo el runner va en DEFAULT_MODEL (Sonnet). Opus 4.7 + generateObject +
+  // imágenes falla siempre el parse en el gateway (respuesta envuelta en XML,
+  // caso documentado en five-second) y en texto puro su diferencial de calidad
+  // no justifica el precio (5$/25$ vs 3$/15$ por MTok): el incidente de la
+  // cuota agotada de v0.47 lo pagó. REASONER_MODEL queda fuera del runner.
+  const model = DEFAULT_MODEL;
   const result = await generateObject({
     model,
     schema: SnippetEvalSchema,
@@ -774,8 +774,8 @@ async function judgeLandingMatch(
     channel === "google"
       ? `Tu búsqueda fue: «${query}».`
       : `Tu interés / contexto era: «${query}».`;
-  // Siempre multimodal (lleva el screenshot de la landing): DEFAULT_MODEL
-  // por el mismo mismatch de Opus + generateObject + imágenes del probe.
+  // Siempre multimodal (lleva el screenshot de la landing): DEFAULT_MODEL,
+  // como todo el runner (ver probeCampaignSnippet).
   const result = await generateObject({
     model: DEFAULT_MODEL,
     schema: LandingMatchSchema,
@@ -1223,6 +1223,13 @@ export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<voi
       try {
         await synthesizeRecommendations(runId, campaign, summary, responses);
       } catch (err) {
+        await recordUsage({
+          runId,
+          scope: "campaign_synthesis",
+          model: DEFAULT_MODEL,
+          usage: usageFromError(err),
+          meta: { failed: true, error: (err as Error).message.slice(0, 300) },
+        }).catch(() => {});
         console.error(
           `[campaign] síntesis de recomendaciones falló (run ${runId}):`,
           (err as Error).message,
@@ -1348,6 +1355,15 @@ export async function runCampaignTest(
 
 type Combo = { profile: Profile; channel: Channel; query: string };
 
+/**
+ * Usage de una llamada fallida, si el error lo trae. NoObjectGeneratedError
+ * factura los tokens aunque el parse falle; sin registrarlos la telemetría
+ * queda ciega justo al gasto que más duele (incidente de la cuota, v0.47).
+ */
+function usageFromError(err: unknown): unknown {
+  return NoObjectGeneratedError.isInstance(err) ? (err.usage ?? null) : null;
+}
+
 /** Una combinación completa: probe → landing condicional → ideal → upsert. */
 async function processCombo(
   runId: string,
@@ -1367,14 +1383,34 @@ async function processCombo(
           (campaign.strategy === "pmax" || campaign.strategy === "demand_gen")
         ? sampleRsaCombination(campaign, profile.id, query, 1, 1)
         : null;
-  const snippet = await probeCampaignSnippet(
-    profile,
-    campaign,
-    channel,
-    query,
-    imageCache,
-    shown,
-  );
+  let snippet: Awaited<ReturnType<typeof probeCampaignSnippet>>;
+  try {
+    snippet = await probeCampaignSnippet(
+      profile,
+      campaign,
+      channel,
+      query,
+      imageCache,
+      shown,
+    );
+  } catch (err) {
+    // La llamada fallida también se factura: queda en gateway_usage con
+    // meta.failed=true para que /tokens y el presupuesto diario la vean.
+    await recordUsage({
+      runId,
+      scope: "campaign_probe",
+      model: DEFAULT_MODEL,
+      usage: usageFromError(err),
+      meta: {
+        failed: true,
+        error: (err as Error).message.slice(0, 300),
+        query,
+        channel,
+        profile_id: profile.id,
+      },
+    }).catch(() => {});
+    throw err;
+  }
   await recordUsage({
     runId,
     scope: "campaign_probe",
@@ -1411,6 +1447,19 @@ async function processCombo(
       // El run sigue sin landing eval, pero el fallo queda trazado:
       // landing_error en meta distingue fallo técnico de gating por intent.
       landingError = (err as Error).message;
+      await recordUsage({
+        runId,
+        scope: "campaign_landing",
+        model: DEFAULT_MODEL,
+        usage: usageFromError(err),
+        meta: {
+          failed: true,
+          error: landingError.slice(0, 300),
+          query,
+          channel,
+          profile_id: profile.id,
+        },
+      }).catch(() => {});
       console.error(
         `[campaign] landing eval falló (profile=${profile.id}, channel=${channel}, query=${query}):`,
         landingError,
@@ -1439,6 +1488,19 @@ async function processCombo(
         meta: { latency_ms: judge.latencyMs, query, channel, profile_id: profile.id },
       }).catch(() => {});
     } catch (err) {
+      await recordUsage({
+        runId,
+        scope: "campaign_judge",
+        model: DEFAULT_MODEL,
+        usage: usageFromError(err),
+        meta: {
+          failed: true,
+          error: (err as Error).message.slice(0, 300),
+          query,
+          channel,
+          profile_id: profile.id,
+        },
+      }).catch(() => {});
       console.error(
         `[campaign] juez de comprensión falló (profile=${profile.id}, channel=${channel}, query=${query}):`,
         (err as Error).message,
@@ -1446,13 +1508,31 @@ async function processCombo(
     }
   }
 
-  const ideal = await proposeIdealVersion(
-    profile,
-    campaign,
-    channel,
-    query,
-    snippet.output,
-  );
+  let ideal: Awaited<ReturnType<typeof proposeIdealVersion>>;
+  try {
+    ideal = await proposeIdealVersion(
+      profile,
+      campaign,
+      channel,
+      query,
+      snippet.output,
+    );
+  } catch (err) {
+    await recordUsage({
+      runId,
+      scope: "campaign_ideal",
+      model: DEFAULT_MODEL,
+      usage: usageFromError(err),
+      meta: {
+        failed: true,
+        error: (err as Error).message.slice(0, 300),
+        query,
+        channel,
+        profile_id: profile.id,
+      },
+    }).catch(() => {});
+    throw err;
+  }
   await recordUsage({
     runId,
     scope: "campaign_ideal",
