@@ -1,9 +1,21 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-11 tras v0.34.0 (papelera coherente en históricos + MigrationPendingError + diag de migraciones).
+> Última actualización: 2026-06-11 tras v0.40.0 (plan de mejora de campañas COMPLETO: 16 mejoras en 16 deploys, v0.35.0 a v0.40.0).
 
-## Estado actual (v0.34.0 desplegada)
+## ⚠ Acción pendiente del operador: aplicar la migración 0019
+
+`supabase/migrations/0019_consolidacion.sql` está escrita y commiteada pero **sin aplicar** (se aplica a mano en el SQL editor de Supabase, proyecto `supabase-erin-mirror`; después `NOTIFY pgrst, 'reload schema';`). Es idempotente y agrupa: tabla `suaas_migrations` (tracking, con backfill 0001..0018), drop del `channel` legacy, checks reales de arrays y de Display, RLS en `campaigns`/`campaign_responses`, y las columnas de v0.39/v0.40 (`intended_message`, `comprehension_rate`, `behavior_class`, `shown_headlines`, `shown_descriptions`). **Todo el código ya funciona sin ella** (fallbacks a `meta`), pero hasta aplicarla los valores nuevos viven en jsonb y el tracking de `/diag` avisa de que falta. Tras aplicarla: podar los fallbacks legacy pre-0011/pre-0013 de `lib/campaigns.ts` (anotado en el plan).
+
+## Estado actual (v0.40.0 desplegada)
+
+- **Plan de mejora de campañas completado (v0.35.0 → v0.40.0)**: las 16 mejoras de `docs/CAMPANAS-PLAN-MEJORA.md` publicadas de una en una, cada una con su ciclo completo cambio → bump → deploy → commit. Detalle por versión en `docs/ROADMAP.md` (releases 1 a 6). Resumen: fidelidad (brief fuera del persona, razonamiento antes del score con anclas, métricas honestas «Intent ≥ 0,5»), loop de iteración (duplicar, repetir muestra, export CSV/Ads Editor, comparativa run vs run), consolidación de BD (0019 + tracking `suaas_migrations`), robustez (runner tolerante a fallos con `after()`, progreso, reanudación; presupuesto `SUAAS_DAILY_TOKEN_BUDGET` + estimación previa), profundidad (juez neutral de comprensión, `behavior_class`, tabla interactiva, token `--serp-link`, síntesis «Qué cambiar») y muestreo RSA con ranking por asset.
+- **Cambio de semántica en v0.40.0**: las respuestas de Search evalúan UNA combinación muestreada (3 titulares + 2 descripciones), no el inventario completo. Los runs anteriores a v0.40 no son comparables con los posteriores.
+- **Validación recomendada**: relanzar un run sobre una campaña seed con los mismos perfiles y comparar `mean_intent_to_click`/`mean_clarity` con el histórico (se espera que bajen algo: el sesgo del brief y el clustering de scores existían). Pendiente operativo: comparar dos runs idénticos con el probe en Opus vs Sonnet usando `gateway_usage` antes de decidir cambio de modelo.
+- **Env var nueva opcional**: `SUAAS_DAILY_TOKEN_BUDGET` (tokens por ventana de 24h; sin configurar no hay límite). Configurarla en Vercel si se quiere el gate de coste (429 en los 8 endpoints de runs).
+- **Fleco aplazado**: reutilizar el `DisplayAdPreview` del formulario en el detalle de campañas Display (hoy enseña preview SERP también para banners).
+
+## Estado anterior (v0.34.0)
 
 - **Papelera coherente en históricos (v0.34)**: las vistas de resultados cargan entidades en papelera vía `getXWithTrashed` en `lib/{targets,ab,campaigns,copy,funnels,pricing}.ts` (un borrado ya no rompe runs antiguos). `/ab/[id]`, `/geo/[id]` y `/momentum/[id]` muestran aviso «En papelera» y bloquean el lanzamiento de runs nuevos (rechazo server-side incluido). Los enlaces de cabecera de las vistas históricas apuntan al listado si la entidad está en papelera (antes llevaban a un 404).
 - **`MigrationPendingError` (v0.34)**: clase nueva en `lib/supabase.ts`; softDelete/restore de geo, momentum y perfiles devuelven 409 con mensaje seguro si falta la migración `0017`.
