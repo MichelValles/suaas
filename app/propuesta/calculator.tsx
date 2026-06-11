@@ -49,10 +49,13 @@ const fieldStyle: React.CSSProperties = {
   fontFamily: "var(--font-sans)",
 };
 
-export function PricingCalculator() {
-  // Por defecto modo cliente (seguro): los márgenes no aparecen hasta que se
-  // cambia explícitamente a interno. Evita enseñar rentabilidad por accidente.
-  const [mode, setMode] = useState<"cliente" | "interno">("cliente");
+export function PricingCalculator({ unlocked = false }: { unlocked?: boolean }) {
+  // Sin desbloquear (landing pública) sólo existe el modo cliente: ni toggle
+  // ni márgenes. Con la contraseña interna del footer, arranca en interno.
+  const [mode, setMode] = useState<"cliente" | "interno">(
+    unlocked ? "interno" : "cliente",
+  );
+  const showInternal = unlocked && mode === "interno";
   const [tierId, setTierId] = useState("pro");
   const [clients, setClients] = useState(5);
   const [modelId, setModelId] = useState("anthropic/claude-sonnet-4.6");
@@ -102,7 +105,8 @@ export function PricingCalculator() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      {/* Toggle modo */}
+      {/* Toggle modo (sólo en vista interna desbloqueada) */}
+      {unlocked && (
       <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
         <span style={captionStyle}>Vista</span>
         <div
@@ -134,11 +138,12 @@ export function PricingCalculator() {
           ))}
         </div>
         <span style={{ fontSize: 12, color: "rgba(var(--fg),0.4)" }}>
-          {mode === "interno"
+          {showInternal
             ? "Muestra coste, rentabilidad bruta y neta. No compartir con el cliente."
             : "Sólo tarifa y lo que incluye. Modo seguro para presentar."}
         </span>
       </div>
+      )}
 
       <div
         style={{
@@ -232,7 +237,7 @@ export function PricingCalculator() {
             </span>
           </label>
 
-          {mode === "interno" && (
+          {showInternal && (
             <label style={labelStyle}>
               <span style={captionStyle}>Coste de gestión (€/mes)</span>
               <input
@@ -270,7 +275,7 @@ export function PricingCalculator() {
               label="Runs/mes incluidos"
               value={`~${calc.runsIncluded.toLocaleString("es-ES")}`}
             />
-            {mode === "interno" && (
+            {showInternal && (
               <>
                 <Divider />
                 <Row label="Coste infra" value={eur(INFRA_PER_CLIENT_EUR)} dim />
@@ -304,7 +309,7 @@ export function PricingCalculator() {
             </span>
             <Row label="Ingreso recurrente (MRR)" value={eur(calc.revenueMrr)} strong />
             <Row label="Setup total (una vez)" value={eur(calc.setupRevenue)} />
-            {mode === "interno" && (
+            {showInternal && (
               <>
                 <Divider />
                 <Row
@@ -330,7 +335,7 @@ export function PricingCalculator() {
                 </span>
               </>
             )}
-            {mode === "cliente" && (
+            {!showInternal && (
               <span style={{ fontSize: 12, color: "rgba(var(--fg),0.45)", lineHeight: 1.5 }}>
                 Instancia dedicada con tu marca, aislamiento de datos y presupuesto de IA
                 incluido. Sin coste por participante ni esperas de reclutamiento.

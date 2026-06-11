@@ -124,7 +124,7 @@ export const TIERS: Tier[] = [
     blurb: "Para validar rápido lo esencial antes de tocar la web.",
     features: [
       "Módulos básicos: claridad 5s, copy y pricing",
-      "Cohortes de usuarios sintéticos calibradas",
+      "Cohortes de perfiles modelados calibradas",
       "Resultados en minutos, no en semanas",
       "Presupuesto de IA ~10 $/mes incluido",
     ],
