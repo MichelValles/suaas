@@ -892,6 +892,15 @@ html[data-theme="light"] .sidebar-logo {
   opacity: 1;
 }
 
+/* Desplegables nativos: el popup de opciones no hereda los estilos inline
+   del select y en Windows/Chromium puede renderizar fondo claro con el
+   color de texto del tema (texto blanco sobre blanco). Forzamos ambos
+   canales desde el tema. */
+select option {
+  background-color: var(--surface-panel);
+  color: var(--text-strong);
+}
+
 /* Spinner genérico (iconos de carga tipo Loader2) */
 @keyframes spin {
   from { transform: rotate(0deg); }

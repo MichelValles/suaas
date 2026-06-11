@@ -52,8 +52,10 @@ Ver `.env.example` para el listado completo. Esenciales:
    16. `0016_momentum.sql`
    17. `0017_trash_geo_momentum_profiles.sql`
    18. `0018_campaigns_descriptions_fix.sql` (idempotente, parche)
+   19. `0019_consolidacion.sql` (idempotente: tracking `suaas_migrations`, checks, RLS, columnas de v0.39/v0.40)
+   20. `0020_shopping.sql` (idempotente: `campaigns.product`)
 
-   Usa `/diag` o `/api/diag` para confirmar que todas las tablas + columnas críticas están verdes. El campo `pending_migrations` del JSON de `/api/diag` es el atajo: lista deduplicada de los archivos `.sql` que faltan por aplicar.
+   Las 20 constan aplicadas (2026-06-11). Usa `/diag` o `/api/diag` para confirmar que todas las tablas + columnas críticas están verdes y que «Tracking de migraciones» no lista pendientes. El campo `pending_migrations` del JSON de `/api/diag` es el atajo: lista deduplicada de los archivos `.sql` que faltan por aplicar.
 
 - **¿Cómo aplico las migraciones?** El proyecto suaas **no está conectado a Git en Vercel**, así que `supabase db push` automático no aplica. El flujo es manual:
    1. Vercel → Marketplace → Supabase → **Open in Supabase** → SQL editor.

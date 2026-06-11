@@ -3,13 +3,11 @@
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
 > Última actualización: 2026-06-11 tras v0.40.0 (plan de mejora de campañas COMPLETO: 16 mejoras en 16 deploys, v0.35.0 a v0.40.0).
 
-## ⚠ Acción pendiente del operador: aplicar las migraciones 0019 y 0020
+## Estado actual (v0.46.0 desplegada)
 
-`supabase/migrations/0019_consolidacion.sql` y `supabase/migrations/0020_shopping.sql` están escritas y commiteadas pero **sin aplicar** (se aplican a mano en el SQL editor de Supabase, proyecto `supabase-erin-mirror`; pueden pegarse juntas en una sesión; después `NOTIFY pgrst, 'reload schema';`). Ambas idempotentes. La 0019 agrupa: tabla `suaas_migrations` (tracking, con backfill 0001..0018), drop del `channel` legacy, checks reales de arrays (mínimo 0 desde v0.45: Shopping no lleva copy) y de Display, CTA del set de Google Ads o ≤ 10c (Video), RLS en `campaigns`/`campaign_responses`, y las columnas `intended_message`, `comprehension_rate`, `behavior_class`, `shown_headlines`, `shown_descriptions`. La 0020 añade `campaigns.product` (jsonb) para Shopping. **Casi todo el código funciona sin ellas** (fallbacks a `meta`); la única función bloqueada es crear campañas Shopping, que lanza `MigrationPendingError(0020)` con mensaje claro. Tras aplicarlas: podar los fallbacks legacy pre-0011/pre-0013 de `lib/campaigns.ts` (anotado en el plan).
-
-## Estado actual (v0.45.0 desplegada)
-
-- **Requisitos por estrategia según las specs oficiales de Google (v0.41 a v0.45)**: Search ajustado (mínimo 3 titulares y 2 descripciones, answer 17092074/7684791) y cuatro estrategias nuevas implementadas con sus requisitos verificados contra las fuentes: Performance Max (17091269), Demand Gen (17091672, titulares de 40c), Video (17091270, 1 vídeo + CTA ≤ 10c) y Shopping (feed de Merchant Center 7052112, columna `product` de la 0020). Solo App Campaigns sigue como «Próx.». Detalle por versión en `docs/ROADMAP.md → v0.41.x+`.
+- **Migraciones 0019 y 0020 APLICADAS** por el operador (2026-06-11). Migraciones aplicadas: 0001 a 0020. El tracking vive en la tabla `suaas_migrations` y se ve en `/diag → Tracking de migraciones`; convención: cada migración nueva inserta su propia fila al final. Los fallbacks legacy de `lib/campaigns.ts` (channels pre-0011, strategy pre-0013, intended_message, product, deleted_at) se podaron en v0.46.0; los del runner que leen `meta` se conservan para las filas históricas.
+- **Formulario de campaña reorganizado (v0.46.0)**: comunes primero (nombre, brief, mensaje pretendido, URL final, landing), luego canal + estrategia, luego los específicos. Previews por estrategia: SERP con empresa y logo (Search), banner (Display/PMax), tarjeta de feed (Demand Gen), pre-roll con miniatura (Video) y ficha de producto (Shopping). Fix global de los `<option>` de los selects (fondo del tema).
+- **Requisitos por estrategia según las specs oficiales de Google (v0.41 a v0.45.4)**: implementadas y verificadas fila a fila contra las fuentes (re-extracción con doble verificación en v0.45.1-4): Search (17092074: RSA 1-15/1-4 + empresa y logo obligatorios del bloque Business information), Performance Max (17091269), Demand Gen (17091672: titulares de 40c, CTA obligatoria), Video (17091270: titular largo opcional, CTA ≤ 10c opcional) y Shopping (feed 7052112: producto con id/title/description/price/availability + brand/gtin/mpn/condition). Solo App Campaigns sigue como «Próx.». Detalle por versión en `docs/ROADMAP.md → v0.41.x+`.
 
 ## Estado anterior (v0.40.0)
 

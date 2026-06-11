@@ -357,70 +357,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           value={JSON.stringify(payload)}
         />
 
-        <Section title="Canal">
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <span
-              className="mono"
-              style={{
-                fontSize: 10,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: "rgba(var(--fg),0.55)",
-              }}
-            >
-              ¿En qué red simulamos el anuncio?
-            </span>
-            <ChannelTabs value={channel} onChange={setChannel} />
-            <p
-              style={{
-                color: "rgba(var(--fg),0.55)",
-                fontSize: 12,
-                lineHeight: 1.55,
-                margin: 0,
-              }}
-            >
-              Cada red tiene formato propio (caps de caracteres, creatividades,
-              targeting). Por ahora sólo Google Ads está implementado. Meta,
-              LinkedIn, TikTok y X llegarán como módulos específicos en futuras
-              versiones.
-            </p>
-          </div>
-        </Section>
-
-        <Section title="Estrategia">
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            <span
-              className="mono"
-              style={{
-                fontSize: 10,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: "rgba(var(--fg),0.55)",
-              }}
-            >
-              Tipo de campaña dentro de {CHANNEL_LABEL[channel].split(" ")[0]}
-            </span>
-            <StrategyTabs value={strategy} onChange={setStrategy} />
-            <p
-              style={{
-                color: "rgba(var(--fg),0.55)",
-                fontSize: 12,
-                lineHeight: 1.55,
-                margin: 0,
-              }}
-            >
-              {STRATEGY_DESCRIPTION[strategy]}
-            </p>
-          </div>
-        </Section>
-
-        {!isStrategyImplemented(strategy) && (
-          <UnderConstruction strategy={strategy} />
-        )}
-
-        {isStrategyImplemented(strategy) && (
-        <>
-        <Section title="Identidad">
+        {/* Campos comunes a todas las estrategias: primero, para que el
+            cambio de estrategia nunca borre ni esconda lo ya rellenado. */}
+        <Section title="Campaña">
           <Controlled
             label="Nombre interno de la campaña"
             value={name}
@@ -428,16 +367,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             required
             placeholder="Hipoteca fija agosto 2026"
           />
-          {showsBusinessAssets && (
-            <CharCountedInput
-              label="Nombre de empresa (visible en el anuncio)"
-              value={companyName}
-              onChange={setCompanyName}
-              max={25}
-              required
-              placeholder="BBVA"
-            />
-          )}
           <ControlledTextArea
             label="Brief interno (opcional, no se muestra al perfil)"
             rows={2}
@@ -506,14 +435,14 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 {resolveStatus === "ok" && (
                   <span
                     className="mono"
-                    style={{ fontSize: 10, color: "var(--success-500)", letterSpacing: "0.18em" }}
+                    style={{ fontSize: 10, color: "var(--success-text)", letterSpacing: "0.18em" }}
                   >
                     Imagen resuelta
                   </span>
                 )}
               </div>
               {resolveError && (
-                <span style={{ color: "var(--error-500)", fontSize: 12, lineHeight: 1.5 }}>
+                <span style={{ color: "var(--error-text)", fontSize: 12, lineHeight: 1.5 }}>
                   {resolveError}
                 </span>
               )}
@@ -565,6 +494,82 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             </label>
           )}
         </Section>
+
+        <Section title="Canal">
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <span
+              className="mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "rgba(var(--fg),0.55)",
+              }}
+            >
+              ¿En qué red simulamos el anuncio?
+            </span>
+            <ChannelTabs value={channel} onChange={setChannel} />
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              Cada red tiene formato propio (caps de caracteres, creatividades,
+              targeting). Por ahora sólo Google Ads está implementado. Meta,
+              LinkedIn, TikTok y X llegarán como módulos específicos en futuras
+              versiones.
+            </p>
+          </div>
+        </Section>
+
+        <Section title="Estrategia">
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <span
+              className="mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.22em",
+                textTransform: "uppercase",
+                color: "rgba(var(--fg),0.55)",
+              }}
+            >
+              Tipo de campaña dentro de {CHANNEL_LABEL[channel].split(" ")[0]}
+            </span>
+            <StrategyTabs value={strategy} onChange={setStrategy} />
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              {STRATEGY_DESCRIPTION[strategy]}
+            </p>
+          </div>
+        </Section>
+
+        {!isStrategyImplemented(strategy) && (
+          <UnderConstruction strategy={strategy} />
+        )}
+
+        {isStrategyImplemented(strategy) && (
+        <>
+        {showsBusinessAssets && (
+          <Section title="Identidad de marca">
+            <CharCountedInput
+              label="Nombre de empresa (visible en el anuncio)"
+              value={companyName}
+              onChange={setCompanyName}
+              max={25}
+              required
+              placeholder="BBVA"
+            />
+          </Section>
+        )}
 
         <Section
           title={
@@ -1076,19 +1081,62 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
         >
           Vista previa · {STRATEGY_LABEL[strategy]}
         </span>
-        {assetStrategy ? (
-          <DisplayAdPreview
-            companyName={companyName}
-            longHeadline={longHeadline}
+        {strategy === "shopping" ? (
+          <ShoppingAdPreview
+            title={productTitle}
+            price={productPrice}
+            brand={productBrand}
+            availability={productAvailability}
+            creatives={creatives}
+            finalUrl={finalUrl}
+          />
+        ) : strategy === "video" ? (
+          <VideoAdPreview
             previewHeadline={previewHeadline}
             previewDescription={previewDescription}
             cta={cta}
             creatives={creatives}
             finalUrl={finalUrl}
           />
+        ) : strategy === "demand_gen" ? (
+          <FeedAdPreview
+            companyName={companyName}
+            previewHeadline={previewHeadline}
+            previewDescription={previewDescription}
+            cta={cta}
+            creatives={creatives}
+            finalUrl={finalUrl}
+          />
+        ) : assetStrategy ? (
+          <>
+            <DisplayAdPreview
+              companyName={companyName}
+              longHeadline={longHeadline}
+              previewHeadline={previewHeadline}
+              previewDescription={previewDescription}
+              cta={cta}
+              creatives={creatives}
+              finalUrl={finalUrl}
+            />
+            {strategy === "pmax" && (
+              <p
+                style={{
+                  margin: 0,
+                  fontSize: 11,
+                  lineHeight: 1.5,
+                  color: "rgba(var(--fg),0.45)",
+                }}
+              >
+                Performance Max combina los recursos automáticamente: esta es una
+                de las composiciones posibles.
+              </p>
+            )}
+          </>
         ) : (
           <SearchAdPreview
             finalUrl={finalUrl}
+            companyName={companyName}
+            creatives={creatives}
             previewHeadline={previewHeadline}
             previewDescription={previewDescription}
           />
@@ -1603,15 +1651,33 @@ function ToggleButton({
   );
 }
 
+/** Primer creative que cumpla el filtro, con su mejor src disponible. */
+function creativeSrc(
+  creatives: Creative[],
+  match: (c: Creative) => boolean,
+): string {
+  const c = creatives.find((x) => match(x) && (x.upload_data || x.url || x.thumbnail_url));
+  if (!c) return "";
+  if (c.kind === "youtube" || c.kind === "video") {
+    return c.thumbnail_url || (c.youtube_id ? youtubeThumbnail(c.youtube_id) : "");
+  }
+  return c.upload_data || c.url;
+}
+
 function SearchAdPreview({
   finalUrl,
+  companyName,
+  creatives,
   previewHeadline,
   previewDescription,
 }: {
   finalUrl: string;
+  companyName: string;
+  creatives: Creative[];
   previewHeadline: string;
   previewDescription: string;
 }) {
+  const logoSrc = creativeSrc(creatives, (c) => c.role === "logo_square");
   return (
     <div
       style={{
@@ -1624,24 +1690,46 @@ function SearchAdPreview({
         gap: 10,
       }}
     >
-      <span
-        style={{
-          color: "rgba(var(--fg),0.45)",
-          fontSize: 11,
-          fontFamily: "var(--font-mono)",
-        }}
-      >
-        Patrocinado
-      </span>
-      <span
-        style={{
-          color: "rgba(var(--fg),0.7)",
-          fontSize: 12,
-          fontFamily: "var(--font-mono)",
-        }}
-      >
-        {displayUrl(finalUrl)}
-      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {logoSrc ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={logoSrc}
+            alt="Logo"
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              objectFit: "cover",
+              border: "1px solid rgba(var(--fg),0.1)",
+            }}
+          />
+        ) : (
+          <span
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: "50%",
+              background: "rgba(var(--fg),0.08)",
+              display: "inline-block",
+            }}
+          />
+        )}
+        <div style={{ display: "flex", flexDirection: "column", lineHeight: 1.25 }}>
+          <span style={{ color: "rgba(var(--fg),0.85)", fontSize: 12 }}>
+            {companyName || "Tu empresa"}
+          </span>
+          <span
+            style={{
+              color: "rgba(var(--fg),0.5)",
+              fontSize: 11,
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            Patrocinado · {displayUrl(finalUrl)}
+          </span>
+        </div>
+      </div>
       <p
         style={{
           color: "var(--serp-link)",
@@ -1662,6 +1750,289 @@ function SearchAdPreview({
       >
         {previewDescription}
       </p>
+    </div>
+  );
+}
+
+function FeedAdPreview({
+  companyName,
+  previewHeadline,
+  previewDescription,
+  cta,
+  creatives,
+  finalUrl,
+}: {
+  companyName: string;
+  previewHeadline: string;
+  previewDescription: string;
+  cta: string;
+  creatives: Creative[];
+  finalUrl: string;
+}) {
+  const imageSrc =
+    creativeSrc(creatives, (c) => c.role === "square_image") ||
+    creativeSrc(creatives, (c) => c.role === "landscape_image") ||
+    creativeSrc(creatives, (c) => c.kind === "image");
+  const logoSrc = creativeSrc(creatives, (c) => c.role === "logo_square");
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(var(--fg),0.08)",
+        borderRadius: "var(--radius-md)",
+        background: "rgba(var(--fg),0.02)",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        style={{
+          background: "rgba(var(--fg),0.04)",
+          aspectRatio: "1 / 1",
+          maxHeight: 220,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "rgba(var(--fg),0.4)",
+          fontSize: 11,
+          fontFamily: "var(--font-mono)",
+        }}
+      >
+        {imageSrc ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={imageSrc}
+            alt="Imagen del anuncio"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        ) : (
+          "imagen square (1:1)"
+        )}
+      </div>
+      <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          {logoSrc && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={logoSrc}
+              alt="Logo"
+              style={{ width: 20, height: 20, borderRadius: "50%", objectFit: "cover" }}
+            />
+          )}
+          <span style={{ color: "rgba(var(--fg),0.7)", fontSize: 12 }}>
+            {companyName || "Tu empresa"}
+          </span>
+          <span
+            style={{
+              color: "rgba(var(--fg),0.4)",
+              fontSize: 10,
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            · Patrocinado
+          </span>
+        </div>
+        <p style={{ color: "var(--text-strong)", fontSize: 15, margin: 0, lineHeight: 1.35 }}>
+          {previewHeadline}
+        </p>
+        <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
+          {previewDescription}
+        </p>
+        <span
+          className="mono"
+          style={{ fontSize: 10, color: "rgba(var(--fg),0.45)" }}
+        >
+          {displayUrl(finalUrl)}
+        </span>
+        {cta && (
+          <span
+            className="btn-pill solid"
+            style={{ alignSelf: "flex-start", fontSize: 11, pointerEvents: "none" }}
+          >
+            {cta}
+          </span>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function VideoAdPreview({
+  previewHeadline,
+  previewDescription,
+  cta,
+  creatives,
+  finalUrl,
+}: {
+  previewHeadline: string;
+  previewDescription: string;
+  cta: string;
+  creatives: Creative[];
+  finalUrl: string;
+}) {
+  const thumbSrc = creativeSrc(
+    creatives,
+    (c) => c.kind === "youtube" || c.kind === "video",
+  );
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(var(--fg),0.08)",
+        borderRadius: "var(--radius-md)",
+        background: "rgba(var(--fg),0.02)",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+      }}
+    >
+      <div
+        style={{
+          position: "relative",
+          background: "rgba(var(--fg),0.06)",
+          aspectRatio: "16 / 9",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "rgba(var(--fg),0.4)",
+          fontSize: 11,
+          fontFamily: "var(--font-mono)",
+        }}
+      >
+        {thumbSrc ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={thumbSrc}
+            alt="Miniatura del vídeo"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        ) : (
+          "miniatura del vídeo (16:9)"
+        )}
+        <span
+          className="mono"
+          style={{
+            position: "absolute",
+            right: 8,
+            bottom: 8,
+            padding: "4px 10px",
+            background: "rgba(10,11,13,0.78)",
+            color: "#ffffff",
+            fontSize: 10,
+            letterSpacing: "0.08em",
+            borderRadius: 3,
+          }}
+        >
+          Saltar anuncio ▸
+        </span>
+      </div>
+      <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+        <p style={{ color: "var(--text-strong)", fontSize: 15, margin: 0, lineHeight: 1.35 }}>
+          {previewHeadline}
+        </p>
+        <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
+          {previewDescription}
+        </p>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          {cta && (
+            <span
+              className="btn-pill solid"
+              style={{ fontSize: 11, pointerEvents: "none" }}
+            >
+              {cta}
+            </span>
+          )}
+          <span className="mono" style={{ fontSize: 10, color: "rgba(var(--fg),0.45)" }}>
+            {displayUrl(finalUrl)}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ShoppingAdPreview({
+  title,
+  price,
+  brand,
+  availability,
+  creatives,
+  finalUrl,
+}: {
+  title: string;
+  price: string;
+  brand: string;
+  availability: string;
+  creatives: Creative[];
+  finalUrl: string;
+}) {
+  const imageSrc = creativeSrc(creatives, (c) => c.kind === "image");
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(var(--fg),0.08)",
+        borderRadius: "var(--radius-md)",
+        background: "rgba(var(--fg),0.02)",
+        overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
+        maxWidth: 240,
+      }}
+    >
+      <div
+        style={{
+          background: "rgba(var(--fg),0.04)",
+          aspectRatio: "1 / 1",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          color: "rgba(var(--fg),0.4)",
+          fontSize: 11,
+          fontFamily: "var(--font-mono)",
+        }}
+      >
+        {imageSrc ? (
+          /* eslint-disable-next-line @next/next/no-img-element */
+          <img
+            src={imageSrc}
+            alt="Imagen del producto"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        ) : (
+          "foto del producto"
+        )}
+      </div>
+      <div style={{ padding: 14, display: "flex", flexDirection: "column", gap: 6 }}>
+        <p
+          style={{
+            color: "var(--serp-link)",
+            fontSize: 13,
+            margin: 0,
+            lineHeight: 1.4,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {title || "Título del producto"}
+        </p>
+        <span style={{ color: "var(--text-strong)", fontSize: 15, fontFamily: "var(--font-mono)" }}>
+          {price || "0.00 EUR"}
+        </span>
+        <span className="mono" style={{ fontSize: 10, color: "rgba(var(--fg),0.5)" }}>
+          {brand ? `${brand} · ` : ""}
+          {displayUrl(finalUrl)}
+        </span>
+        {availability !== "in_stock" && (
+          <span className="mono" style={{ fontSize: 10, color: "var(--warning-text)" }}>
+            {availability === "out_of_stock"
+              ? "Agotado"
+              : availability === "preorder"
+                ? "Reserva previa"
+                : "Bajo pedido"}
+          </span>
+        )}
+      </div>
     </div>
   );
 }

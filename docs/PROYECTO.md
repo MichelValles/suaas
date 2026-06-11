@@ -234,6 +234,8 @@ supabase/
     0016_momentum.sql                   tabla momentum_challenges
     0017_trash_geo_momentum_profiles.sql  deleted_at en geo_analyses, momentum_challenges y profiles
     0018_campaigns_descriptions_fix.sql descriptions check 1..5 (antes 2..4, drift con zod) + índice campaigns.deleted_at
+    0019_consolidacion.sql              tabla suaas_migrations (tracking) + drop channel legacy + checks reales + RLS + columnas intended_message, comprehension_rate, behavior_class, shown_*
+    0020_shopping.sql                   campaigns.product (jsonb): producto del feed para Shopping
 
 proxy.ts                                Middleware: redirige a /login todo lo no público sin cookie
 next.config.ts                          experimental.serverActions.bodySizeLimit = "10mb"
@@ -317,12 +319,14 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 16. `0016_momentum.sql` (Momentum v0.30: tabla `momentum_challenges`)
 17. `0017_trash_geo_momentum_profiles.sql` (v0.32: `deleted_at` en `geo_analyses`, `momentum_challenges` y `profiles`)
 18. `0018_campaigns_descriptions_fix.sql` (v0.32: check de `descriptions` 1..5 + índice `campaigns.deleted_at`)
+19. `0019_consolidacion.sql` (v0.37: tabla `suaas_migrations` con backfill, drop del `channel` legacy, checks de arrays con coalesce y de Display, CTA del set o ≤ 10c, RLS en `campaigns`/`campaign_responses`, columnas `intended_message`, `comprehension_rate`, `behavior_class`, `shown_headlines`, `shown_descriptions`)
+20. `0020_shopping.sql` (v0.45: `campaigns.product` jsonb para Shopping)
 
-Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado; el campo `pending_migrations` del JSON de `/api/diag` es el atajo para saber qué archivos `.sql` faltan por aplicar.
+Las 20 constan aplicadas en `suaas_migrations` (2026-06-11). Convención desde la 0019: cada migración nueva inserta su propia fila al final. Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado (sección «Tracking de migraciones» y campo `migrations_tracking`); el campo `pending_migrations` del JSON de `/api/diag` es el atajo para saber qué archivos `.sql` faltan por aplicar.
 
 ## Módulo Campañas (Paid Ads): detalle
 
-Es el módulo más complejo. Modela publicidad pagada **simulada en distintas redes y estrategias**. Hoy: **Google Ads · Search RSA** y **Google Ads · Display RDA** funcionales. Las otras 5 estrategias de Google y los 4 canales restantes (Meta / LinkedIn / TikTok / X) están como `Próx.` con su descripción en la UI.
+Es el módulo más complejo. Modela publicidad pagada **simulada en distintas redes y estrategias**. Hoy funcionan **6 de las 7 estrategias de Google Ads**, con requisitos verificados fila a fila contra las specs oficiales (answers 17092074, 17091269, 17091672, 17091270 y la spec del feed 7052112): **Search RSA** (1-15 titulares 30c, 1-4 descripciones 90c, empresa 25c + logo 1:1 obligatorios), **Display RDA**, **Performance Max** (3-15 titulares con ≥1 de ≤15c, titular largo, 2-5 descripciones, CTA, landscape+square+logo), **Demand Gen** (1-5 titulares de 40c con ≥1 de ≤30c, CTA obligatoria), **Video** (1 vídeo + 1 titular 30c + 1 descripción 90c; titular largo y CTA ≤10c opcionales) y **Shopping** (ficha generada desde `campaigns.product`: id, título 150c, descripción, precio ISO 4217, disponibilidad, marca/GTIN/MPN/condición). Solo **App Campaigns** y los 4 canales restantes (Meta / LinkedIn / TikTok / X) siguen como `Próx.`. El formulario presenta primero los campos comunes (nombre, brief, mensaje pretendido, URL final, landing), después canal + estrategia y por último los específicos, con vista previa propia por estrategia (SERP, banner, tarjeta de feed, pre-roll, ficha de producto).
 
 ### Schema (`campaigns`)
 

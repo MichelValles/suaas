@@ -1,10 +1,6 @@
 import { z } from "zod";
 import { getRunsStatsByEntity } from "@/lib/runs";
-import {
-  getServerClient,
-  isMissingColumnError,
-  MigrationPendingError,
-} from "@/lib/supabase";
+import { getServerClient } from "@/lib/supabase";
 
 // ============================================================
 // Schemas con los caps RSA reales de Google Ads.
@@ -668,38 +664,23 @@ const CampaignRowSchema = z.object({
 
 /**
  * Normaliza una fila cruda de `campaigns` validando con zod en lugar de
- * castear. Mantiene la transición `channel` (single, v0.23) → `channels[]`
- * (array, v0.24) para BDs con la migración 0011 pendiente; la poda de ese
- * fallback queda para después de la consolidación de esquema.
+ * castear. El mapeo legacy `channel` → `channels[]` se podó al aplicar la
+ * 0019 (que dropea la columna `channel`); el `.catch(["google"])` del
+ * schema sigue cubriendo cualquier fila degenerada.
  */
 function normalizeCampaign(row: Record<string, unknown>): Campaign {
-  const withChannels = {
-    ...row,
-    channels:
-      Array.isArray(row.channels) && (row.channels as unknown[]).length > 0
-        ? row.channels
-        : typeof row.channel === "string"
-          ? [row.channel]
-          : undefined,
-  };
-  return CampaignRowSchema.parse(withChannels);
+  return CampaignRowSchema.parse(row);
 }
 
 export async function listCampaigns(): Promise<
   Array<Campaign & { run_count: number; user_count: number }>
 > {
   const supa = getServerClient();
-  let { data, error } = await supa
+  const { data, error } = await supa
     .from("campaigns")
     .select("*")
     .is("deleted_at", null)
     .order("created_at", { ascending: false });
-  if (isMissingColumnError(error, "deleted_at")) {
-    ({ data, error } = await supa
-      .from("campaigns")
-      .select("*")
-      .order("created_at", { ascending: false }));
-  }
   if (error) throw new Error(error.message);
   const rows = (data ?? []).map((r) => normalizeCampaign(r as Record<string, unknown>));
   if (rows.length === 0) return [];
@@ -716,19 +697,12 @@ export async function listCampaigns(): Promise<
 
 export async function getCampaign(id: string): Promise<Campaign | null> {
   const supa = getServerClient();
-  let { data, error } = await supa
+  const { data, error } = await supa
     .from("campaigns")
     .select("*")
     .eq("id", id)
     .is("deleted_at", null)
     .maybeSingle();
-  if (isMissingColumnError(error, "deleted_at")) {
-    ({ data, error } = await supa
-      .from("campaigns")
-      .select("*")
-      .eq("id", id)
-      .maybeSingle());
-  }
   if (error) throw new Error(error.message);
   if (!data) return null;
   return normalizeCampaign(data as Record<string, unknown>);
@@ -769,7 +743,10 @@ export async function createCampaign(input: CampaignInput): Promise<Campaign> {
     long_headline: parsed.long_headline ?? null,
     cta: parsed.cta ?? null,
   };
-  let { data, error } = await supa
+  // Insert directo: los fallbacks legacy (pre-0011 channels, pre-0013
+  // strategy, 0019 intended_message, 0020 product) se podaron cuando esas
+  // migraciones constaron aplicadas en suaas_migrations (v0.46.0).
+  const { data, error } = await supa
     .from("campaigns")
     .insert({
       ...base,
@@ -779,57 +756,6 @@ export async function createCampaign(input: CampaignInput): Promise<Campaign> {
     })
     .select("*")
     .single();
-  // Si la 0020 aún no está aplicada (product no existe): una campaña
-  // shopping NO puede crearse sin su producto; el resto sigue sin la columna.
-  if (isMissingColumnError(error, "product")) {
-    if (parsed.strategy === "shopping") {
-      throw new MigrationPendingError("0020_shopping.sql");
-    }
-    ({ data, error } = await supa
-      .from("campaigns")
-      .insert({
-        ...base,
-        intended_message: parsed.intended_message ?? null,
-        channels: parsed.channels,
-      })
-      .select("*")
-      .single());
-  }
-  // Si la 0019 aún no está aplicada (intended_message no existe), caemos a
-  // un insert sin la columna (el juez de comprensión queda inactivo).
-  if (isMissingColumnError(error, "intended_message")) {
-    console.warn(
-      "[createCampaign] columna 'intended_message' no existe; fallback sin ella. Aplica la migración 0019_consolidacion.sql.",
-    );
-    ({ data, error } = await supa
-      .from("campaigns")
-      .insert({ ...base, channels: parsed.channels })
-      .select("*")
-      .single());
-  }
-  // Si la migración 0013 aún no está aplicada (strategy no existe), caemos a
-  // un insert sin la columna. La 0011 (channels) tiene su propio fallback.
-  if (isMissingColumnError(error, "strategy")) {
-    console.warn(
-      "[createCampaign] columna 'strategy' no existe; fallback sin ella. Aplica la migración 0013_campaigns_strategy.sql.",
-    );
-    const { strategy: _ignored, ...baseNoStrategy } = base;
-    ({ data, error } = await supa
-      .from("campaigns")
-      .insert({ ...baseNoStrategy, channels: parsed.channels })
-      .select("*")
-      .single());
-  }
-  if (isMissingColumnError(error, "channels")) {
-    console.warn(
-      "[createCampaign] columna 'channels' no existe; fallback a 'channel'. Aplica la migración 0011_campaigns_multichannel.sql.",
-    );
-    ({ data, error } = await supa
-      .from("campaigns")
-      .insert({ ...base, channel: parsed.channels[0] })
-      .select("*")
-      .single());
-  }
   if (error) throw new Error(error.message);
   return normalizeCampaign(data as Record<string, unknown>);
 }
