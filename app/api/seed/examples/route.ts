@@ -1,7 +1,13 @@
 import { cookies } from "next/headers";
+import { after } from "next/server";
 import { z } from "zod";
 import { runAbTest } from "@/lib/experiments/ab";
-import { runCampaignTest } from "@/lib/experiments/campaign";
+import {
+  executeCampaignRun,
+  prepareCampaignRun,
+  runCampaignTest,
+  type PreparedCampaignRun,
+} from "@/lib/experiments/campaign";
 import { runCopyTest } from "@/lib/experiments/copy";
 import { runFiveSecondTest } from "@/lib/experiments/five-second";
 import { runFunnelTest } from "@/lib/experiments/funnel";
@@ -12,9 +18,11 @@ import { runMomentumChallenge } from "@/lib/momentum";
 import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
 import { generateSeedPlan, type SeedPlan } from "@/lib/seed-brief";
 import {
+  pickProfileIdsByAgeRange,
   pickRandomProfileIds,
   seedAbExample,
   seedCampaignExample,
+  seedCampaignStrategiesExample,
   seedCopyExample,
   seedFiveSecondExample,
   seedFunnelExample,
@@ -34,6 +42,7 @@ const KIND_VALUES = [
   "ab",
   "funnel",
   "campaign",
+  "campaign_strategies",
   "geo",
   "momentum",
 ] as const;
@@ -52,6 +61,12 @@ type ExampleResult =
   | { kind: "ab"; ok: true; abTestId: string; runIds?: string[]; error?: undefined }
   | { kind: "funnel"; ok: true; funnelId: string; runId?: string; error?: undefined }
   | { kind: "campaign"; ok: true; campaignId: string; runId?: string; error?: undefined }
+  | {
+      kind: "campaign_strategies";
+      ok: true;
+      campaigns: { strategy: string; campaignId: string; runId?: string }[];
+      error?: undefined;
+    }
   | { kind: "geo"; ok: true; geoId: string; ran?: boolean; error?: undefined }
   | { kind: "momentum"; ok: true; momentumId: string; ran?: boolean; error?: undefined }
   | { kind: string; ok: false; error: string };
@@ -92,14 +107,25 @@ export async function POST(request: Request) {
     );
   }
 
+  // campaign_strategies (las 6 campañas IVI, una por estrategia) solo se
+  // siembra si se pide explícitamente: no entra en el «sembrar todos».
   const selected: Set<Kind> = new Set(
-    body.kinds && body.kinds.length > 0 ? body.kinds : KIND_VALUES,
+    body.kinds && body.kinds.length > 0
+      ? body.kinds
+      : KIND_VALUES.filter((k) => k !== "campaign_strategies"),
   );
 
   let plan: SeedPlan = {};
   if (brief) {
     try {
-      plan = await generateSeedPlan(brief, [...selected]);
+      // campaign_strategies usa contenido propio (IVI): no entra en el plan.
+      plan = await generateSeedPlan(
+        brief,
+        [...selected].filter(
+          (k): k is Exclude<Kind, "campaign_strategies"> =>
+            k !== "campaign_strategies",
+        ),
+      );
     } catch (err) {
       return Response.json(
         {
@@ -213,6 +239,43 @@ export async function POST(request: Request) {
       results.push({ kind: "campaign", ok: true, campaignId, runId });
     } catch (err) {
       results.push({ kind: "campaign", ok: false, error: (err as Error).message });
+    }
+  }
+
+  // ============================================================
+  // Campañas por estrategia (ejemplo IVI: 6 campañas, una por estrategia)
+  // ============================================================
+  if (selected.has("campaign_strategies")) {
+    try {
+      const { campaigns } = await seedCampaignStrategiesExample();
+      const rows: { strategy: string; campaignId: string; runId?: string }[] =
+        campaigns.map((c) => ({ strategy: c.strategy, campaignId: c.campaignId }));
+      if (launch > 0) {
+        // Audiencia natural del ejemplo (fertilidad): perfiles de 28 a 45
+        // años, completando con aleatorios. Los 6 runs se preparan dentro
+        // del request (rápido) y se ejecutan en after(), en paralelo; si la
+        // función se corta, cada run ofrece «Retomar» en su página.
+        const fertilityProfiles = await pickProfileIdsByAgeRange(28, 45, launch);
+        if (fertilityProfiles.length > 0) {
+          const preps: PreparedCampaignRun[] = [];
+          for (const row of rows) {
+            const prep = await prepareCampaignRun({
+              campaignId: row.campaignId,
+              profileIds: fertilityProfiles,
+            });
+            row.runId = prep.runId;
+            preps.push(prep);
+          }
+          after(() => Promise.all(preps.map((p) => executeCampaignRun(p))));
+        }
+      }
+      results.push({ kind: "campaign_strategies", ok: true, campaigns: rows });
+    } catch (err) {
+      results.push({
+        kind: "campaign_strategies",
+        ok: false,
+        error: (err as Error).message,
+      });
     }
   }
 

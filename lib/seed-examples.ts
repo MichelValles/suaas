@@ -1,5 +1,5 @@
 import { createAbTest } from "@/lib/ab";
-import { createCampaign } from "@/lib/campaigns";
+import { createCampaign, type Strategy } from "@/lib/campaigns";
 import { createCopyDeck } from "@/lib/copy";
 import { createFunnel } from "@/lib/funnels";
 import { createGeoAnalysis } from "@/lib/geo";
@@ -406,4 +406,223 @@ export async function pickRandomProfileIds(n: number): Promise<string[]> {
   if (profiles.length === 0) return [];
   const shuffled = [...profiles].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(n, profiles.length)).map((p) => p.id);
+}
+
+/**
+ * Perfiles priorizados por rango de edad (la audiencia natural del test),
+ * completando con aleatorios si no hay suficientes en el rango.
+ */
+export async function pickProfileIdsByAgeRange(
+  minAge: number,
+  maxAge: number,
+  n: number,
+): Promise<string[]> {
+  const profiles = await listProfiles();
+  if (profiles.length === 0) return [];
+  const inRange = profiles
+    .filter(
+      (p) =>
+        typeof p.demographics?.age === "number" &&
+        p.demographics.age >= minAge &&
+        p.demographics.age <= maxAge,
+    )
+    .sort(() => Math.random() - 0.5);
+  const rest = profiles
+    .filter((p) => !inRange.includes(p))
+    .sort(() => Math.random() - 0.5);
+  return [...inRange, ...rest].slice(0, Math.min(n, profiles.length)).map((p) => p.id);
+}
+
+// ============================================================
+// Campañas IVI: un ejemplo por estrategia implementada
+// ============================================================
+
+/**
+ * Crea 6 campañas de ejemplo (una por estrategia implementada) sobre la
+ * marca real IVI (ivi.es, clínicas de reproducción asistida). El copy es
+ * fiel a sus claims públicos (tasas hasta un 23% superiores a la media,
+ * 35 clínicas, financiación TIN 0%, Plan IVI Baby con garantía) y las
+ * imágenes son URLs reales de su web más su favicon como logo.
+ */
+export async function seedCampaignStrategiesExample(): Promise<{
+  campaigns: { strategy: Strategy; campaignId: string }[];
+}> {
+  const FINAL_URL = "https://ivi.es/";
+  const IMG_OG = "https://ivi.es/wp-content/uploads/2018/09/ivi.jpg";
+  const IMG_BANNER_1 = "https://ivi.es/wp-content/uploads/2025/11/340x192_01.jpg";
+  const IMG_BANNER_2 = "https://ivi.es/wp-content/uploads/2025/11/340x192_02.jpg";
+  const LOGO = "https://www.google.com/s2/favicons?domain=ivi.es&sz=128";
+  const YT_ID = "9EyqYhxfz2Q"; // Anuncio IVI «La noticia de mi vida»
+
+  const landing = (await resolveOgImage(FINAL_URL)) ?? IMG_OG;
+
+  const shared = {
+    channels: ["google"] as ["google"],
+    brief:
+      "IVI: clínicas líderes de reproducción asistida en España desde 1990. 35 clínicas, tasas de éxito hasta un 23% superiores a la media, financiación hasta 24 meses sin intereses (TIN 0%) y Plan IVI Baby con garantía de devolución.",
+    intended_message:
+      "IVI te ayuda a ser madre con tasas de éxito superiores a la media y garantía de devolución",
+    final_url: FINAL_URL,
+    landing_image_url: landing,
+    landing_source_url: FINAL_URL,
+  };
+
+  const logoCreative = {
+    kind: "image" as const,
+    role: "logo_square" as const,
+    url: LOGO,
+    label: "Logo IVI (favicon)",
+  };
+
+  const headlines30 = [
+    "Clínicas de Fertilidad IVI",
+    "FIV con garantía de éxito",
+    "Tasas 23% sobre la media",
+    "1ª visita sin compromiso",
+    "Financiación TIN 0%",
+    "35 clínicas en España",
+  ];
+  const descriptions90 = [
+    "Reproducción asistida desde 1990. Tasas de éxito hasta un 23% superiores a la media.",
+    "Financia tu tratamiento hasta 24 meses sin intereses. Pide tu primera cita hoy.",
+    "Plan IVI Baby: serás mamá o te devolvemos el dinero. 35 clínicas en toda España.",
+  ];
+  const longHeadline =
+    "Serás mamá, o te devolvemos el dinero: así es el Plan IVI Baby";
+
+  const campaigns: { strategy: Strategy; campaignId: string }[] = [];
+
+  // Search (RSA): queries de intención de compra + empresa y logo.
+  const search = await createCampaign({
+    ...shared,
+    name: "IVI · Search · FIV y fertilidad",
+    strategy: "search",
+    queries: ["clinica de fertilidad", "fecundacion in vitro precio", "ovodonacion españa"],
+    headlines: headlines30,
+    descriptions: descriptions90,
+    company_name: "IVI",
+    creatives: [logoCreative],
+  });
+  campaigns.push({ strategy: "search", campaignId: search.id });
+
+  // Display (RDA): banner con titular largo, en webs afines.
+  const display = await createCampaign({
+    ...shared,
+    name: "IVI · Display · Plan IVI Baby",
+    strategy: "display",
+    queries: ["maternidad", "fertilidad a los 35"],
+    headlines: headlines30.slice(0, 3),
+    descriptions: descriptions90.slice(0, 2),
+    company_name: "IVI",
+    long_headline: longHeadline,
+    cta: "Más información",
+    creatives: [
+      { kind: "image", role: "landscape_image", url: IMG_BANNER_1, label: "Banner 1" },
+      { kind: "image", role: "square_image", url: IMG_OG, label: "Imagen marca" },
+      logoCreative,
+    ],
+  });
+  campaigns.push({ strategy: "display", campaignId: display.id });
+
+  // Performance Max: grupo de recursos completo (incluye titular corto ≤15c).
+  const pmax = await createCampaign({
+    ...shared,
+    name: "IVI · PMax · Captación integral",
+    strategy: "pmax",
+    queries: ["fertilidad", "embarazo a los 40", "ovodonacion"],
+    headlines: ["Sé mamá con IVI", ...headlines30],
+    descriptions: descriptions90,
+    company_name: "IVI",
+    long_headline: longHeadline,
+    cta: "Contactar",
+    creatives: [
+      { kind: "image", role: "landscape_image", url: IMG_BANNER_2, label: "Banner 2" },
+      { kind: "image", role: "square_image", url: IMG_OG, label: "Imagen marca" },
+      logoCreative,
+      {
+        kind: "youtube",
+        role: "video_youtube",
+        url: `https://www.youtube.com/watch?v=${YT_ID}`,
+        youtube_id: YT_ID,
+        thumbnail_url: `https://i.ytimg.com/vi/${YT_ID}/hqdefault.jpg`,
+        label: "Spot «La noticia de mi vida»",
+      },
+    ],
+  });
+  campaigns.push({ strategy: "pmax", campaignId: pmax.id });
+
+  // Demand Gen: tarjeta de feed (titulares de hasta 40c, uno de ≤30c).
+  const demandGen = await createCampaign({
+    ...shared,
+    name: "IVI · Demand Gen · Discover",
+    strategy: "demand_gen",
+    queries: ["maternidad", "tratamientos de fertilidad"],
+    headlines: [
+      "9 de cada 10 pacientes IVI lo consiguen",
+      "Tu camino a la maternidad empieza aquí",
+      "Fertilidad con garantías",
+    ],
+    descriptions: descriptions90.slice(0, 2),
+    company_name: "IVI",
+    cta: "Más información",
+    creatives: [
+      { kind: "image", role: "landscape_image", url: IMG_BANNER_1, label: "Banner 1" },
+      { kind: "image", role: "square_image", url: IMG_OG, label: "Imagen marca" },
+      logoCreative,
+    ],
+  });
+  campaigns.push({ strategy: "demand_gen", campaignId: demandGen.id });
+
+  // Video: pre-roll con el spot real de IVI.
+  const video = await createCampaign({
+    ...shared,
+    name: "IVI · Video · La noticia de mi vida",
+    strategy: "video",
+    queries: ["quiero ser madre", "fiv experiencias"],
+    headlines: ["Tu historia empieza en IVI"],
+    descriptions: ["Miles de familias lo han logrado con IVI. Primera visita sin compromiso."],
+    long_headline:
+      "El primer paso hacia la noticia de tu vida: primera visita sin compromiso",
+    cta: "Pide cita",
+    creatives: [
+      {
+        kind: "youtube",
+        role: "video_youtube",
+        url: `https://www.youtube.com/watch?v=${YT_ID}`,
+        youtube_id: YT_ID,
+        thumbnail_url: `https://i.ytimg.com/vi/${YT_ID}/hqdefault.jpg`,
+        label: "Spot «La noticia de mi vida»",
+      },
+    ],
+  });
+  campaigns.push({ strategy: "video", campaignId: video.id });
+
+  // Shopping: el estudio de fertilidad como producto de ficha.
+  const shopping = await createCampaign({
+    ...shared,
+    name: "IVI · Shopping · Estudio de fertilidad",
+    strategy: "shopping",
+    queries: ["estudio fertilidad precio", "test fertilidad mujer"],
+    headlines: [],
+    descriptions: [],
+    product: {
+      id: "IVI-EST-FERT-01",
+      title:
+        "Estudio de fertilidad completo IVI: analítica hormonal, ecografía y consulta médica",
+      description:
+        "Estudio de fertilidad completo en cualquiera de las 35 clínicas IVI de España: analítica hormonal (AMH), ecografía ginecológica y consulta con un especialista en reproducción asistida para valorar tu caso y orientarte sobre el tratamiento más adecuado.",
+      price: "190.00 EUR",
+      availability: "in_stock",
+      brand: "IVI",
+      gtin: null,
+      mpn: "EST-FERT-01",
+      condition: null,
+    },
+    creatives: [
+      { kind: "image", role: "generic", url: IMG_BANNER_2, label: "Imagen del producto" },
+    ],
+  });
+  campaigns.push({ strategy: "shopping", campaignId: shopping.id });
+
+  return { campaigns };
 }

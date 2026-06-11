@@ -12,6 +12,7 @@ type Kind =
   | "ab"
   | "funnel"
   | "campaign"
+  | "campaign_strategies"
   | "geo"
   | "momentum";
 
@@ -29,6 +30,7 @@ type ResultRow = {
   ran?: boolean;
   runId?: string;
   runIds?: string[];
+  campaigns?: { strategy: string; campaignId: string; runId?: string }[];
   error?: string;
 };
 
@@ -261,6 +263,16 @@ export function SeedExamplesClient() {
         </li>
         <li>
           <Recipe
+            kind="campaign_strategies"
+            title="Campañas IVI · las 6 estrategias"
+            body="Una campaña por estrategia (Search, Display, PMax, Demand Gen, Video y Shopping) sobre ivi.es, con imágenes reales y su spot de YouTube. Los runs usan perfiles de 28 a 45 años y corren en segundo plano."
+            onTrigger={trigger}
+            pending={pending}
+            pendingKind={pendingKind}
+          />
+        </li>
+        <li>
+          <Recipe
             kind="geo"
             title="GEO Tester"
             body="Visibilidad de Flat 101 en buscadores IA con 3 segmentos de intención JTBD."
@@ -465,6 +477,15 @@ function ResultLinks({ row }: { row: ResultRow }) {
   } else if (row.kind === "campaign") {
     if (row.campaignId) links.push({ href: `/campaigns/${row.campaignId}`, label: "Ver campaña" });
     if (row.runId) links.push({ href: `/experiments/campaign/${row.runId}`, label: "Ver run" });
+  } else if (row.kind === "campaign_strategies") {
+    for (const c of row.campaigns ?? []) {
+      links.push({
+        href: c.runId
+          ? `/experiments/campaign/${c.runId}`
+          : `/campaigns/${c.campaignId}`,
+        label: c.runId ? `Run ${c.strategy}` : `Campaña ${c.strategy}`,
+      });
+    }
   } else if (row.kind === "geo") {
     if (row.geoId) {
       links.push({
