@@ -151,6 +151,9 @@ a {
   --success-text: #6cbf8f;
   --warning-text: #d3a049;
   --error-text: #d98075;
+  /* azul de enlace tipo SERP (titulares de anuncio en previews y
+     resultados de campañas). En claro, el azul de enlace clásico. */
+  --serp-link: rgba(132, 192, 255, 0.95);
 }
 
 html[data-theme="light"] {
@@ -163,6 +166,7 @@ html[data-theme="light"] {
   --success-text: var(--success-700);
   --warning-text: var(--warning-700);
   --error-text: var(--error-700);
+  --serp-link: #1558d6;
 }
 
 /* Contextos que nunca cambian de tema (login HUD, tooltips, bloques
@@ -178,6 +182,12 @@ html[data-theme="light"] {
   --success-text: #6cbf8f;
   --warning-text: #d3a049;
   --error-text: #d98075;
+  --serp-link: rgba(132, 192, 255, 0.95);
+}
+
+/* Titular de anuncio estilo enlace de buscador */
+.serp-link {
+  color: var(--serp-link);
 }
 
 /* ============================================================

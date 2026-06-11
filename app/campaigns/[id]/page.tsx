@@ -239,7 +239,7 @@ export default async function CampaignDetailPage({
                 </span>
                 <p
                   style={{
-                    color: "rgba(132, 192, 255, 0.95)",
+                    color: "var(--serp-link)",
                     fontSize: 18,
                     margin: "4px 0 0",
                     lineHeight: 1.3,
@@ -303,7 +303,7 @@ export default async function CampaignDetailPage({
         </span>
         <p
           style={{
-            color: "rgba(132, 192, 255, 0.95)",
+            color: "var(--serp-link)",
             fontSize: 20,
             margin: 0,
             lineHeight: 1.3,

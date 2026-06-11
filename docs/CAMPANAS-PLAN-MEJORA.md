@@ -101,7 +101,7 @@ Añadir a `SnippetEvalSchema` el enum `behavior_class` (optima/fuga/repesca) con
 
 **Por qué**: la clasificación es la pieza central del Gravity Model y solo existe en five-second. En campañas es casi mecánico y alinea el módulo con la narrativa de la home.
 
-### Tabla de respuestas interactiva y token `--serp-link` · M · sin SQL
+### Tabla de respuestas interactiva y token `--serp-link` · M · sin SQL · ✅ hecho en v0.39.2 (fleco aplazado: DisplayAdPreview en el detalle de campañas Display)
 
 Crear `app/experiments/campaign/[runId]/responses-table.tsx` clonando la estructura de five-second (useState de orden y expansión, helpers `Th`/`Td`/`Detail`, empty state dashed), con filas profileId-channel-query ordenables por intent/claridad/credibilidad/match y dos selects para filtrar por query y canal; el drill-down muestra oferta percibida, `reasoning` (del quick win 2), barreras, crítica de landing y versión ideal. Sustituir los bloques `<details>` server-rendered de `page.tsx`. Aprovechar la pasada para crear el token `--serp-link` en `app/globals.css` (variante en tema oscuro y claro) con clase `.serp-link`, sustituir los `rgba(132,192,255,0.95)` hardcodeados verificados en la página de resultados (líneas 376 y 544), `app/campaigns/[id]/page.tsx` (216 y 280) y `new-form.tsx`, documentarlo en `docs/SISTEMA-DISENO.md`, y reutilizar el `DisplayAdPreview` del formulario en el detalle de campañas Display (hoy enseña preview SERP incluso para banners).
 

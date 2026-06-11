@@ -882,7 +882,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                       <li
                         key={i}
                         style={{
-                          color: "rgba(132, 192, 255, 0.78)",
+                          color: "var(--serp-link)", opacity: 0.85,
                           fontSize: 13,
                           lineHeight: 1.35,
                         }}
@@ -1391,7 +1391,7 @@ function SearchAdPreview({
       </span>
       <p
         style={{
-          color: "rgba(132, 192, 255, 0.95)",
+          color: "var(--serp-link)",
           fontSize: 18,
           margin: 0,
           lineHeight: 1.3,
@@ -1552,7 +1552,7 @@ function DisplayAdPreview({
         {(previewHeadline || longHeadline) && previewHeadline && (
           <p
             style={{
-              color: "rgba(132, 192, 255, 0.8)",
+              color: "var(--serp-link)", opacity: 0.85,
               fontSize: 12,
               margin: 0,
               lineHeight: 1.3,

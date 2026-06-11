@@ -15,6 +15,7 @@ import {
 import { listProfilesByIds, type Profile } from "@/lib/profiles";
 import { getRun } from "@/lib/runs";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { CampaignResponsesTable } from "./responses-table";
 import { RunProgress } from "./run-progress";
 
 export const dynamic = "force-dynamic";
@@ -368,22 +369,13 @@ export default async function CampaignRunPage({
         </div>
       </section>
 
-      {/* Detalle por perfil */}
+      {/* Detalle por respuesta: tabla interactiva (ordenable y filtrable) */}
       <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-        <SectionLabel>Respuestas detalladas por perfil</SectionLabel>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {profiles.map((profile) => {
-            const rs = responses.filter((r) => r.profileId === profile.id);
-            if (rs.length === 0) return null;
-            return (
-              <ProfileBlock
-                key={profile.id}
-                profile={profile}
-                responses={rs}
-              />
-            );
-          })}
-        </div>
+        <SectionLabel>Respuestas detalladas</SectionLabel>
+        <CampaignResponsesTable
+          responses={responses}
+          names={Object.fromEntries(profiles.map((p) => [p.id, p.name]))}
+        />
       </section>
     </AppShell>
   );
@@ -525,7 +517,7 @@ function IdealCard({
       <div>
         <p
           style={{
-            color: "rgba(132, 192, 255, 0.95)",
+            color: "var(--serp-link)",
             fontSize: 16,
             margin: "0 0 4px",
             lineHeight: 1.3,
@@ -571,162 +563,6 @@ function IdealCard({
   );
 }
 
-function ProfileBlock({
-  profile,
-  responses,
-}: {
-  profile: Profile;
-  responses: CampaignResponse[];
-}) {
-  return (
-    <details
-      style={{
-        border: "1px solid rgba(var(--fg),0.08)",
-        borderRadius: "var(--radius-md)",
-        background: "rgba(var(--fg),0.02)",
-        padding: "18px 20px",
-      }}
-    >
-      <summary
-        style={{
-          listStyle: "none",
-          cursor: "pointer",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "baseline",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <Link
-          href={`/profiles/${profile.id}`}
-          style={{
-            color: "var(--text-strong)",
-            fontSize: 14,
-            textDecoration: "none",
-            borderBottom: "1px dotted rgba(var(--fg),0.25)",
-          }}
-        >
-          {profile.name}
-        </Link>
-        <span
-          className="mono"
-          style={{
-            fontSize: 10,
-            letterSpacing: "0.18em",
-            color: "rgba(var(--fg),0.55)",
-          }}
-        >
-          {responses.length} respuesta{responses.length === 1 ? "" : "s"}
-        </span>
-      </summary>
-      <ul
-        style={{
-          listStyle: "none",
-          padding: 0,
-          margin: "16px 0 0",
-          display: "flex",
-          flexDirection: "column",
-          gap: 16,
-        }}
-      >
-        {responses.map((r) => (
-          <li
-            key={`${r.profileId}-${r.channel}-${r.query}`}
-            style={{
-              padding: "14px 16px",
-              borderRadius: "var(--radius-sm)",
-              background: "rgba(var(--fg),0.03)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-            }}
-          >
-            <header
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: 8,
-                flexWrap: "wrap",
-              }}
-            >
-              <span
-                className="mono"
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  fontSize: 11,
-                  letterSpacing: "0.18em",
-                  color: "var(--accent-text)",
-                }}
-              >
-                <ChannelIcon channel={r.channel} size={12} />
-                {CHANNEL_LABEL[r.channel].split(" ")[0]} · {queryLabel(r.query)}
-              </span>
-              <span className="mono" style={{ fontSize: 10, color: "rgba(var(--fg),0.55)" }}>
-                intent {fmtPct(r.intent_to_click)} · claridad {fmtPct(r.clarity)} · credibilidad {fmtPct(r.credibility)} · diferenciación {fmtPct(r.differentiation)}
-              </span>
-            </header>
-            <p style={{ color: "rgba(var(--fg),0.85)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
-              «{r.perceived_offer}»
-            </p>
-            {r.reasoning && (
-              <p
-                style={{
-                  color: "rgba(var(--fg),0.65)",
-                  fontSize: 12,
-                  margin: 0,
-                  lineHeight: 1.55,
-                  fontStyle: "italic",
-                }}
-              >
-                Razonamiento: {r.reasoning}
-              </p>
-            )}
-            {r.barriers.length > 0 && (
-              <p style={{ color: "rgba(var(--fg),0.6)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
-                Barreras: {r.barriers.join(", ")}
-              </p>
-            )}
-            {r.comprehension_rate !== null && (
-              <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
-                Comprensión del mensaje (juez): {fmtPct(r.comprehension_rate)}
-              </p>
-            )}
-            {r.landing_evaluated && (
-              <p style={{ color: "rgba(var(--fg),0.7)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
-                Landing match {fmtPct(r.landing_match)}: {r.landing_critique}
-              </p>
-            )}
-            <div
-              style={{
-                borderTop: "1px dashed rgba(var(--fg),0.1)",
-                paddingTop: 8,
-                display: "flex",
-                flexDirection: "column",
-                gap: 4,
-              }}
-            >
-              <span className="mono" style={{ fontSize: 10, letterSpacing: "0.2em", color: "rgba(var(--fg),0.55)" }}>
-                Como yo lo veo
-              </span>
-              <p style={{ color: "rgba(132, 192, 255, 0.95)", fontSize: 14, margin: 0, lineHeight: 1.4 }}>
-                {r.ideal_headline}
-              </p>
-              <p style={{ color: "rgba(var(--fg),0.78)", fontSize: 12, margin: 0, lineHeight: 1.5 }}>
-                {r.ideal_description}
-              </p>
-              <p style={{ color: "rgba(var(--fg),0.6)", fontSize: 11, margin: 0, fontStyle: "italic" }}>
-                «{r.ideal_promise}»
-              </p>
-            </div>
-          </li>
-        ))}
-      </ul>
-    </details>
-  );
-}
 
 function KpiCard({
   label,
