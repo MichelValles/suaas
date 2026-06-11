@@ -16,7 +16,8 @@ export type UsageScope =
   | "onboard_synthesize"
   | "geo_probe"
   | "momentum_probe"
-  | "seed_brief";
+  | "seed_brief"
+  | "batch_intent";
 
 type RawUsage = {
   promptTokens?: number;

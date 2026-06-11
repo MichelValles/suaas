@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { ModelMessage } from "ai";
+import { budgetGate } from "@/lib/budget";
 import {
   internalError,
   serviceUnavailable,
@@ -45,6 +46,10 @@ export async function POST(request: Request) {
   if (!isGatewayConfigured()) {
     return serviceUnavailable("AI Gateway no configurado.");
   }
+  // Cada turno son 2 llamadas (reasoner Opus + talker Sonnet): mismo gate
+  // de presupuesto diario que los runs.
+  const gate = await budgetGate();
+  if (gate) return gate;
 
   let parsed: z.infer<typeof BodySchema>;
   try {

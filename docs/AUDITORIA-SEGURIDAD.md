@@ -121,9 +121,13 @@ Todo el texto del operador entra al prompt por interpolación directa sin delimi
 
 Cada POST con `force` dispara hasta 10 llamadas LLM. Detrás de login, pero sin freno propio.
 
+**Mitigado en v0.48.0**: la ruta pasa por `budgetGate` (429 con el presupuesto diario agotado) y registra su consumo con `recordUsage` (scope `batch_intent`; antes era el único call site invisible para `/tokens` y el presupuesto). Sigue sin idempotencia propia.
+
 ### C-03 · BAJA · Sin presupuesto ni circuit-breaker global de tokens
 
 `recordUsage` sólo observa, nunca corta. No hay tope diario que pare el gasto si un runner se desboca (ver B-02). Mejora de largo plazo.
+
+**Cerrado en dos fases**: v0.38.1 añadió `SUAAS_DAILY_TOKEN_BUDGET` + `budgetGate` en los 8 endpoints de runs; v0.48.0 extendió el gate a las rutas que quedaban fuera (`/api/chat`, `/api/onboard/submit` con mensaje genérico por ser pública, `/api/seed/examples` cuando consume LLM, `/api/profiles/seed` y `/api/profiles/batch-intent`) y v0.47.2 hizo visibles las llamadas fallidas (`meta.failed=true`), que antes se facturaban sin que el presupuesto las viera (causa del incidente de la cuota del 2026-06-11).
 
 ---
 

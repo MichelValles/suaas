@@ -24,7 +24,8 @@ Ver `.env.example` para el listado completo. Esenciales:
 | `SUPABASE_SERVICE_ROLE_KEY` | Marketplace | Cliente server. |
 | `AI_GATEWAY_API_KEY` | Vercel (manual o auto al enlazar AI Gateway) | Llamadas LLM + consulta de saldo en `/tokens`. En Vercel también funciona vía OIDC implícito si la key no está. |
 | `SUAAS_DEFAULT_MODEL` | Vercel + .env.local | Talker model. Default `anthropic/claude-sonnet-4-6`. |
-| `SUAAS_REASONER_MODEL` | Vercel + .env.local | Reasoner model. Default `anthropic/claude-opus-4-7`. |
+| `SUAAS_REASONER_MODEL` | Vercel + .env.local | Reasoner model. Default `anthropic/claude-opus-4-7`. Desde v0.47.2 solo lo usan chat (reasoner), onboard y seed de perfiles; el runner de campañas va entero en `SUAAS_DEFAULT_MODEL`. |
+| `SUAAS_DAILY_TOKEN_BUDGET` | Vercel (opcional) | Presupuesto diario de tokens (ventana 24h sobre `gateway_usage`). Sin configurar no hay límite. Desde v0.48.0 el gate (429) cubre todas las rutas que consumen LLM: runs, geo, momentum, chat, onboard, seeds y batch-intent. Ojo: es un freno local; el tope real del gasto es el budget de la API key en el dashboard del AI Gateway (recomendado con refresh period mensual, nunca `none`). |
 | `BLOB_READ_WRITE_TOKEN` | Auto al vincular Blob store al proyecto | Subida de uploads a Vercel Blob. Si falta, `lib/blob.ts` hace fallback al `data:` URL. |
 | `BLOB_STORE_ID` | Auto al vincular Blob store | Identificador del store enlazado. |
 | `BLOB_WEBHOOK_PUBLIC_KEY` | Auto al vincular Blob store | Verificación de webhooks del Blob (no usado por SUAAS hoy). |

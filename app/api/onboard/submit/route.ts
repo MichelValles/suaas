@@ -1,4 +1,5 @@
 import { type NextRequest } from "next/server";
+import { BudgetExceededError, assertBudget } from "@/lib/budget";
 import {
   OnboardPayloadSchema,
   synthesizeProfile,
@@ -86,6 +87,23 @@ export async function POST(req: NextRequest) {
       status: 429,
       headers: { "content-type": "application/json" },
     });
+  }
+
+  // Presupuesto diario: única ruta pública que dispara LLM (y con Opus).
+  // Mensaje genérico a propósito: no filtrar nombres de env vars ni detalles
+  // internos a visitantes anónimos (regla A-02 de la auditoría).
+  try {
+    await assertBudget();
+  } catch (err) {
+    if (err instanceof BudgetExceededError) {
+      return new Response(
+        JSON.stringify({
+          error: "El servicio está saturado ahora mismo. Vuelve a intentarlo en unas horas.",
+        }),
+        { status: 429, headers: { "content-type": "application/json" } },
+      );
+    }
+    // Fallo leyendo el consumo: no bloquea (la telemetría no tumba el flujo).
   }
 
   const encoder = new TextEncoder();

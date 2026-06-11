@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { after } from "next/server";
 import { z } from "zod";
+import { budgetGate } from "@/lib/budget";
 import { runAbTest } from "@/lib/experiments/ab";
 import {
   executeCampaignRun,
@@ -105,6 +106,14 @@ export async function POST(request: Request) {
       },
       { status: 503 },
     );
+  }
+  // Es la acción individual más cara de la UI (encadena runs de los 7
+  // experimentos en background) y no pasaba por el gate de presupuesto:
+  // el incidente de la cuota de v0.47 entró por aquí. Solo aplica si la
+  // petición va a consumir LLM (launch > 0 o brief).
+  if (launch > 0 || brief) {
+    const gate = await budgetGate();
+    if (gate) return gate;
   }
 
   // campaign_strategies (las 6 campañas IVI, una por estrategia) solo se

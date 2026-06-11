@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
+import { budgetGate } from "@/lib/budget";
 import { isGatewayConfigured } from "@/lib/gateway";
 import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
 import { PROFILE_SEEDS, streamSeededProfiles, type ProfileSeedEvent } from "@/lib/seed-profiles";
@@ -33,6 +34,10 @@ export async function POST(request: Request) {
       { status: 503, headers: { "Content-Type": "application/json" } },
     );
   }
+  // La siembra usa Opus (el modelo caro): mismo gate de presupuesto diario
+  // que los runs.
+  const gate = await budgetGate();
+  if (gate) return gate;
 
   let n: number;
   try {
