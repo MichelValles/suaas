@@ -63,7 +63,7 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
   app:
     "App vinculada de Play / App Store como baseline. 2+ titulares (30c) + 1+ descripción (90c). Hasta 20 imágenes y 20 vídeos en formatos 1.91:1, 1:1, 4:5, 9:16. HTML5 opcional.",
   shopping:
-    "Ficha de producto generada desde el feed (spec Merchant Center 7052112): sin titulares ni descripciones redactados. Producto con título (150c) + descripción (5.000c) + precio con divisa + disponibilidad; marca (70c), GTIN y condición según el caso. La URL final es el link del producto y la imagen principal (500x500 o más) va en creatividades. Las queries son las búsquedas de producto.",
+    "Ficha de producto generada desde el feed (spec Merchant Center 7052112): sin titulares ni descripciones redactados. Producto con id (50c) + título (150c) + descripción (5.000c) + precio con divisa + disponibilidad; marca (70c), GTIN, MPN (si no hay GTIN) y condición según el caso. La URL final es el link del producto y la imagen principal (500x500 o más) va en creatividades. Las queries son las búsquedas de producto.",
 };
 
 export function isStrategyImplemented(s: Strategy): boolean {
@@ -96,6 +96,10 @@ export const PRODUCT_AVAILABILITY_LABEL: Record<
 export const PRODUCT_CONDITION_VALUES = ["new", "refurbished", "used"] as const;
 
 export const ProductSchema = z.object({
+  id: z
+    .string()
+    .min(1, "El producto exige un id (usa el SKU).")
+    .max(50, "El id del producto admite máximo 50 caracteres."),
   title: z
     .string()
     .min(1, "El producto exige título.")
@@ -119,6 +123,12 @@ export const ProductSchema = z.object({
   gtin: z
     .string()
     .regex(/^\d{8,14}$/, "El GTIN tiene entre 8 y 14 dígitos.")
+    .optional()
+    .nullable(),
+  /** Obligatorio en el feed real solo si el producto no tiene GTIN. */
+  mpn: z
+    .string()
+    .max(70, "El MPN admite máximo 70 caracteres.")
     .optional()
     .nullable(),
   condition: z.enum(PRODUCT_CONDITION_VALUES).optional().nullable(),

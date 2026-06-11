@@ -124,6 +124,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
   const [longHeadline, setLongHeadline] = useState(src?.long_headline ?? "");
   const [cta, setCta] = useState<string>(src?.cta ?? "");
   // Producto (solo shopping): espejo de los atributos obligatorios del feed.
+  const [productId, setProductId] = useState(src?.product?.id ?? "");
   const [productTitle, setProductTitle] = useState(src?.product?.title ?? "");
   const [productDescription, setProductDescription] = useState(
     src?.product?.description ?? "",
@@ -134,6 +135,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
   );
   const [productBrand, setProductBrand] = useState(src?.product?.brand ?? "");
   const [productGtin, setProductGtin] = useState(src?.product?.gtin ?? "");
+  const [productMpn, setProductMpn] = useState(src?.product?.mpn ?? "");
   const [productCondition, setProductCondition] = useState<string>(
     src?.product?.condition ?? "",
   );
@@ -299,12 +301,14 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
     product:
       strategy === "shopping"
         ? {
+            id: productId.trim(),
             title: productTitle.trim(),
             description: productDescription.trim(),
             price: productPrice.trim(),
             availability: productAvailability,
             brand: productBrand.trim() || null,
             gtin: productGtin.trim() || null,
+            mpn: productMpn.trim() || null,
             condition: productCondition || null,
           }
         : null,
@@ -604,6 +608,14 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
         {strategy === "shopping" && (
           <Section title="Producto (feed de Merchant Center)">
             <CharCountedInput
+              label="Id del producto (usa el SKU)"
+              value={productId}
+              onChange={setProductId}
+              max={50}
+              required
+              placeholder="SKU-TRAIL-GTX-42-AZ"
+            />
+            <CharCountedInput
               label="Título del producto"
               value={productTitle}
               onChange={setProductTitle}
@@ -650,6 +662,13 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               value={productGtin}
               onChange={setProductGtin}
               placeholder="0613919012345"
+            />
+            <CharCountedInput
+              label="MPN (obligatorio en el feed real solo si no hay GTIN)"
+              value={productMpn}
+              onChange={setProductMpn}
+              max={70}
+              placeholder="GTX-42-AZ"
             />
             <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               <Label>Condición (solo si no es nuevo)</Label>

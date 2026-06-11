@@ -39,12 +39,14 @@ const PayloadSchema = z.object({
   intended_message: z.string().optional().nullable(),
   product: z
     .object({
+      id: z.string(),
       title: z.string(),
       description: z.string(),
       price: z.string(),
       availability: z.string(),
       brand: z.string().optional().nullable(),
       gtin: z.string().optional().nullable(),
+      mpn: z.string().optional().nullable(),
       condition: z.string().optional().nullable(),
     })
     .optional()
