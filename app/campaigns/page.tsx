@@ -1,8 +1,15 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { ChannelIcon } from "@/components/channel-icon";
 import { EntityListView, type EntityListItem } from "@/components/entity-list";
 import { MigrationNeeded } from "@/components/migration-needed";
-import { CHANNEL_LABEL, STRATEGY_LABEL, listCampaigns } from "@/lib/campaigns";
+import { StrategyIcon } from "@/components/strategy-icon";
+import {
+  CHANNEL_LABEL,
+  STRATEGY_LABEL,
+  listCampaigns,
+  type Campaign,
+} from "@/lib/campaigns";
 import { isMissingTableError, isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
@@ -54,18 +61,13 @@ export default async function CampaignsListPage() {
             createdAt: c.created_at,
             runs: c.run_count,
             users: c.user_count,
-            stats: [
-              {
-                label: c.channels.length === 1 ? "Canal" : "Canales",
-                value:
-                  c.channels.length <= 2
-                    ? c.channels.map((ch) => CHANNEL_LABEL[ch].split(" ")[0]).join(" + ")
-                    : `${c.channels.length} redes`,
-              },
-              { label: "Estrategia", value: STRATEGY_LABEL[c.strategy] },
-              { label: "Runs", value: c.run_count },
-              { label: "Perfiles", value: c.user_count },
-            ],
+            badges: <CampaignBadges campaign={c} />,
+            dateInFooter: true,
+            searchExtra: [
+              ...c.channels.map((ch) => CHANNEL_LABEL[ch]),
+              STRATEGY_LABEL[c.strategy],
+            ].join(" "),
+            stats: [{ label: "Runs", value: c.run_count }],
           }))}
           emptyHint="Todavía no hay campañas. Crea la primera."
           noMatchHint="Ninguna campaña coincide con la búsqueda."
@@ -74,6 +76,50 @@ export default async function CampaignsListPage() {
     </AppShell>
   );
 }
+
+/**
+ * Chips de cabecera de la card: canal(es) con su logo y estrategia con su
+ * icono, clonando el patrón de la sección «Canal y estrategia» del detalle.
+ */
+function CampaignBadges({ campaign }: { campaign: Campaign }) {
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+      {campaign.channels.map((ch) => (
+        <span key={ch} className="mono" style={badgeStyle}>
+          <ChannelIcon channel={ch} size={12} />
+          {CHANNEL_LABEL[ch].split(" ")[0]}
+        </span>
+      ))}
+      <span
+        className="mono"
+        style={{
+          ...badgeStyle,
+          border: "1px solid var(--accent-500)",
+          background: "rgba(250,204,13,0.08)",
+          color: "var(--accent-text)",
+        }}
+      >
+        <StrategyIcon strategy={campaign.strategy} size={12} />
+        {STRATEGY_LABEL[campaign.strategy]}
+      </span>
+    </div>
+  );
+}
+
+const badgeStyle: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  gap: 6,
+  padding: "4px 10px",
+  borderRadius: "var(--radius-pill)",
+  border: "1px solid rgba(var(--fg),0.18)",
+  background: "rgba(var(--fg),0.04)",
+  color: "rgba(var(--fg),0.85)",
+  fontSize: 10,
+  letterSpacing: "0.14em",
+  textTransform: "uppercase",
+  whiteSpace: "nowrap",
+};
 
 function Notice({
   children,

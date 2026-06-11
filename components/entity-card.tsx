@@ -12,11 +12,14 @@ import type { TrashType } from "@/lib/trash";
  *
  *   media opcional (16:9)
  *   ──────────────────────────────────────────
- *   [fecha]                              [trash]
+ *   [fecha | badges]                     [trash]
  *   título display italic
  *   descripción (clamp 2 líneas)
  *   ──────────────────────────────────────────
  *   RUNS · N    PERFILES · N    [kind] · N
+ *
+ * Con `badges` la cabecera muestra chips (canal/estrategia en campañas) en
+ * lugar de la fecha; `dateInFooter` la recoloca como primer stat del pie.
  */
 
 export type EntityStat = {
@@ -36,6 +39,8 @@ export function EntityCard({
   stats,
   createdAt,
   media,
+  badges,
+  dateInFooter = false,
 }: {
   href: string;
   trash: { type: TrashType; id: string; name: string };
@@ -47,6 +52,10 @@ export function EntityCard({
   createdAt: string;
   /** Thumbnail opcional (targets). */
   media?: EntityMedia;
+  /** Chips de cabecera (canal/estrategia en campañas). Sustituyen a la fecha arriba. */
+  badges?: React.ReactNode;
+  /** Recoloca la fecha como primer stat del pie (junto a runs). */
+  dateInFooter?: boolean;
 }) {
   return (
     <li style={{ position: "relative", display: "flex" }}>
@@ -58,9 +67,11 @@ export function EntityCard({
           </div>
         )}
         <header className="entity-card__head">
-          <span className="entity-card__eyebrow mono">
-            {formatShortDate(createdAt)}
-          </span>
+          {badges ?? (
+            <span className="entity-card__eyebrow mono">
+              {formatShortDate(createdAt)}
+            </span>
+          )}
         </header>
 
         <div className="entity-card__body">
@@ -71,6 +82,7 @@ export function EntityCard({
         </div>
 
         <footer className="entity-card__stats">
+          {dateInFooter && <Stat label="Fecha" value={formatShortDate(createdAt)} />}
           {stats.map((s) => (
             <Stat key={s.label} label={s.label} value={s.value} />
           ))}

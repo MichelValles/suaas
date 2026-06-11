@@ -25,6 +25,12 @@ export type EntityListItem = {
   stats: EntityStat[];
   /** Thumbnail opcional (targets). */
   media?: EntityMedia;
+  /** Chips de cabecera (canal/estrategia en campañas). Sustituyen a la fecha arriba. */
+  badges?: React.ReactNode;
+  /** Recoloca la fecha como primer stat del pie. */
+  dateInFooter?: boolean;
+  /** Términos extra para la búsqueda (lo que muestran los badges, que no son texto plano). */
+  searchExtra?: string;
 };
 
 type SortKey =
@@ -68,6 +74,7 @@ export function EntityListView({
       const blob = [
         i.title,
         i.description ?? "",
+        i.searchExtra ?? "",
         ...i.stats.map((s) => `${s.label} ${s.value}`),
       ]
         .join(" ")
@@ -136,6 +143,8 @@ export function EntityListView({
               createdAt={item.createdAt}
               stats={item.stats}
               media={item.media}
+              badges={item.badges}
+              dateInFooter={item.dateInFooter}
             />
           ))}
         </ul>
