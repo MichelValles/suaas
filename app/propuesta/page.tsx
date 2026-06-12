@@ -61,10 +61,10 @@ export default async function PropuestaPage() {
           Valida la decisión antes de gastar en ella.
         </h1>
         <p style={{ fontSize: "clamp(17px, 1.9vw, 24px)", lineHeight: 1.5, color: "rgba(var(--fg),0.72)" }}>
-          {BRAND} pone a prueba tu web, tus campañas, tu precio y tu mensaje frente a una cohorte de{" "}
-          <strong style={{ color: "var(--text-strong)" }}>perfiles modelados</strong> calibrados con
-          tu cliente real. Resultados en minutos, por una fracción de lo que cuesta un estudio con
-          usuarios reales.
+          {BRAND} mide la atracción que tu marca ejerce: pone a prueba tu web y tus campañas frente
+          a una cohorte de <strong style={{ color: "var(--text-strong)" }}>perfiles modelados</strong>,
+          calibrados con tus clientes reales. También el precio, antes de publicarlo. Resultados en
+          minutos, por una fracción de lo que cuesta un estudio con personas.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "nowrap", marginTop: 4 }}>
           <a href="#paquetes" className="btn-pill solid" style={{ padding: "11px 14px", fontSize: 12, letterSpacing: "0.04em", whiteSpace: "nowrap" }}>Ver paquetes →</a>
@@ -78,11 +78,12 @@ export default async function PropuestaPage() {
         <div style={{ display: "flex", gap: "clamp(36px, 6vw, 80px)", alignItems: "center", flexWrap: "wrap" }}>
           <div style={{ flex: "1 1 340px", display: "flex", flexDirection: "column", gap: 26 }}>
             <p style={{ fontSize: 16, color: "rgba(var(--fg),0.7)", lineHeight: 1.65 }}>
-              La intención de tu cliente no es un sí o un no: tiene{" "}
-              <em style={{ fontStyle: "normal", color: "var(--text-strong)" }}>intensidad</em>,{" "}
-              <em style={{ fontStyle: "normal", color: "var(--text-strong)" }}>dirección</em> y{" "}
-              <em style={{ fontStyle: "normal", color: "var(--text-strong)" }}>velocidad</em>. No recorre
-              un embudo lineal: orbita alrededor de tu marca. Gravity actúa sobre esa órbita en tres planos.
+              La intención de tu cliente tiene{" "}
+              <em style={{ fontStyle: "normal", color: "var(--text-strong)" }}>intensidad</em> y{" "}
+              <em style={{ fontStyle: "normal", color: "var(--text-strong)" }}>dirección</em>. A veces
+              también <em style={{ fontStyle: "normal", color: "var(--text-strong)" }}>prisa</em>. Esa
+              intención orbita alrededor de tu marca: se acerca, se aleja, vuelve. Gravity actúa sobre
+              esa órbita en tres planos.
             </p>
             <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
               {PLANES.map((p) => (
@@ -106,18 +107,18 @@ export default async function PropuestaPage() {
 
       {/* ── El valor (datos grandes en amarillo, sobre oscuro) ── */}
       <Band gap={32}>
-        <SectionHead label="Por qué" title="El research tradicional cobra por persona, por hora y por semanas." />
+        <SectionHead label="Por qué" title="El research tradicional cobra por persona y por hora. Y te hace esperar semanas." />
         <Grid min={220}>
-          <ValueCard stat="4.000-10.000 €" label="Un único test moderado" body="Con usuarios reales: incentivos, reclutamiento y horas de analista por cada estudio." />
+          <ValueCard stat="4.000-10.000 €" label="Un único test moderado" body="Con usuarios reales pagas incentivos, reclutamiento y muchas horas de analista. En cada estudio." />
           <ValueCard stat="2-4 semanas" label="Sólo en reclutar" body="El diseño avanza sin evidencia mientras esperas a tener participantes." />
-          <ValueCard stat="Minutos" label="Con Gravity" body="Lanza el test, recibe el vector de intención y las barreras al instante. Itera el mismo día." />
-          <ValueCard stat="80 / 20" label="El encaje honesto" body="Perfiles modelados para el 80% inicial. El research humano caro, sólo para el 20% crítico." />
+          <ValueCard stat="Minutos" label="Con Gravity" body="Lanzas el test y al momento ves qué frena a cada perfil y cuánta intención hay. Iteras el mismo día." />
+          <ValueCard stat="80 / 20" label="El encaje honesto" body="Una decisión irreversible sigue mereciendo un test con personas. Gravity filtra el 80% de las dudas antes de llegar ahí." />
         </Grid>
       </Band>
 
       {/* ── Qué incluye (apartado en blanco: rompe el esquema) ── */}
       <Band id="incluye" surface="paper" gap={32}>
-        <SectionHead label="Qué incluye" title="Un laboratorio completo de decisión." />
+        <SectionHead label="Qué incluye" title="Ocho pruebas que responden preguntas concretas." />
         <Grid min={240}>
           {MODULES.map((m) => (
             <div
@@ -146,7 +147,7 @@ export default async function PropuestaPage() {
 
       {/* ── Paquetes ── */}
       <Band id="paquetes" gap={32}>
-        <SectionHead label="Paquetes" title="Instancia dedicada, tu marca, presupuesto de IA incluido." />
+        <SectionHead label="Paquetes" title="Cada cliente trabaja en su propia instancia, con su marca. El gasto de IA va incluido." />
         <Grid min={260}>
           {TIERS.map((t) => (
             <div
@@ -214,21 +215,21 @@ export default async function PropuestaPage() {
 
       {/* ── Motor de IA (interactivo) ── */}
       <Band id="motor" gap={28}>
-        <SectionHead label="Motor de IA" title="Elige proveedor y presupuesto. El resultado no cambia." />
+        <SectionHead label="Motor de IA" title="Elige proveedor y presupuesto. El análisis es el mismo." />
         <p style={{ fontSize: 15, color: "rgba(var(--fg),0.65)", lineHeight: 1.6 }}>
           Funciona con la IA que prefieras: Anthropic (la que usamos hoy), OpenAI, Google o Perplexity.
-          Cada test cuesta unos céntimos. Pon el presupuesto que quieras dedicar al mes y mira cuántos
-          tests salen con cada una.
+          Cada test cuesta céntimos, lo comprobamos cada mes en nuestra propia factura. Pon el
+          presupuesto que quieras dedicar y mira cuántos tests salen con cada una.
         </p>
         <AiCostModule defaultBudget={50} />
       </Band>
 
       {/* ── Calculadora ── */}
       <Band id="calculadora" gap={28}>
-        <SectionHead label="Calculadora" title="Tarificador y rentabilidad." />
+        <SectionHead label="Calculadora" title="Cuánto cuesta servirlo y qué margen deja." />
         <p style={{ fontSize: 15, color: "rgba(var(--fg),0.6)", lineHeight: 1.6 }}>
-          Herramienta interna para echar cuentas: cuántos paquetes de cada tipo, qué cuesta la
-          infraestructura y qué rentabilidad sale. Se desbloquea con la contraseña del pie de página.
+          Herramienta interna para echar cuentas: combinas paquetes y ves el margen que queda después
+          de la infraestructura. Se abre con la contraseña del pie de página.
         </p>
         <PricingCalculator unlocked={unlocked} />
       </Band>
@@ -248,8 +249,9 @@ export default async function PropuestaPage() {
           Una sola decisión equivocada cuesta más que un año de plataforma.
         </h2>
         <p style={{ fontSize: 16, color: "rgba(var(--fg),0.7)", lineHeight: 1.6 }}>
-          Empieza con un piloto sobre una decisión real. Si te ahorra un solo estudio o sube tu
-          conversión un punto, el retorno es inmediato.
+          En este sector se valida tarde, se valida caro, y casi siempre para confirmar lo que el
+          equipo ya intuía. Empieza al revés: un piloto sobre una decisión real. Si te ahorra un solo
+          estudio o te sube la conversión un punto, ya está pagado.
         </p>
         <a href="#paquetes" className="btn-pill solid">Elegir paquete →</a>
       </Band>
@@ -308,20 +310,20 @@ function Grid({ min, children }: { min: number; children: ReactNode }) {
 }
 
 const PLANES = [
-  { n: "01", title: "Construcción · por qué entras en su órbita", body: "Hipersegmentación por intención con perfiles modelados: define por qué tu marca empieza a existir para ese usuario." },
-  { n: "02", title: "Aceleración · refuerza o redirige la intención", body: "Campañas, visibilidad en motores de IA (GEO) y mensajes guiados por intención. Cada interacción modula el momentum." },
-  { n: "03", title: "Valor · convierte la decisión en relación", body: "Claridad, embudos y permanencia. Donde una decisión puntual se estabiliza en una órbita duradera." },
+  { n: "01", title: "Construcción · por qué entras en su órbita", body: "Segmentamos por intención, con perfiles modelados, y definimos por qué tu marca empieza a existir para ese usuario." },
+  { n: "02", title: "Aceleración · refuerza o redirige la intención", body: "Campañas y mensajes guiados por la intención, y cómo te ven los buscadores de IA (GEO). Cada interacción empuja la órbita o la frena." },
+  { n: "03", title: "Valor · que el cliente vuelva", body: "Claridad en la web y embudos que acaban en compra. Y que esa compra se repita: la órbita se estabiliza y el cliente se queda cerca." },
 ];
 
 const MODULES = [
-  { plane: "Aceleración", title: "Claridad 5s", body: "Qué entiende el usuario de tu pantalla en 5 segundos: comprensión y fricción percibida." },
-  { plane: "Aceleración", title: "Embudos", body: "El perfil recorre tu flujo con su carga cognitiva real y marca el abandono por paso." },
-  { plane: "Aceleración", title: "Campañas", body: "El anuncio que el usuario querría ver, ajustado a su intención y a la query." },
-  { plane: "Construcción", title: "Pricing", body: "El umbral psicológico de precio antes de tocar la web: disposición a pagar por nivel." },
+  { plane: "Aceleración", title: "Claridad 5s", body: "Enseñamos tu pantalla 5 segundos y el perfil cuenta qué ha entendido y qué le chirría." },
+  { plane: "Aceleración", title: "Embudos", body: "El perfil recorre tu flujo paso a paso y marca dónde abandonaría. Y por qué." },
+  { plane: "Aceleración", title: "Campañas", body: "El anuncio que ese perfil querría ver, ajustado a su intención y a la query." },
+  { plane: "Construcción", title: "Pricing", body: "Cuánto pagaría cada perfil por cada nivel, antes de que toques una línea de la web." },
   { plane: "Aceleración", title: "Copy", body: "Bloque a bloque: claridad, persuasión y ganas de hacer clic." },
-  { plane: "Aceleración", title: "GEO", body: "Cómo te ven Perplexity, ChatGPT Search y Google AI: visibilidad y posición de marca." },
-  { plane: "Aceleración", title: "A/B", body: "Dos variantes en paralelo sobre la misma cohorte, con barreras emergentes." },
-  { plane: "Construcción", title: "Momentum", body: "La intención antes de que tu marca entre en la ecuación: intensidad, dirección y velocidad." },
+  { plane: "Aceleración", title: "GEO", body: "Cómo te ven Perplexity, ChatGPT Search y Google AI cuando alguien pregunta por lo tuyo." },
+  { plane: "Aceleración", title: "A/B", body: "Dos variantes ante la misma cohorte. Gana la que menos objeciones levanta." },
+  { plane: "Construcción", title: "Intención", body: "Qué busca el usuario y con cuántas ganas, antes de que tu marca aparezca en su pantalla." },
 ];
 
 function SectionHead({ label, title }: { label: string; title: string }) {

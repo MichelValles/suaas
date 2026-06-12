@@ -151,8 +151,7 @@ export function AiCostModule({ defaultBudget = 30 }: { defaultBudget?: number })
               </table>
             {p.provider === "Perplexity" && (
               <span style={{ fontSize: 11, color: "rgba(var(--fg),0.4)" }}>
-                Perplexity cobra un fee por request además de los tokens (incluido en el coste/run).
-                Sus modelos Sonar traen búsqueda web en vivo: encajan en el módulo GEO.
+                El fee por petición de Perplexity ya está incluido en el coste por run de la tabla.
               </span>
             )}
           </div>

@@ -40,7 +40,7 @@ export type AiProvider = { provider: string; note: string; models: AiModel[] };
 export const AI_PROVIDERS: AiProvider[] = [
   {
     provider: "Anthropic",
-    note: "Motor actual de la plataforma. Mejor calidad de razonamiento y multimodal para el scoring.",
+    note: "El motor que usa la plataforma hoy. Es el que mejor razona sobre pantallas e imágenes.",
     models: [
       { id: "anthropic/claude-sonnet-4.6", label: "Claude Sonnet 4.6", inUsd: 3, outUsd: 15, current: true },
       { id: "anthropic/claude-opus-4.7", label: "Claude Opus 4.7", inUsd: 5, outUsd: 25 },
@@ -49,7 +49,7 @@ export const AI_PROVIDERS: AiProvider[] = [
   },
   {
     provider: "OpenAI",
-    note: "Familia GPT-5.4, multimodal y con salida estructurada (equivalente a generateObject).",
+    note: "La familia GPT-5.4 lee imágenes y devuelve los resultados con la estructura que pide el test.",
     models: [
       { id: "openai/gpt-5.4", label: "GPT-5.4", inUsd: 2.5, outUsd: 15 },
       { id: "openai/gpt-5.4-mini", label: "GPT-5.4 mini", inUsd: 0.75, outUsd: 4.5 },
@@ -58,7 +58,7 @@ export const AI_PROVIDERS: AiProvider[] = [
   },
   {
     provider: "Google Gemini",
-    note: "Serie 3.x. Los Flash bajan mucho el coste por run manteniendo multimodal.",
+    note: "Los Flash de la serie 3 abaratan mucho cada test y siguen leyendo imágenes.",
     models: [
       { id: "google/gemini-3.1-pro", label: "Gemini 3.1 Pro", inUsd: 2, outUsd: 12 },
       { id: "google/gemini-3-flash", label: "Gemini 3 Flash", inUsd: 0.5, outUsd: 3 },
@@ -67,7 +67,7 @@ export const AI_PROVIDERS: AiProvider[] = [
   },
   {
     provider: "Perplexity",
-    note: "Modelos Sonar con búsqueda web en vivo: encajan en el módulo GEO. Cobran fee por request además de tokens.",
+    note: "Sus modelos Sonar buscan en la web en vivo, por eso encajan en el módulo GEO. Cobran un fee por petición además de los tokens.",
     models: [
       { id: "perplexity/sonar", label: "Sonar", inUsd: 1, outUsd: 1, reqFeeUsd: 8 },
       { id: "perplexity/sonar-pro", label: "Sonar Pro", inUsd: 3, outUsd: 15, reqFeeUsd: 10 },
@@ -125,7 +125,7 @@ export const TIERS: Tier[] = [
     features: [
       "Generación de 50 perfiles calibrados según el target del proyecto",
       "Módulos básicos: claridad 5s, copy y pricing",
-      "Resultados en minutos, no en semanas",
+      "Resultados en minutos",
       "Presupuesto de IA ~30 $/mes incluido",
     ],
     target: "PYME pequeña (facturación < 1 M)",
@@ -139,7 +139,7 @@ export const TIERS: Tier[] = [
     blurb: "El estándar: todos los módulos y tu marca en la plataforma.",
     features: [
       "Generación de 50 perfiles calibrados según el target del proyecto",
-      "Todos los módulos: campañas, embudos, GEO y momentum",
+      "Todos los módulos: campañas, embudos, GEO e intención",
       "Tu marca en la plataforma (white-label)",
       "Presupuesto de IA ~70 $/mes incluido",
     ],
@@ -152,7 +152,7 @@ export const TIERS: Tier[] = [
     priceMonth: 1900,
     setup: 2500,
     apiBudgetUsd: 200,
-    blurb: "Instancia dedicada premium, sin límites y con SLA.",
+    blurb: "Para equipos que testean a diario y no quieren topes de uso.",
     features: [
       "Generación de 50 perfiles calibrados según el target del proyecto",
       "Todo lo de Pro, sin límite diario de uso",

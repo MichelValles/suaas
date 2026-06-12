@@ -60,8 +60,8 @@ export function PricingCalculator({ unlocked = false }: { unlocked?: boolean }) 
       >
         <Lock size={18} color="var(--accent-500)" />
         <span style={{ fontSize: 14, lineHeight: 1.5 }}>
-          Herramienta interna de Flat 101. Introduce la contraseña en el pie de página para echar
-          cuentas de escenarios (cuántos paquetes de cada tipo, infraestructura y rentabilidad).
+          Herramienta interna de Flat 101. Introduce la contraseña del pie de página y monta
+          escenarios: cuántos paquetes de cada tipo y qué margen queda.
         </span>
       </div>
     );
