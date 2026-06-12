@@ -181,25 +181,6 @@ export default async function PropuestaPage() {
             </div>
           ))}
         </Grid>
-        <div
-          style={{
-            border: "1px dashed rgba(var(--fg),0.14)",
-            borderRadius: "var(--radius-md)",
-            padding: "18px 22px",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "8px 24px",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <span style={{ fontSize: 13, color: "rgba(var(--fg),0.6)" }}>
-            <strong style={{ color: "var(--text-strong)" }}>Enterprise</strong> a medida (&gt; 2.900 €/mes): multi-marca, integraciones, formación y varias instancias.
-          </span>
-          <span style={{ fontSize: 13, color: "rgba(var(--fg),0.6)" }}>
-            <strong style={{ color: "var(--text-strong)" }}>Piloto</strong> puntual desde 490 €, descontable de la primera mensualidad.
-          </span>
-        </div>
       </Band>
 
       {/* ── Motor de IA (interactivo) ── */}
