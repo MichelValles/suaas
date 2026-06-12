@@ -108,6 +108,35 @@ function displayUrl(url: string): string {
   }
 }
 
+/** Creatividad con los campos de medio vaciados (cambio de kind o de rol). */
+function resetMedia(c: Creative, kind: CreativeKind): Creative {
+  return { ...c, kind, url: "", upload_data: "", youtube_id: null, thumbnail_url: null };
+}
+
+/**
+ * Al entrar en una estrategia de TikTok, las creatividades arrastradas de
+ * otra estrategia o canal se renormalizan para que el rol REAL coincida
+ * con lo que la UI muestra: sin esto, roles residuales (generic, cover…)
+ * se pintaban como tarjetas pero viajaban intactos al servidor, que
+ * rechazaba el submit con un error que contradecía al formulario.
+ */
+function normalizeCreativesFor(strategy: Strategy, prev: Creative[]): Creative[] {
+  if (!isTikTokStrategy(strategy)) return prev;
+  return prev.map((c) => {
+    if (c.role === "logo_square") {
+      // El avatar es siempre una imagen (98x98).
+      return c.kind === "image" ? c : resetMedia(c, "image");
+    }
+    if (strategy === "tiktok_carousel") {
+      // Las tarjetas del carousel son imágenes (el resto de kinds pierde
+      // su medio: el formato no los admite).
+      const card = c.kind === "image" ? c : resetMedia(c, "image");
+      return card.role === "card" ? card : { ...card, role: "card" as CreativeRole };
+    }
+    return c.role === "generic" ? c : { ...c, role: "generic" as CreativeRole };
+  });
+}
+
 export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEntity }) {
   const [state, formAction] = useActionState(createCampaignAction, initial);
 
@@ -311,6 +340,16 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
 
   // ============ creatives ============
   function addCreative(kind: CreativeKind = "image", role: CreativeRole = "generic") {
+    // El límite real del carousel de TikTok son 35 TARJETAS (el avatar va
+    // aparte), no 35 creatividades totales.
+    if (
+      strategy === "tiktok_carousel" &&
+      role === "card" &&
+      creatives.filter((c) => c.role === "card").length >=
+        TIKTOK_LIMITS.carousel_images.max
+    ) {
+      return;
+    }
     const cap =
       strategy === "tiktok_carousel"
         ? TIKTOK_LIMITS.carousel_images.max + 1
@@ -629,9 +668,12 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               onChange={(c) => {
                 setChannel(c);
                 const allowed = CHANNEL_STRATEGIES[c];
+                let next = strategy;
                 if (!allowed.includes(strategy)) {
-                  setStrategy(DEFAULT_STRATEGY_BY_CHANNEL[c] ?? allowed[0] ?? "search");
+                  next = DEFAULT_STRATEGY_BY_CHANNEL[c] ?? allowed[0] ?? "search";
+                  setStrategy(next);
                 }
+                setCreatives((prev) => normalizeCreativesFor(next, prev));
               }}
             />
             <p
@@ -665,7 +707,14 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 ? `Formato del anuncio en ${CHANNEL_LABEL[channel].split(" ")[0]}`
                 : `Tipo de campaña dentro de ${CHANNEL_LABEL[channel].split(" ")[0]}`}
             </span>
-            <StrategyTabs channel={channel} value={strategy} onChange={setStrategy} />
+            <StrategyTabs
+              channel={channel}
+              value={strategy}
+              onChange={(s) => {
+                setStrategy(s);
+                setCreatives((prev) => normalizeCreativesFor(s, prev));
+              }}
+            />
             <p
               style={{
                 color: "rgba(var(--fg),0.55)",
@@ -846,12 +895,13 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 <CharCountedInput
                   label={
                     isSpark
-                      ? "Usuario de la cuenta del post (@, sin la arroba)"
+                      ? "Usuario de la cuenta del post (@, sin la arroba) · obligatorio"
                       : "Usuario mostrado (@, opcional; si no, se deriva del nombre visible)"
                   }
                   value={identityHandle}
                   onChange={setIdentityHandle}
                   max={TIKTOK_LIMITS.identity_handle.max}
+                  required={isSpark}
                   placeholder="bbva_es"
                 />
                 <p
@@ -1376,7 +1426,12 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               ? "+ Añadir tarjeta"
               : "+ Añadir"
           }
-          canAdd={creatives.length < (strategy === "tiktok_carousel" ? 36 : 20)}
+          canAdd={
+            strategy === "tiktok_carousel"
+              ? creatives.filter((c) => c.role === "card").length <
+                TIKTOK_LIMITS.carousel_images.max
+              : creatives.length < 20
+          }
         >
           {strategy === "tiktok_video" || strategy === "tiktok_spark" ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
@@ -1504,10 +1559,20 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   <Label>Rol en el anuncio</Label>
                   <select
-                    value={c.role === "logo_square" ? "logo_square" : strategy === "tiktok_carousel" ? "card" : "generic"}
-                    onChange={(e) =>
-                      patchCreative(i, { role: e.currentTarget.value as CreativeRole })
-                    }
+                    value={c.role}
+                    onChange={(e) => {
+                      const role = e.currentTarget.value as CreativeRole;
+                      // El avatar y las tarjetas son imágenes: al cambiar a
+                      // un rol de imagen se resetea el medio de vídeo.
+                      const needsImage =
+                        role === "logo_square" || strategy === "tiktok_carousel";
+                      patchCreative(
+                        i,
+                        needsImage && c.kind !== "image"
+                          ? { ...resetMedia(c, "image"), role }
+                          : { role },
+                      );
+                    }}
                     style={inputStyle}
                   >
                     {strategy === "tiktok_carousel" ? (
@@ -3663,7 +3728,7 @@ function TikTokAdPreview({
   const carousel = strategy === "tiktok_carousel";
   const spark = strategy === "tiktok_spark";
   const cards = creatives.filter(
-    (c) => c.role === "card" && (c.upload_data || c.url),
+    (c) => c.role === "card" && c.kind === "image" && (c.upload_data || c.url),
   );
   const [cardIndex, setCardIndex] = useState(0);
   const safeIndex = cards.length > 0 ? Math.min(cardIndex, cards.length - 1) : 0;

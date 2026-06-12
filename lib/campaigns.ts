@@ -359,7 +359,11 @@ export const TIKTOK_LIMITS = {
   carousel_images: { min: 2, max: 35 },
 } as const;
 
-const NO_EMOJI_REGEX = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
+// Cubre también los emojis con presentación por defecto fuera de los
+// bloques principales (estrella U+2B50, reloj U+23F0, exclamación doble
+// U+203C, TM U+2122, flechas U+2190..) que llegan sin el selector FE0F.
+const NO_EMOJI_REGEX =
+  /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{2300}-\u{23FF}\u{25A0}-\u{25FF}\u{2190}-\u{21FF}\u{203C}\u{2049}\u{2122}\u{2139}\u{FE0F}]/u;
 
 export const TikTokSpecSchema = z.object({
   /** Discriminador del union de channel_spec (las filas de Meta no lo llevan). */
@@ -875,14 +879,24 @@ export const CampaignInputSchema = z
                 "TikTok no admite emojis en el texto del anuncio (solo los Spark Ads los conservan).",
             });
           }
-          if (spec.ad_texts.some((t) => /[#{}]/.test(t))) {
+          if (spec.ad_texts.some((t) => /[#@{}]/.test(t))) {
             ctx.addIssue({
               code: z.ZodIssueCode.custom,
               path: ["channel_spec"],
               message:
-                "El texto del anuncio de TikTok no admite «#» ni «{ }» (spec oficial).",
+                "El texto del anuncio de TikTok no admite «#», «@» ni «{ }» (spec oficial).",
             });
           }
+        }
+        // Spark usa la identidad REAL de la cuenta del post: el @ es
+        // parte esencial del formato (el form lo declara obligatorio).
+        if (data.strategy === "tiktok_spark" && !spec.identity_handle?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["channel_spec"],
+            message:
+              "El Spark Ad exige el @usuario de la cuenta del post (es su identidad real).",
+          });
         }
         if (data.strategy === "tiktok_carousel" && !spec.music_name?.trim()) {
           ctx.addIssue({
@@ -922,8 +936,12 @@ export const CampaignInputSchema = z
       }
       const creatives = data.creatives ?? [];
       if (data.strategy === "tiktok_video" || data.strategy === "tiktok_spark") {
+        // El avatar (role logo_square) no cuenta como vídeo del anuncio.
         const videos = creatives.filter(
-          (c) => (c.kind === "video" || c.kind === "youtube") && c.thumbnail_url,
+          (c) =>
+            (c.kind === "video" || c.kind === "youtube") &&
+            c.thumbnail_url &&
+            c.role !== "logo_square",
         );
         if (videos.length < 1) {
           ctx.addIssue({

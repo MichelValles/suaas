@@ -608,7 +608,11 @@ function renderTikTokCarouselSnippet(
   campaign: Campaign,
   shown: ShownCombination | null,
 ): string {
-  const cards = (campaign.creatives ?? []).filter((c) => c.role === "card");
+  // Mismo filtro que la validación (role card + kind image): el número de
+  // imágenes anunciado al perfil debe cuadrar con las que se adjuntan.
+  const cards = (campaign.creatives ?? []).filter(
+    (c) => c.role === "card" && c.kind === "image",
+  );
   const lines: string[] = [];
   lines.push(
     `Ves este anuncio de carousel en tu feed «Para ti» de TikTok: ${cards.length} imágenes que pasan solas en orden (puedes deslizar a mano) con la música en bucle:`,
@@ -1085,10 +1089,15 @@ function creativesForModel(campaign: Campaign): Creative[] {
   if (campaign.strategy === "meta_carousel") {
     return all.filter((c) => c.role === "card").slice(0, 4);
   }
-  // TikTok carousel: solo las tarjetas (el avatar/logo no es una creatividad
-  // del anuncio). En vídeo/spark el orden del array ya pone el vídeo primero.
+  // TikTok carousel: solo las tarjetas de imagen (mismo filtro que la
+  // validación; el avatar/logo no es una creatividad del anuncio). En
+  // vídeo/spark se excluye el avatar para que su miniatura no se cuele
+  // como visual del anuncio.
   if (campaign.strategy === "tiktok_carousel") {
-    return all.filter((c) => c.role === "card").slice(0, 4);
+    return all.filter((c) => c.role === "card" && c.kind === "image").slice(0, 4);
+  }
+  if (campaign.strategy === "tiktok_video" || campaign.strategy === "tiktok_spark") {
+    return all.filter((c) => c.role !== "logo_square").slice(0, 4);
   }
   return all.slice(0, 4);
 }
@@ -1306,11 +1315,14 @@ async function proposeIdealVersion(
 ): Promise<{ output: IdealVersion; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const isTikTok = isTikTokStrategy(campaign.strategy);
+  const isSpark = campaign.strategy === "tiktok_spark";
   const formatHint = isMetaStrategy(campaign.strategy)
     ? "formato Meta Ads (titular máx 40 chars; la descripción es el texto principal que pararía tu scroll, máx 125)"
-    : isTikTok
-      ? "formato TikTok Ads (el titular es el gancho verbal de los 2 primeros segundos del vídeo; la descripción es el caption del anuncio, máx 100, sin emojis ni hashtags)"
-      : campaign.strategy === "shopping"
+    : isSpark
+      ? "formato Spark Ad de TikTok (el titular es el gancho verbal de los 2 primeros segundos; la descripción es el caption del post, máx 150, admite emojis y hashtags)"
+      : isTikTok
+        ? "formato TikTok Ads (el titular es el gancho verbal de los 2 primeros segundos del vídeo; la descripción es el caption del anuncio, máx 100, sin emojis ni hashtags)"
+        : campaign.strategy === "shopping"
         ? "título de ficha de producto (máx 150 chars) y argumento de compra (máx 90)"
         : channel === "google"
           ? "formato Google Ads RSA (titular máx 30 chars, descripción máx 90)"
@@ -1332,9 +1344,11 @@ async function proposeIdealVersion(
         : `- 'ideal_headline' es un titular alternativo. Máximo 30 caracteres (${formatHint}).`,
       isMetaStrategy(campaign.strategy)
         ? "- 'ideal_description' es tu texto principal alternativo (lo que leerías encima de la imagen). Máximo 125 caracteres."
-        : isTikTok
-          ? "- 'ideal_description' es tu caption alternativo (el texto del anuncio sobre el vídeo). Máximo 100 caracteres, sin emojis ni hashtags."
-          : "- 'ideal_description' es una descripción alternativa. Máximo 90 caracteres.",
+        : isSpark
+          ? "- 'ideal_description' es tu caption alternativo (el del post promocionado). Máximo 150 caracteres; puedes usar emojis y hashtags."
+          : isTikTok
+            ? "- 'ideal_description' es tu caption alternativo (el texto del anuncio sobre el vídeo). Máximo 100 caracteres, sin emojis ni hashtags."
+            : "- 'ideal_description' es una descripción alternativa. Máximo 90 caracteres.",
       "- 'ideal_promise' es la promesa central que TÚ querrías leer para hacer click.",
       "- 'ideal_free_text' es opcional, 1-2 frases sueltas con matiz extra. null si no añades nada.",
       "- Habla como tú: con tus dudas, tu sector, tu nivel de jerga. NO copies el anuncio original.",
@@ -1751,9 +1765,11 @@ async function synthesizeRecommendations(
       "Escribe en castellano, con acentos correctos. No uses nunca el guion largo (em-dash); usa coma, dos puntos o paréntesis.",
       isMeta
         ? "Los titulares recomendados deben caber en 40 caracteres y las descripciones son textos principales de Meta: deben enganchar antes del corte de 125 caracteres."
-        : isTikTok
-          ? "Los titulares recomendados son ganchos de apertura del vídeo (máximo 40 caracteres) y las descripciones son captions de TikTok: máximo 100 caracteres, sin emojis ni hashtags, que paren el scroll en 2 segundos."
-          : "Los titulares recomendados deben caber en 30 caracteres y las descripciones en 90 (formato Google Ads RSA).",
+        : campaign.strategy === "tiktok_spark"
+          ? "Los titulares recomendados son ganchos de apertura del vídeo (máximo 40 caracteres) y las descripciones son captions de Spark Ad: máximo 150 caracteres, admiten emojis y hashtags, que paren el scroll en 2 segundos."
+          : isTikTok
+            ? "Los titulares recomendados son ganchos de apertura del vídeo (máximo 40 caracteres) y las descripciones son captions de TikTok: máximo 100 caracteres, sin emojis ni hashtags, que paren el scroll en 2 segundos."
+            : "Los titulares recomendados deben caber en 30 caracteres y las descripciones en 90 (formato Google Ads RSA).",
       "Apóyate en los datos: no inventes hallazgos que los números no respalden.",
     ].join("\n"),
     prompt: [
@@ -1810,7 +1826,8 @@ async function synthesizeRecommendations(
   }).catch(() => {});
 
   // Truncado suave a los límites del formato y a los tamaños prometidos
-  // (RSA 30/90, Meta 40/125, TikTok 40/100).
+  // (RSA 30/90, Meta 40/125, TikTok 40/100, Spark 40/150).
+  const sparkCap = campaign.strategy === "tiktok_spark";
   const recommendations: CampaignRecommendations = {
     key_findings: result.object.key_findings.slice(0, 5),
     recommended_headlines: result.object.recommended_headlines
@@ -1818,7 +1835,7 @@ async function synthesizeRecommendations(
       .map((h) => h.slice(0, isMeta || isTikTok ? 40 : 30)),
     recommended_descriptions: result.object.recommended_descriptions
       .slice(0, 2)
-      .map((d) => d.slice(0, isMeta ? 125 : isTikTok ? 100 : 90)),
+      .map((d) => d.slice(0, isMeta ? 125 : sparkCap ? 150 : isTikTok ? 100 : 90)),
     barrier_fixes: result.object.barrier_fixes.slice(0, 5),
   };
 
@@ -2084,9 +2101,11 @@ async function processCombo(
       0,
       isMetaStrategy(campaign.strategy)
         ? 125
-        : isTikTokStrategy(campaign.strategy)
-          ? 100
-          : 90,
+        : campaign.strategy === "tiktok_spark"
+          ? 150
+          : isTikTokStrategy(campaign.strategy)
+            ? 100
+            : 90,
     ),
     ideal_promise: ideal.output.ideal_promise,
     ideal_free_text: ideal.output.ideal_free_text ?? null,

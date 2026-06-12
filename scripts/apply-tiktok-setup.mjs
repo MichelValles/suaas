@@ -26,14 +26,25 @@ const { rows: applied } = await client.query(
   [MIGRATIONS],
 );
 const appliedSet = new Set(applied.map((r) => r.name));
+const runMigration = async (name) => {
+  const sql = readFileSync(new URL(`../supabase/migrations/${name}`, import.meta.url), "utf8");
+  await client.query(sql);
+  console.log(`→ ${name} aplicada`);
+};
+let appliedEarlier = false;
 for (const name of MIGRATIONS) {
   if (appliedSet.has(name)) {
     console.log(`✓ ${name} ya aplicada`);
     continue;
   }
-  const sql = readFileSync(new URL(`../supabase/migrations/${name}`, import.meta.url), "utf8");
-  await client.query(sql);
-  console.log(`→ ${name} aplicada`);
+  await runMigration(name);
+  if (name !== MIGRATIONS[MIGRATIONS.length - 1]) appliedEarlier = true;
+}
+// Si una migración anterior se aplicó tarde (p. ej. la 0021 cuando la 0022
+// ya constaba), sus drop+add habrán revertido los checks de strategy/cta:
+// reaplicar la última (idempotente) deja el estado final correcto.
+if (appliedEarlier && appliedSet.has(MIGRATIONS[MIGRATIONS.length - 1])) {
+  await runMigration(MIGRATIONS[MIGRATIONS.length - 1]);
 }
 await client.query("NOTIFY pgrst, 'reload schema'");
 

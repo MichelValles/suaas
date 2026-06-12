@@ -238,8 +238,9 @@ export async function GET(req: Request, ctx: Ctx) {
 
     const originalTexts = spec?.ad_texts ?? [];
     // El «caption ideal» de los perfiles viaja en ideal_description (así lo
-    // instruye el runner para TikTok).
-    const idealTexts = topIdeals(responses, (r) => r.ideal_description, 100, 5);
+    // instruye el runner para TikTok). Spark admite 150c; el resto, 100c.
+    const captionCap = campaign.strategy === "tiktok_spark" ? 150 : 100;
+    const idealTexts = topIdeals(responses, (r) => r.ideal_description, captionCap, 5);
     const mixedTexts = [
       ...idealTexts,
       ...originalTexts.filter(

@@ -1,5 +1,5 @@
-import { createAbTest } from "@/lib/ab";
-import { createCampaign, type Strategy } from "@/lib/campaigns";
+﻿import { createAbTest } from "@/lib/ab";
+import { createCampaign, listCampaigns, type Strategy } from "@/lib/campaigns";
 import { createCopyDeck } from "@/lib/copy";
 import { createFunnel } from "@/lib/funnels";
 import { createGeoAnalysis } from "@/lib/geo";
@@ -457,6 +457,21 @@ export async function seedCampaignStrategiesExample(): Promise<{
 
   const landing = (await resolveOgImage(FINAL_URL)) ?? IMG_OG;
 
+  // Idempotencia por nombre: el seed no es atómico (7 inserts secuenciales
+  // sin transacción); si una ejecución anterior se cortó a medias (p. ej.
+  // la campaña de TikTok rechazada por la migración 0022 sin aplicar),
+  // reintentar no debe duplicar las ya creadas.
+  const existing = new Map(
+    (await listCampaigns()).map((c) => [c.name, c.id] as const),
+  );
+  const createOrReuse = async (
+    input: Parameters<typeof createCampaign>[0],
+  ): Promise<{ id: string }> => {
+    const found = existing.get(input.name);
+    if (found) return { id: found };
+    return createCampaign(input);
+  };
+
   const shared = {
     channels: ["google"] as ["google"],
     brief:
@@ -494,7 +509,7 @@ export async function seedCampaignStrategiesExample(): Promise<{
   const campaigns: { strategy: Strategy; campaignId: string }[] = [];
 
   // Search (RSA): queries de intención de compra + empresa y logo.
-  const search = await createCampaign({
+  const search = await createOrReuse({
     ...shared,
     name: "IVI · Search · FIV y fertilidad",
     strategy: "search",
@@ -507,7 +522,7 @@ export async function seedCampaignStrategiesExample(): Promise<{
   campaigns.push({ strategy: "search", campaignId: search.id });
 
   // Display (RDA): banner con titular largo, en webs afines.
-  const display = await createCampaign({
+  const display = await createOrReuse({
     ...shared,
     name: "IVI · Display · Plan IVI Baby",
     strategy: "display",
@@ -526,7 +541,7 @@ export async function seedCampaignStrategiesExample(): Promise<{
   campaigns.push({ strategy: "display", campaignId: display.id });
 
   // Performance Max: grupo de recursos completo (incluye titular corto ≤15c).
-  const pmax = await createCampaign({
+  const pmax = await createOrReuse({
     ...shared,
     name: "IVI · PMax · Captación integral",
     strategy: "pmax",
@@ -553,7 +568,7 @@ export async function seedCampaignStrategiesExample(): Promise<{
   campaigns.push({ strategy: "pmax", campaignId: pmax.id });
 
   // Demand Gen: tarjeta de feed (titulares de hasta 40c, uno de ≤30c).
-  const demandGen = await createCampaign({
+  const demandGen = await createOrReuse({
     ...shared,
     name: "IVI · Demand Gen · Discover",
     strategy: "demand_gen",
@@ -575,7 +590,7 @@ export async function seedCampaignStrategiesExample(): Promise<{
   campaigns.push({ strategy: "demand_gen", campaignId: demandGen.id });
 
   // Video: pre-roll con el spot real de IVI.
-  const video = await createCampaign({
+  const video = await createOrReuse({
     ...shared,
     name: "IVI · Video · La noticia de mi vida",
     strategy: "video",
@@ -599,7 +614,7 @@ export async function seedCampaignStrategiesExample(): Promise<{
   campaigns.push({ strategy: "video", campaignId: video.id });
 
   // Shopping: el estudio de fertilidad como producto de ficha.
-  const shopping = await createCampaign({
+  const shopping = await createOrReuse({
     ...shared,
     name: "IVI · Shopping · Estudio de fertilidad",
     strategy: "shopping",
@@ -627,7 +642,7 @@ export async function seedCampaignStrategiesExample(): Promise<{
 
   // TikTok: vídeo in-feed con el spot real como creatividad (el perfil
   // evalúa la miniatura) y el favicon como foto de perfil de la cuenta.
-  const tiktok = await createCampaign({
+  const tiktok = await createOrReuse({
     ...shared,
     channels: ["tiktok"],
     name: "IVI · TikTok · Vídeo in-feed",
