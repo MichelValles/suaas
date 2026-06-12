@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { RemoveIconButton } from "@/components/remove-icon-button";
 import { createFunnelAction, type CreateFunnelState } from "./actions";
 
 const initial: CreateFunnelState = { ok: false };
@@ -226,6 +227,7 @@ function StepCard({
           gap: 8,
           flexWrap: "wrap",
           justifyContent: "flex-end",
+          alignItems: "center",
         }}
       >
         <button
@@ -246,15 +248,12 @@ function StepCard({
         >
           ↓
         </button>
-        <button
-          type="button"
-          className="btn-pill"
-          onClick={onRemove}
-          disabled={total <= 2}
-          style={{ fontSize: 11 }}
-        >
-          Eliminar
-        </button>
+        {total > 2 && (
+          <RemoveIconButton
+            onClick={onRemove}
+            label={`Eliminar paso ${index + 1}`}
+          />
+        )}
       </div>
 
       <ControlledField

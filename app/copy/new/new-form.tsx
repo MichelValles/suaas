@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { RemoveIconButton } from "@/components/remove-icon-button";
 import { createCopyAction, type CreateCopyState } from "./actions";
 
 const initial: CreateCopyState = { ok: false };
@@ -102,17 +103,14 @@ export function NewCopyForm() {
             >
               Bloque {i + 1}
             </legend>
-            <div style={{ display: "flex", justifyContent: "flex-end" }}>
-              <button
-                type="button"
-                className="btn-pill"
-                onClick={() => remove(i)}
-                disabled={blocks.length <= 2}
-                style={{ fontSize: 11 }}
-              >
-                Eliminar
-              </button>
-            </div>
+            {blocks.length > 2 && (
+              <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                <RemoveIconButton
+                  onClick={() => remove(i)}
+                  label={`Eliminar bloque ${i + 1}`}
+                />
+              </div>
+            )}
             <Controlled
               label="Label interno"
               value={b.label}

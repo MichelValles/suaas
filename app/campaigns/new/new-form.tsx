@@ -2,8 +2,9 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { Loader2, Trash2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { ChannelIcon } from "@/components/channel-icon";
+import { RemoveIconButton } from "@/components/remove-icon-button";
 import { StrategyIcon } from "@/components/strategy-icon";
 import {
   CHANNEL_LABEL,
@@ -1996,50 +1997,6 @@ function RowWithRemove({
         <RemoveIconButton onClick={onRemove} style={{ marginBottom: 6 }} />
       )}
     </div>
-  );
-}
-
-/**
- * Icono plano de papelera para quitar elementos del formulario (filas
- * repetibles, creatividades). No toca la papelera del sistema: solo
- * elimina del estado local. Mismo lenguaje visual que la variante
- * «inline» de SendToTrashButton.
- */
-function RemoveIconButton({
-  onClick,
-  style,
-}: {
-  onClick: () => void;
-  style?: React.CSSProperties;
-}) {
-  const restColor = "rgba(var(--fg),0.35)";
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title="Eliminar"
-      aria-label="Eliminar"
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "none",
-        border: "none",
-        padding: 6,
-        color: restColor,
-        cursor: "pointer",
-        transition: "color var(--dur-short) var(--ease-out)",
-        ...style,
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.color = "var(--error-text)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.color = restColor;
-      }}
-    >
-      <Trash2 size={15} />
-    </button>
   );
 }
 

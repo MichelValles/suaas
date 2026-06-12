@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { InfoTooltip } from "@/components/info-tooltip";
+import { RemoveIconButton } from "@/components/remove-icon-button";
 import { type GeoFormState, createGeoAnalysisAction } from "./actions";
 
 type SegmentDraft = {
@@ -207,24 +208,10 @@ function SegmentBlock({
           Segmento {index + 1}
         </span>
         {onRemove && (
-          <button
-            type="button"
+          <RemoveIconButton
             onClick={onRemove}
-            aria-label={`Eliminar segmento ${index + 1}`}
-            style={{
-              background: "transparent",
-              border: "1px solid rgba(var(--fg),0.1)",
-              borderRadius: "var(--radius-pill)",
-              color: "rgba(var(--fg),0.45)",
-              padding: "2px 10px",
-              fontSize: 12,
-              fontFamily: "var(--font-mono)",
-              cursor: "pointer",
-              letterSpacing: "0.1em",
-            }}
-          >
-            Eliminar
-          </button>
+            label={`Eliminar segmento ${index + 1}`}
+          />
         )}
       </div>
 

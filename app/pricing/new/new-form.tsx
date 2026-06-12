@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { RemoveIconButton } from "@/components/remove-icon-button";
 import { createPricingAction, type CreatePricingState } from "./actions";
 
 const initial: CreatePricingState = { ok: false };
@@ -83,7 +84,7 @@ export function NewPricingForm() {
             key={i}
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr auto",
+              gridTemplateColumns: prices.length > 2 ? "1fr 1fr auto" : "1fr 1fr",
               gap: 12,
               alignItems: "end",
               padding: 12,
@@ -104,15 +105,12 @@ export function NewPricingForm() {
               type="number"
               placeholder="19.99"
             />
-            <button
-              type="button"
-              className="btn-pill"
-              onClick={() => remove(i)}
-              disabled={prices.length <= 2}
-              style={{ fontSize: 11 }}
-            >
-              Eliminar
-            </button>
+            {prices.length > 2 && (
+              <RemoveIconButton
+                onClick={() => remove(i)}
+                style={{ marginBottom: 6 }}
+              />
+            )}
           </div>
         ))}
       </div>

@@ -212,6 +212,7 @@ components/
   entity-list.tsx                       EntityListView (búsqueda + sort + paginación) sobre EntityCard
   runs-previous.tsx                     RunsPreviousGrid con tarjetas de runs previos + métricas configurable
   trash-button.tsx                      SendToTrashButton (icono en cada card) → POST /api/trash/[type]/[id]
+  remove-icon-button.tsx                RemoveIconButton: icono papelera para borrar filas del estado local de los forms /new (no toca la papelera del sistema)
   channel-icon.tsx                      SVGs monocromos para google · meta · linkedin · tiktok · x (Channel)
   strategy-icon.tsx                     Iconos lucide para las 10 strategies (7 de Google + meta_single · meta_carousel · meta_collection)
 
