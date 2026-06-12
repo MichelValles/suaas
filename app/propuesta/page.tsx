@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "Gravity · Flat 101",
-  description: "Valida decisiones de producto, precio y campañas con perfiles modelados.",
+  description: "Valida decisiones de producto, precio y campañas con perfiles calibrados.",
 };
 
 // Marca comercial del producto (no se usa el nombre interno). Cambiar aquí
@@ -62,8 +62,8 @@ export default async function PropuestaPage() {
         </h1>
         <p style={{ fontSize: "clamp(17px, 1.9vw, 24px)", lineHeight: 1.5, color: "rgba(var(--fg),0.72)" }}>
           {BRAND} mide la atracción que tu marca ejerce: pone a prueba tu web y tus campañas frente
-          a una cohorte de <strong style={{ color: "var(--text-strong)" }}>perfiles modelados</strong>,
-          calibrados con tus clientes reales. También el precio, antes de publicarlo. Resultados en
+          a una cohorte de <strong style={{ color: "var(--text-strong)" }}>perfiles calibrados</strong>{" "}
+          con tus clientes reales. También el precio, antes de publicarlo. Resultados en
           minutos, por una fracción de lo que cuesta un estudio con personas.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "nowrap", marginTop: 4 }}>
@@ -310,7 +310,7 @@ function Grid({ min, children }: { min: number; children: ReactNode }) {
 }
 
 const PLANES = [
-  { n: "01", title: "Construcción · por qué entras en su órbita", body: "Segmentamos por intención, con perfiles modelados, y definimos por qué tu marca empieza a existir para ese usuario." },
+  { n: "01", title: "Construcción · por qué entras en su órbita", body: "Segmentamos por intención, con perfiles calibrados, y definimos por qué tu marca empieza a existir para ese usuario." },
   { n: "02", title: "Aceleración · refuerza o redirige la intención", body: "Campañas y mensajes guiados por la intención, y cómo te ven los buscadores de IA (GEO). Cada interacción empuja la órbita o la frena." },
   { n: "03", title: "Valor · que el cliente vuelva", body: "Claridad en la web y embudos que acaban en compra. Y que esa compra se repita: la órbita se estabiliza y el cliente se queda cerca." },
 ];

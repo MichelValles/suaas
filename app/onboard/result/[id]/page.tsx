@@ -7,7 +7,7 @@ import { getProfile, type Profile } from "@/lib/profiles";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Tu gemelo sintético · SUAAS",
+  title: "Tu gemelo digital · SUAAS",
   robots: { index: false, follow: false },
 };
 
@@ -43,7 +43,7 @@ export default async function OnboardResultPage({
             color: "var(--accent-500)",
           }}
         >
-          Tu gemelo sintético
+          Tu gemelo digital
         </span>
         <h1
           className="display"
@@ -60,7 +60,7 @@ export default async function OnboardResultPage({
           className="body-lg"
           style={{ color: "rgba(255,255,255,0.7)", margin: 0 }}
         >
-          Hemos convertido tus respuestas en este usuario sintético. Lo usaremos
+          Hemos convertido tus respuestas en este perfil calibrado. Lo usaremos
           en estrategias de captación, creatividades y UX para anticipar cómo
           reaccionarías ante una idea.
         </p>
@@ -113,7 +113,7 @@ export default async function OnboardResultPage({
           textAlign: "center",
         }}
       >
-        suaas.flat101.business · synthetic users as a service
+        suaas.flat101.business · perfiles calibrados
       </p>
     </div>
   );

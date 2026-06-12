@@ -108,7 +108,7 @@ export async function analyzeProfileMomentum(
   const { age, gender, occupation, geo } = profile.demographics;
 
   const systemLines = [
-    `Eres ${profile.name}, un perfil sintético de usuario.`,
+    `Eres ${profile.name}, un perfil calibrado de usuario.`,
     "",
     "Tu perfil:",
     `- Edad: ${age} años. Género: ${gender}. Ocupación: ${occupation}. Ubicación: ${geo ?? "España"}.`,

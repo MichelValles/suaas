@@ -14,7 +14,7 @@ import { createProfile, ProfileInputSchema, type Profile } from "@/lib/profiles"
 import { recordUsage } from "@/lib/usage";
 
 /**
- * Onboard público: sintetiza un perfil sintético calibrado a partir de las
+ * Onboard público: genera un perfil calibrado a partir de las
  * respuestas que un humano real contesta en /onboard.
  *
  * Modelo híbrido C (ver docs/SIGUIENTE-PASO.md):
@@ -224,7 +224,7 @@ export async function* synthesizeProfile(
 function buildSystemPrompt(): string {
   return [
     "Eres un investigador UX que recibe respuestas REALES de un humano contestando un cuestionario en su móvil.",
-    "Tu trabajo es transformar esas respuestas en un perfil sintético calibrado para nuestra plataforma SUAAS.",
+    "Tu trabajo es transformar esas respuestas en un perfil calibrado para nuestra plataforma SUAAS.",
     "",
     "## Reglas de fidelidad (críticas)",
     "- INTEGRA frases TEXTUALES del usuario en la backstory y en las barreras COM-B. No las parafrasees a no ser que sea estrictamente necesario.",

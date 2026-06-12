@@ -127,7 +127,7 @@ export function OnboardShareModal() {
                   margin: 0,
                 }}
               >
-                Convierte a alguien real en su gemelo sintético.
+                Convierte a alguien real en su gemelo digital.
               </h2>
               <p style={{ color: "rgba(var(--fg),0.65)", margin: 0, fontSize: 14 }}>
                 Cualquier persona con este enlace puede contestar el cuestionario

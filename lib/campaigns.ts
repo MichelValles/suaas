@@ -90,7 +90,7 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
   demand_gen:
     "Anuncio de imagen en feeds (Discover, Gmail, YouTube; spec oficial 17091672). 1..5 titulares (40c, al menos uno de 30c o menos) + 1..5 descripciones (90c) + nombre de empresa (25c) + CTA + imagen landscape (1.91:1) + square (1:1) + logo (1:1, mín 144x144). Opcional: imagen vertical (4:5) y vídeos (10-60s recomendados, hasta 3 por orientación). Subformatos carousel y video aún no modelados.",
   video:
-    "Video action campaign en YouTube (spec oficial 17091270). 1 vídeo (duración recomendada 10s o más) + 1 titular (30c) + 1 descripción (90c) + URL final. Opcional: titular largo (90c) y CTA (máx 10c). El perfil sintético evalúa la miniatura y el copy (los modelos no procesan vídeo).",
+    "Video action campaign en YouTube (spec oficial 17091270). 1 vídeo (duración recomendada 10s o más) + 1 titular (30c) + 1 descripción (90c) + URL final. Opcional: titular largo (90c) y CTA (máx 10c). El perfil calibrado evalúa la miniatura y el copy (los modelos no procesan vídeo).",
   app:
     "App vinculada de Play / App Store como baseline. 2+ titulares (30c) + 1+ descripción (90c). Hasta 20 imágenes y 20 vídeos en formatos 1.91:1, 1:1, 4:5, 9:16. HTML5 opcional.",
   shopping:
@@ -102,9 +102,9 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
   meta_collection:
     "Colección: portada (imagen o vídeo) + cuadrícula de productos (mínimo 4 tiles). Al tocar se abre una instant experience a pantalla completa. Solo ubicaciones móviles: feeds de Facebook e Instagram y Stories de Instagram. Texto principal (125c) + titular (40c).",
   tiktok_video:
-    "Vídeo in-feed de subasta (spec oficial de Auction In-Feed Ads). Vídeo 9:16 (mín. 540x960, recomendado; admite 1:1 y 16:9), 5-60s (mejor rendimiento 21-34s), máx. 500 MB. Texto del anuncio 1-100 caracteres SIN emojis, «#» ni «@» + nombre visible (máx. 20c en pantalla) + botón CTA de la lista cerrada. El perfil sintético evalúa la miniatura del vídeo y el copy (los modelos no procesan vídeo).",
+    "Vídeo in-feed de subasta (spec oficial de Auction In-Feed Ads). Vídeo 9:16 (mín. 540x960, recomendado; admite 1:1 y 16:9), 5-60s (mejor rendimiento 21-34s), máx. 500 MB. Texto del anuncio 1-100 caracteres SIN emojis, «#» ni «@» + nombre visible (máx. 20c en pantalla) + botón CTA de la lista cerrada. El perfil calibrado evalúa la miniatura del vídeo y el copy (los modelos no procesan vídeo).",
   tiktok_carousel:
-    "Carousel de imágenes en el feed (spec oficial de Carousel Ads). De 2 a 35 imágenes (mejor CTR con 3 o 7-9), vertical 720x1280 recomendado, JPG/PNG. Música OBLIGATORIA (suena en bucle). Un solo texto de anuncio, un nombre visible y un botón CTA para todas las tarjetas. El perfil sintético ve las 4 primeras imágenes.",
+    "Carousel de imágenes en el feed (spec oficial de Carousel Ads). De 2 a 35 imágenes (mejor CTR con 3 o 7-9), vertical 720x1280 recomendado, JPG/PNG. Música OBLIGATORIA (suena en bucle). Un solo texto de anuncio, un nombre visible y un botón CTA para todas las tarjetas. El perfil calibrado ve las 4 primeras imágenes.",
   tiktok_spark:
     "Spark Ad: post orgánico real promocionado (propio o de un creador con código de autorización). Conserva el caption del post (admite emojis y hashtags; máx. 150c en push de R&F, editable solo allí), la identidad real de la cuenta y suma likes, comentarios y seguidores al post. La interacción completa (perfil, música) está activa.",
 };
@@ -788,7 +788,7 @@ export const CampaignInputSchema = z
             code: z.ZodIssueCode.custom,
             path: ["creatives"],
             message:
-              "El anuncio único exige 1 creatividad: imagen, o vídeo con miniatura (el perfil sintético evalúa la miniatura).",
+              "El anuncio único exige 1 creatividad: imagen, o vídeo con miniatura (el perfil calibrado evalúa la miniatura).",
           });
         }
       }
@@ -948,7 +948,7 @@ export const CampaignInputSchema = z
             code: z.ZodIssueCode.custom,
             path: ["creatives"],
             message:
-              "TikTok exige 1 vídeo con miniatura (9:16 recomendado; el perfil sintético evalúa la miniatura, los modelos no procesan vídeo).",
+              "TikTok exige 1 vídeo con miniatura (9:16 recomendado; el perfil calibrado evalúa la miniatura, los modelos no procesan vídeo).",
           });
         }
       }

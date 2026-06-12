@@ -754,14 +754,14 @@ function StepBody({
             margin: 0,
           }}
         >
-          Crea tu gemelo sintético.
+          Crea tu gemelo digital.
         </h1>
         <p
           className="body-lg"
           style={{ color: "rgba(255,255,255,0.7)", margin: 0, maxWidth: 480 }}
         >
           Contesta unas preguntas durante 10 minutos. Convertiremos tus respuestas
-          en un usuario sintético calibrado que reacciona como tú: con tus rasgos
+          en un perfil calibrado que reacciona como tú: con tus rasgos
           de personalidad, tu contexto y tus frustraciones. Lo usamos en
           estrategias de captación, creatividades y UX para anticipar cómo
           responderá un usuario real ante una idea.
@@ -955,7 +955,7 @@ function StepBody({
             style={{ color: "rgba(255,255,255,0.7)", margin: 0 }}
           >
             Cuando le des al botón, calcularemos tus rasgos y compondremos tu
-            gemelo sintético. Toma entre 15 y 30 segundos.
+            gemelo digital. Toma entre 15 y 30 segundos.
           </p>
         ) : (
           <MissingPanel missing={missing} onJumpTo={onJumpTo} />

@@ -3,7 +3,7 @@ import type { Profile } from "@/lib/profiles";
 /**
  * buildSystemPrompt
  *
- * Construye el system prompt para que el LLM hable como el perfil sintético.
+ * Construye el system prompt para que el LLM hable como el perfil calibrado.
  * Sigue el principio de "Grounded Modeling" de docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md:
  * datos estructurados + vignette narrativa.
  *

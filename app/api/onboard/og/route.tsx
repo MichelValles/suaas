@@ -75,7 +75,7 @@ export async function GET(req: NextRequest) {
             textTransform: "uppercase",
           }}
         >
-          <span>SUAAS · Gemelo sintético</span>
+          <span>SUAAS · Gemelo digital</span>
           <span style={{ color: INK_500 }}>suaas.flat101.business</span>
         </div>
 

@@ -13,7 +13,7 @@ function isPublic(pathname: string): boolean {
   if (pathname.startsWith("/_next/")) return true;
   if (pathname.startsWith("/logos/")) return true;
   // Onboard público: cuestionario para convertir humanos reales en perfiles
-  // sintéticos. No requiere login porque se comparte con personas externas.
+  // calibrados. No requiere login porque se comparte con personas externas.
   if (pathname === "/onboard") return true;
   if (pathname.startsWith("/onboard/")) return true;
   if (pathname.startsWith("/api/onboard/")) return true;

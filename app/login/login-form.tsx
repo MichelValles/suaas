@@ -155,7 +155,7 @@ export function LoginForm() {
           }}
         >
           <span className="mono" style={S.eyebrow}>
-            SUAAS · Usuarios sintéticos
+            SUAAS · Perfiles calibrados
           </span>
           <p className="display" style={S.headline}>
             Acceso privado.

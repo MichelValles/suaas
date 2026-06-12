@@ -119,7 +119,7 @@ async function generateOneProfile(seed: string): Promise<GeneratedProfile> {
     schema: SeedOutputSchema,
     system: [
       "Eres un sociólogo digital del INE con experiencia en investigación cualitativa.",
-      "Tu trabajo es fabricar UN perfil sintético de un usuario español, calibrado y realista.",
+      "Tu trabajo es fabricar UN perfil calibrado de un usuario español, realista.",
       "Devuelve EXACTAMENTE el objeto pedido por el schema. Sin comentarios meta.",
       "",
       "## Reglas de fidelidad",

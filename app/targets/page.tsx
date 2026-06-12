@@ -31,7 +31,7 @@ export default async function TargetsPage() {
     <AppShell>
       <PageHeading
         eyebrow="Targets · qué se evalúa"
-        title="Pantallas que ponemos delante de los usuarios sintéticos."
+        title="Pantallas que ponemos delante de los perfiles calibrados."
         actions={
           <Link href="/targets/new" className="btn-pill solid">
             Nuevo test

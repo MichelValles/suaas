@@ -161,7 +161,7 @@ export async function judgeComprehension(
     schema: JudgeOutputSchema,
     system: [
       "Eres un juez calibrado de tests de claridad de 5 segundos.",
-      "Vas a comparar la 'promesa principal' definida por el equipo de producto contra el 'recall' que produjo un usuario sintético tras ver la pantalla 5 segundos.",
+      "Vas a comparar la 'promesa principal' definida por el equipo de producto contra el 'recall' que produjo un perfil calibrado tras ver la pantalla 5 segundos.",
       "Devuelve un score 0..1:",
       "- 1.0 = el recall recoge la promesa principal o algo más específico de la misma.",
       "- 0.6-0.8 = el recall recoge una parte central de la promesa, con omisiones.",

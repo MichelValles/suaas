@@ -1436,7 +1436,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           {strategy === "tiktok_video" || strategy === "tiktok_spark" ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
               {strategy === "tiktok_spark" ? "El Spark Ad" : "El vídeo in-feed"} exige{" "}
-              <strong>1 vídeo con miniatura</strong> (el perfil sintético evalúa la
+              <strong>1 vídeo con miniatura</strong> (el perfil calibrado evalúa la
               miniatura, los modelos no procesan vídeo). Spec: 9:16 vertical
               recomendado (mínimo 540x960; admite 1:1 y 16:9), 5-60 segundos
               (mejor rendimiento 21-34s), máximo 500 MB. La interfaz tapa los
@@ -1450,12 +1450,12 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               con 7-9), JPG/PNG, vertical 720x1280 recomendado (otros ratios
               recortan en negro). Pasan solas en orden y se pueden deslizar; un
               solo caption, una música y un botón CTA para todas. El perfil
-              sintético ve las 4 primeras imágenes.
+              calibrado ve las 4 primeras imágenes.
             </p>
           ) : strategy === "meta_single" ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
               El anuncio único exige <strong>1 creatividad</strong>: imagen (JPG/PNG) o
-              vídeo con miniatura (el perfil sintético evalúa la miniatura, los
+              vídeo con miniatura (el perfil calibrado evalúa la miniatura, los
               modelos no procesan vídeo). Ratio según placement:{" "}
               {metaVertical
                 ? "9:16 a pantalla completa (deja libre el 14% superior, el 35% inferior y el 6% lateral: ahí va la interfaz)"
@@ -1470,7 +1470,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               {metaPlacement === "threads_feed"
                 ? " En Threads las tarjetas solo pueden ser imágenes."
                 : " Puedes mezclar imagen y vídeo (con miniatura)."}{" "}
-              El perfil sintético ve las 4 primeras imágenes y la lista completa de titulares.
+              El perfil calibrado ve las 4 primeras imágenes y la lista completa de titulares.
             </p>
           ) : strategy === "meta_collection" ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
@@ -1482,7 +1482,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           ) : strategy === "video" ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
               Video exige <strong>1 vídeo de YouTube</strong> (o subido); duración
-              recomendada 10 segundos o más. El perfil sintético evalúa su miniatura
+              recomendada 10 segundos o más. El perfil calibrado evalúa su miniatura
               junto al copy (los modelos no procesan vídeo).
             </p>
           ) : strategy === "shopping" ? (
@@ -1506,7 +1506,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           ) : (
             creatives.length === 0 && (
               <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0 }}>
-                Imagen, vídeo o YouTube. El perfil sintético ve la imagen
+                Imagen, vídeo o YouTube. El perfil calibrado ve la imagen
                 directamente o el thumbnail si es vídeo / YouTube (los modelos
                 actuales no procesan vídeo).
               </p>
@@ -2344,7 +2344,7 @@ function CreativeVideoInput({
       />
       <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 12, lineHeight: 1.55, margin: 0 }}>
         Los modelos actuales no procesan vídeo. Si subes un .mp4 o pones una URL,
-        sube también un thumbnail estático (jpg/png) para que el perfil sintético
+        sube también un thumbnail estático (jpg/png) para que el perfil calibrado
         pueda &quot;verlo&quot;. Sin thumbnail la creatividad se ignora.
       </p>
       {src && (

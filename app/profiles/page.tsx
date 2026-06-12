@@ -29,7 +29,7 @@ export default async function ProfilesPage() {
     <AppShell>
       <PageHeading
         eyebrow="Perfiles · vignettes grounded"
-        title="Hablamos con usuarios sintéticos."
+        title="Hablamos con perfiles calibrados."
         actions={
           <Link href="/profiles/new" className="btn-pill solid">
             Nuevo perfil

@@ -1,6 +1,6 @@
-# SUAAS · Synthetic Users as a Service
+# SUAAS · Perfiles calibrados como servicio
 
-Plataforma para experimentación predictiva en UX y CRO con agentes sintéticos calibrados. Vive en `suaas.flat101.business`.
+Plataforma para experimentación predictiva en UX y CRO con perfiles calibrados. Vive en `suaas.flat101.business`.
 
 ## Stack
 

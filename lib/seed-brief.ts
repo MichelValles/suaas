@@ -206,7 +206,7 @@ export type SeedPlan = {
 // ============================================================
 
 const SYSTEM = [
-  "Eres el motor de ejemplos de SUAAS, una plataforma de tests UX/CRO con usuarios sintéticos.",
+  "Eres el motor de ejemplos de SUAAS, una plataforma de tests UX/CRO con perfiles calibrados.",
   "A partir de un brief, generas el contenido de ejemplo de los módulos solicitados.",
   "",
   "Reglas:",

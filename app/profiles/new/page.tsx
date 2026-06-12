@@ -10,7 +10,7 @@ export default function NewProfilePage() {
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Perfiles · usuarios sintéticos"
+          eyebrow="Perfiles · calibrados con tu cliente real"
           title="Supabase aún no está conectado."
           description="No se puede crear perfiles hasta provisionar Supabase desde el Marketplace de Vercel."
         />

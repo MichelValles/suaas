@@ -2,7 +2,7 @@
 
 # Reglas operativas del proyecto SUAAS
 
-SUAAS es una plataforma para hacer **test de UX/CRO con usuarios sintéticos**, expuesta en `suaas.flat101.business`. Stack: Next.js 16 (App Router) + Supabase + Vercel AI Gateway. Sin Tailwind, sólo tokens del design system de sd.michelvalles.com.
+SUAAS es una plataforma para hacer **test de UX/CRO con perfiles calibrados**, expuesta en `suaas.flat101.business`. Stack: Next.js 16 (App Router) + Supabase + Vercel AI Gateway. Sin Tailwind, sólo tokens del design system de sd.michelvalles.com.
 
 ## 1. Documentación viva en `docs/`
 
@@ -40,11 +40,12 @@ La versión se imprime en la consola del navegador al cargar (`components/consol
 
 Aplica a cualquier texto visible: copy, intros, body, labels, alt, metadatos, mensajes de error, README. Sin excepciones. Sustituir por coma, dos puntos, paréntesis o un punto según el ritmo.
 
-- ❌ "Hablamos con usuarios sintéticos — calibrados con VoC real."
-- ✅ "Hablamos con usuarios sintéticos: calibrados con VoC real."
+- ❌ "Hablamos con perfiles calibrados — afinados con VoC real."
+- ✅ "Hablamos con perfiles calibrados: afinados con VoC real."
 
 ### Otras reglas de copy
 
+- El término de producto es **«perfiles calibrados»** (en el onboard, «gemelo digital»). No usar «usuarios sintéticos» en texto visible ni en prompts; queda reservado a la base teórica (`docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md`) y a los registros históricos. SUAAS es marca pura, sin expansión del acrónimo.
 - Castellano con acentos completos. Nunca sustituir diacríticos por ASCII.
 - Comillas tipográficas «…» o "…" en lugar de "…" cuando rodean texto destacado.
 - Números: separador de miles con punto (formato español).

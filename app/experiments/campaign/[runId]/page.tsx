@@ -216,7 +216,7 @@ export default async function CampaignRunPage({
           maxWidth: 760,
         }}
       >
-        Nota metodológica: «Intent ≥ 0,5» mide la proporción de respuestas sintéticas
+        Nota metodológica: «Intent ≥ 0,5» mide la proporción de respuestas de los perfiles
         sobre un umbral interno, no una tasa de clics comparable con la plataforma.
         El match de landing se juzga sobre{" "}
         {campaign.landing_source_url

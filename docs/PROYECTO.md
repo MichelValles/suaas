@@ -4,7 +4,7 @@
 
 ## Qué es
 
-**SUAAS** (Synthetic Users as a Service) es una plataforma interna de Flat 101 para hacer test de **UX, CRO y publicidad** con **agentes sintéticos calibrados**. Permite descartar variantes de bajo rendimiento antes de comprometer tráfico real, simular elasticidad de precios, validar copy bajo intenciones de búsqueda específicas y comparar creatividades publicitarias sin coste de reclutamiento.
+**SUAAS** (marca pura, sin expansión del acrónimo) es una plataforma interna de Flat 101 para hacer test de **UX, CRO y publicidad** con **perfiles calibrados**. Permite descartar variantes de bajo rendimiento antes de comprometer tráfico real, simular elasticidad de precios, validar copy bajo intenciones de búsqueda específicas y comparar creatividades publicitarias sin coste de reclutamiento.
 
 - **Dominio**: `suaas.flat101.business`.
 - **Hosting**: Vercel (proyecto independiente, no comparte deploy con `flat101business`).

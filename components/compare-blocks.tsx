@@ -14,7 +14,7 @@ export function fmtComparePct(v: number | null): string {
 
 /**
  * Regla de empate compartida: diferencias menores a epsilon no declaran
- * ganador (con muestras sintéticas pequeñas serían ruido, no señal).
+ * ganador (con muestras pequeñas de perfiles serían ruido, no señal).
  */
 export function pickCompareWinner(
   ka: number,

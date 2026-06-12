@@ -1136,7 +1136,7 @@ async function probeCampaignSnippet(
   // - image: se intenta normalizar la URL directamente.
   // - youtube: el thumbnail (jpg) sí lo entiende el modelo.
   // - video: si trae thumbnail_url la usamos; si no, se ignora (el modelo no
-  //   acepta vídeo). El perfil sintético no "ve" el vídeo, sólo su miniatura.
+  //   acepta vídeo). El perfil calibrado no "ve" el vídeo, sólo su miniatura.
   // En Meta el orden importa (el render dice qué es cada imagen): colección =
   // portada + primeros tiles; carousel = tarjetas en su orden.
   for (const c of creativesForModel(campaign)) {
@@ -1278,7 +1278,7 @@ async function judgeAdComprehension(
     schema: AdJudgeSchema,
     system: [
       "Eres un juez calibrado de tests de comprensión de anuncios.",
-      "Vas a comparar el 'mensaje pretendido' definido por el anunciante contra la 'oferta percibida' que verbalizó un usuario sintético al ver el anuncio.",
+      "Vas a comparar el 'mensaje pretendido' definido por el anunciante contra la 'oferta percibida' que verbalizó un perfil calibrado al ver el anuncio.",
       "Devuelve un score 0..1:",
       "- 1.0 = la percepción recoge el mensaje pretendido o algo más específico del mismo.",
       "- 0.6-0.8 = la percepción recoge una parte central del mensaje, con omisiones.",
@@ -1761,7 +1761,7 @@ async function synthesizeRecommendations(
     model: DEFAULT_MODEL,
     schema: RecommendationsSchema,
     system: [
-      "Eres un consultor senior de paid media y CRO. Resumes un test de anuncio con usuarios sintéticos en recomendaciones accionables para el equipo de marketing.",
+      "Eres un consultor senior de paid media y CRO. Resumes un test de anuncio con perfiles calibrados en recomendaciones accionables para el equipo de marketing.",
       "Escribe en castellano, con acentos correctos. No uses nunca el guion largo (em-dash); usa coma, dos puntos o paréntesis.",
       isMeta
         ? "Los titulares recomendados deben caber en 40 caracteres y las descripciones son textos principales de Meta: deben enganchar antes del corte de 125 caracteres."
