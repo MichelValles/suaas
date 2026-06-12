@@ -10,8 +10,12 @@ import {
   META_OBJECTIVE_LABEL,
   META_PLACEMENT_LABEL,
   STRATEGY_LABEL,
+  TIKTOK_OBJECTIVE_LABEL,
   getCampaign,
   isMetaStrategy,
+  isTikTokStrategy,
+  metaSpecOf,
+  tiktokSpecOf,
   type Creative,
 } from "@/lib/campaigns";
 import { listProfiles } from "@/lib/profiles";
@@ -106,6 +110,8 @@ export default async function CampaignDetailPage({
   }
   const campaign = await getCampaign(id);
   if (!campaign) notFound();
+  const metaSpec = metaSpecOf(campaign);
+  const tiktokSpec = tiktokSpecOf(campaign);
   const [profiles, runs] = await Promise.all([
     listProfiles(),
     listRunsByCampaign(id),
@@ -128,8 +134,10 @@ export default async function CampaignDetailPage({
     <AppShell>
       <PageHeading
         eyebrow={
-          isMetaStrategy(campaign.strategy) && campaign.channel_spec
-            ? `Campaña · Meta · ${STRATEGY_LABEL[campaign.strategy]} · ${META_PLACEMENT_LABEL[campaign.channel_spec.placement]} · ${campaign.channel_spec.primary_texts.length} ${campaign.channel_spec.primary_texts.length === 1 ? "texto" : "textos"}`
+          isMetaStrategy(campaign.strategy) && metaSpec
+            ? `Campaña · Meta · ${STRATEGY_LABEL[campaign.strategy]} · ${META_PLACEMENT_LABEL[metaSpec.placement]} · ${metaSpec.primary_texts.length} ${metaSpec.primary_texts.length === 1 ? "texto" : "textos"}`
+            : isTikTokStrategy(campaign.strategy) && tiktokSpec
+              ? `Campaña · TikTok · ${STRATEGY_LABEL[campaign.strategy]} · ${TIKTOK_OBJECTIVE_LABEL[tiktokSpec.objective]} · ${tiktokSpec.ad_texts.length} ${tiktokSpec.ad_texts.length === 1 ? "texto" : "textos"}`
             : campaign.strategy === "display"
               ? `Campaña · Display · ${campaign.headlines.length} titulares cortos · ${campaign.creatives.length} assets`
               : campaign.strategy === "shopping"
@@ -205,21 +213,117 @@ export default async function CampaignDetailPage({
             <StrategyIcon strategy={campaign.strategy} size={14} />
             {STRATEGY_LABEL[campaign.strategy]}
           </span>
-          {isMetaStrategy(campaign.strategy) && campaign.channel_spec && (
+          {isMetaStrategy(campaign.strategy) && metaSpec && (
             <>
               <span className="mono" style={metaChipStyle}>
-                Objetivo · {META_OBJECTIVE_LABEL[campaign.channel_spec.objective]}
+                Objetivo · {META_OBJECTIVE_LABEL[metaSpec.objective]}
               </span>
               <span className="mono" style={metaChipStyle}>
-                {META_PLACEMENT_LABEL[campaign.channel_spec.placement]}
+                {META_PLACEMENT_LABEL[metaSpec.placement]}
+              </span>
+            </>
+          )}
+          {isTikTokStrategy(campaign.strategy) && tiktokSpec && (
+            <>
+              <span className="mono" style={metaChipStyle}>
+                Objetivo · {TIKTOK_OBJECTIVE_LABEL[tiktokSpec.objective]}
+              </span>
+              <span className="mono" style={metaChipStyle}>
+                Feed «Para ti»
               </span>
             </>
           )}
         </div>
       </section>
 
+      {/* Identidad y textos del anuncio (solo TikTok) */}
+      {isTikTokStrategy(campaign.strategy) && tiktokSpec && (
+        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <SectionLabel>Anuncio de TikTok</SectionLabel>
+          <div
+            style={{
+              border: "1px solid rgba(var(--fg),0.08)",
+              borderRadius: "var(--radius-md)",
+              background: "rgba(var(--fg),0.02)",
+              padding: "16px 18px",
+              display: "flex",
+              flexDirection: "column",
+              gap: 10,
+            }}
+          >
+            {campaign.company_name && (
+              <div>
+                <span className="mono" style={chipMonoStyle}>
+                  Nombre visible · {campaign.company_name.length}/40
+                  {campaign.company_name.length > 20 ? " · en pantalla se ven ~20" : ""}
+                </span>
+                <p style={{ color: "rgba(var(--fg),0.9)", fontSize: 18, margin: "4px 0 0" }}>
+                  {campaign.company_name}
+                </p>
+              </div>
+            )}
+            {tiktokSpec.identity_handle && (
+              <div>
+                <span className="mono" style={chipMonoStyle}>
+                  Usuario
+                </span>
+                <p
+                  style={{
+                    color: "rgba(var(--fg),0.7)",
+                    fontSize: 13,
+                    margin: "4px 0 0",
+                    fontFamily: "var(--font-mono)",
+                  }}
+                >
+                  @{tiktokSpec.identity_handle}
+                </p>
+              </div>
+            )}
+            {tiktokSpec.music_name && (
+              <div>
+                <span className="mono" style={chipMonoStyle}>
+                  Música
+                </span>
+                <p style={{ color: "rgba(var(--fg),0.85)", fontSize: 14, margin: "4px 0 0" }}>
+                  ♫ {tiktokSpec.music_name}
+                </p>
+              </div>
+            )}
+            {campaign.cta && (
+              <div>
+                <span className="mono" style={chipMonoStyle}>
+                  CTA
+                </span>
+                <p style={{ color: "rgba(var(--fg),0.85)", fontSize: 14, margin: "4px 0 0" }}>
+                  [{campaign.cta}]
+                </p>
+              </div>
+            )}
+          </div>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 12,
+            }}
+          >
+            {tiktokSpec.ad_texts.map((t, i) => (
+              <div key={i} style={cardStyle}>
+                <span className="mono" style={chipMonoStyle}>
+                  Texto del anuncio {i + 1} · {t.length}c
+                  {t.length > 80 ? " · se trunca con «más»" : ""}
+                </span>
+                <span style={{ color: "rgba(var(--fg),0.85)", fontSize: 14, lineHeight: 1.55 }}>
+                  {t}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Identidad y textos principales (solo Meta) */}
-      {isMetaStrategy(campaign.strategy) && campaign.channel_spec && (
+      {isMetaStrategy(campaign.strategy) && metaSpec && (
         <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <SectionLabel>Anuncio de Meta</SectionLabel>
           <div
@@ -243,7 +347,7 @@ export default async function CampaignDetailPage({
                 </p>
               </div>
             )}
-            {campaign.channel_spec.display_link && (
+            {metaSpec.display_link && (
               <div>
                 <span className="mono" style={chipMonoStyle}>
                   Enlace visible
@@ -256,7 +360,7 @@ export default async function CampaignDetailPage({
                     fontFamily: "var(--font-mono)",
                   }}
                 >
-                  {campaign.channel_spec.display_link}
+                  {metaSpec.display_link}
                 </p>
               </div>
             )}
@@ -278,7 +382,7 @@ export default async function CampaignDetailPage({
               gap: 12,
             }}
           >
-            {campaign.channel_spec.primary_texts.map((t, i) => (
+            {metaSpec.primary_texts.map((t, i) => (
               <div key={i} style={cardStyle}>
                 <span className="mono" style={chipMonoStyle}>
                   Texto principal {i + 1} · {t.length}c
@@ -480,7 +584,9 @@ export default async function CampaignDetailPage({
       {campaign.queries.length > 0 && (
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         <SectionLabel>
-          {campaign.strategy === "display" || isMetaStrategy(campaign.strategy)
+          {campaign.strategy === "display" ||
+          isMetaStrategy(campaign.strategy) ||
+          isTikTokStrategy(campaign.strategy)
             ? "Intereses / contexto"
             : "Queries objetivo"}
         </SectionLabel>

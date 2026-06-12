@@ -3,7 +3,12 @@ import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { ChannelIcon } from "@/components/channel-icon";
 import { InfoTooltip } from "@/components/info-tooltip";
-import { CHANNEL_LABEL, getCampaignWithTrashed, isMetaStrategy } from "@/lib/campaigns";
+import {
+  CHANNEL_LABEL,
+  getCampaignWithTrashed,
+  isMetaStrategy,
+  isTikTokStrategy,
+} from "@/lib/campaigns";
 import {
   GENERAL_CONTEXT_QUERY,
   RecommendationsSchema,
@@ -106,6 +111,15 @@ export default async function CampaignRunPage({
                 download
               >
                 Meta Ads
+              </a>
+            ) : isTikTokStrategy(campaign.strategy) ? (
+              <a
+                href={`/api/export/campaign/${runId}?format=tiktok`}
+                className="btn-pill"
+                title="CSV con la estructura de un anuncio de TikTok (5 textos de anuncio, identidad, CTA, música): fila con los assets originales y fila con el top de captions ideales"
+                download
+              >
+                TikTok Ads
               </a>
             ) : (
               <a

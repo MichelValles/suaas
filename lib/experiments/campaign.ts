@@ -4,7 +4,11 @@ import { BudgetExceededError, assertBudget } from "@/lib/budget";
 import {
   META_OBJECTIVE_LABEL,
   META_PLACEMENT_LABEL,
+  TIKTOK_OBJECTIVE_LABEL,
   isMetaStrategy,
+  isTikTokStrategy,
+  metaSpecOf,
+  tiktokSpecOf,
   type Campaign,
   type Channel,
   type Creative,
@@ -350,7 +354,7 @@ export function sampleMetaCombination(
   query: string,
 ): ShownCombination {
   const rng = mulberry32(hashSeed(`${profileId}|${query}`));
-  const primaryTexts = campaign.channel_spec?.primary_texts ?? [];
+  const primaryTexts = metaSpecOf(campaign)?.primary_texts ?? [];
   return {
     primary_text: pickN(primaryTexts, Math.min(1, primaryTexts.length), rng)[0] ?? null,
     headlines: pickN(campaign.headlines, Math.min(1, campaign.headlines.length), rng),
@@ -359,6 +363,26 @@ export function sampleMetaCombination(
       Math.min(1, campaign.descriptions.length),
       rng,
     ),
+  };
+}
+
+/**
+ * Muestreo para TikTok: cada impresión sirve UN texto de anuncio de las
+ * hasta 5 variantes (así rota Smart+ / ACO los ad texts del ad group).
+ * Determinista por profileId + query, como el resto de muestreos. El texto
+ * viaja en primary_text para reutilizar la persistencia de Meta.
+ */
+export function sampleTikTokCombination(
+  campaign: Campaign,
+  profileId: string,
+  query: string,
+): ShownCombination {
+  const rng = mulberry32(hashSeed(`${profileId}|${query}`));
+  const adTexts = tiktokSpecOf(campaign)?.ad_texts ?? [];
+  return {
+    primary_text: pickN(adTexts, Math.min(1, adTexts.length), rng)[0] ?? null,
+    headlines: [],
+    descriptions: [],
   };
 }
 
@@ -380,7 +404,7 @@ function metaVisiblePrimaryChars(placement: MetaPlacement): number {
 }
 
 function metaPlacement(campaign: Campaign): MetaPlacement {
-  return campaign.channel_spec?.placement ?? "instagram_feed";
+  return metaSpecOf(campaign)?.placement ?? "instagram_feed";
 }
 
 /** Placements 9:16 a pantalla completa donde no se muestra headline ni description. */
@@ -395,7 +419,7 @@ function isMetaVertical(placement: MetaPlacement): boolean {
 /** Primary text como lo ve el usuario: truncado con «… Ver más» si excede lo visible. */
 function metaShownPrimaryText(campaign: Campaign, shown: ShownCombination | null): string {
   const full =
-    shown?.primary_text ?? campaign.channel_spec?.primary_texts[0] ?? "";
+    shown?.primary_text ?? metaSpecOf(campaign)?.primary_texts[0] ?? "";
   const visible = metaVisiblePrimaryChars(metaPlacement(campaign));
   if (full.length <= visible) return full;
   return `${full.slice(0, visible).trimEnd()}… [Ver más]`;
@@ -407,7 +431,7 @@ function metaAdvertiserLine(campaign: Campaign): string {
 }
 
 function metaLinkLine(campaign: Campaign): string {
-  return campaign.channel_spec?.display_link?.trim() || displayUrl(campaign.final_url);
+  return metaSpecOf(campaign)?.display_link?.trim() || displayUrl(campaign.final_url);
 }
 
 function renderMetaSingleSnippet(
@@ -514,6 +538,99 @@ function renderMetaCollectionSnippet(
   return lines.join("\n");
 }
 
+// ============================================================
+// TikTok: helpers de render. El caption visible corta a ~2 líneas
+// («más») en el feed; el límite técnico son 4 líneas + «See more».
+// ============================================================
+
+const TIKTOK_VISIBLE_CAPTION = 80;
+
+function tiktokHandle(campaign: Campaign): string {
+  const spec = tiktokSpecOf(campaign);
+  if (spec?.identity_handle?.trim()) return spec.identity_handle.trim().replace(/^@/, "");
+  return (campaign.company_name ?? displayUrl(campaign.final_url))
+    .toLowerCase()
+    .replace(/\s+/g, "");
+}
+
+function tiktokMusicLine(campaign: Campaign): string {
+  const spec = tiktokSpecOf(campaign);
+  const name =
+    spec?.music_name?.trim() ||
+    `Promoted music · ${campaign.company_name ?? tiktokHandle(campaign)}`;
+  return `Música: ♫ ${name}`;
+}
+
+/** Caption como lo ve el usuario: truncado con «… más» si excede ~2 líneas. */
+function tiktokShownCaption(campaign: Campaign, shown: ShownCombination | null): string {
+  const full = shown?.primary_text ?? tiktokSpecOf(campaign)?.ad_texts[0] ?? "";
+  if (full.length <= TIKTOK_VISIBLE_CAPTION) return full;
+  return `${full.slice(0, TIKTOK_VISIBLE_CAPTION).trimEnd()}… [más]`;
+}
+
+function renderTikTokVideoSnippet(
+  campaign: Campaign,
+  shown: ShownCombination | null,
+): string {
+  const spark = campaign.strategy === "tiktok_spark";
+  const lines: string[] = [];
+  lines.push(
+    spark
+      ? "Ves este vídeo en tu feed «Para ti» de TikTok. Parece un post normal de la cuenta (es un post real promocionado, Spark Ad), con la etiqueta «Patrocinado»:"
+      : "Ves este anuncio de vídeo a pantalla completa (9:16) en tu feed «Para ti» de TikTok:",
+  );
+  lines.push("");
+  lines.push("---");
+  lines.push(
+    `Cuenta: @${tiktokHandle(campaign)} (${campaign.company_name ?? "anunciante"}) · Patrocinado`,
+  );
+  lines.push("");
+  lines.push(
+    "(La imagen adjunta es la miniatura del vídeo: el vídeo ocupa toda la pantalla, con sonido activado.)",
+  );
+  const caption = tiktokShownCaption(campaign, shown);
+  if (caption) lines.push(`Caption: ${caption}`);
+  lines.push(tiktokMusicLine(campaign));
+  if (spark) {
+    lines.push(
+      "Puedes tocar el avatar para ir al perfil, seguir a la cuenta o abrir la página de la música (interacción completa de un post orgánico).",
+    );
+  }
+  lines.push("");
+  lines.push(
+    `Botón CTA (aparece bajo el caption a los pocos segundos): [${campaign.cta ?? "Más información"}]`,
+  );
+  lines.push("---");
+  return lines.join("\n");
+}
+
+function renderTikTokCarouselSnippet(
+  campaign: Campaign,
+  shown: ShownCombination | null,
+): string {
+  const cards = (campaign.creatives ?? []).filter((c) => c.role === "card");
+  const lines: string[] = [];
+  lines.push(
+    `Ves este anuncio de carousel en tu feed «Para ti» de TikTok: ${cards.length} imágenes que pasan solas en orden (puedes deslizar a mano) con la música en bucle:`,
+  );
+  lines.push("");
+  lines.push("---");
+  lines.push(
+    `Cuenta: @${tiktokHandle(campaign)} (${campaign.company_name ?? "anunciante"}) · Patrocinado`,
+  );
+  lines.push("");
+  lines.push("(Las imágenes adjuntas son las primeras tarjetas del carousel.)");
+  const caption = tiktokShownCaption(campaign, shown);
+  if (caption) lines.push(`Caption: ${caption}`);
+  lines.push(tiktokMusicLine(campaign));
+  lines.push("");
+  lines.push(
+    `Botón CTA (común a todas las tarjetas): [${campaign.cta ?? "Más información"}]`,
+  );
+  lines.push("---");
+  return lines.join("\n");
+}
+
 function renderSnippetText(
   campaign: Campaign,
   channel: Channel,
@@ -529,6 +646,13 @@ function renderSnippetText(
   }
   if (campaign.strategy === "meta_collection") {
     return renderMetaCollectionSnippet(campaign, shown);
+  }
+  // Formatos de TikTok: vídeo in-feed, carousel de imágenes y Spark Ad.
+  if (campaign.strategy === "tiktok_video" || campaign.strategy === "tiktok_spark") {
+    return renderTikTokVideoSnippet(campaign, shown);
+  }
+  if (campaign.strategy === "tiktok_carousel") {
+    return renderTikTokCarouselSnippet(campaign, shown);
   }
   // Display Ads tienen render propio (banner con titular largo + CTA) que no
   // depende del canal externo (siempre se ve dentro de Google Display Network).
@@ -781,7 +905,7 @@ function networkLabel(channel: Channel): string {
  */
 function metaFraming(query: string, campaign: Campaign): string {
   const placement = metaPlacement(campaign);
-  const objective = campaign.channel_spec?.objective ?? "traffic";
+  const objective = metaSpecOf(campaign)?.objective ?? "traffic";
   const context =
     query && query !== GENERAL_CONTEXT_QUERY
       ? `El algoritmo te lo enseña porque tus intereses y tu actividad reciente encajan con: «${query}».`
@@ -816,6 +940,43 @@ function metaFraming(query: string, campaign: Campaign): string {
   ].join(" ");
 }
 
+/**
+ * Framing de los formatos TikTok: la escena del feed «Para ti», las señales
+ * de targeting reales (intereses de largo plazo, vídeos/hashtags de los
+ * últimos 7-15 días, creadores de los últimos 30) y el after-click según
+ * el objetivo declarado en channel_spec.
+ */
+function tiktokFraming(query: string, campaign: Campaign): string {
+  const objective = tiktokSpecOf(campaign)?.objective ?? "traffic";
+  const context =
+    query && query !== GENERAL_CONTEXT_QUERY
+      ? `El algoritmo te lo enseña porque tus señales recientes encajan con: «${query}» (vídeos que terminaste o guardaste y hashtags vistos en los últimos 7-15 días, creadores que sigues).`
+      : "No estás buscando nada: el algoritmo del feed «Para ti» decidió enseñártelo.";
+  const scene =
+    campaign.strategy === "tiktok_carousel"
+      ? "Estás encadenando vídeos en TikTok, a pantalla completa y con sonido, pasando con un gesto cada pocos segundos. Entre dos vídeos orgánicos aparece este carousel de imágenes patrocinado."
+      : campaign.strategy === "tiktok_spark"
+        ? "Estás encadenando vídeos en TikTok, a pantalla completa y con sonido, pasando con un gesto cada pocos segundos. Aparece este vídeo, que parece un post más del feed: solo la etiqueta «Patrocinado» lo delata."
+        : "Estás encadenando vídeos en TikTok, a pantalla completa y con sonido, pasando con un gesto cada pocos segundos. Entre dos vídeos orgánicos aparece este anuncio.";
+  const afterClick: Record<string, string> = {
+    reach: "El anuncio busca que recuerdes la marca, sin pedirte nada más.",
+    traffic: "Si tocas el botón, te llevaría a la web del anunciante.",
+    video_views: "El anunciante busca que veas el vídeo completo e interactúes con él.",
+    community_interaction:
+      "El botón lleva al perfil de la cuenta: buscan que la sigas o entres a su LIVE.",
+    app_promotion: "Si tocas el botón, irías a la tienda de aplicaciones a instalar la app.",
+    lead_generation:
+      "Si tocas el botón, se abriría un formulario para dejar tus datos sin salir de TikTok.",
+    sales: "Si tocas el botón, irías a la página de compra del producto.",
+  };
+  return [
+    scene,
+    context,
+    "Decides en menos de 2 segundos si paras o sigues deslizando.",
+    afterClick[objective],
+  ].join(" ");
+}
+
 function framingByChannel(
   channel: Channel,
   query: string,
@@ -823,6 +984,9 @@ function framingByChannel(
 ): string {
   if (isMetaStrategy(campaign.strategy)) {
     return metaFraming(query, campaign);
+  }
+  if (isTikTokStrategy(campaign.strategy)) {
+    return tiktokFraming(query, campaign);
   }
   if (campaign.strategy === "display") {
     const context = query
@@ -921,6 +1085,11 @@ function creativesForModel(campaign: Campaign): Creative[] {
   if (campaign.strategy === "meta_carousel") {
     return all.filter((c) => c.role === "card").slice(0, 4);
   }
+  // TikTok carousel: solo las tarjetas (el avatar/logo no es una creatividad
+  // del anuncio). En vídeo/spark el orden del array ya pone el vídeo primero.
+  if (campaign.strategy === "tiktok_carousel") {
+    return all.filter((c) => c.role === "card").slice(0, 4);
+  }
   return all.slice(0, 4);
 }
 
@@ -990,7 +1159,9 @@ async function probeCampaignSnippet(
       "## Tarea de este turno",
       isMetaStrategy(campaign.strategy)
         ? "- Estás en un test de anuncio de social ads (Meta). Primero interpreta, luego razona y solo al final puntúa."
-        : "- Estás en un test de anuncio de Paid Search. Primero interpreta, luego razona y solo al final puntúa.",
+        : isTikTokStrategy(campaign.strategy)
+          ? "- Estás en un test de anuncio de social ads (TikTok). Primero interpreta, luego razona y solo al final puntúa."
+          : "- Estás en un test de anuncio de Paid Search. Primero interpreta, luego razona y solo al final puntúa.",
       "- 'perceived_offer': lo que crees que te ofrece el anuncio, en tu voz, 1 frase.",
       "- 'reasoning': 1-2 frases tuyas pensando en voz alta ANTES de decidir: qué te llama, qué te frena.",
       "- 'barriers': fricciones concretas (jerga, promesa vaga, precio oculto, sector no encaja, etc.). Vacío si no las viste.",
@@ -1029,9 +1200,11 @@ async function judgeLandingMatch(
   const image = await resolveImageCached(campaign.landing_image_url, imageCache);
   const channelHook = isMetaStrategy(campaign.strategy)
     ? `Acabas de tocar el anuncio que viste en ${META_PLACEMENT_LABEL[metaPlacement(campaign)]}`
-    : channel === "google"
-      ? "Acabas de hacer click en un anuncio de Paid Search"
-      : `Acabas de hacer click en el post patrocinado de ${networkLabel(channel)}`;
+    : isTikTokStrategy(campaign.strategy)
+      ? "Acabas de tocar el botón del anuncio que viste en tu feed de TikTok"
+      : channel === "google"
+        ? "Acabas de hacer click en un anuncio de Paid Search"
+        : `Acabas de hacer click en el post patrocinado de ${networkLabel(channel)}`;
   const queryFraming =
     channel === "google" && !isMetaStrategy(campaign.strategy)
       ? `Tu búsqueda fue: «${query}».`
@@ -1132,13 +1305,16 @@ async function proposeIdealVersion(
   snippet: SnippetEval,
 ): Promise<{ output: IdealVersion; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
+  const isTikTok = isTikTokStrategy(campaign.strategy);
   const formatHint = isMetaStrategy(campaign.strategy)
     ? "formato Meta Ads (titular máx 40 chars; la descripción es el texto principal que pararía tu scroll, máx 125)"
-    : campaign.strategy === "shopping"
-      ? "título de ficha de producto (máx 150 chars) y argumento de compra (máx 90)"
-      : channel === "google"
-        ? "formato Google Ads RSA (titular máx 30 chars, descripción máx 90)"
-        : `formato ${networkLabel(channel)} (texto corto que pueda pararte en feed)`;
+    : isTikTok
+      ? "formato TikTok Ads (el titular es el gancho verbal de los 2 primeros segundos del vídeo; la descripción es el caption del anuncio, máx 100, sin emojis ni hashtags)"
+      : campaign.strategy === "shopping"
+        ? "título de ficha de producto (máx 150 chars) y argumento de compra (máx 90)"
+        : channel === "google"
+          ? "formato Google Ads RSA (titular máx 30 chars, descripción máx 90)"
+          : `formato ${networkLabel(channel)} (texto corto que pueda pararte en feed)`;
   const queryFraming =
     channel === "google" && !isMetaStrategy(campaign.strategy)
       ? `Tu búsqueda fue: «${query}».`
@@ -1151,12 +1327,14 @@ async function proposeIdealVersion(
       "",
       "## Tarea de este turno",
       "- Después de ver el anuncio, escribe TU versión ideal del mismo anuncio, en tu voz.",
-      isMetaStrategy(campaign.strategy)
+      isMetaStrategy(campaign.strategy) || isTikTok
         ? `- 'ideal_headline' es un titular alternativo. Máximo 40 caracteres (${formatHint}).`
         : `- 'ideal_headline' es un titular alternativo. Máximo 30 caracteres (${formatHint}).`,
       isMetaStrategy(campaign.strategy)
         ? "- 'ideal_description' es tu texto principal alternativo (lo que leerías encima de la imagen). Máximo 125 caracteres."
-        : "- 'ideal_description' es una descripción alternativa. Máximo 90 caracteres.",
+        : isTikTok
+          ? "- 'ideal_description' es tu caption alternativo (el texto del anuncio sobre el vídeo). Máximo 100 caracteres, sin emojis ni hashtags."
+          : "- 'ideal_description' es una descripción alternativa. Máximo 90 caracteres.",
       "- 'ideal_promise' es la promesa central que TÚ querrías leer para hacer click.",
       "- 'ideal_free_text' es opcional, 1-2 frases sueltas con matiz extra. null si no añades nada.",
       "- Habla como tú: con tus dudas, tu sector, tu nivel de jerga. NO copies el anuncio original.",
@@ -1562,6 +1740,9 @@ async function synthesizeRecommendations(
   // después es la persistencia en Supabase, la llamada LLM fue bien y ya
   // quedó contabilizada (sin esto el catch del cierre duplicaba la fila).
   const isMeta = isMetaStrategy(campaign.strategy);
+  const isTikTok = isTikTokStrategy(campaign.strategy);
+  const metaSpec = metaSpecOf(campaign);
+  const tiktokSpec = tiktokSpecOf(campaign);
   const result = await generateObject({
     model: DEFAULT_MODEL,
     schema: RecommendationsSchema,
@@ -1570,16 +1751,22 @@ async function synthesizeRecommendations(
       "Escribe en castellano, con acentos correctos. No uses nunca el guion largo (em-dash); usa coma, dos puntos o paréntesis.",
       isMeta
         ? "Los titulares recomendados deben caber en 40 caracteres y las descripciones son textos principales de Meta: deben enganchar antes del corte de 125 caracteres."
-        : "Los titulares recomendados deben caber en 30 caracteres y las descripciones en 90 (formato Google Ads RSA).",
+        : isTikTok
+          ? "Los titulares recomendados son ganchos de apertura del vídeo (máximo 40 caracteres) y las descripciones son captions de TikTok: máximo 100 caracteres, sin emojis ni hashtags, que paren el scroll en 2 segundos."
+          : "Los titulares recomendados deben caber en 30 caracteres y las descripciones en 90 (formato Google Ads RSA).",
       "Apóyate en los datos: no inventes hallazgos que los números no respalden.",
     ].join("\n"),
     prompt: [
-      isMeta && campaign.channel_spec
-        ? `Campaña: ${campaign.name} (Meta Ads · ${campaign.strategy} · objetivo ${META_OBJECTIVE_LABEL[campaign.channel_spec.objective]} · placement ${META_PLACEMENT_LABEL[campaign.channel_spec.placement]}).`
-        : `Campaña: ${campaign.name} (${campaign.strategy}).`,
-      isMeta && campaign.channel_spec
-        ? `Textos principales actuales: ${campaign.channel_spec.primary_texts.join(" | ")}`
-        : "",
+      isMeta && metaSpec
+        ? `Campaña: ${campaign.name} (Meta Ads · ${campaign.strategy} · objetivo ${META_OBJECTIVE_LABEL[metaSpec.objective]} · placement ${META_PLACEMENT_LABEL[metaSpec.placement]}).`
+        : isTikTok && tiktokSpec
+          ? `Campaña: ${campaign.name} (TikTok Ads · ${campaign.strategy} · objetivo ${TIKTOK_OBJECTIVE_LABEL[tiktokSpec.objective]}).`
+          : `Campaña: ${campaign.name} (${campaign.strategy}).`,
+      isMeta && metaSpec
+        ? `Textos principales actuales: ${metaSpec.primary_texts.join(" | ")}`
+        : isTikTok && tiktokSpec
+          ? `Textos del anuncio actuales: ${tiktokSpec.ad_texts.join(" | ")}`
+          : "",
       `Titulares actuales: ${campaign.headlines.join(" | ")}`,
       `Descripciones actuales: ${campaign.descriptions.join(" | ")}`,
       "",
@@ -1623,15 +1810,15 @@ async function synthesizeRecommendations(
   }).catch(() => {});
 
   // Truncado suave a los límites del formato y a los tamaños prometidos
-  // (RSA 30/90, Meta 40/125).
+  // (RSA 30/90, Meta 40/125, TikTok 40/100).
   const recommendations: CampaignRecommendations = {
     key_findings: result.object.key_findings.slice(0, 5),
     recommended_headlines: result.object.recommended_headlines
       .slice(0, 3)
-      .map((h) => h.slice(0, isMeta ? 40 : 30)),
+      .map((h) => h.slice(0, isMeta || isTikTok ? 40 : 30)),
     recommended_descriptions: result.object.recommended_descriptions
       .slice(0, 2)
-      .map((d) => d.slice(0, isMeta ? 125 : 90)),
+      .map((d) => d.slice(0, isMeta ? 125 : isTikTok ? 100 : 90)),
     barrier_fixes: result.object.barrier_fixes.slice(0, 5),
   };
 
@@ -1691,12 +1878,14 @@ async function processCombo(
   // texto principal + 1 titular + 1 descripción. El resto no cambia.
   const shown = isMetaStrategy(campaign.strategy)
     ? sampleMetaCombination(campaign, profile.id, query)
-    : channel === "google" && campaign.strategy === "search"
-      ? sampleRsaCombination(campaign, profile.id, query)
-      : channel === "google" &&
-          (campaign.strategy === "pmax" || campaign.strategy === "demand_gen")
-        ? sampleRsaCombination(campaign, profile.id, query, 1, 1)
-        : null;
+    : isTikTokStrategy(campaign.strategy)
+      ? sampleTikTokCombination(campaign, profile.id, query)
+      : channel === "google" && campaign.strategy === "search"
+        ? sampleRsaCombination(campaign, profile.id, query)
+        : channel === "google" &&
+            (campaign.strategy === "pmax" || campaign.strategy === "demand_gen")
+          ? sampleRsaCombination(campaign, profile.id, query, 1, 1)
+          : null;
   let snippet: Awaited<ReturnType<typeof probeCampaignSnippet>>;
   try {
     snippet = await probeCampaignSnippet(
@@ -1881,18 +2070,23 @@ async function processCombo(
     landing_critique: landingCritique,
     // El límite del formato se instruye en el prompt y aquí se garantiza:
     // RSA 30/90, Shopping 150 (título de ficha), Meta 40/125 (titular
-    // visible / texto principal antes del «Ver más»).
+    // visible / texto principal antes del «Ver más»), TikTok 40/100
+    // (gancho de apertura / caption sin emojis).
     ideal_headline: ideal.output.ideal_headline.slice(
       0,
       campaign.strategy === "shopping"
         ? 150
-        : isMetaStrategy(campaign.strategy)
+        : isMetaStrategy(campaign.strategy) || isTikTokStrategy(campaign.strategy)
           ? 40
           : 30,
     ),
     ideal_description: ideal.output.ideal_description.slice(
       0,
-      isMetaStrategy(campaign.strategy) ? 125 : 90,
+      isMetaStrategy(campaign.strategy)
+        ? 125
+        : isTikTokStrategy(campaign.strategy)
+          ? 100
+          : 90,
     ),
     ideal_promise: ideal.output.ideal_promise,
     ideal_free_text: ideal.output.ideal_free_text ?? null,
@@ -2135,9 +2329,11 @@ function assetPerformance(
   };
   for (const h of campaign.headlines) measure(h, "headline");
   for (const d of campaign.descriptions) measure(d, "description");
-  // Meta: el texto principal mostrado viaja en shown_descriptions y se
-  // recupera matcheando contra las variantes declaradas en channel_spec.
-  for (const p of campaign.channel_spec?.primary_texts ?? []) measure(p, "primary_text");
+  // Meta y TikTok: el texto principal / caption mostrado viaja en
+  // shown_descriptions y se recupera matcheando contra las variantes
+  // declaradas en channel_spec.
+  for (const p of metaSpecOf(campaign)?.primary_texts ?? []) measure(p, "primary_text");
+  for (const t of tiktokSpecOf(campaign)?.ad_texts ?? []) measure(t, "primary_text");
   return out.sort((a, b) => b.mean_intent - a.mean_intent);
 }
 

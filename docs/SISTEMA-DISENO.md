@@ -105,6 +105,7 @@ Reglas:
 | `.surface-paper` | Fondo `paper`. |
 | `.surface-tone` | Fondo `ink-50` neutro. |
 | `.spin` | Rotación continua (1s, lineal) para iconos de carga tipo `Loader2`. No redefinir el keyframe `spin` en cada página: ya es global. |
+| `.spin-slow` | Rotación continua lenta (4s, lineal) sobre el mismo keyframe `spin`. Hoy la usa el disco de música del preview de TikTok en `/campaigns/new`. |
 | `.serp-link` | Titular de anuncio estilo enlace de buscador (`color: var(--serp-link)`). El token es themable: azul SERP desaturado en oscuro, azul de enlace clásico en claro, fijo en `.theme-dark-fixed`. No hardcodear `rgba(132,192,255,…)`. |
 
 ## Patrón "Razonamiento" colapsable (CoT)

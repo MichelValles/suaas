@@ -35,6 +35,9 @@ export const STRATEGY_VALUES = [
   "meta_single",
   "meta_carousel",
   "meta_collection",
+  "tiktok_video",
+  "tiktok_carousel",
+  "tiktok_spark",
 ] as const;
 export type Strategy = (typeof STRATEGY_VALUES)[number];
 
@@ -49,6 +52,9 @@ export const STRATEGY_LABEL: Record<Strategy, string> = {
   meta_single: "Imagen / Vídeo",
   meta_carousel: "Secuencia (carousel)",
   meta_collection: "Colección",
+  tiktok_video: "Vídeo in-feed",
+  tiktok_carousel: "Carousel (imágenes)",
+  tiktok_spark: "Spark Ad",
 };
 
 /** Estrategias visibles por canal: las tabs del form se filtran con esto. */
@@ -56,17 +62,22 @@ export const CHANNEL_STRATEGIES: Record<Channel, Strategy[]> = {
   google: ["search", "display", "pmax", "demand_gen", "video", "app", "shopping"],
   meta: ["meta_single", "meta_carousel", "meta_collection"],
   linkedin: [],
-  tiktok: [],
+  tiktok: ["tiktok_video", "tiktok_carousel", "tiktok_spark"],
   x: [],
 };
 
 export const DEFAULT_STRATEGY_BY_CHANNEL: Partial<Record<Channel, Strategy>> = {
   google: "search",
   meta: "meta_single",
+  tiktok: "tiktok_video",
 };
 
 export function isMetaStrategy(s: Strategy): boolean {
   return s === "meta_single" || s === "meta_carousel" || s === "meta_collection";
+}
+
+export function isTikTokStrategy(s: Strategy): boolean {
+  return s === "tiktok_video" || s === "tiktok_carousel" || s === "tiktok_spark";
 }
 
 export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
@@ -90,6 +101,12 @@ export const STRATEGY_DESCRIPTION: Record<Strategy, string> = {
     "Secuencia de 2 a 10 tarjetas, cada una con su imagen (mín. 1080x1080), titular (45c recomendados) y descripción opcional (18c recomendados). El texto principal es compartido (80c recomendados en feed). Disponible en feeds, Stories y Threads (en Threads solo tarjetas de imagen).",
   meta_collection:
     "Colección: portada (imagen o vídeo) + cuadrícula de productos (mínimo 4 tiles). Al tocar se abre una instant experience a pantalla completa. Solo ubicaciones móviles: feeds de Facebook e Instagram y Stories de Instagram. Texto principal (125c) + titular (40c).",
+  tiktok_video:
+    "Vídeo in-feed de subasta (spec oficial de Auction In-Feed Ads). Vídeo 9:16 (mín. 540x960, recomendado; admite 1:1 y 16:9), 5-60s (mejor rendimiento 21-34s), máx. 500 MB. Texto del anuncio 1-100 caracteres SIN emojis, «#» ni «@» + nombre visible (máx. 20c en pantalla) + botón CTA de la lista cerrada. El perfil sintético evalúa la miniatura del vídeo y el copy (los modelos no procesan vídeo).",
+  tiktok_carousel:
+    "Carousel de imágenes en el feed (spec oficial de Carousel Ads). De 2 a 35 imágenes (mejor CTR con 3 o 7-9), vertical 720x1280 recomendado, JPG/PNG. Música OBLIGATORIA (suena en bucle). Un solo texto de anuncio, un nombre visible y un botón CTA para todas las tarjetas. El perfil sintético ve las 4 primeras imágenes.",
+  tiktok_spark:
+    "Spark Ad: post orgánico real promocionado (propio o de un creador con código de autorización). Conserva el caption del post (admite emojis y hashtags; máx. 150c en push de R&F, editable solo allí), la identidad real de la cuenta y suma likes, comentarios y seguidores al post. La interacción completa (perfil, música) está activa.",
 };
 
 export function isStrategyImplemented(s: Strategy): boolean {
@@ -244,6 +261,155 @@ export const MetaSpecSchema = z.object({
     .nullable(),
 });
 export type MetaSpec = z.infer<typeof MetaSpecSchema>;
+
+// ============================================================
+// TikTok Ads: objetivos, CTAs y límites. Números verificados contra
+// el TikTok Business Help Center y la Marketing API (junio 2026):
+// ad text 1-100c latinos sin emojis/«#»/«@» (CJK cuenta doble),
+// display name máx. 40c técnico / 20 visibles, CTA de lista cerrada
+// (25 opciones de landing page, traducción oficial es-ES), carousel
+// 2-35 imágenes con música obligatoria, hasta 5 variantes de texto
+// por anuncio (Smart+ ad_text_list).
+// ============================================================
+
+export const TIKTOK_OBJECTIVE_VALUES = [
+  "reach",
+  "traffic",
+  "video_views",
+  "community_interaction",
+  "app_promotion",
+  "lead_generation",
+  "sales",
+] as const;
+export type TikTokObjective = (typeof TIKTOK_OBJECTIVE_VALUES)[number];
+
+export const TIKTOK_OBJECTIVE_LABEL: Record<TikTokObjective, string> = {
+  reach: "Alcance",
+  traffic: "Tráfico",
+  video_views: "Reproducciones de vídeo",
+  community_interaction: "Interacción con la comunidad",
+  app_promotion: "Promoción de la app",
+  lead_generation: "Generación de clientes potenciales",
+  sales: "Ventas",
+};
+
+export const TIKTOK_OBJECTIVE_DESCRIPTION: Record<TikTokObjective, string> = {
+  reach:
+    "Muestra el anuncio al máximo número de personas (puja CPM). Para notoriedad pura y lanzamientos, sin conversión medible.",
+  traffic:
+    "Lleva más personas a una URL o a la app (optimiza clics o vistas de landing). Atrae clicadores, no compradores.",
+  video_views:
+    "Maximiza reproducciones e interacción del vídeo entre la audiencia con más probabilidad de prestarle atención.",
+  community_interaction:
+    "Consigue seguidores, visitas al perfil o audiencia para un LIVE. El botón lleva al perfil, no a una web.",
+  app_promotion:
+    "Instalaciones y eventos de la app (App Install y App Retargeting). El botón lleva a la tienda de aplicaciones.",
+  lead_generation:
+    "Recopila datos de contacto con formularios instantáneos en TikTok o formularios de la web.",
+  sales:
+    "Vende desde TikTok Shop, la web o la app (fusión de Website Conversions y Product Sales, 2025). Con destino TikTok Shop el tipo de campaña es GMV Max.",
+};
+
+/**
+ * Botones CTA de TikTok Ads tal como los localiza el Ads Manager en
+ * español (lista cerrada de 25 opciones de landing page; «Book now» y
+ * «Pre-order now» comparten traducción). No existe texto libre.
+ */
+export const TIKTOK_CTA_VALUES = [
+  "Más información",
+  "Comprar ahora",
+  "Registrarse",
+  "Suscribirse",
+  "Descargar",
+  "Instalar ahora",
+  "Reservar ahora",
+  "Solicitar ahora",
+  "Contáctanos",
+  "Hacer pedido",
+  "Obtener presupuesto",
+  "Me interesa",
+  "Probar ahora",
+  "Leer más",
+  "Ver ahora",
+  "Mirar ahora",
+  "Escuchar ahora",
+  "Visitar la tienda",
+  "Comprar entradas ahora",
+  "Obtener horarios de espectáculos",
+  "Jugar",
+  "Unirse al hashtag",
+  "Grabar con este efecto",
+  "Ver vídeo con este efecto",
+] as const;
+export type TikTokCta = (typeof TIKTOK_CTA_VALUES)[number];
+
+/**
+ * Límites de TikTok: `max` es el técnico de la Marketing API y
+ * `recommended` lo visible en pantalla antes de truncar. El caption
+ * corta a ~2 líneas con «más» en la práctica (4 líneas máximo técnico).
+ * En Spark Ads el caption hereda del post orgánico (150c en push R&F).
+ */
+export const TIKTOK_LIMITS = {
+  ad_text: { max: 100, visible_lines: 2 },
+  spark_caption: { max: 150 },
+  display_name: { max: 40, recommended: 20 },
+  identity_handle: { max: 30 },
+  music_name: { max: 80 },
+  variants: 5,
+  carousel_images: { min: 2, max: 35 },
+} as const;
+
+const NO_EMOJI_REGEX = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
+
+export const TikTokSpecSchema = z.object({
+  /** Discriminador del union de channel_spec (las filas de Meta no lo llevan). */
+  network: z.literal("tiktok"),
+  objective: z.enum(TIKTOK_OBJECTIVE_VALUES).default("traffic"),
+  ad_texts: z
+    .array(
+      z
+        .string()
+        .min(1, "Texto del anuncio vacío.")
+        .max(
+          TIKTOK_LIMITS.spark_caption.max,
+          "El caption admite máximo 150 caracteres (Spark push).",
+        ),
+    )
+    .min(1, "TikTok exige el texto del anuncio.")
+    .max(TIKTOK_LIMITS.variants, "Máximo 5 variantes de texto por anuncio."),
+  /** @usuario mostrado junto al caption. Si falta, se deriva del nombre visible. */
+  identity_handle: z
+    .string()
+    .max(TIKTOK_LIMITS.identity_handle.max, "El usuario admite máximo 30 caracteres.")
+    .optional()
+    .nullable(),
+  /** Nombre de la pista en la fila de música. Obligatoria en carousel. */
+  music_name: z
+    .string()
+    .max(TIKTOK_LIMITS.music_name.max, "El nombre de la música admite máximo 80 caracteres.")
+    .optional()
+    .nullable(),
+});
+export type TikTokSpec = z.infer<typeof TikTokSpecSchema>;
+
+/** Campos específicos del canal: Meta (sin discriminador, legacy) o TikTok. */
+export type ChannelSpec = MetaSpec | TikTokSpec;
+
+export function isTikTokSpec(spec: ChannelSpec): spec is TikTokSpec {
+  return "network" in spec && spec.network === "tiktok";
+}
+
+/** Spec de Meta de la campaña, o null si no aplica (Google, TikTok). */
+export function metaSpecOf(c: Campaign): MetaSpec | null {
+  if (!c.channel_spec || isTikTokSpec(c.channel_spec)) return null;
+  return c.channel_spec;
+}
+
+/** Spec de TikTok de la campaña, o null si no aplica. */
+export function tiktokSpecOf(c: Campaign): TikTokSpec | null {
+  if (!c.channel_spec || !isTikTokSpec(c.channel_spec)) return null;
+  return c.channel_spec;
+}
 
 // ============================================================
 // Producto de Shopping (espejo de los atributos obligatorios del feed
@@ -474,15 +640,21 @@ export const CampaignInputSchema = z
       .nullable(),
     cta: z.string().optional().nullable(),
     product: ProductSchema.optional().nullable(),
-    /** Campos específicos del canal (hoy solo Meta). Null en Google. */
-    channel_spec: MetaSpecSchema.optional().nullable(),
+    /** Campos específicos del canal (Meta o TikTok). Null en Google. */
+    channel_spec: z
+      .union([TikTokSpecSchema, MetaSpecSchema])
+      .optional()
+      .nullable(),
   })
   .superRefine((data, ctx) => {
     const isMeta = isMetaStrategy(data.strategy);
+    const isTikTok = isTikTokStrategy(data.strategy);
     // Titulares de 30c en las estrategias de Google salvo Demand Gen (40c,
     // spec oficial 17091672). En Meta el cap duro es el técnico (255c).
+    // TikTok no lleva titulares (su copy vive en channel_spec.ad_texts).
     if (
       !isMeta &&
+      !isTikTok &&
       data.strategy !== "demand_gen" &&
       data.headlines.some((h) => h.length > 30)
     ) {
@@ -500,7 +672,7 @@ export const CampaignInputSchema = z
       });
     }
     // Descripciones de 90c en Google (RSA/Display/PMax/Demand Gen/Video).
-    if (!isMeta && data.descriptions.some((d) => d.length > 90)) {
+    if (!isMeta && !isTikTok && data.descriptions.some((d) => d.length > 90)) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["descriptions"],
@@ -508,8 +680,8 @@ export const CampaignInputSchema = z
       });
     }
     // Nombre de empresa de 25c en Google (el cap global de 75c es el del
-    // nombre de página de Facebook).
-    if (!isMeta && data.company_name && data.company_name.length > 25) {
+    // nombre de página de Facebook; TikTok admite 40c técnicos).
+    if (!isMeta && !isTikTok && data.company_name && data.company_name.length > 25) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["company_name"],
@@ -517,10 +689,9 @@ export const CampaignInputSchema = z
       });
     }
     // Mínimos comunes de copy de Google: aplican a todo salvo Shopping (la
-    // ficha se genera desde el producto) y las estrategias de Meta (sus
-    // mínimos viven en el bloque Meta). Search/PMax/Video tienen mínimos
-    // mayores en sus bloques.
-    if (!isMeta && data.strategy !== "shopping") {
+    // ficha se genera desde el producto), Meta y TikTok (sus mínimos viven
+    // en sus bloques). Search/PMax/Video tienen mínimos mayores en los suyos.
+    if (!isMeta && !isTikTok && data.strategy !== "shopping") {
       if (data.headlines.length < 1) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -538,7 +709,10 @@ export const CampaignInputSchema = z
     }
     // ============ Meta Ads (formatos single / carousel / collection) ============
     if (isMeta) {
-      const spec = data.channel_spec;
+      const spec =
+        data.channel_spec && !isTikTokSpec(data.channel_spec)
+          ? data.channel_spec
+          : null;
       if (!spec) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
@@ -664,6 +838,113 @@ export const CampaignInputSchema = z
             path: ["creatives"],
             message:
               "La colección exige al menos 4 tiles de producto (creatividades con rol «Tarjeta», nombre del producto en el titular).",
+          });
+        }
+      }
+    }
+    // ============ TikTok Ads (vídeo in-feed / carousel / spark) ============
+    if (isTikTok) {
+      const spec =
+        data.channel_spec && isTikTokSpec(data.channel_spec)
+          ? data.channel_spec
+          : null;
+      if (!spec) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["channel_spec"],
+          message:
+            "Las estrategias de TikTok exigen objetivo y al menos 1 texto del anuncio.",
+        });
+      } else {
+        // Non-Spark: 1-100c, sin emojis, «#» ni «{ }» (spec oficial de
+        // Auction In-Feed). Spark hereda el caption del post (150c, emojis ok).
+        if (data.strategy !== "tiktok_spark") {
+          if (spec.ad_texts.some((t) => t.length > TIKTOK_LIMITS.ad_text.max)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["channel_spec"],
+              message:
+                "El texto del anuncio admite máximo 100 caracteres en TikTok (límite técnico de la API).",
+            });
+          }
+          if (spec.ad_texts.some((t) => NO_EMOJI_REGEX.test(t))) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["channel_spec"],
+              message:
+                "TikTok no admite emojis en el texto del anuncio (solo los Spark Ads los conservan).",
+            });
+          }
+          if (spec.ad_texts.some((t) => /[#{}]/.test(t))) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["channel_spec"],
+              message:
+                "El texto del anuncio de TikTok no admite «#» ni «{ }» (spec oficial).",
+            });
+          }
+        }
+        if (data.strategy === "tiktok_carousel" && !spec.music_name?.trim()) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["channel_spec"],
+            message:
+              "El carousel de TikTok exige música (suena en bucle): indica el nombre de la pista.",
+          });
+        }
+      }
+      if (!data.company_name || !data.company_name.trim()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["company_name"],
+          message:
+            "TikTok exige el nombre visible de la identidad (en pantalla se muestran 20 caracteres).",
+        });
+      }
+      if (
+        data.company_name &&
+        data.company_name.length > TIKTOK_LIMITS.display_name.max
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["company_name"],
+          message:
+            "El nombre visible admite máximo 40 caracteres (límite técnico; en pantalla se ven 20).",
+        });
+      }
+      if (!data.cta || !TIKTOK_CTA_VALUES.includes(data.cta as TikTokCta)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["cta"],
+          message:
+            "TikTok exige un botón CTA de su lista cerrada (no admite texto libre; por defecto «Más información»).",
+        });
+      }
+      const creatives = data.creatives ?? [];
+      if (data.strategy === "tiktok_video" || data.strategy === "tiktok_spark") {
+        const videos = creatives.filter(
+          (c) => (c.kind === "video" || c.kind === "youtube") && c.thumbnail_url,
+        );
+        if (videos.length < 1) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["creatives"],
+            message:
+              "TikTok exige 1 vídeo con miniatura (9:16 recomendado; el perfil sintético evalúa la miniatura, los modelos no procesan vídeo).",
+          });
+        }
+      }
+      if (data.strategy === "tiktok_carousel") {
+        const cards = creatives.filter((c) => c.role === "card" && c.kind === "image");
+        if (
+          cards.length < TIKTOK_LIMITS.carousel_images.min ||
+          cards.length > TIKTOK_LIMITS.carousel_images.max
+        ) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["creatives"],
+            message:
+              "El carousel de TikTok lleva de 2 a 35 imágenes (creatividades de imagen con rol «Tarjeta»).",
           });
         }
       }
@@ -974,8 +1255,8 @@ export type Campaign = {
   cta: string | null;
   /** Producto del feed (solo shopping). Null en el resto de estrategias. */
   product: Product | null;
-  /** Campos específicos de Meta (objetivo, placement, textos principales). Null en Google. */
-  channel_spec: MetaSpec | null;
+  /** Campos específicos del canal (Meta o TikTok). Null en Google. */
+  channel_spec: ChannelSpec | null;
   deleted_at?: string | null;
 };
 
@@ -1023,11 +1304,21 @@ const CampaignRowSchema = z.object({
       return parsed.success ? parsed.data : null;
     })
     .catch(null),
+  // El jsonb se discrimina por `network`: los specs de TikTok lo declaran,
+  // los de Meta (incluidas filas legacy) no lo llevan.
   channel_spec: z
     .unknown()
-    .transform((v) => {
-      const parsed = MetaSpecSchema.safeParse(v);
-      return parsed.success ? parsed.data : null;
+    .transform((v): ChannelSpec | null => {
+      if (
+        v &&
+        typeof v === "object" &&
+        (v as Record<string, unknown>).network === "tiktok"
+      ) {
+        const tiktok = TikTokSpecSchema.safeParse(v);
+        return tiktok.success ? tiktok.data : null;
+      }
+      const meta = MetaSpecSchema.safeParse(v);
+      return meta.success ? meta.data : null;
     })
     .catch(null),
   deleted_at: z.string().nullable().catch(null),

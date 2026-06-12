@@ -10,9 +10,12 @@ import {
   CampaignInputSchema,
   MetaSpecSchema,
   STRATEGY_VALUES,
+  TikTokSpecSchema,
   createCampaign,
   extractYouTubeId,
   isMetaStrategy,
+  isTikTokSpec,
+  isTikTokStrategy,
   youtubeThumbnail,
   type CampaignInput,
   type CreativeRole,
@@ -67,7 +70,10 @@ const PayloadSchema = z.object({
   headlines: z.array(z.string()),
   descriptions: z.array(z.string()),
   creatives: z.array(CreativePayloadSchema).optional().default([]),
-  channel_spec: MetaSpecSchema.optional().nullable(),
+  channel_spec: z
+    .union([TikTokSpecSchema, MetaSpecSchema])
+    .optional()
+    .nullable(),
 });
 
 export type CreateCampaignState = { ok: boolean; error?: string };
@@ -108,10 +114,12 @@ export async function createCampaignAction(
     return { ok: false, error: readableError(err) };
   }
 
-  // channel_spec normalizado: solo para estrategias de Meta, con los textos
-  // principales sin vacíos. Para Google viaja null.
+  // channel_spec normalizado según el canal: Meta limpia los textos
+  // principales y TikTok las variantes de texto. Para Google viaja null.
   const channelSpec =
-    isMetaStrategy(payload.strategy) && payload.channel_spec
+    isMetaStrategy(payload.strategy) &&
+    payload.channel_spec &&
+    !isTikTokSpec(payload.channel_spec)
       ? {
           ...payload.channel_spec,
           primary_texts: payload.channel_spec.primary_texts
@@ -119,7 +127,19 @@ export async function createCampaignAction(
             .filter(Boolean),
           display_link: payload.channel_spec.display_link?.trim() || null,
         }
-      : null;
+      : isTikTokStrategy(payload.strategy) &&
+          payload.channel_spec &&
+          isTikTokSpec(payload.channel_spec)
+        ? {
+            ...payload.channel_spec,
+            ad_texts: payload.channel_spec.ad_texts
+              .map((t) => t.trim())
+              .filter(Boolean),
+            identity_handle:
+              payload.channel_spec.identity_handle?.trim().replace(/^@/, "") || null,
+            music_name: payload.channel_spec.music_name?.trim() || null,
+          }
+        : null;
 
   // Pre-validación con URLs provisionales ANTES de subir nada a Blob: si los
   // requisitos de la estrategia no se cumplen (p.ej. creatividades de Display),

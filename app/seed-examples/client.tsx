@@ -310,8 +310,8 @@ export function SeedExamplesClient({
           <Recipe
             kind="campaign_strategies"
             costUsd={kindCost("campaign_strategies")}
-            title="Campañas IVI · las 6 estrategias"
-            body="Una campaña por estrategia (Search, Display, PMax, Demand Gen, Video y Shopping) sobre ivi.es, con imágenes reales y su spot de YouTube. Los runs usan perfiles de 28 a 45 años y corren en segundo plano."
+            title="Campañas IVI · las 7 estrategias"
+            body="Una campaña por estrategia (Search, Display, PMax, Demand Gen, Video y Shopping en Google, más el vídeo in-feed de TikTok) sobre ivi.es, con imágenes reales y su spot de YouTube. Los runs usan perfiles de 28 a 45 años y corren en segundo plano."
             onTrigger={trigger}
             pending={pending}
             pendingKind={pendingKind}

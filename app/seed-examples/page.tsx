@@ -18,8 +18,9 @@ export const dynamic = "force-dynamic";
 /**
  * Multiplicadores por perfil de cada seed, espejo del contenido estático de
  * lib/seed-examples.ts (copy 4 bloques, pricing 4 niveles, funnel 4 pasos,
- * campaña 3 queries × 1 canal, GEO 3 segmentos, IVI 14 huecos de query con
- * mensaje pretendido). Si el contenido del seed cambia, actualizar aquí.
+ * campaña 3 queries × 1 canal, GEO 3 segmentos, IVI 16 huecos de query con
+ * mensaje pretendido: 14 de las 6 campañas de Google + 2 de la de TikTok).
+ * Si el contenido del seed cambia, actualizar aquí.
  */
 const SEED_KIND_OPTS: Record<
   Kind,
@@ -31,7 +32,7 @@ const SEED_KIND_OPTS: Record<
   ab: { kind: "ab" },
   funnel: { kind: "funnel", perProfile: 4 },
   campaign: { kind: "campaign", perProfile: 3 },
-  campaign_strategies: { kind: "campaign", perProfile: 14, judge: true },
+  campaign_strategies: { kind: "campaign", perProfile: 16, judge: true },
   geo: { kind: "geo", perProfile: 3 },
   momentum: { kind: "momentum" },
 };

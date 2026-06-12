@@ -1,12 +1,18 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-12 tras v0.54.0 (canal Meta Ads).
+> Última actualización: 2026-06-12 tras v0.55.0 (canal TikTok Ads).
 
-## Estado actual (v0.54.0 desplegada)
+## Estado actual (v0.55.0 desplegada)
+
+- **Canal TikTok Ads completo (v0.55.0)**: 3 formatos como estrategias (`tiktok_video`, `tiktok_carousel`, `tiktok_spark`), objetivo + 1..5 textos de anuncio + @usuario + música en `campaigns.channel_spec` con discriminador `network: "tiktok"` (`ChannelSpec` ahora es union `MetaSpec | TikTokSpec`; usar `metaSpecOf`/`tiktokSpecOf`), caps oficiales verificados (ad text 100c sin emojis ni «#», display name 40/20, carousel 2-35 imágenes con música obligatoria, vídeo 9:16 5-60s), CTAs de TikTok localizadas, preview en vivo del feed «Para ti» (columna de iconos, caption con «más», disco con `.spin-slow`), export `?format=tiktok` y seed IVI ampliado a 7 estrategias. Detalle en `ROADMAP.md → v0.55.0` y `PROYECTO.md → Módulo Campañas`.
+- **ACCIÓN PENDIENTE DEL OPERADOR: ejecutar `node scripts/apply-tiktok-setup.mjs`** (requiere `npm i --no-save pg`, ya instalado en local). Hace dos cosas: aplica las migraciones pendientes en orden (`0021_meta_ads.sql` si no consta y `0022_tiktok_ads.sql`) con `NOTIFY pgrst` y crea la campaña de ejemplo «IVI · TikTok · Vídeo in-feed» SIN lanzar runs. Alternativa: pegar los dos `.sql` en el SQL editor de Supabase y disparar el seed «Campañas IVI» con launch 0. Sin la migración, crear campañas de Meta o TikTok falla con el check de `strategy`.
+- **Validación recomendada tras la migración**: abrir `/campaigns` y comprobar la campaña IVI de TikTok (chip rojo #FE2C55), revisar su detalle (sección «Anuncio de TikTok») y, si se quiere gastar, lanzar un run con 2-3 perfiles y comprobar que (1) el snippet describe el feed «Para ti» con caption y música, (2) `shown_descriptions` registra la variante de texto mostrada y (3) «Rendimiento por asset» lista los textos del anuncio.
+
+## Estado anterior (v0.54.0)
 
 - **Canal Meta Ads completo (v0.54.0)**: 3 formatos como estrategias (`meta_single`, `meta_carousel`, `meta_collection`), objetivo ODAX + placement de simulación + 1..5 textos principales en `campaigns.channel_spec` (jsonb), caps oficiales (máximo técnico vs recomendado visible con truncado ecológico en el runner), CTAs de Meta en castellano, tarjetas/portada como roles de creatividad nuevos (`card`/`cover`), previews en vivo (feed, 9:16 con safe zones, carousel, colección), export `?format=meta` y ranking por asset con `primary_text`. Detalle en `ROADMAP.md → v0.54.0` y `PROYECTO.md → Módulo Campañas`.
-- **ACCIÓN PENDIENTE DEL OPERADOR: aplicar la migración `0021_meta_ads.sql`** (SQL editor de Supabase o `scripts/apply-migration.mjs`) y luego `NOTIFY pgrst, 'reload schema';`. Sin ella las campañas de Google siguen funcionando, pero crear una campaña de Meta falla con el check de `strategy` (y la columna `channel_spec` no existe).
+- ~~ACCIÓN PENDIENTE: aplicar `0021_meta_ads.sql`~~ → ahora la cubre `scripts/apply-tiktok-setup.mjs` (punto de arriba).
 - **Validación recomendada tras la migración**: crear una campaña `meta_single` con placement Stories, lanzar un run con 2-3 perfiles y comprobar que (1) el snippet del perfil describe el contexto de Stories sin headline, (2) `shown_descriptions` registra el texto principal mostrado y (3) la sección «Rendimiento por asset» lista los textos principales.
 
 ## Estado anterior (v0.49.0 a v0.53.0)
@@ -134,12 +140,12 @@ Las dos con más músculo son **Performance Max** y **Shopping** porque introduc
 
 **Demand Gen** y **Video / YouTube** son más visuales y dependen de un buen reproductor de vídeo en el preview.
 
-### B) Activar el resto de canales (LinkedIn / TikTok / X)
+### B) Activar el resto de canales (LinkedIn / X)
 
-**Meta quedó implementado en v0.54.0** siguiendo el patrón que conviene replicar para cada red nueva:
+**Meta quedó implementado en v0.54.0 y TikTok en v0.55.0** siguiendo el patrón que conviene replicar para cada red nueva:
 
 1. Investigar las specs oficiales (formatos, placements, caps técnicos vs visibles, CTAs).
-2. Estrategias propias del canal en `STRATEGY_VALUES` + `CHANNEL_STRATEGIES` y campos específicos en `channel_spec` (jsonb, sin migración de columnas nuevas; sí amplía el check de `strategy`).
+2. Estrategias propias del canal en `STRATEGY_VALUES` + `CHANNEL_STRATEGIES` y campos específicos en `channel_spec` (jsonb, sin migración de columnas nuevas; sí amplía el check de `strategy`). Desde v0.55.0 `channel_spec` es un union discriminado: el spec nuevo debe declarar su `network` y sumarse a `ChannelSpec`, con helper `xSpecOf` propio.
 3. Renders y framing por formato/placement en el runner + muestreo de variantes si la red lo hace.
 4. Branch en el form con previews y validación en el `superRefine`.
 

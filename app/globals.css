@@ -910,6 +910,11 @@ select option {
   animation: spin 1s linear infinite;
 }
 
+/* Giro lento continuo (disco de música del preview de TikTok) */
+.spin-slow {
+  animation: spin 4s linear infinite;
+}
+
 /* ── Gravity Model diagram ──────────────────────────────────────
    Un solo acento: el centro (la intención) es accent; los anillos y
    puntos orbitales viven en el canal --fg con alphas decrecientes.

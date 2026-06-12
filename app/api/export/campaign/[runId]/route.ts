@@ -1,4 +1,4 @@
-import { getCampaignWithTrashed } from "@/lib/campaigns";
+import { getCampaignWithTrashed, metaSpecOf, tiktokSpecOf } from "@/lib/campaigns";
 import {
   GENERAL_CONTEXT_QUERY,
   listCampaignResponses,
@@ -24,6 +24,10 @@ export const dynamic = "force-dynamic";
  *                         1..5, CTA, URLs): fila «Original» y fila «SUAAS
  *                         ideas» (titulares ideales a 40c y textos
  *                         principales ideales a 125c).
+ *  - ?format=tiktok       CSV con la estructura de un anuncio de TikTok
+ *                         (Ad Text 1..5, Display Name, CTA, URL): fila
+ *                         «Original» y fila «SUAAS ideas» (captions
+ *                         ideales a 100c).
  *
  * Tras el proxy de auth global, como el resto de /api no público.
  */
@@ -159,7 +163,7 @@ export async function GET(req: Request, ctx: Ctx) {
     const pad = (xs: string[], n: number) =>
       Array.from({ length: n }, (_, i) => xs[i] ?? "");
 
-    const originalPrimaries = campaign.channel_spec?.primary_texts ?? [];
+    const originalPrimaries = metaSpecOf(campaign)?.primary_texts ?? [];
     // El «texto principal ideal» de los perfiles viaja en ideal_description
     // (así lo instruye el runner para Meta).
     const idealPrimaries = topIdeals(responses, (r) => r.ideal_description, 125, 5);
@@ -187,7 +191,7 @@ export async function GET(req: Request, ctx: Ctx) {
           ...pad(campaign.headlines, 5),
           ...pad(campaign.descriptions, 5),
           campaign.cta ?? "",
-          campaign.channel_spec?.display_link ?? "",
+          metaSpecOf(campaign)?.display_link ?? "",
           campaign.final_url,
         ],
         ",",
@@ -200,7 +204,7 @@ export async function GET(req: Request, ctx: Ctx) {
           ...pad(mixedHeadlines, 5),
           ...pad(campaign.descriptions, 5),
           campaign.cta ?? "",
-          campaign.channel_spec?.display_link ?? "",
+          metaSpecOf(campaign)?.display_link ?? "",
           campaign.final_url,
         ],
         ",",
@@ -210,6 +214,55 @@ export async function GET(req: Request, ctx: Ctx) {
       headers: {
         "Content-Type": "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="meta-ads-${runId.slice(0, 8)}.csv"`,
+      },
+    });
+  }
+
+  if (format === "tiktok") {
+    // Estructura de un anuncio de TikTok: hasta 5 variantes de ad text
+    // (Smart+ ad_text_list). «SUAAS ideas» mezcla captions ideales (100c)
+    // con los originales.
+    const spec = tiktokSpecOf(campaign);
+    const header = [
+      "Campaign",
+      "Ad Name",
+      ...Array.from({ length: 5 }, (_, i) => `Ad Text ${i + 1}`),
+      "Display Name",
+      "Identity Handle",
+      "Call To Action",
+      "Music",
+      "Landing Page URL",
+    ];
+    const pad = (xs: string[], n: number) =>
+      Array.from({ length: n }, (_, i) => xs[i] ?? "");
+
+    const originalTexts = spec?.ad_texts ?? [];
+    // El «caption ideal» de los perfiles viaja en ideal_description (así lo
+    // instruye el runner para TikTok).
+    const idealTexts = topIdeals(responses, (r) => r.ideal_description, 100, 5);
+    const mixedTexts = [
+      ...idealTexts,
+      ...originalTexts.filter(
+        (t) => !idealTexts.some((x) => x.toLowerCase() === t.toLowerCase()),
+      ),
+    ].slice(0, 5);
+
+    const fixedCols = [
+      campaign.company_name ?? "",
+      spec?.identity_handle ? `@${spec.identity_handle}` : "",
+      campaign.cta ?? "",
+      spec?.music_name ?? "",
+      campaign.final_url,
+    ];
+    const rows = [
+      csvLine(header, ","),
+      csvLine([campaign.name, "Original", ...pad(originalTexts, 5), ...fixedCols], ","),
+      csvLine([campaign.name, "SUAAS ideas", ...pad(mixedTexts, 5), ...fixedCols], ","),
+    ];
+    return new Response("﻿" + rows.join("\r\n") + "\r\n", {
+      headers: {
+        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Disposition": `attachment; filename="tiktok-ads-${runId.slice(0, 8)}.csv"`,
       },
     });
   }

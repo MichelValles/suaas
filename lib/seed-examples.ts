@@ -438,11 +438,12 @@ export async function pickProfileIdsByAgeRange(
 // ============================================================
 
 /**
- * Crea 6 campañas de ejemplo (una por estrategia implementada) sobre la
- * marca real IVI (ivi.es, clínicas de reproducción asistida). El copy es
- * fiel a sus claims públicos (tasas hasta un 23% superiores a la media,
- * 35 clínicas, financiación TIN 0%, Plan IVI Baby con garantía) y las
- * imágenes son URLs reales de su web más su favicon como logo.
+ * Crea 7 campañas de ejemplo (una por estrategia implementada, 6 de
+ * Google y 1 de TikTok) sobre la marca real IVI (ivi.es, clínicas de
+ * reproducción asistida). El copy es fiel a sus claims públicos (tasas
+ * hasta un 23% superiores a la media, 35 clínicas, financiación TIN 0%,
+ * Plan IVI Baby con garantía) y las imágenes son URLs reales de su web
+ * más su favicon como logo.
  */
 export async function seedCampaignStrategiesExample(): Promise<{
   campaigns: { strategy: Strategy; campaignId: string }[];
@@ -623,6 +624,43 @@ export async function seedCampaignStrategiesExample(): Promise<{
     ],
   });
   campaigns.push({ strategy: "shopping", campaignId: shopping.id });
+
+  // TikTok: vídeo in-feed con el spot real como creatividad (el perfil
+  // evalúa la miniatura) y el favicon como foto de perfil de la cuenta.
+  const tiktok = await createCampaign({
+    ...shared,
+    channels: ["tiktok"],
+    name: "IVI · TikTok · Vídeo in-feed",
+    strategy: "tiktok_video",
+    queries: ["quiero ser madre", "fertilidad a los 35"],
+    headlines: [],
+    descriptions: [],
+    company_name: "IVI",
+    cta: "Reservar ahora",
+    channel_spec: {
+      network: "tiktok",
+      objective: "lead_generation",
+      ad_texts: [
+        "Serás mamá o te devolvemos el dinero: así es el Plan IVI Baby. Primera visita sin compromiso.",
+        "Tasas de éxito un 23% superiores a la media y 35 clínicas en España. Financiación TIN 0%.",
+        "La noticia de tu vida puede empezar hoy. Pide tu primera cita gratuita en IVI.",
+      ],
+      identity_handle: "ivi.es",
+      music_name: "La noticia de mi vida · IVI",
+    },
+    creatives: [
+      {
+        kind: "youtube",
+        role: "video_youtube",
+        url: `https://www.youtube.com/watch?v=${YT_ID}`,
+        youtube_id: YT_ID,
+        thumbnail_url: `https://i.ytimg.com/vi/${YT_ID}/hqdefault.jpg`,
+        label: "Spot «La noticia de mi vida»",
+      },
+      { ...logoCreative, label: "Foto de perfil (favicon)" },
+    ],
+  });
+  campaigns.push({ strategy: "tiktok_video", campaignId: tiktok.id });
 
   return { campaigns };
 }

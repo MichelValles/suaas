@@ -2,7 +2,15 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
-import { Loader2 } from "lucide-react";
+import {
+  Bookmark,
+  Heart,
+  Loader2,
+  MessageCircle,
+  Music,
+  Plus,
+  Share2,
+} from "lucide-react";
 import { ChannelIcon } from "@/components/channel-icon";
 import { RemoveIconButton } from "@/components/remove-icon-button";
 import { StrategyIcon } from "@/components/strategy-icon";
@@ -23,10 +31,18 @@ import {
   META_PLACEMENT_VALUES,
   STRATEGY_DESCRIPTION,
   STRATEGY_LABEL,
+  TIKTOK_CTA_VALUES,
+  TIKTOK_LIMITS,
+  TIKTOK_OBJECTIVE_DESCRIPTION,
+  TIKTOK_OBJECTIVE_LABEL,
+  TIKTOK_OBJECTIVE_VALUES,
   extractYouTubeId,
   isMetaStrategy,
   isStrategyImplemented,
+  isTikTokStrategy,
   isVerticalPlacement,
+  metaSpecOf,
+  tiktokSpecOf,
   youtubeThumbnail,
   type Campaign as CampaignEntity,
   type Channel,
@@ -34,6 +50,7 @@ import {
   type MetaObjective,
   type MetaPlacement,
   type Strategy,
+  type TikTokObjective,
 } from "@/lib/campaigns";
 import {
   createCampaignAction,
@@ -144,21 +161,30 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
   const [longHeadline, setLongHeadline] = useState(src?.long_headline ?? "");
   const [cta, setCta] = useState<string>(src?.cta ?? "");
   // Meta: objetivo ODAX, placement de simulación, textos principales y
-  // enlace visible (channel_spec).
+  // enlace visible (channel_spec). TikTok: objetivo, variantes de texto,
+  // @usuario y música (channel_spec con network "tiktok").
+  const srcMetaSpec = src ? metaSpecOf(src) : null;
+  const srcTikTokSpec = src ? tiktokSpecOf(src) : null;
   const [metaObjective, setMetaObjective] = useState<MetaObjective>(
-    src?.channel_spec?.objective ?? "traffic",
+    srcMetaSpec?.objective ?? "traffic",
   );
   const [metaPlacement, setMetaPlacement] = useState<MetaPlacement>(
-    src?.channel_spec?.placement ?? "instagram_feed",
+    srcMetaSpec?.placement ?? "instagram_feed",
   );
   const [primaryTexts, setPrimaryTexts] = useState<string[]>(
-    src?.channel_spec?.primary_texts?.length
-      ? src.channel_spec.primary_texts
-      : [""],
+    srcMetaSpec?.primary_texts?.length ? srcMetaSpec.primary_texts : [""],
   );
-  const [displayLink, setDisplayLink] = useState(
-    src?.channel_spec?.display_link ?? "",
+  const [displayLink, setDisplayLink] = useState(srcMetaSpec?.display_link ?? "");
+  const [tiktokObjective, setTiktokObjective] = useState<TikTokObjective>(
+    srcTikTokSpec?.objective ?? "traffic",
   );
+  const [adTexts, setAdTexts] = useState<string[]>(
+    srcTikTokSpec?.ad_texts?.length ? srcTikTokSpec.ad_texts : [""],
+  );
+  const [identityHandle, setIdentityHandle] = useState(
+    srcTikTokSpec?.identity_handle ?? "",
+  );
+  const [musicName, setMusicName] = useState(srcTikTokSpec?.music_name ?? "");
   // Producto (solo shopping): espejo de los atributos obligatorios del feed.
   const [productId, setProductId] = useState(src?.product?.id ?? "");
   const [productTitle, setProductTitle] = useState(src?.product?.title ?? "");
@@ -177,6 +203,8 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
   );
 
   const isMeta = isMetaStrategy(strategy);
+  const isTikTok = isTikTokStrategy(strategy);
+  const isSpark = strategy === "tiktok_spark";
   // Estrategias con el set de assets visual (CTA de lista y preview de
   // banner): Display, Performance Max y Demand Gen.
   const assetStrategy =
@@ -271,9 +299,24 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
     setPrimaryTexts(primaryTexts.filter((_, idx) => idx !== i));
   }
 
+  // ============ ad texts (TikTok) ============
+  function addAdText() {
+    if (adTexts.length >= TIKTOK_LIMITS.variants) return;
+    setAdTexts([...adTexts, ""]);
+  }
+  function removeAdText(i: number) {
+    if (adTexts.length <= 1) return;
+    setAdTexts(adTexts.filter((_, idx) => idx !== i));
+  }
+
   // ============ creatives ============
   function addCreative(kind: CreativeKind = "image", role: CreativeRole = "generic") {
-    const cap = strategy === "meta_carousel" || strategy === "meta_collection" ? 12 : 6;
+    const cap =
+      strategy === "tiktok_carousel"
+        ? TIKTOK_LIMITS.carousel_images.max + 1
+        : strategy === "meta_carousel" || strategy === "meta_collection"
+          ? 12
+          : 6;
     if (creatives.length >= cap) return;
     setCreatives([...creatives, emptyCreative(kind, role)]);
   }
@@ -362,7 +405,15 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           primary_texts: primaryTexts.map((t) => t.trim()).filter(Boolean),
           display_link: displayLink.trim() || null,
         }
-      : null,
+      : isTikTok
+        ? {
+            network: "tiktok" as const,
+            objective: tiktokObjective,
+            ad_texts: adTexts.map((t) => t.trim()).filter(Boolean),
+            identity_handle: identityHandle.trim().replace(/^@/, "") || null,
+            music_name: musicName.trim() || null,
+          }
+        : null,
     product:
       strategy === "shopping"
         ? {
@@ -592,8 +643,8 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               }}
             >
               Cada red tiene formato propio (caps de caracteres, creatividades,
-              targeting). Google Ads y Meta Ads están implementados con sus
-              campos y límites reales. LinkedIn, TikTok y X llegarán como
+              targeting). Google Ads, Meta Ads y TikTok Ads están implementados
+              con sus campos y límites reales. LinkedIn y X llegarán como
               módulos específicos en futuras versiones.
             </p>
           </div>
@@ -610,8 +661,8 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 color: "rgba(var(--fg),0.55)",
               }}
             >
-              {channel === "meta"
-                ? "Formato del anuncio en Meta"
+              {channel === "meta" || channel === "tiktok"
+                ? `Formato del anuncio en ${CHANNEL_LABEL[channel].split(" ")[0]}`
                 : `Tipo de campaña dentro de ${CHANNEL_LABEL[channel].split(" ")[0]}`}
             </span>
             <StrategyTabs channel={channel} value={strategy} onChange={setStrategy} />
@@ -708,19 +759,79 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           </Section>
         )}
 
-        {(showsBusinessAssets || isMeta) && (
-          <Section title={isMeta ? "Identidad y enlace" : "Identidad de marca"}>
+        {isTikTok && (
+          <Section title="Configuración de TikTok">
+            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <Label>Objetivo de la campaña</Label>
+              <select
+                value={tiktokObjective}
+                onChange={(e) =>
+                  setTiktokObjective(e.currentTarget.value as TikTokObjective)
+                }
+                style={inputStyle}
+              >
+                {TIKTOK_OBJECTIVE_VALUES.map((o) => (
+                  <option key={o} value={o}>
+                    {TIKTOK_OBJECTIVE_LABEL[o]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              {TIKTOK_OBJECTIVE_DESCRIPTION[tiktokObjective]}
+            </p>
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              La simulación coloca el anuncio en el feed «Para ti» de TikTok (el
+              placement principal). Pangle y Global App Bundle, las redes
+              externas de ByteDance, no están modelados.
+            </p>
+          </Section>
+        )}
+
+        {(showsBusinessAssets || isMeta || isTikTok) && (
+          <Section
+            title={
+              isMeta
+                ? "Identidad y enlace"
+                : isTikTok
+                  ? "Identidad de la cuenta"
+                  : "Identidad de marca"
+            }
+          >
             <CharCountedInput
               label={
                 isMeta
                   ? "Nombre de la página de Facebook (identidad del anuncio)"
-                  : "Nombre de empresa (visible en el anuncio)"
+                  : isTikTok
+                    ? "Nombre visible (display name; en pantalla se muestran ~20 caracteres)"
+                    : "Nombre de empresa (visible en el anuncio)"
               }
               value={companyName}
               onChange={setCompanyName}
-              max={isMeta ? META_LIMITS.page_name.max : 25}
+              max={
+                isMeta
+                  ? META_LIMITS.page_name.max
+                  : isTikTok
+                    ? TIKTOK_LIMITS.display_name.max
+                    : 25
+              }
+              recommended={isTikTok ? TIKTOK_LIMITS.display_name.recommended : undefined}
               required
-              placeholder={isMeta ? "BBVA España" : "BBVA"}
+              placeholder={isMeta ? "BBVA España" : isTikTok ? "BBVA" : "BBVA"}
             />
             {isMeta && (
               <Controlled
@@ -730,12 +841,39 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 placeholder="miweb.com/hipotecas"
               />
             )}
+            {isTikTok && (
+              <>
+                <CharCountedInput
+                  label={
+                    isSpark
+                      ? "Usuario de la cuenta del post (@, sin la arroba)"
+                      : "Usuario mostrado (@, opcional; si no, se deriva del nombre visible)"
+                  }
+                  value={identityHandle}
+                  onChange={setIdentityHandle}
+                  max={TIKTOK_LIMITS.identity_handle.max}
+                  placeholder="bbva_es"
+                />
+                <p
+                  style={{
+                    color: "rgba(var(--fg),0.55)",
+                    fontSize: 12,
+                    lineHeight: 1.55,
+                    margin: 0,
+                  }}
+                >
+                  {isSpark
+                    ? "El Spark Ad usa la identidad REAL de la cuenta del post (avatar, nombre y @). La foto de perfil se añade como creatividad con rol «Foto de perfil»."
+                    : "TikTok está retirando las identidades personalizadas (2026): los anuncios nuevos salen de un perfil verificado. La foto de perfil (98x98, 1:1) se añade como creatividad con rol «Foto de perfil»."}
+                </p>
+              </>
+            )}
           </Section>
         )}
 
         <Section
           title={
-            strategy === "display" || isMeta
+            strategy === "display" || isMeta || isTikTok
               ? `Intereses / contexto · ${queries.length} / 5 (opcional)`
               : strategy === "pmax"
                 ? `Señales de audiencia · ${queries.length} / 5 (opcional)`
@@ -761,6 +899,21 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               Sin intereses, el perfil lo ve sin contexto previo.
             </p>
           )}
+          {isTikTok && (
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              En TikTok el feed «Para ti» decide: estos intereses simulan las
+              señales reales del targeting (vídeos terminados o guardados y
+              hashtags vistos en los últimos 7-15 días, creadores seguidos).
+              Sin intereses, el perfil lo ve sin contexto previo.
+            </p>
+          )}
           {queries.map((q, i) => (
             <RowWithRemove
               key={i}
@@ -769,7 +922,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             >
               <Controlled
                 label={
-                  assetStrategy || isMeta
+                  assetStrategy || isMeta || isTikTok
                     ? `Interés / señal ${i + 1}`
                     : `Query ${i + 1}`
                 }
@@ -779,9 +932,11 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                   (strategy === "search" || strategy === "shopping") && i === 0
                 }
                 placeholder={
-                  assetStrategy || isMeta
-                    ? "lector de tech, edad 30-45"
-                    : "hipoteca fija madrid"
+                  isTikTok
+                    ? "vídeos de fitness, hashtag gymtok"
+                    : assetStrategy || isMeta
+                      ? "lector de tech, edad 30-45"
+                      : "hipoteca fija madrid"
                 }
               />
             </RowWithRemove>
@@ -831,6 +986,80 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 />
               </RowWithRemove>
             ))}
+          </Section>
+        )}
+
+        {isTikTok && (
+          <Section
+            title={`Texto del anuncio · ${adTexts.length} / ${TIKTOK_LIMITS.variants}`}
+            onAdd={addAdText}
+            addLabel="+ Añadir variante"
+            canAdd={adTexts.length < TIKTOK_LIMITS.variants}
+          >
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              {isSpark
+                ? "El caption del post orgánico (en Spark se conserva tal cual: admite emojis y hashtags; máximo 150 caracteres en el push de R&F). El feed lo corta a ~2 líneas con «más»."
+                : "El caption sobre el vídeo: 1-100 caracteres, SIN emojis, «#» ni «{ }» (spec oficial). El feed lo corta a ~2 líneas con «más»."}{" "}
+              Cada perfil ve UNA variante (así rotan los textos en Smart+).
+            </p>
+            {adTexts.map((t, i) => (
+              <RowWithRemove
+                key={i}
+                canRemove={adTexts.length > 1}
+                onRemove={() => removeAdText(i)}
+              >
+                <CharCountedTextarea
+                  label={`Texto ${i + 1}${i === 0 ? " · obligatorio" : " · opcional"}`}
+                  value={t}
+                  onChange={(v) => setAdTexts(updateAt(adTexts, i, v))}
+                  max={
+                    isSpark ? TIKTOK_LIMITS.spark_caption.max : TIKTOK_LIMITS.ad_text.max
+                  }
+                  required={i === 0}
+                  placeholder="Hipoteca fija sin comisiones de apertura. Respuesta en 48 horas."
+                />
+              </RowWithRemove>
+            ))}
+          </Section>
+        )}
+
+        {isTikTok && (
+          <Section title={strategy === "tiktok_carousel" ? "Música · obligatoria" : "Música (opcional)"}>
+            <Controlled
+              label={
+                strategy === "tiktok_carousel"
+                  ? "Nombre de la pista (suena en bucle sobre las imágenes)"
+                  : "Nombre de la pista (si va vacío se muestra «Promoted music»)"
+              }
+              value={musicName}
+              onChange={setMusicName}
+              maxLength={TIKTOK_LIMITS.music_name.max}
+              required={strategy === "tiktok_carousel"}
+              placeholder={
+                strategy === "tiktok_carousel"
+                  ? "Upbeat Pop · Commercial Music Library"
+                  : "Sonido original · tu marca"
+              }
+            />
+            <p
+              style={{
+                color: "rgba(var(--fg),0.55)",
+                fontSize: 12,
+                lineHeight: 1.55,
+                margin: 0,
+              }}
+            >
+              {strategy === "tiktok_carousel"
+                ? "El carousel exige música (mínimo 2 segundos, en bucle): de la Commercial Music Library o subida propia (mp3/wav/m4a/flac, hasta 10 MB)."
+                : "En vídeo la música va embebida en el propio archivo; aquí solo se indica el nombre que aparece en la fila inferior del anuncio."}
+            </p>
           </Section>
         )}
 
@@ -914,7 +1143,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           </Section>
         )}
 
-        {strategy !== "shopping" && strategy !== "meta_carousel" && (
+        {strategy !== "shopping" && strategy !== "meta_carousel" && !isTikTok && (
         <Section
           title={
             strategy === "display"
@@ -984,6 +1213,7 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
 
         {strategy !== "shopping" &&
           strategy !== "meta_carousel" &&
+          !isTikTok &&
           !(isMeta && metaVertical) && (
         <Section
           title={`Descripciones · ${descriptions.length} / ${descriptionsCap}${isMeta ? " (opcional)" : ""}`}
@@ -1028,7 +1258,11 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
         </Section>
         )}
 
-        {(assetStrategy || strategy === "video" || strategy === "search" || isMeta) && (
+        {(assetStrategy ||
+          strategy === "video" ||
+          strategy === "search" ||
+          isMeta ||
+          isTikTok) && (
           <Section title="CTA">
             {strategy === "video" ? (
               <CharCountedInput
@@ -1038,6 +1272,25 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                 max={10}
                 placeholder="Ver oferta"
               />
+            ) : isTikTok ? (
+              <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <Label>
+                  Botón CTA (lista cerrada de TikTok; aparece bajo el caption a los pocos segundos)
+                </Label>
+                <select
+                  value={cta}
+                  onChange={(e) => setCta(e.currentTarget.value)}
+                  required
+                  style={inputStyle}
+                >
+                  <option value="">elige el botón (obligatorio)</option>
+                  {TIKTOK_CTA_VALUES.map((c) => (
+                    <option key={c} value={c}>
+                      {c}
+                    </option>
+                  ))}
+                </select>
+              </label>
             ) : isMeta ? (
               <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <Label>
@@ -1087,28 +1340,64 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               ? `Imágenes y vídeos · ${creatives.length}`
               : strategy === "meta_carousel"
                 ? `Tarjetas · ${creatives.filter((c) => c.role === "card").length} / 10`
-                : strategy === "meta_collection"
-                  ? `Portada y productos · ${creatives.length}`
-                  : strategy === "meta_single"
-                    ? `Creatividad · ${creatives.length}`
-                    : `Creatividades · ${creatives.length} / 6 (opcional)`
+                : strategy === "tiktok_carousel"
+                  ? `Tarjetas · ${creatives.filter((c) => c.role === "card").length} / 35`
+                  : strategy === "meta_collection"
+                    ? `Portada y productos · ${creatives.length}`
+                    : strategy === "meta_single" ||
+                        strategy === "tiktok_video" ||
+                        strategy === "tiktok_spark"
+                      ? `Creatividad · ${creatives.length}`
+                      : `Creatividades · ${creatives.length} / 6 (opcional)`
           }
           onAdd={() =>
             addCreative(
-              strategy === "video" ? "youtube" : "image",
-              strategy === "meta_carousel"
+              strategy === "video"
+                ? "youtube"
+                : strategy === "tiktok_video" || strategy === "tiktok_spark"
+                  ? creatives.some((c) => c.kind === "video" || c.kind === "youtube")
+                    ? "image"
+                    : "video"
+                  : "image",
+              strategy === "meta_carousel" || strategy === "tiktok_carousel"
                 ? "card"
                 : strategy === "meta_collection"
                   ? creatives.some((c) => c.role === "cover")
                     ? "card"
                     : "cover"
-                  : "generic",
+                  : (strategy === "tiktok_video" || strategy === "tiktok_spark") &&
+                      creatives.some((c) => c.kind === "video" || c.kind === "youtube")
+                    ? "logo_square"
+                    : "generic",
             )
           }
-          addLabel={strategy === "meta_carousel" ? "+ Añadir tarjeta" : "+ Añadir"}
-          canAdd={creatives.length < 20}
+          addLabel={
+            strategy === "meta_carousel" || strategy === "tiktok_carousel"
+              ? "+ Añadir tarjeta"
+              : "+ Añadir"
+          }
+          canAdd={creatives.length < (strategy === "tiktok_carousel" ? 36 : 20)}
         >
-          {strategy === "meta_single" ? (
+          {strategy === "tiktok_video" || strategy === "tiktok_spark" ? (
+            <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
+              {strategy === "tiktok_spark" ? "El Spark Ad" : "El vídeo in-feed"} exige{" "}
+              <strong>1 vídeo con miniatura</strong> (el perfil sintético evalúa la
+              miniatura, los modelos no procesan vídeo). Spec: 9:16 vertical
+              recomendado (mínimo 540x960; admite 1:1 y 16:9), 5-60 segundos
+              (mejor rendimiento 21-34s), máximo 500 MB. La interfaz tapa los
+              bordes: deja libre ~13% superior, ~25% inferior y ~13% del lateral
+              derecho. Opcional: una imagen con rol «Foto de perfil» (98x98, 1:1)
+              como avatar de la cuenta.
+            </p>
+          ) : strategy === "tiktok_carousel" ? (
+            <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
+              El carousel lleva <strong>de 2 a 35 imágenes</strong> (mejor CTR con 3 o
+              con 7-9), JPG/PNG, vertical 720x1280 recomendado (otros ratios
+              recortan en negro). Pasan solas en orden y se pueden deslizar; un
+              solo caption, una música y un botón CTA para todas. El perfil
+              sintético ve las 4 primeras imágenes.
+            </p>
+          ) : strategy === "meta_single" ? (
             <p style={{ color: "rgba(var(--fg),0.55)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
               El anuncio único exige <strong>1 creatividad</strong>: imagen (JPG/PNG) o
               vídeo con miniatura (el perfil sintético evalúa la miniatura, los
@@ -1171,13 +1460,17 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           {creatives.map((c, i) => (
             <fieldset key={i} style={fieldsetStyle}>
               <legend className="mono" style={legendStyle}>
-                {strategy === "meta_carousel"
-                  ? `Tarjeta ${i + 1}`
+                {strategy === "meta_carousel" || strategy === "tiktok_carousel"
+                  ? c.role === "logo_square"
+                    ? "Foto de perfil"
+                    : `Tarjeta ${i + 1}`
                   : strategy === "meta_collection"
                     ? c.role === "cover"
                       ? "Portada"
                       : `Producto ${i + 1}`
-                    : `Creatividad ${i + 1}`}
+                    : isTikTok && c.role === "logo_square"
+                      ? "Foto de perfil"
+                      : `Creatividad ${i + 1}`}
               </legend>
               <div style={{ display: "flex", justifyContent: "flex-end" }}>
                 <RemoveIconButton onClick={() => removeCreative(i)} />
@@ -1188,21 +1481,44 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
                   onClick={() => changeCreativeKind(i, "image")}
                   label="Imagen"
                 />
-                {!(isMeta && metaPlacement === "threads_feed" && c.role === "card") && (
+                {!(isMeta && metaPlacement === "threads_feed" && c.role === "card") &&
+                  !(strategy === "tiktok_carousel" && c.role === "card") &&
+                  !(isTikTok && c.role === "logo_square") && (
                   <ToggleButton
                     active={c.kind === "video"}
                     onClick={() => changeCreativeKind(i, "video")}
                     label="Vídeo"
                   />
                 )}
-                {!isMeta && (
+                {!isMeta &&
+                  !(strategy === "tiktok_carousel" && c.role === "card") &&
+                  !(isTikTok && c.role === "logo_square") && (
                   <ToggleButton
                     active={c.kind === "youtube"}
                     onClick={() => changeCreativeKind(i, "youtube")}
-                    label="YouTube"
+                    label={isTikTok ? "YouTube (miniatura)" : "YouTube"}
                   />
                 )}
               </div>
+              {isTikTok && (
+                <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <Label>Rol en el anuncio</Label>
+                  <select
+                    value={c.role === "logo_square" ? "logo_square" : strategy === "tiktok_carousel" ? "card" : "generic"}
+                    onChange={(e) =>
+                      patchCreative(i, { role: e.currentTarget.value as CreativeRole })
+                    }
+                    style={inputStyle}
+                  >
+                    {strategy === "tiktok_carousel" ? (
+                      <option value="card">Tarjeta del carousel (imagen)</option>
+                    ) : (
+                      <option value="generic">Vídeo del anuncio</option>
+                    )}
+                    <option value="logo_square">Foto de perfil (98x98, 1:1)</option>
+                  </select>
+                </label>
+              )}
               {strategy === "meta_collection" && (
                 <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   <Label>Rol en la colección</Label>
@@ -1484,6 +1800,56 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           </p>
         )}
 
+        {strategy === "tiktok_video" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            El vídeo in-feed de TikTok exige: nombre visible (40c técnicos, ~20
+            visibles), 1 a 5 textos de anuncio (100c, sin emojis ni «#»), botón
+            CTA de la lista y 1 vídeo con miniatura (9:16 recomendado). El
+            @usuario y la foto de perfil son opcionales.
+          </p>
+        )}
+
+        {strategy === "tiktok_carousel" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            El carousel de TikTok exige: nombre visible, 1 a 5 textos de anuncio
+            (100c, sin emojis ni «#»), botón CTA, música (suena en bucle) y de 2
+            a 35 imágenes (vertical 720x1280 recomendado).
+          </p>
+        )}
+
+        {strategy === "tiktok_spark" && (
+          <p
+            style={{
+              margin: 0,
+              fontSize: 12,
+              lineHeight: 1.55,
+              color: "rgba(var(--fg),0.55)",
+              maxWidth: 640,
+            }}
+          >
+            El Spark Ad exige: la cuenta del post (@usuario y nombre visible), el
+            caption del post (admite emojis y hashtags, máx. 150c), botón CTA y el
+            vídeo orgánico con miniatura. En la cuenta real necesitarías el código
+            de autorización del creador (7 a 365 días).
+          </p>
+        )}
+
         <Submit />
         </>
         )}
@@ -1511,7 +1877,9 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
           Vista previa ·{" "}
           {isMeta
             ? `${STRATEGY_LABEL[strategy]} · ${META_PLACEMENT_LABEL[metaPlacement]}`
-            : STRATEGY_LABEL[strategy]}
+            : isTikTok
+              ? `${STRATEGY_LABEL[strategy]} · Feed «Para ti»`
+              : STRATEGY_LABEL[strategy]}
         </span>
         {isMeta ? (
           <MetaAdPreview
@@ -1525,6 +1893,16 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
             displayLink={displayLink}
             creatives={creatives}
             finalUrl={finalUrl}
+          />
+        ) : isTikTok ? (
+          <TikTokAdPreview
+            strategy={strategy}
+            companyName={companyName}
+            identityHandle={identityHandle}
+            adText={adTexts.find(Boolean) ?? ""}
+            musicName={musicName}
+            cta={cta}
+            creatives={creatives}
           />
         ) : strategy === "shopping" ? (
           <ShoppingAdPreview
@@ -1589,7 +1967,8 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
 
         {(headlines.filter(Boolean).length > 1 ||
           descriptions.filter(Boolean).length > 1 ||
-          (isMeta && primaryTexts.filter(Boolean).length > 1)) && (
+          (isMeta && primaryTexts.filter(Boolean).length > 1) ||
+          (isTikTok && adTexts.filter(Boolean).length > 1)) && (
           <div
             style={{
               border: "1px solid rgba(var(--fg),0.08)",
@@ -1601,6 +1980,46 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               gap: 12,
             }}
           >
+            {isTikTok && adTexts.filter(Boolean).length > 1 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <span
+                  className="mono"
+                  style={{
+                    fontSize: 10,
+                    letterSpacing: "0.22em",
+                    color: "rgba(var(--fg),0.55)",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  Otras variantes del texto
+                </span>
+                <ul
+                  style={{
+                    listStyle: "none",
+                    padding: 0,
+                    margin: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: 4,
+                  }}
+                >
+                  {adTexts.slice(1).map((t, i) =>
+                    t ? (
+                      <li
+                        key={i}
+                        style={{
+                          color: "rgba(var(--fg),0.7)",
+                          fontSize: 12,
+                          lineHeight: 1.55,
+                        }}
+                      >
+                        T{i + 2}: {t}
+                      </li>
+                    ) : null,
+                  )}
+                </ul>
+              </div>
+            )}
             {isMeta && primaryTexts.filter(Boolean).length > 1 && (
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 <span
@@ -3214,6 +3633,407 @@ const metaCardShell: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
 };
+
+// ============================================================
+// Preview de TikTok: el feed «Para ti» a pantalla completa (9:16) con
+// la anatomía real del anuncio: tabs superiores, columna de iconos a
+// la derecha (avatar + corazón + comentarios + guardar + compartir +
+// disco), @usuario + «Patrocinado» + caption + fila de música abajo a
+// la izquierda y botón CTA que el sistema colorea a los pocos segundos.
+// Contexto siempre oscuro: colores fijos bajo .theme-dark-fixed.
+// ============================================================
+
+function TikTokAdPreview({
+  strategy,
+  companyName,
+  identityHandle,
+  adText,
+  musicName,
+  cta,
+  creatives,
+}: {
+  strategy: Strategy;
+  companyName: string;
+  identityHandle: string;
+  adText: string;
+  musicName: string;
+  cta: string;
+  creatives: Creative[];
+}) {
+  const carousel = strategy === "tiktok_carousel";
+  const spark = strategy === "tiktok_spark";
+  const cards = creatives.filter(
+    (c) => c.role === "card" && (c.upload_data || c.url),
+  );
+  const [cardIndex, setCardIndex] = useState(0);
+  const safeIndex = cards.length > 0 ? Math.min(cardIndex, cards.length - 1) : 0;
+  const videoSrc = creativeSrc(
+    creatives,
+    (c) => (c.kind === "video" || c.kind === "youtube") && c.role !== "logo_square",
+  );
+  const avatarSrc = creativeSrc(creatives, (c) => c.role === "logo_square");
+  const mediaSrc = carousel
+    ? cards[safeIndex]
+      ? cards[safeIndex].upload_data || cards[safeIndex].url
+      : ""
+    : videoSrc;
+  const handle =
+    identityHandle.trim().replace(/^@/, "") ||
+    companyName.trim().toLowerCase().replace(/\s+/g, "") ||
+    "tucuenta";
+  // El feed corta el caption a ~2 líneas con «más» (4 líneas es el máximo).
+  const caption = truncateVisible(
+    adText || "Tu texto del anuncio aparecerá aquí.",
+    80,
+  );
+  const music = musicName.trim() || `Promoted music · ${companyName || "tu marca"}`;
+
+  return (
+    <div
+      className="theme-dark-fixed"
+      style={{
+        position: "relative",
+        aspectRatio: "9 / 16",
+        maxHeight: 480,
+        borderRadius: "var(--radius-md)",
+        border: "1px solid rgba(var(--fg),0.08)",
+        overflow: "hidden",
+        background: "#0a0b0d",
+      }}
+    >
+      {mediaSrc ? (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={mediaSrc}
+          alt={carousel ? `Tarjeta ${safeIndex + 1}` : "Miniatura del vídeo"}
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+        />
+      ) : (
+        <span
+          className="mono"
+          style={{
+            position: "absolute",
+            inset: 0,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "rgba(255,255,255,0.4)",
+            fontSize: 11,
+          }}
+        >
+          {carousel ? "tarjeta 720x1280" : "vídeo 9:16 (miniatura)"}
+        </span>
+      )}
+
+      {/* Tabs superiores del feed */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          padding: "10px 12px",
+          background: "linear-gradient(rgba(10,11,13,0.5), transparent)",
+          display: "flex",
+          justifyContent: "center",
+          gap: 14,
+        }}
+      >
+        <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 12 }}>
+          Siguiendo
+        </span>
+        <span
+          style={{
+            color: "#ffffff",
+            fontSize: 12,
+            fontWeight: 700,
+            borderBottom: "2px solid #ffffff",
+            paddingBottom: 2,
+          }}
+        >
+          Para ti
+        </span>
+      </div>
+
+      {/* Carousel: contador y flechas */}
+      {carousel && (
+        <>
+          <span
+            className="mono"
+            style={{
+              position: "absolute",
+              top: 36,
+              right: 10,
+              padding: "2px 8px",
+              borderRadius: "var(--radius-pill)",
+              background: "rgba(10,11,13,0.55)",
+              color: "rgba(255,255,255,0.85)",
+              fontSize: 10,
+            }}
+          >
+            {cards.length > 0 ? safeIndex + 1 : 1}/{Math.max(cards.length, 2)}
+          </span>
+          {cards.length > 1 && (
+            <>
+              <button
+                type="button"
+                aria-label="Tarjeta anterior"
+                onClick={() => setCardIndex((safeIndex - 1 + cards.length) % cards.length)}
+                style={tiktokArrowStyle("left")}
+              >
+                ‹
+              </button>
+              <button
+                type="button"
+                aria-label="Tarjeta siguiente"
+                onClick={() => setCardIndex((safeIndex + 1) % cards.length)}
+                style={tiktokArrowStyle("right")}
+              >
+                ›
+              </button>
+            </>
+          )}
+        </>
+      )}
+
+      {/* Columna derecha de iconos */}
+      <div
+        style={{
+          position: "absolute",
+          right: 8,
+          bottom: 110,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 14,
+        }}
+      >
+        <span style={{ position: "relative", display: "inline-flex" }}>
+          {avatarSrc ? (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              src={avatarSrc}
+              alt="Foto de perfil"
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "1.5px solid #ffffff",
+              }}
+            />
+          ) : (
+            <span
+              style={{
+                width: 36,
+                height: 36,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.25)",
+                border: "1.5px solid #ffffff",
+                display: "inline-block",
+              }}
+            />
+          )}
+          <span
+            style={{
+              position: "absolute",
+              bottom: -7,
+              left: "50%",
+              transform: "translateX(-50%)",
+              width: 15,
+              height: 15,
+              borderRadius: "50%",
+              background: "#FE2C55",
+              color: "#ffffff",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Plus size={11} strokeWidth={3} />
+          </span>
+        </span>
+        <TikTokSideIcon icon={<Heart size={26} fill="currentColor" />} count="12,4 K" />
+        <TikTokSideIcon icon={<MessageCircle size={26} fill="currentColor" />} count="208" />
+        <TikTokSideIcon icon={<Bookmark size={26} fill="currentColor" />} count="96" />
+        <TikTokSideIcon icon={<Share2 size={26} fill="currentColor" />} count="54" />
+        <span
+          className="spin-slow"
+          style={{
+            width: 28,
+            height: 28,
+            borderRadius: "50%",
+            background:
+              "radial-gradient(circle at center, rgba(255,255,255,0.35) 28%, rgba(20,20,22,0.95) 32%)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "#ffffff",
+          }}
+        >
+          <Music size={12} />
+        </span>
+      </div>
+
+      {/* Bloque inferior izquierdo */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 54,
+          padding: "12px 12px 12px",
+          background: "linear-gradient(transparent, rgba(10,11,13,0.75))",
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+        }}
+      >
+        {carousel && cards.length > 1 && (
+          <div style={{ display: "flex", gap: 4, justifyContent: "center" }}>
+            {cards.map((_, i) => (
+              <span
+                key={i}
+                style={{
+                  width: 5,
+                  height: 5,
+                  borderRadius: "50%",
+                  background:
+                    i === safeIndex ? "#ffffff" : "rgba(255,255,255,0.35)",
+                  display: "inline-block",
+                }}
+              />
+            ))}
+          </div>
+        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <span style={{ color: "#ffffff", fontSize: 13, fontWeight: 700 }}>
+            @{handle}
+          </span>
+          <span
+            className="mono"
+            style={{
+              fontSize: 8,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              padding: "2px 6px",
+              borderRadius: 3,
+              background: "rgba(255,255,255,0.18)",
+              color: "rgba(255,255,255,0.85)",
+            }}
+          >
+            Patrocinado
+          </span>
+          {spark && (
+            <span
+              style={{
+                fontSize: 10,
+                padding: "2px 8px",
+                borderRadius: 4,
+                border: "1px solid rgba(255,255,255,0.6)",
+                color: "#ffffff",
+              }}
+            >
+              Seguir
+            </span>
+          )}
+        </div>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.92)",
+            fontSize: 12,
+            margin: 0,
+            lineHeight: 1.4,
+          }}
+        >
+          {caption.text}
+          {caption.truncated && (
+            <span style={{ color: "rgba(255,255,255,0.55)" }}> más</span>
+          )}
+        </p>
+        <span
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            color: "rgba(255,255,255,0.8)",
+            fontSize: 11,
+          }}
+        >
+          <Music size={11} />
+          <span
+            style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {music}
+          </span>
+        </span>
+        <span
+          style={{
+            marginTop: 2,
+            padding: "9px 12px",
+            borderRadius: 6,
+            background: cta ? "#FE2C55" : "rgba(255,255,255,0.18)",
+            color: cta ? "#ffffff" : "rgba(255,255,255,0.7)",
+            fontSize: 12,
+            fontWeight: 600,
+            textAlign: "center",
+          }}
+        >
+          {cta || "Elige el botón CTA"}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function TikTokSideIcon({ icon, count }: { icon: React.ReactNode; count: string }) {
+  return (
+    <span
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 2,
+        color: "#ffffff",
+      }}
+    >
+      {icon}
+      <span className="mono" style={{ fontSize: 9, color: "rgba(255,255,255,0.85)" }}>
+        {count}
+      </span>
+    </span>
+  );
+}
+
+function tiktokArrowStyle(side: "left" | "right"): React.CSSProperties {
+  return {
+    position: "absolute",
+    [side]: 6,
+    top: "44%",
+    width: 26,
+    height: 26,
+    borderRadius: "50%",
+    border: 0,
+    background: "rgba(10,11,13,0.55)",
+    color: "#ffffff",
+    fontSize: 16,
+    lineHeight: 1,
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+  };
+}
 
 function StrategyTabs({
   channel,
