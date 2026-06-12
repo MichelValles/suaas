@@ -204,28 +204,6 @@ export default async function PropuestaPage() {
         <PricingCalculator unlocked={unlocked} />
       </Band>
 
-      {/* ── Cierre (banda oscura con titular en amarillo) ── */}
-      <Band surface="feature" gap={16}>
-        <h2
-          style={{
-            fontFamily: "var(--font-display)",
-            fontStyle: "italic",
-            fontSize: "clamp(30px, 5vw, 56px)",
-            color: "var(--accent-500)",
-            margin: 0,
-            lineHeight: 1.05,
-          }}
-        >
-          Una sola decisión equivocada cuesta más que un año de plataforma.
-        </h2>
-        <p style={{ fontSize: 16, color: "rgba(var(--fg),0.7)", lineHeight: 1.6 }}>
-          Empieza con un piloto sobre una decisión real. Si te sube la conversión un punto, ya está
-          pagado. Y cuando la decisión sea irreversible, llévala a un test con personas: Gravity
-          filtra el 80% de las dudas antes de llegar ahí.
-        </p>
-        <a href="#paquetes" className="btn-pill solid">Elegir paquete →</a>
-      </Band>
-
       {/* ── Footer ── */}
       <footer
         style={{
