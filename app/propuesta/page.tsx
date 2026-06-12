@@ -108,7 +108,7 @@ export default async function PropuestaPage() {
       {/* ── Qué incluye (apartado en blanco: rompe el esquema) ── */}
       <Band id="incluye" surface="paper" gap={32}>
         <SectionHead label="Qué incluye" title="Ocho pruebas que responden preguntas concretas." />
-        <Grid min={240}>
+        <Grid min={240} maxCols={4}>
           {MODULES.map((m) => (
             <div
               key={m.title}
@@ -238,10 +238,9 @@ export default async function PropuestaPage() {
           Una sola decisión equivocada cuesta más que un año de plataforma.
         </h2>
         <p style={{ fontSize: 16, color: "rgba(var(--fg),0.7)", lineHeight: 1.6 }}>
-          En este sector se valida tarde, se valida caro, y casi siempre para confirmar lo que el
-          equipo ya intuía. Empieza al revés: un piloto sobre una decisión real. Si te sube la
-          conversión un punto, ya está pagado. Y cuando la decisión sea irreversible, llévala a un
-          test con personas: Gravity filtra el 80% de las dudas antes de llegar ahí.
+          Empieza con un piloto sobre una decisión real. Si te sube la conversión un punto, ya está
+          pagado. Y cuando la decisión sea irreversible, llévala a un test con personas: Gravity
+          filtra el 80% de las dudas antes de llegar ahí.
         </p>
         <a href="#paquetes" className="btn-pill solid">Elegir paquete →</a>
       </Band>
@@ -291,9 +290,14 @@ function Band({
   );
 }
 
-function Grid({ min, children }: { min: number; children: ReactNode }) {
+function Grid({ min, maxCols, children }: { min: number; maxCols?: number; children: ReactNode }) {
+  // Con maxCols, el ancho mínimo de columna nunca baja de 1/maxCols del
+  // contenedor: en pantallas anchas el grid se queda en maxCols columnas.
+  const minExpr = maxCols
+    ? `max(${min}px, calc((100% - ${(maxCols - 1) * 16}px) / ${maxCols}))`
+    : `${min}px`;
   return (
-    <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(${min}px, 1fr))`, gap: 16 }}>
+    <div style={{ display: "grid", gridTemplateColumns: `repeat(auto-fit, minmax(${minExpr}, 1fr))`, gap: 16 }}>
       {children}
     </div>
   );
