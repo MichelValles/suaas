@@ -14,6 +14,7 @@
 | [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md) | Base teórica del **marco estratégico**: Intent Momentum, los tres planos de influencia, hipersegmentación JTBD, instancias, conductas óptima/fuga/repesca, GEO, propiedad psicológica. Incluye el mapa teoría → implementación y los huecos pendientes. |
 | [`AUDITORIA-SEGURIDAD.md`](./AUDITORIA-SEGURIDAD.md) | Auditorías de seguridad, estabilidad y robustez (acumulativo, la más reciente primero). |
 | [`GEO-PRUEBA-IVI.md`](./GEO-PRUEBA-IVI.md) | Protocolo repetible de la prueba del GEO Tester con motores reales (marca IVI): datos de entrada exactos, resultados ligeros vs. frontera, hallazgos y costes medidos. |
+| [`IVI-PUBLICO-OBJETIVO.md`](./IVI-PUBLICO-OBJETIVO.md) | Investigación multiagente del público objetivo de IVI (mercado en cifras verificadas, taxonomía de 12 segmentos) y los 15 perfiles calibrados creados a partir de ella (`source = investigacion-publico-ivi-2026-06`, sin marca en intents y backstories). |
 | [`Plan-venta.md`](./Plan-venta.md) | Plan de venta a clientes: instancias dedicadas (arquitectura A vs B), prerrequisitos, costes por instancia (infra verificada + LLM y escalado), **precio de venta y plan comercial** (tiers Starter/Pro/Agency en EUR, setup, ROI, anclaje de mercado) y plan de mantenimiento con runbook. |
 
 ## Cómo mantener esta carpeta
