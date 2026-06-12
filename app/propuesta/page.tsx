@@ -105,17 +105,6 @@ export default async function PropuestaPage() {
         </div>
       </Band>
 
-      {/* ── El valor (datos grandes en amarillo, sobre oscuro) ── */}
-      <Band gap={32}>
-        <SectionHead label="Por qué" title="El research tradicional cobra por persona y por hora. Y te hace esperar semanas." />
-        <Grid min={220}>
-          <ValueCard stat="4.000-10.000 €" label="Un único test moderado" body="Con usuarios reales pagas incentivos, reclutamiento y muchas horas de analista. En cada estudio." />
-          <ValueCard stat="2-4 semanas" label="Sólo en reclutar" body="El diseño avanza sin evidencia mientras esperas a tener participantes." />
-          <ValueCard stat="Minutos" label="Con Gravity" body="Lanzas el test y al momento ves qué frena a cada perfil y cuánta intención hay. Iteras el mismo día." />
-          <ValueCard stat="80 / 20" label="El encaje honesto" body="Una decisión irreversible sigue mereciendo un test con personas. Gravity filtra el 80% de las dudas antes de llegar ahí." />
-        </Grid>
-      </Band>
-
       {/* ── Qué incluye (apartado en blanco: rompe el esquema) ── */}
       <Band id="incluye" surface="paper" gap={32}>
         <SectionHead label="Qué incluye" title="Ocho pruebas que responden preguntas concretas." />
@@ -250,8 +239,9 @@ export default async function PropuestaPage() {
         </h2>
         <p style={{ fontSize: 16, color: "rgba(var(--fg),0.7)", lineHeight: 1.6 }}>
           En este sector se valida tarde, se valida caro, y casi siempre para confirmar lo que el
-          equipo ya intuía. Empieza al revés: un piloto sobre una decisión real. Si te ahorra un solo
-          estudio o te sube la conversión un punto, ya está pagado.
+          equipo ya intuía. Empieza al revés: un piloto sobre una decisión real. Si te sube la
+          conversión un punto, ya está pagado. Y cuando la decisión sea irreversible, llévala a un
+          test con personas: Gravity filtra el 80% de las dudas antes de llegar ahí.
         </p>
         <a href="#paquetes" className="btn-pill solid">Elegir paquete →</a>
       </Band>
@@ -342,30 +332,6 @@ function SectionHead({ label, title }: { label: string; title: string }) {
       >
         {title}
       </h2>
-    </div>
-  );
-}
-
-function ValueCard({ stat, label, body }: { stat: string; label: string; body: string }) {
-  return (
-    <div
-      style={{
-        border: "1px solid rgba(var(--fg),0.08)",
-        borderRadius: "var(--radius-md)",
-        padding: "26px 24px 22px",
-        background: "rgba(var(--fg),0.02)",
-        display: "flex",
-        flexDirection: "column",
-        gap: 10,
-      }}
-    >
-      <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: "clamp(30px, 3.8vw, 44px)", color: "var(--accent-text)", lineHeight: 1 }}>
-        {stat}
-      </span>
-      <span className="mono" style={{ fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(var(--fg),0.5)" }}>
-        {label}
-      </span>
-      <p style={{ fontSize: 13, color: "rgba(var(--fg),0.6)", lineHeight: 1.5, margin: 0 }}>{body}</p>
     </div>
   );
 }
