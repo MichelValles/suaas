@@ -5,6 +5,9 @@ import { runGeoAnalysis } from "@/lib/geo";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
+// Sondas reales con búsqueda web: 30-50 s por sonda. Con los segmentos en
+// pares, 10 segmentos ≈ 5 tandas × ~50 s; el cap explícito da margen.
+export const maxDuration = 300;
 
 /**
  * Errores de negocio de runGeoAnalysis: mensajes nuestros, seguros para

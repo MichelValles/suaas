@@ -187,12 +187,27 @@ function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
   const color = STATUS_COLOR[analysis.status] ?? "rgba(var(--fg),0.45)";
   const segCount = analysis.segments?.length ?? 0;
   const doneCount =
-    analysis.results?.filter((r) => r.brand_mentioned !== undefined).length ?? 0;
+    analysis.results?.filter(
+      (r) => (r.engines?.length ?? 0) > 0 || r.brand_mentioned !== undefined,
+    ).length ?? 0;
+  // Visibilidad media del análisis: en v2 (sondas reales) promedia los
+  // motores con métricas de cada segmento; en v1 usa el score plano.
+  const segmentScores = (analysis.results ?? [])
+    .map((r) => {
+      if (r.engines && r.engines.length > 0) {
+        const scored = r.engines.filter((e) => e.metrics);
+        return scored.length > 0
+          ? scored.reduce((s, e) => s + (e.metrics?.visibility_score ?? 0), 0) /
+              scored.length
+          : null;
+      }
+      return r.visibility_score ?? null;
+    })
+    .filter((v): v is number => v !== null);
   const visAvg =
-    analysis.results && analysis.results.length > 0
+    segmentScores.length > 0
       ? Math.round(
-          (analysis.results.reduce((s, r) => s + r.visibility_score, 0) /
-            analysis.results.length) * 100,
+          (segmentScores.reduce((s, v) => s + v, 0) / segmentScores.length) * 100,
         )
       : null;
   const descPreview =

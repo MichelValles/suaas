@@ -15,6 +15,7 @@ export type UsageScope =
   | "campaign_synthesis"
   | "onboard_synthesize"
   | "geo_probe"
+  | "geo_analysis"
   | "momentum_probe"
   | "seed_brief"
   | "batch_intent";

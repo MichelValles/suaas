@@ -162,7 +162,13 @@ export type EstimateKind = (typeof ESTIMATE_KINDS)[number];
  */
 export function partsForKind(
   kind: EstimateKind,
-  opts: { profiles?: number; perProfile?: number; judge?: boolean } = {},
+  opts: {
+    profiles?: number;
+    perProfile?: number;
+    judge?: boolean;
+    /** GEO: modelos vigentes por motor (de /tokens). Sin ellos, defaults. */
+    geoModels?: Record<string, string>;
+  } = {},
 ): EstimatePart[] {
   const n = Math.max(1, opts.profiles ?? 1);
   const k = Math.max(1, opts.perProfile ?? 1);
@@ -204,9 +210,20 @@ export function partsForKind(
       }
       return parts;
     }
-    case "geo":
-      // k = número de segmentos del análisis (no usa perfiles).
-      return [{ scope: "geo_probe", model: DEFAULT_MODEL, count: k }];
+    case "geo": {
+      // k = número de segmentos (no usa perfiles). Por segmento: 1 sonda
+      // real por motor (Claude, Perplexity, ChatGPT) + 1 análisis por sonda.
+      // Solo tokens: la cuota de búsqueda (~0,01 $/sonda) se suma en la página.
+      const geoModels = Object.values(opts.geoModels ?? {});
+      const probeParts: EstimatePart[] =
+        geoModels.length > 0
+          ? geoModels.map((model) => ({ scope: "geo_probe", model, count: k }))
+          : [{ scope: "geo_probe", model: DEFAULT_MODEL, count: 3 * k }];
+      return [
+        ...probeParts,
+        { scope: "geo_analysis", model: DEFAULT_MODEL, count: 3 * k },
+      ];
+    }
     case "momentum":
       return [{ scope: "momentum_probe", model: DEFAULT_MODEL, count: n }];
     case "chat_turn":

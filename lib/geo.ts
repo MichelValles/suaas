@@ -2,6 +2,14 @@ import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
 import {
+  type EngineCitation,
+  type EngineProbe,
+  type GeoEngineId,
+  GEO_ENGINE_IDS,
+  getGeoEngineModels,
+  runEngineProbe,
+} from "@/lib/geo-engines";
+import {
   getServerClient,
   isMissingColumnError,
   MigrationPendingError,
@@ -25,19 +33,13 @@ export const SegmentInputSchema = z.object({
 });
 export type SegmentInput = z.infer<typeof SegmentInputSchema>;
 
-export const SegmentResultSchema = z.object({
-  label: z.string(),
-  query: z.string(),
-  source_engine: z
-    .enum(["Perplexity", "Google AI Overview", "ChatGPT Search"])
-    .optional()
-    .describe("Motor de búsqueda IA simulado para esta query."),
-  simulated_response: z
-    .string()
-    .describe("Respuesta simulada del motor de búsqueda IA para esta query."),
-  brand_mentioned: z.boolean(),
+/** Métricas de visibilidad que el analista extrae de una respuesta REAL. */
+export const EngineMetricsSchema = z.object({
+  brand_mentioned: z
+    .boolean()
+    .describe("Verdadero solo si el nombre de la marca aparece explícitamente en la respuesta."),
   brand_position: z.enum(["primary", "secondary", "absent"]).describe(
-    "'primary' = la marca aparece como primera recomendación o protagonista; 'secondary' = aparece en lista o de fondo; 'absent' = no aparece.",
+    "'primary' = la marca es la primera recomendación o protagonista; 'secondary' = aparece en lista o de fondo; 'absent' = no aparece.",
   ),
   visibility_score: z
     .number()
@@ -46,17 +48,47 @@ export const SegmentResultSchema = z.object({
     .describe("0 = marca ausente, 1 = primera recomendación con tono positivo."),
   recommendation_tone: z
     .enum(["positive", "neutral", "negative", "absent"])
-    .describe("Tono con el que se menciona la marca. 'absent' si no aparece."),
+    .describe("Tono con el que la respuesta menciona la marca. 'absent' si no aparece."),
   key_claims: z
     .array(z.string())
-    .describe("Afirmaciones clave que el buscador IA hace sobre la marca. Vacío si no aparece."),
+    .describe("Afirmaciones que la respuesta hace sobre la marca, citadas o parafraseadas. Vacío si no aparece."),
   missing_attributes: z
     .array(z.string())
     .describe(
-      "Atributos que el segmento valoraría y que el buscador IA no menciona de la marca.",
+      "Atributos que este segmento valoraría (según su JTBD) y que la respuesta no menciona de la marca.",
     ),
 });
-export type SegmentResult = z.infer<typeof SegmentResultSchema>;
+export type EngineMetrics = z.infer<typeof EngineMetricsSchema>;
+
+/** Resultado de UN motor real para un segmento. Con `error`, no hay métricas. */
+export type EngineResult = {
+  engine: GeoEngineId;
+  model: string;
+  response: string;
+  citations: EngineCitation[];
+  metrics?: EngineMetrics;
+  error?: string;
+};
+
+/**
+ * Resultado por segmento. v2 (desde 0.56): `engines` con las sondas reales.
+ * Los campos planos restantes son el shape v1 (simulación) y solo aparecen
+ * en análisis históricos; se renderizan como legado.
+ */
+export type SegmentResult = {
+  label: string;
+  query: string;
+  engines?: EngineResult[];
+  // ---- v1 legado (simulación) ----
+  source_engine?: "Perplexity" | "Google AI Overview" | "ChatGPT Search";
+  simulated_response?: string;
+  brand_mentioned?: boolean;
+  brand_position?: "primary" | "secondary" | "absent";
+  visibility_score?: number;
+  recommendation_tone?: "positive" | "neutral" | "negative" | "absent";
+  key_claims?: string[];
+  missing_attributes?: string[];
+};
 
 export type GeoAnalysisInput = {
   name: string;
@@ -79,39 +111,33 @@ export type GeoAnalysis = {
 };
 
 // ============================================================
-// LLM: análisis de un segmento
+// LLM: análisis de la respuesta real de un motor
 // ============================================================
 
-export async function analyzeSegment(
+/**
+ * Analiza la presencia de la marca en la respuesta REAL de un motor.
+ * A diferencia de la simulación (v1), aquí el modelo no inventa nada:
+ * solo evalúa el texto que el motor devolvió de verdad.
+ */
+async function analyzeEngineResponse(
   brand_name: string,
   brand_description: string,
   segment: SegmentInput,
-): Promise<{ result: SegmentResult; latencyMs: number; usage: unknown }> {
+  probe: EngineProbe,
+): Promise<{ metrics: EngineMetrics; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
 
   const system = [
-    "Eres un simulador de motores de búsqueda con IA.",
-    "Tu tarea:",
-    "1. Elegir el motor mas adecuado para la query y perfil JTBD del segmento, e indicarlo en 'source_engine'.",
-    "2. Simular la respuesta que daria ese motor cuando el usuario hace esa query.",
-    "3. Analizar la presencia y visibilidad de la marca en esa respuesta.",
+    "Eres un analista de visibilidad de marca en motores de respuesta IA (GEO).",
+    "Recibes la respuesta REAL que un motor de busqueda IA dio a la query de un segmento de intencion.",
+    "Tu unica tarea es analizar la presencia de la marca en esa respuesta. NO inventes nada que no este en el texto.",
     "",
-    "Para elegir el motor ('source_engine'):",
-    "- 'Perplexity': queries informativas profundas, comparativas tecnicas, investigacion.",
-    "- 'Google AI Overview': queries con intencion comercial o transaccional directa.",
-    "- 'ChatGPT Search': queries conversacionales donde el usuario pide consejo o recomendaciones personalizadas.",
-    "",
-    "Reglas de la simulacion:",
-    "- Responde como lo haria el motor elegido: sintetiza fuentes, da una respuesta directa, menciona marcas si son relevantes.",
-    "- NO favorezcas artificialmente a la marca: si no es la mas conocida o relevante para la query, puede no aparecer o aparecer en segundo plano.",
-    "- La respuesta simulada debe sonar natural, como texto de un resumen de buscador IA (2-4 frases).",
-    "",
-    "Reglas del analisis:",
-    "- 'brand_mentioned': verdadero solo si el nombre de la marca aparece explicitamente en tu respuesta simulada.",
+    "Reglas:",
+    "- 'brand_mentioned': verdadero solo si el nombre de la marca aparece explicitamente en la respuesta.",
     "- 'brand_position': 'primary' si es la primera o unica recomendacion, 'secondary' si aparece junto a otras, 'absent' si no aparece.",
     "- 'visibility_score': combina posicion y tono. 1.0 = primera recomendacion positiva, 0.5 = mencionada de fondo, 0.0 = ausente.",
-    "- 'key_claims': solo afirmaciones positivas o informativas que el buscador haria sobre la marca.",
-    "- 'missing_attributes': que cosas busca este segmento (segun su JTBD) que la marca no comunica bien en fuentes publicas.",
+    "- 'key_claims': afirmaciones que la respuesta hace sobre la marca, fieles al texto. Vacio si no aparece.",
+    "- 'missing_attributes': que valora este segmento (segun su JTBD) que la respuesta no dice de la marca. Tambien aplica si la marca no aparece: que tendria que comunicar para entrar en esta respuesta.",
   ].join("\n");
 
   const prompt = [
@@ -122,37 +148,107 @@ export async function analyzeSegment(
     `## Segmento de intención`,
     `Label: ${segment.label}`,
     `JTBD: ${segment.jtbd}`,
-    `Query al buscador IA: "${segment.query}"`,
+    `Query: "${segment.query}"`,
     "",
-    "Simula la respuesta del buscador y analiza la presencia de la marca.",
+    `## Respuesta real del motor (${probe.engine}, ${probe.model})`,
+    probe.response,
+    "",
+    probe.citations.length > 0
+      ? `Fuentes citadas por el motor:\n${probe.citations
+          .map((c) => `- ${c.title ? `${c.title}: ` : ""}${c.url}`)
+          .join("\n")}`
+      : "El motor no devolvió citas de fuentes.",
+    "",
+    "Analiza la presencia de la marca en esta respuesta.",
   ].join("\n");
-
-  const AnalysisOutputSchema = SegmentResultSchema
-    .omit({ label: true, query: true, source_engine: true })
-    .extend({
-      source_engine: z
-        .enum(["Perplexity", "Google AI Overview", "ChatGPT Search"])
-        .describe(
-          "Motor de busqueda IA elegido para esta query. Elige el mas adecuado segun el perfil JTBD del segmento.",
-        ),
-    });
 
   const res = await generateObject({
     model: DEFAULT_MODEL,
-    schema: AnalysisOutputSchema,
+    schema: EngineMetricsSchema,
     system,
     prompt,
   });
 
   return {
-    result: {
-      label: segment.label,
-      query: segment.query,
-      ...res.object,
-    },
+    metrics: res.object,
     latencyMs: Date.now() - startedAt,
     usage: res.usage ?? null,
   };
+}
+
+/**
+ * Sonda real + análisis para UN motor. Un fallo del motor no tumba el
+ * segmento: queda registrado en `error` y la UI lo muestra en su pestaña.
+ */
+async function runEngineForSegment(
+  engine: GeoEngineId,
+  model: string,
+  geoId: string,
+  brand_name: string,
+  brand_description: string,
+  segment: SegmentInput,
+): Promise<EngineResult> {
+  let probe: EngineProbe;
+  try {
+    probe = await runEngineProbe(engine, model, segment.query);
+  } catch (err) {
+    console.warn(`[geo] sonda ${engine} (${model}) falló:`, (err as Error).message);
+    return {
+      engine,
+      model,
+      response: "",
+      citations: [],
+      error: (err as Error).message,
+    };
+  }
+  await recordUsage({
+    scope: "geo_probe",
+    model: probe.model,
+    usage: probe.usage,
+    meta: {
+      geo_analysis_id: geoId,
+      segment_label: segment.label,
+      engine,
+      citations: probe.citations.length,
+      latency_ms: probe.latencyMs,
+    },
+  });
+
+  try {
+    const { metrics, latencyMs, usage } = await analyzeEngineResponse(
+      brand_name,
+      brand_description,
+      segment,
+      probe,
+    );
+    await recordUsage({
+      scope: "geo_analysis",
+      model: DEFAULT_MODEL,
+      usage,
+      meta: {
+        geo_analysis_id: geoId,
+        segment_label: segment.label,
+        engine,
+        latency_ms: latencyMs,
+      },
+    });
+    return {
+      engine,
+      model: probe.model,
+      response: probe.response,
+      citations: probe.citations,
+      metrics,
+    };
+  } catch (err) {
+    console.warn(`[geo] análisis ${engine} falló:`, (err as Error).message);
+    return {
+      engine,
+      model: probe.model,
+      response: probe.response,
+      citations: probe.citations,
+      error: `La sonda respondió pero el análisis falló: ${(err as Error).message}`,
+    };
+  }
 }
 
 // ============================================================
@@ -247,20 +343,33 @@ export async function runGeoAnalysis(id: string): Promise<GeoAnalysis> {
   await supa.from("geo_analyses").update({ status: "running" }).eq("id", id);
 
   try {
+    const models = await getGeoEngineModels();
     const results: SegmentResult[] = [];
-    for (const segment of analysis.segments) {
-      const { result, latencyMs, usage } = await analyzeSegment(
-        analysis.brand_name,
-        analysis.brand_description,
-        segment,
+    // Una sonda con búsqueda web tarda 30-50 s: segmentos de dos en dos
+    // (6 sondas concurrentes máx.) para que 10 segmentos quepan en el
+    // timeout de la función. Dentro de cada segmento, los 3 motores en
+    // paralelo.
+    const SEGMENT_CHUNK = 2;
+    for (let i = 0; i < analysis.segments.length; i += SEGMENT_CHUNK) {
+      const chunk = analysis.segments.slice(i, i + SEGMENT_CHUNK);
+      const chunkResults = await Promise.all(
+        chunk.map(async (segment) => {
+          const engines = await Promise.all(
+            GEO_ENGINE_IDS.map((engine) =>
+              runEngineForSegment(
+                engine,
+                models[engine],
+                id,
+                analysis.brand_name,
+                analysis.brand_description,
+                segment,
+              ),
+            ),
+          );
+          return { label: segment.label, query: segment.query, engines };
+        }),
       );
-      await recordUsage({
-        scope: "geo_probe",
-        model: DEFAULT_MODEL,
-        usage,
-        meta: { geo_analysis_id: id, segment_label: segment.label, latency_ms: latencyMs },
-      });
-      results.push(result);
+      results.push(...chunkResults);
     }
 
     const { data, error } = await supa

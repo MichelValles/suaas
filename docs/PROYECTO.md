@@ -296,14 +296,15 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 | `funnels` | `name`, `description`, `deleted_at`. |
 | `funnel_steps` | `funnel_id`, `position` (único), `name`, `intent`, `payload jsonb {kind:"url", image_url, source_url?}`. |
 | `funnel_step_responses` | `(run_id, profile_id, step_id)` único. `position`, `perception`, `intent_match`, `effort`, `friction text[]`, `would_continue`, `reasoning`, `meta`. Sólo filas para pasos evaluados (dropoff corta). |
-| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy: `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `onboard_synthesize`, `geo_probe`, `momentum_probe`, `seed_brief`. (`seed_profile` no es un scope: `lib/seed-profiles.ts` usa `reasoner_chat` con `meta.kind`. El JTBD de `batch-intent` no registra scope propio.) |
+| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy: `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `onboard_synthesize`, `geo_probe` (sondas reales: el `model` es el del motor elegido en `/tokens`), `geo_analysis`, `momentum_probe`, `seed_brief`. (`seed_profile` no es un scope: `lib/seed-profiles.ts` usa `reasoner_chat` con `meta.kind`. El JTBD de `batch-intent` no registra scope propio.) |
 | `ab_tests` | `target_a_id` ≠ `target_b_id` (check). `hypothesis`. `deleted_at`. |
 | `ab_test_runs` | Vincula `(ab_test_id, run_id, variant 'A'|'B')`. Unique. |
 | `copy_decks` + `copy_blocks` + `copy_responses` | Deck con 2..10 bloques. Reacción `(run, profile, block)` con sentiment/clarity/persuasion/would_click/critique. |
 | `pricing_offers` + `pricing_prices` + `pricing_responses` | Oferta + 2..8 precios. Reacción por (run, profile, price) con would_buy/willingness_to_pay/perceived_value/critique. |
 | `campaigns` | **Módulo Campañas** (ver sección dedicada). |
 | `campaign_responses` | `(run_id, profile_id, query, channel)` único (multichannel). |
-| `geo_analyses` | **GEO Tester** (v0.29, Gravity Model). `name`, `brand_name`, `brand_description`, `segments jsonb` (array de SegmentInput: label/jtbd/query), `results jsonb` (array de SegmentResult), `status` (`pending`/`running`/`done`/`error`). Índice `created_at DESC`. Sin tabla de runs: el análisis vive entero en la fila. | `deleted_at` desde 0017 (papelera). |
+| `geo_analyses` | **GEO Tester** (v0.29, Gravity Model; sondas reales desde v0.56). `name`, `brand_name`, `brand_description`, `segments jsonb` (array de SegmentInput: label/jtbd/query), `results jsonb` (array de SegmentResult; v2 con array `engines` por segmento: respuesta real, citas y métricas por motor; v1 legado con `simulated_response`), `status` (`pending`/`running`/`done`/`error`). Índice `created_at DESC`. Sin tabla de runs: el análisis vive entero en la fila. | `deleted_at` desde 0017 (papelera). |
+| `app_settings` | **Ajustes globales** (v0.56). Clave/valor jsonb (`key` pk, `value`, `updated_at`). Primer uso: `geo_engine_models` (modelo del gateway por motor del GEO Tester). Lectura/escritura vía `lib/settings.ts` (defaults si falta la tabla). | Migración 0023. |
 | `momentum_challenges` | **Momentum** (v0.30, Gravity Model). `name`, `trigger_scenario`, `brand_context` (nullable), `profile_ids uuid[]`, `results jsonb` (array de ProfileMomentumResult), `status` (`pending`/`running`/`done`/`error`). | `deleted_at` desde 0017 (papelera). |
 
 ### Migraciones (orden estricto)
@@ -330,8 +331,9 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 20. `0020_shopping.sql` (v0.45: `campaigns.product` jsonb para Shopping)
 21. `0021_meta_ads.sql` (v0.54: canal Meta; check de `strategy` con los 3 formatos, `company_name` 75c, CTAs de Meta en el check de `cta`, columna `campaigns.channel_spec` jsonb)
 22. `0022_tiktok_ads.sql` (v0.55: canal TikTok; check de `strategy` con los 3 formatos `tiktok_*`, CTAs de TikTok en el check de `cta`, y de forma defensiva `channel_spec` + `company_name` 75c por si la 0021 no consta)
+23. `0023_app_settings.sql` (v0.56: tabla `app_settings` clave/valor para ajustes globales; comment de `geo_analyses.results` actualizado al shape v2 de sondas reales)
 
-Las 22 constan aplicadas en `suaas_migrations` (las 20 primeras el 2026-06-11; la 0021 y la 0022 el 2026-06-12 vía SQL editor). Para futuras migraciones: el MCP de Supabase del proyecto (`.mcp.json`, OAuth) está operativo y permite `apply_migration`/`execute_sql`; también existe `scripts/apply-tiktok-setup.mjs` como referencia del patrón con `pg` (necesita `POSTGRES_URL_NON_POOLING` en `.env.local`, que Vercel exporta vacía por ser sensitive). Convención desde la 0019: cada migración nueva inserta su propia fila al final. Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado (sección «Tracking de migraciones» y campo `migrations_tracking`); el campo `pending_migrations` del JSON de `/api/diag` es el atajo para saber qué archivos `.sql` faltan por aplicar.
+Las 23 constan aplicadas en `suaas_migrations` (las 20 primeras el 2026-06-11; la 0021 y la 0022 el 2026-06-12 vía SQL editor; la 0023 el 2026-06-12 vía MCP de Supabase con `apply_migration`). Para futuras migraciones: el MCP de Supabase del proyecto (`.mcp.json`, OAuth) está operativo y permite `apply_migration`/`execute_sql`; también existe `scripts/apply-tiktok-setup.mjs` como referencia del patrón con `pg` (necesita `POSTGRES_URL_NON_POOLING` en `.env.local`, que Vercel exporta vacía por ser sensitive). Convención desde la 0019: cada migración nueva inserta su propia fila al final. Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado (sección «Tracking de migraciones» y campo `migrations_tracking`); el campo `pending_migrations` del JSON de `/api/diag` es el atajo para saber qué archivos `.sql` faltan por aplicar.
 
 ## Módulo Campañas (Paid Ads): detalle
 
@@ -470,9 +472,9 @@ Campo libre en `profiles`. Formato recomendado «Cuando [situación], quiero [mo
 
 `ProbeOutputSchema` (en `lib/experiments/five-second.ts`) añade `behavior_class` (`optima` = comprende y avanza, `fuga` = carga cognitiva alta, abandona, `repesca` = duda pero intención viva). El LLM clasifica su propia conducta durante el probe (sin llamada extra). Se persiste en `five_second_responses` y la página de resultados muestra la distribución. Migración `0015`.
 
-### 4. GEO Tester (Generative Engine Optimization): `lib/geo.ts`
+### 4. GEO Tester (Generative Engine Optimization): `lib/geo.ts` + `lib/geo-engines.ts`
 
-Simula cómo un buscador IA (Perplexity / Google AI Overview / ChatGPT Search) describe la marca ante cada segmento de intención (JTBD). Por segmento produce `source_engine`, `simulated_response`, `brand_mentioned`, `brand_position`, `visibility_score`, `recommendation_tone`, `key_claims`, `missing_attributes`. Runner serie por segmento (`runGeoAnalysis`), scope `geo_probe`. Rutas: `/geo` (lista), `/geo/new`, `/geo/[id]` (resultados + botón Analizar). API: `POST /api/geo/run` `{ geoId }`. Tabla `geo_analyses`. Migración `0015`.
+**Sondas reales desde v0.56** (antes simulaba). La query de cada segmento de intención (JTBD) se lanza tal cual contra 3 motores reales vía AI Gateway: **Claude** (modelo Anthropic + tool server-side `web_search_20250305` con `maxUses: 3` y `userLocation` España), **ChatGPT** (tool `web_search` de la Responses API de OpenAI) y **Perplexity** (Sonar busca y cita solo). Las tool factories vienen de `@ai-sdk/anthropic` / `@ai-sdk/openai`, pero la llamada va por el gateway (string `provider/model`). Un segundo paso (`generateObject`, `DEFAULT_MODEL`, scope `geo_analysis`) analiza cada respuesta real: `brand_mentioned`, `brand_position`, `visibility_score`, `recommendation_tone`, `key_claims`, `missing_attributes`. Por segmento se guarda `engines[]` (motor, modelo, respuesta, citas de `result.sources`, métricas o `error`); los resultados v1 (`simulated_response`) se renderizan como legado. El **modelo de cada motor se elige en `/tokens`** (catálogo en `lib/geo-engines.ts`, persistencia en `app_settings.geo_engine_models`). Runner: segmentos en pares, 3 motores en paralelo por segmento (una sonda con búsqueda tarda 30-50 s), `maxDuration = 300`. Scopes: `geo_probe` (sondas, modelo del motor) y `geo_analysis` (análisis). Rutas: `/geo` (lista), `/geo/new`, `/geo/[id]` (pestañas por motor + citas + visibilidad por motor). API: `POST /api/geo/run` `{ geoId }`. Tabla `geo_analyses`. Migraciones `0015`, `0023`. AI Overview y Gemini: pendientes (sin API oficial / próximo).
 
 ### 5. Momentum (Intent Momentum ante-touchpoint): `lib/momentum.ts`
 
@@ -484,6 +486,7 @@ Define **Triggers** (escenarios de activación JTBD) y simula cómo cada perfil 
 
 `gateway_usage` registra cada llamada al Gateway. `/tokens` muestra:
 - **Saldo del Gateway** (consulta a `https://ai-gateway.vercel.sh/v1/credits` con `AI_GATEWAY_API_KEY`).
+- **Modelos del GEO Tester** (v0.56): selector del modelo por motor (Anthropic / Perplexity / OpenAI) que persiste en `app_settings` y consume el runner GEO.
 - **Acumulado interno** (prompt + completion + total + calls).
 - **Por modelo**.
 - **Por scope**.

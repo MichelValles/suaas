@@ -1,12 +1,17 @@
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { GEO_ENGINE_CATALOG, getGeoEngineModels } from "@/lib/geo-engines";
+import { settingsTableReady } from "@/lib/settings";
 import { getGatewayCredits, getUsageSummary } from "@/lib/usage";
+import { GeoModelSettings } from "./geo-models";
 
 export const dynamic = "force-dynamic";
 
 export default async function TokensPage() {
-  const [credits, summary] = await Promise.all([
+  const [credits, summary, geoModels, settingsReady] = await Promise.all([
     getGatewayCredits(),
     getUsageSummary(),
+    getGeoEngineModels(),
+    settingsTableReady(),
   ]);
 
   const balanceStr =
@@ -98,6 +103,16 @@ export default async function TokensPage() {
             label="Última actualización"
             value={summary.lastUpdated ? formatRelative(summary.lastUpdated) : "·"}
             hint={summary.lastUpdated ?? "Aún sin registros."}
+          />
+        </section>
+
+        {/* Modelos por motor del GEO Tester */}
+        <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionLabel>Modelos del GEO Tester</SectionLabel>
+          <GeoModelSettings
+            catalog={GEO_ENGINE_CATALOG}
+            current={geoModels}
+            migrationPending={!settingsReady}
           />
         </section>
 

@@ -3,7 +3,9 @@ import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { estimateAction, partsForKind } from "@/lib/estimate";
 import { getGeoAnalysis, type GeoAnalysis, type SegmentInput, type SegmentResult } from "@/lib/geo";
+import { GEO_ENGINE_IDS, GEO_ENGINE_LABEL, getGeoEngineModels } from "@/lib/geo-engines";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { EngineTabs } from "./engine-tabs";
 import { GeoRunButton } from "./run-button";
 
 export const dynamic = "force-dynamic";
@@ -58,20 +60,25 @@ export default async function GeoDetailPage({
   const analysis = await getGeoAnalysis(id);
   if (!analysis) notFound();
 
-  const visAvg =
-    analysis.results && analysis.results.length > 0
-      ? analysis.results.reduce((s, r) => s + r.visibility_score, 0) /
-        analysis.results.length
-      : null;
-
   const trashed = Boolean(analysis.deleted_at);
   const canRun =
     !trashed && (analysis.status === "pending" || analysis.status === "error");
-  // Coste estimado del análisis (1 llamada por segmento), para el botón.
+  // Coste estimado: por segmento, 1 sonda real por motor + 1 análisis por
+  // sonda (tokens), más la cuota de búsqueda (~0,01 $/sonda, fuera de tokens).
   const runEstimate = canRun
-    ? await estimateAction(
-        partsForKind("geo", { perProfile: analysis.segments.length }),
-      ).catch(() => null)
+    ? await (async () => {
+        const geoModels = await getGeoEngineModels();
+        const est = await estimateAction(
+          partsForKind("geo", {
+            perProfile: analysis.segments.length,
+            geoModels,
+          }),
+        );
+        return {
+          ...est,
+          est_usd: est.est_usd + analysis.segments.length * 3 * 0.01,
+        };
+      })().catch(() => null)
     : null;
 
   return (
@@ -153,13 +160,15 @@ export default async function GeoDetailPage({
             lineHeight: 1.6,
           }}
         >
-          Pulsa «Analizar» para lanzar el análisis contra los {analysis.segments.length} segmentos.
+          Pulsa «Analizar» para lanzar la query de cada uno de los{" "}
+          {analysis.segments.length} segmentos contra los 3 motores reales
+          (Claude, ChatGPT y Perplexity, con búsqueda web).
         </div>
       )}
 
       {analysis.results && analysis.results.length > 0 && (
         <>
-          <SummaryStrip analysis={analysis} visAvg={visAvg} />
+          <SummaryStrip analysis={analysis} />
           <section style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <h2
               className="mono"
@@ -183,14 +192,59 @@ export default async function GeoDetailPage({
   );
 }
 
-function SummaryStrip({
-  analysis,
-  visAvg,
-}: {
-  analysis: GeoAnalysis;
-  visAvg: number | null;
-}) {
+function visColor(v: number | null): string {
+  if (v === null) return "rgba(var(--fg),0.6)";
+  return v >= 0.6
+    ? "var(--success-text)"
+    : v >= 0.3
+      ? "var(--warning-text)"
+      : "var(--error-text)";
+}
+
+function SummaryStrip({ analysis }: { analysis: GeoAnalysis }) {
   const results = analysis.results ?? [];
+  const isV2 = results.some((r) => (r.engines?.length ?? 0) > 0);
+
+  if (isV2) {
+    // v2: visibilidad media por motor real.
+    const perEngine = GEO_ENGINE_IDS.map((engineId) => {
+      const scored = results
+        .flatMap((r) => r.engines ?? [])
+        .filter((e) => e.engine === engineId && e.metrics);
+      const avg =
+        scored.length > 0
+          ? scored.reduce((s, e) => s + (e.metrics?.visibility_score ?? 0), 0) /
+            scored.length
+          : null;
+      return { engineId, avg };
+    });
+
+    return (
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          gap: 16,
+        }}
+      >
+        {perEngine.map(({ engineId, avg }) => (
+          <MetricCard
+            key={engineId}
+            label={`Visibilidad · ${GEO_ENGINE_LABEL[engineId]}`}
+            value={avg !== null ? `${Math.round(avg * 100)}%` : "·"}
+            color={visColor(avg)}
+          />
+        ))}
+        <MetricCard label="Segmentos analizados" value={String(results.length)} />
+      </div>
+    );
+  }
+
+  // v1 legado (simulación): métricas planas por segmento.
+  const visAvg =
+    results.length > 0
+      ? results.reduce((s, r) => s + (r.visibility_score ?? 0), 0) / results.length
+      : null;
   const mentioned = results.filter((r) => r.brand_mentioned).length;
   const primary = results.filter((r) => r.brand_position === "primary").length;
 
@@ -205,7 +259,7 @@ function SummaryStrip({
       <MetricCard
         label="Visibilidad media"
         value={visAvg !== null ? `${Math.round(visAvg * 100)}%` : "·"}
-        color={visAvg !== null && visAvg >= 0.6 ? "var(--success-text)" : visAvg !== null && visAvg >= 0.3 ? "var(--warning-text)" : "var(--error-text)"}
+        color={visColor(visAvg)}
       />
       <MetricCard label="Segmentos mencionados" value={`${mentioned}/${results.length}`} />
       <MetricCard label="Posición protagonista" value={`${primary}/${results.length}`} color={primary > 0 ? "var(--success-text)" : "rgba(var(--fg),0.6)"} />
@@ -255,51 +309,6 @@ function MetricCard({
   );
 }
 
-const GEO_ENGINES = [
-  { id: "claude",      label: "Claude",      active: true  },
-  { id: "chatgpt",     label: "ChatGPT",     active: false },
-  { id: "perplexity",  label: "Perplexity",  active: false },
-  { id: "ai-overview", label: "AI Overview", active: false },
-  { id: "gemini",      label: "Gemini",      active: false },
-] as const;
-
-function EngineTabBar() {
-  return (
-    <div
-      style={{
-        display: "flex",
-        borderBottom: "1px solid rgba(var(--fg),0.08)",
-        overflowX: "auto",
-        scrollbarWidth: "none",
-      }}
-    >
-      {GEO_ENGINES.map((engine) => (
-        <span
-          key={engine.id}
-          className="mono"
-          style={{
-            fontSize: 10,
-            letterSpacing: "0.14em",
-            textTransform: "uppercase",
-            padding: "9px 14px",
-            color: engine.active ? "var(--text-strong)" : "rgba(var(--fg),0.22)",
-            borderBottom: engine.active
-              ? "2px solid var(--accent-500)"
-              : "2px solid transparent",
-            marginBottom: -1,
-            cursor: engine.active ? "default" : "not-allowed",
-            userSelect: "none",
-            flexShrink: 0,
-            whiteSpace: "nowrap",
-          }}
-        >
-          {engine.label}
-        </span>
-      ))}
-    </div>
-  );
-}
-
 function SegmentCard({
   result,
   segment,
@@ -307,19 +316,65 @@ function SegmentCard({
   result: SegmentResult;
   segment: SegmentInput;
 }) {
-  const posColor = POSITION_COLOR[result.brand_position] ?? "rgba(var(--fg),0.6)";
+  const isV2 = (result.engines?.length ?? 0) > 0;
 
-  return (
+  const card: React.CSSProperties = {
+    border: "1px solid rgba(var(--fg),0.08)",
+    borderRadius: "var(--radius-md)",
+    padding: 24,
+    display: "flex",
+    flexDirection: "column",
+    gap: 16,
+  };
+
+  const params = (
     <div
       style={{
-        border: "1px solid rgba(var(--fg),0.08)",
-        borderRadius: "var(--radius-md)",
-        padding: 24,
+        background: "rgba(var(--fg),0.025)",
+        border: "1px solid rgba(var(--fg),0.07)",
+        borderRadius: "var(--radius-sm)",
+        padding: "12px 16px",
         display: "flex",
         flexDirection: "column",
-        gap: 16,
+        gap: 10,
       }}
     >
+      <ParamRow label="Etiqueta" value={result.label} />
+      <ParamRow label="JTBD" value={segment.jtbd} />
+      <ParamRow label="Query" value={result.query} />
+    </div>
+  );
+
+  if (isV2) {
+    return (
+      <div style={card}>
+        <span
+          style={{
+            fontFamily: "var(--font-display)",
+            fontStyle: "italic",
+            fontSize: 18,
+            color: "var(--text-strong)",
+            lineHeight: 1.2,
+          }}
+        >
+          {result.label}
+        </span>
+        {params}
+        <EngineTabs engines={result.engines ?? []} />
+      </div>
+    );
+  }
+
+  // ---- v1 legado: respuesta simulada con métricas planas ----
+  const position = result.brand_position ?? "absent";
+  const tone = result.recommendation_tone ?? "absent";
+  const visibility = result.visibility_score ?? 0;
+  const keyClaims = result.key_claims ?? [];
+  const missing = result.missing_attributes ?? [];
+  const posColor = POSITION_COLOR[position] ?? "rgba(var(--fg),0.6)";
+
+  return (
+    <div style={card}>
       {/* Cabecera: etiqueta + badges */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16 }}>
         <span
@@ -335,45 +390,48 @@ function SegmentCard({
         </span>
         <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
           <Badge
-            label={POSITION_LABEL[result.brand_position] ?? result.brand_position}
+            label={POSITION_LABEL[position] ?? position}
             color={posColor}
-            tooltip={POSITION_TOOLTIP[result.brand_position]}
+            tooltip={POSITION_TOOLTIP[position]}
           />
-          {result.recommendation_tone !== "absent" && (
+          {tone !== "absent" && (
             <Badge
-              label={TONE_LABEL[result.recommendation_tone] ?? result.recommendation_tone}
+              label={TONE_LABEL[tone] ?? tone}
               color="rgba(var(--fg),0.5)"
-              tooltip={TONE_TOOLTIP[result.recommendation_tone]}
+              tooltip={TONE_TOOLTIP[tone]}
             />
           )}
         </div>
       </div>
 
-      {/* Parámetros del segmento */}
-      <div
-        style={{
-          background: "rgba(var(--fg),0.025)",
-          border: "1px solid rgba(var(--fg),0.07)",
-          borderRadius: "var(--radius-sm)",
-          padding: "12px 16px",
-          display: "flex",
-          flexDirection: "column",
-          gap: 10,
-        }}
-      >
-        <ParamRow label="Etiqueta" value={result.label} />
-        <ParamRow label="JTBD" value={segment.jtbd} />
-        <ParamRow label="Query" value={result.query} />
-      </div>
+      {params}
 
-      {/* Respuesta por motor de busqueda IA */}
+      {/* Respuesta simulada (análisis previos a las sondas reales) */}
       <div
         style={{
           border: "1px solid rgba(var(--fg),0.08)",
           borderRadius: "var(--radius-sm)",
         }}
       >
-        <EngineTabBar />
+        <div
+          style={{
+            padding: "9px 14px",
+            borderBottom: "1px solid rgba(var(--fg),0.08)",
+          }}
+        >
+          <span
+            className="mono"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.14em",
+              textTransform: "uppercase",
+              color: "rgba(var(--fg),0.45)",
+            }}
+          >
+            Respuesta simulada (histórico)
+            {result.source_engine ? ` · ${result.source_engine}` : ""}
+          </span>
+        </div>
         <div
           style={{
             padding: 16,
@@ -414,7 +472,7 @@ function SegmentCard({
         >
           <div
             style={{
-              width: `${Math.round(result.visibility_score * 100)}%`,
+              width: `${Math.round(visibility * 100)}%`,
               height: "100%",
               background: posColor,
               borderRadius: 2,
@@ -422,14 +480,14 @@ function SegmentCard({
           />
         </div>
         <span style={{ fontSize: 12, color: posColor, minWidth: 32, textAlign: "right" }}>
-          {Math.round(result.visibility_score * 100)}%
+          {Math.round(visibility * 100)}%
         </span>
       </div>
 
-      {result.key_claims.length > 0 && (
+      {keyClaims.length > 0 && (
         <Detail label="Lo que dice el buscador sobre la marca">
           <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 }}>
-            {result.key_claims.map((c, i) => (
+            {keyClaims.map((c, i) => (
               <li key={i} style={{ fontSize: 13, color: "rgba(var(--fg),0.75)", lineHeight: 1.5 }}>
                 {c}
               </li>
@@ -438,10 +496,10 @@ function SegmentCard({
         </Detail>
       )}
 
-      {result.missing_attributes.length > 0 && (
+      {missing.length > 0 && (
         <Detail label="Huecos detectados (atributos ausentes)">
           <ul style={{ margin: 0, paddingLeft: 20, display: "flex", flexDirection: "column", gap: 4 }}>
-            {result.missing_attributes.map((a, i) => (
+            {missing.map((a, i) => (
               <li key={i} style={{ fontSize: 13, color: "var(--error-text)", lineHeight: 1.5 }}>
                 {a}
               </li>

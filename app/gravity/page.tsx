@@ -56,7 +56,7 @@ const PLANES: Array<{
         label: "GEO Tester",
         role: "Generative Engine Optimization",
         detail:
-          "Cómo construyen la respuesta Perplexity, Google AI Overview y ChatGPT Search según el JTBD del perfil. Mide visibility_score, brand_position, recommendation_tone, key_claims y missing_attributes.",
+          "La query de cada segmento JTBD lanzada contra Claude, ChatGPT y Perplexity reales, con búsqueda web y citas. Mide visibility_score, brand_position, recommendation_tone, key_claims y missing_attributes por motor.",
       },
       {
         href: "/campaigns",

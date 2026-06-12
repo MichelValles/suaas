@@ -90,7 +90,7 @@ export function NewGeoForm() {
               Un <strong style={{ color: "rgba(var(--fg),0.85)" }}>segmento de intención</strong> es un grupo de usuarios que tienen el mismo trabajo a hacer (JTBD): el problema concreto que quieren resolver en un momento específico. A diferencia de la segmentación demográfica, el JTBD describe <em>por qué</em> alguien busca algo hoy.
             </p>
             <p style={{ margin: 0 }}>
-              El GEO tester simula cómo un motor de búsqueda IA (Perplexity, Google AI Overview, ChatGPT Search) respondería a la búsqueda de cada segmento y analiza si tu marca aparece, con qué posición y con qué tono. Puedes añadir hasta 10 segmentos.
+              El GEO Tester lanza la búsqueda de cada segmento contra motores IA <strong style={{ color: "rgba(var(--fg),0.85)" }}>reales</strong> (Claude, ChatGPT y Perplexity, con búsqueda web y citas de fuentes) y analiza si tu marca aparece, con qué posición y con qué tono en cada uno. Puedes añadir hasta 10 segmentos.
             </p>
           </>
         }
@@ -237,7 +237,7 @@ function SegmentBlock({
         value={segment.query}
         onChange={(v) => onChange("query", v)}
         placeholder="hipoteca para autónomos sin nómina fija cuál es mejor 2025"
-        tooltip="La búsqueda exacta que este usuario escribiría en Perplexity, Google AI Overview o ChatGPT. Escríbela tal como la escribiría una persona real: en lenguaje natural, sin operadores de búsqueda."
+        tooltip="La búsqueda exacta que este usuario escribiría en Claude, ChatGPT o Perplexity. Se lanza tal cual contra los 3 motores. Escríbela como la escribiría una persona real: en lenguaje natural, sin operadores de búsqueda."
       />
     </div>
   );

@@ -49,7 +49,7 @@ const ACCELERATION_MODULES: ModuleItem[] = [
     href: "/geo",
     icon: Bot,
     label: "GEO Tester",
-    body: "Cómo construyen la respuesta Perplexity, Google AI Overview y ChatGPT Search según el JTBD del perfil. Mide visibility_score, brand_position, recommendation_tone y missing_attributes.",
+    body: "La query de cada segmento JTBD lanzada contra Claude, ChatGPT y Perplexity reales, con búsqueda web y citas. Mide visibility_score, brand_position, recommendation_tone y missing_attributes por motor.",
     cta: "Auditar visibilidad",
   },
   {
