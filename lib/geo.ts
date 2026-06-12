@@ -110,6 +110,26 @@ export type GeoAnalysis = {
   deleted_at?: string | null;
 };
 
+/**
+ * Postgres rechaza el carácter nulo U+0000 dentro de jsonb («unsupported Unicode escape
+ * sequence»), y las respuestas reales de los motores a veces lo arrastran
+ * del contenido web raspado. Saneado profundo antes de persistir.
+ */
+function stripNullChars<T>(value: T): T {
+  if (typeof value === "string") {
+    return value.replaceAll("\u0000", "") as T;
+  }
+  if (Array.isArray(value)) {
+    return value.map(stripNullChars) as T;
+  }
+  if (value && typeof value === "object") {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, stripNullChars(v)]),
+    ) as T;
+  }
+  return value;
+}
+
 // ============================================================
 // LLM: análisis de la respuesta real de un motor
 // ============================================================
@@ -374,7 +394,11 @@ export async function runGeoAnalysis(id: string): Promise<GeoAnalysis> {
 
     const { data, error } = await supa
       .from("geo_analyses")
-      .update({ status: "done", results, updated_at: new Date().toISOString() })
+      .update({
+        status: "done",
+        results: stripNullChars(results),
+        updated_at: new Date().toISOString(),
+      })
       .eq("id", id)
       .select("*")
       .single();
