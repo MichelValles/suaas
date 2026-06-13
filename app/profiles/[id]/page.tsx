@@ -4,9 +4,11 @@ import { AppShell, PageHeading } from "@/components/app-shell";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { BIG_FIVE_INTRO, BIG_FIVE_TRAITS } from "@/lib/big-five";
 import { COM_B_BARRIERS, COM_B_INTRO } from "@/lib/com-b";
+import { AVATAR_EST_USD } from "@/lib/avatar";
 import { estimateAction, partsForKind } from "@/lib/estimate";
 import { getProfile } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { AvatarButton } from "./avatar-button";
 import { ChatPanel } from "./chat-panel";
 
 export const dynamic = "force-dynamic";
@@ -59,6 +61,40 @@ export default async function ProfileDetailPage({
             </Link>
           }
         />
+
+        <section
+          aria-label="Retrato del perfil"
+          style={{ display: "flex", alignItems: "center", gap: 20, flexWrap: "wrap" }}
+        >
+          {profile.avatar_url && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={profile.avatar_url}
+              alt={`Retrato generado por IA de ${profile.name}`}
+              width={120}
+              height={120}
+              style={{
+                width: 120,
+                height: 120,
+                borderRadius: "50%",
+                objectFit: "cover",
+                border: "1px solid rgba(var(--fg),0.14)",
+                flexShrink: 0,
+              }}
+            />
+          )}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <AvatarButton
+              profileId={profile.id}
+              hasAvatar={Boolean(profile.avatar_url)}
+              estimatedUsd={AVATAR_EST_USD}
+            />
+            <span style={{ fontSize: 11, color: "rgba(var(--fg),0.45)", maxWidth: 320, lineHeight: 1.4 }}>
+              Retrato generado por IA a partir de la demografía del perfil: no
+              corresponde a ninguna persona real.
+            </span>
+          </div>
+        </section>
 
         {profile.backstory && (
           <section

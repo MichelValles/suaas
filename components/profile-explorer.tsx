@@ -656,18 +656,38 @@ function ProfileCard({
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1 }}>
-          <h3
-            style={{
-              fontFamily: "var(--font-display)",
-              fontStyle: "italic",
-              fontSize: 22,
-              lineHeight: 1.15,
-              color: "var(--text-strong)",
-              margin: 0,
-            }}
-          >
-            {profile.name}
-          </h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {profile.avatar_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={profile.avatar_url}
+                alt={`Retrato generado por IA de ${profile.name}`}
+                width={40}
+                height={40}
+                loading="lazy"
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "1px solid rgba(var(--fg),0.12)",
+                  flexShrink: 0,
+                }}
+              />
+            )}
+            <h3
+              style={{
+                fontFamily: "var(--font-display)",
+                fontStyle: "italic",
+                fontSize: 22,
+                lineHeight: 1.15,
+                color: "var(--text-strong)",
+                margin: 0,
+              }}
+            >
+              {profile.name}
+            </h3>
+          </div>
           <p
             style={{
               color: "rgba(var(--fg),0.7)",
@@ -899,7 +919,26 @@ function ProfileTable({
                 />
               </Td>
               <Td>
-                <span style={{ color: "var(--text-strong)" }}>{p.name}</span>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  {p.avatar_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={p.avatar_url}
+                      alt={`Retrato generado por IA de ${p.name}`}
+                      width={24}
+                      height={24}
+                      loading="lazy"
+                      style={{
+                        width: 24,
+                        height: 24,
+                        borderRadius: "50%",
+                        objectFit: "cover",
+                        flexShrink: 0,
+                      }}
+                    />
+                  )}
+                  <span style={{ color: "var(--text-strong)" }}>{p.name}</span>
+                </span>
               </Td>
               <Td>{p.demographics.age}</Td>
               <Td>{p.demographics.gender}</Td>

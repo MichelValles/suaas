@@ -14,6 +14,7 @@ export type UsageScope =
   | "campaign_judge"
   | "campaign_synthesis"
   | "onboard_synthesize"
+  | "profile_avatar"
   | "geo_probe"
   | "geo_analysis"
   | "momentum_probe"

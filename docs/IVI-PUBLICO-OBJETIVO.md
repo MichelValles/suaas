@@ -68,4 +68,4 @@ Filtrables en `/profiles` por `source = investigacion-publico-ivi-2026-06`.
 - INE: edad media de maternidad y natalidad.
 - Prensa económica (operación KKR-IVIRMA, dimensión del grupo) y notas de prensa de IVI (madres solteras, ROPA, Preserva).
 
-Pendiente valorado aparte: generación de retrato fotorrealista por perfil (vía AI Gateway + Vercel Blob; requiere columna `avatar_url` y UI).
+Los 15 perfiles tienen retrato fotorrealista generado por IA (v0.57: AI Gateway + Vercel Blob, ~0,04 $/retrato; el prompt no incluye el nombre y la UI lo etiqueta como generado por IA). Se regeneran desde el detalle del perfil.

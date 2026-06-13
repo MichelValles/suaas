@@ -45,6 +45,8 @@ export const ProfileSchema = ProfileInputSchema.extend({
   id: z.string().uuid(),
   created_at: z.string(),
   updated_at: z.string(),
+  /** Retrato generado por IA (Vercel Blob). Se escribe desde lib/avatar.ts, no desde el form. */
+  avatar_url: z.string().nullable().optional(),
 });
 
 export type Demographics = z.infer<typeof DemographicsSchema>;
