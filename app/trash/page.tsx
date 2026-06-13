@@ -44,6 +44,7 @@ export default async function TrashPage() {
       geo: 0,
       momentum: 0,
       profiles: 0,
+      brand: 0,
     },
   );
 
@@ -104,7 +105,7 @@ export default async function TrashPage() {
           >
             La papelera está vacía. Cuando elimines un target, embudo, A/B test,
             copy deck, oferta de pricing, campaña, análisis GEO, Trigger de
-            Momentum o perfil, aparecerá aquí.
+            Momentum, perfil o marca, aparecerá aquí.
           </div>
         ) : null}
 

@@ -44,6 +44,11 @@ import {
   restoreProfile,
   softDeleteProfile,
 } from "@/lib/profiles";
+import {
+  hardDeleteBrand,
+  restoreBrand,
+  softDeleteBrand,
+} from "@/lib/cerebro";
 
 // ============================================================
 // Tipos
@@ -59,6 +64,7 @@ export const TRASH_TYPES = [
   "geo",
   "momentum",
   "profiles",
+  "brand",
 ] as const;
 
 export type TrashType = (typeof TRASH_TYPES)[number];
@@ -86,6 +92,7 @@ const TYPE_TO_TABLE: Record<TrashType, string> = {
   geo: "geo_analyses",
   momentum: "momentum_challenges",
   profiles: "profiles",
+  brand: "brands",
 };
 
 export const TRASH_TYPE_LABEL: Record<TrashType, string> = {
@@ -98,6 +105,7 @@ export const TRASH_TYPE_LABEL: Record<TrashType, string> = {
   geo: "Análisis GEO",
   momentum: "Trigger de Momentum",
   profiles: "Perfil",
+  brand: "Marca",
 };
 
 // ============================================================
@@ -124,6 +132,8 @@ export async function sendToTrash(type: TrashType, id: string): Promise<void> {
       return softDeleteMomentumChallenge(id);
     case "profiles":
       return softDeleteProfile(id);
+    case "brand":
+      return softDeleteBrand(id);
   }
 }
 
@@ -150,6 +160,8 @@ export async function restoreFromTrash(
       return restoreMomentumChallenge(id);
     case "profiles":
       return restoreProfile(id);
+    case "brand":
+      return restoreBrand(id);
   }
 }
 
@@ -173,6 +185,8 @@ export async function hardDelete(type: TrashType, id: string): Promise<void> {
       return hardDeleteMomentumChallenge(id);
     case "profiles":
       return hardDeleteProfile(id);
+    case "brand":
+      return hardDeleteBrand(id);
   }
 }
 
@@ -210,6 +224,7 @@ const SELECT_BY_TYPE: Record<TrashType, string> = {
   geo: "id, name, brand_name, created_at, deleted_at",
   momentum: "id, name, trigger_scenario, created_at, deleted_at",
   profiles: "id, name, backstory, created_at, deleted_at",
+  brand: "id, name, description, created_at, deleted_at",
 };
 
 function hintFor(type: TrashType, row: Row): string | null {

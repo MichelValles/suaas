@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { BrandPicker } from "@/components/brand-picker";
 import { InfoTooltip } from "@/components/info-tooltip";
 import { RemoveIconButton } from "@/components/remove-icon-button";
 import { type GeoFormState, createGeoAnalysisAction } from "./actions";
@@ -24,6 +25,8 @@ export function NewGeoForm() {
   } as GeoFormState);
 
   const [segments, setSegments] = useState<SegmentDraft[]>([newSegment()]);
+  const [brandName, setBrandName] = useState("");
+  const [brandDescription, setBrandDescription] = useState("");
 
   const segmentsJson = JSON.stringify(
     segments.map(({ label, jtbd, query }) => ({ label, jtbd, query })),
@@ -64,11 +67,20 @@ export function NewGeoForm() {
           placeholder="GEO · Hipotecas · Q3 2025"
           tooltip="Nombre interno para identificar este análisis en la lista."
         />
+        <BrandPicker
+          onPick={(b) => {
+            setBrandName(b.name);
+            setBrandDescription(b.context);
+          }}
+          hint="Rellena nombre y descripción desde Cerebro. Solo alimenta el análisis del juez, nunca la consulta desnuda que se manda al buscador."
+        />
         <CField
           label="Nombre de la marca"
           name="brand_name"
           required
           placeholder="BBVA"
+          value={brandName}
+          onChange={setBrandName}
           tooltip="El nombre exacto de la marca tal como aparece en internet y en los buscadores."
         />
         <CTextArea
@@ -77,6 +89,8 @@ export function NewGeoForm() {
           rows={4}
           required
           minLength={20}
+          value={brandDescription}
+          onChange={setBrandDescription}
           placeholder="BBVA es un banco global con fuerte presencia en España. Ofrece hipotecas, préstamos personales, cuentas y productos de inversión para particulares y empresas."
           tooltip="Describe la marca en 2-4 frases: qué hace, a quién se dirige y cuál es su propuesta de valor principal. El modelo usará esto para analizar si el buscador la menciona correctamente."
         />
@@ -326,7 +340,10 @@ function CField(props: {
   required?: boolean;
   placeholder?: string;
   tooltip?: string;
+  value?: string;
+  onChange?: (v: string) => void;
 }) {
+  const controlled = props.onChange !== undefined;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <FLabel label={props.label} tooltip={props.tooltip} />
@@ -336,6 +353,9 @@ function CField(props: {
         required={props.required}
         placeholder={props.placeholder}
         style={inputStyle}
+        {...(controlled
+          ? { value: props.value ?? "", onChange: (e) => props.onChange!(e.target.value) }
+          : {})}
       />
     </div>
   );
@@ -349,7 +369,10 @@ function CTextArea(props: {
   placeholder?: string;
   minLength?: number;
   tooltip?: string;
+  value?: string;
+  onChange?: (v: string) => void;
 }) {
+  const controlled = props.onChange !== undefined;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <FLabel label={props.label} tooltip={props.tooltip} />
@@ -359,7 +382,10 @@ function CTextArea(props: {
         required={props.required}
         placeholder={props.placeholder}
         minLength={props.minLength}
-        style={{ ...inputStyle, fontFamily: "var(--font-sans)", lineHeight: 1.5 }}
+        style={{ ...inputStyle, fontFamily: "var(--font-sans)", lineHeight: 1.5, resize: "vertical" }}
+        {...(controlled
+          ? { value: props.value ?? "", onChange: (e) => props.onChange!(e.target.value) }
+          : {})}
       />
     </div>
   );

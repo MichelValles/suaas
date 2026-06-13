@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useFormStatus } from "react-dom";
+import { BrandPicker } from "@/components/brand-picker";
 import type { Profile } from "@/lib/profiles";
 import { createMomentumChallengeAction, saveProfileIntentAction } from "./actions";
 
@@ -269,6 +270,7 @@ function ProfileRow({
 export function NewChallengeForm({ profiles }: { profiles: Profile[] }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [intentFilter, setIntentFilter] = useState<IntentFilter>("all");
+  const [brandContext, setBrandContext] = useState("");
 
   // Refleja intent_context de cada perfil; se actualiza al guardar
   const [localIntents, setLocalIntents] = useState<Record<string, string>>(
@@ -360,14 +362,22 @@ export function NewChallengeForm({ profiles }: { profiles: Profile[] }) {
 
       <Field
         label="Contexto de marca (opcional)"
-        hint="Si quieres orientar el análisis a una marca concreta, descríbela aquí. Sin contexto de marca el análisis es agnóstico."
+        hint="Si quieres orientar el análisis a una marca concreta, descríbela aquí o selecciónala de Cerebro. Sin contexto de marca el análisis es agnóstico (recomendado para medir la reacción antes de que la marca entre en el radar)."
       >
-        <textarea
-          name="brand_context"
-          rows={3}
-          placeholder="Ej: IVI es la mayor red de clínicas de reproducción asistida en España."
-          style={{ ...inputStyle, resize: "vertical" }}
-        />
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          <BrandPicker
+            onPick={(b) => setBrandContext(b.context)}
+            hint="Vuelca la información de una marca de Cerebro. Momentum mide la reacción antes del primer contacto con la marca: úsalo solo si quieres un análisis orientado a marca."
+          />
+          <textarea
+            name="brand_context"
+            rows={3}
+            value={brandContext}
+            onChange={(e) => setBrandContext(e.target.value)}
+            placeholder="Ej: IVI es la mayor red de clínicas de reproducción asistida en España."
+            style={{ ...inputStyle, resize: "vertical" }}
+          />
+        </div>
       </Field>
 
       {/* Selector de perfiles */}

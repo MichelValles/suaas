@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import {
   Activity,
   Bot,
+  BrainCircuit,
   Coins,
   Filter,
   Layers,
@@ -48,6 +49,7 @@ const ACCELERATION_ITEMS: NavItem[] = [
 ];
 
 const KNOWLEDGE_ITEMS: NavItem[] = [
+  { href: "/cerebro", label: "Cerebro", icon: BrainCircuit, exact: false },
   { href: "/ab", label: "A/B tests", icon: Split, exact: false, beta: true },
   { href: "/copy", label: "Copy", icon: MessageSquareText, exact: false },
   { href: "/pricing", label: "Pricing", icon: Tag, exact: false, beta: true },

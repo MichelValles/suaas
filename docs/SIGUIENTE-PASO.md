@@ -1,10 +1,11 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-14 tras v0.58.0 (modo beta en /diag para ocultar los módulos sin desarrollar).
+> Última actualización: 2026-06-14 tras v0.59.0 (Cerebro: base de conocimiento de marca reutilizable).
 
-## Estado actual (v0.58.0 desplegada)
+## Estado actual (v0.59.0 desplegada)
 
+- **Cerebro · base de conocimiento de marca (v0.59.0)**: módulo nuevo en Knowledge Tools (`/cerebro`) para crear Marcas y adjuntarles documentos `.md` (incluida info privada que no está en buscadores: analytics, informes, VoC). En los formularios que piden info de marca aparece un selector (`components/brand-picker.tsx` + `GET /api/brands`) que rellena los campos desde una marca guardada (descripción + documentos concatenados vía `buildBrandContext`); también se puede seguir escribiendo a mano. Tablas `brands` + `brand_documents` (migración 0025, aplicada vía MCP); papelera con tipo `brand`; CRUD en `lib/cerebro.ts`. **Cableado de momento en GEO (rellena brand_name + brand_description) y Momentum (brand_context)**; pendiente extender el selector a Campañas (company_name + brief), Copy, Pricing y Claridad 5s. **Decisión metodológica clave** (de la auditoría previa, ver el hilo): Cerebro v1 solo RELLENA campos de entrada; respeta que la marca NO entre en el prompt del perfil evaluador de los tests «a ciegas» (5s, embudos) ni en la sonda desnuda del GEO, para no contaminar la medición. **Gobernanza pendiente**: los documentos privados viajan al AI Gateway igual que el texto tecleado a mano; antes de subir datos sensibles conviene confirmar retención cero (ZDR) con el gateway/proveedores.
 - **Modo beta (v0.58.0)**: toggle en `/diag` (sustituye a la antigua tarjeta «Esquema · todo verde») que revela los módulos aún sin desarrollar: Embudos (`/funnels`), A/B tests (`/ab`), Pricing (`/pricing`) y Sembrar (`/seed-examples`). Apagado de serie: esos cuatro quedan ocultos en el sidebar y en las tarjetas de la home salvo que el operador lo active. Persistencia por navegador en `localStorage` (`suaas-beta`) y sincronización en vivo vía evento de ventana. Piezas: `components/use-beta-mode.ts` (hook + helpers), `beta-mode-toggle.tsx` (la tarjeta) y `beta-only.tsx` (wrapper para la home, que pasa la tarjeta ya renderizada como children para no cruzar el icono no serializable). El detalle del esquema sigue íntegro en las secciones inferiores de `/diag`. Para sumar un módulo nuevo al modo beta: marcar su ítem con `beta: true` en `components/sidebar.tsx` y, si está en la home, en `app/page.tsx`.
 - **Modo claro cálido y contraste AA (v0.57.3)**: el lienzo del tema claro pasó de blanco puro a marfil cálido `#f1ede4` (paneles `#faf7f0`); el texto secundario y tenue se enrutó por `--text-secondary`/`--text-faint` para pasar AA en claro sin tocar el oscuro, y el texto accent baja a `--accent-800` en claro. Detalle en `docs/SISTEMA-DISENO.md → Tema`.
 
@@ -122,6 +123,7 @@ Sprint 2026-06-12/13: el GEO Tester pasa de simular a consultar motores reales, 
 | Campañas · TikTok Ads | `/campaigns` | **3 formatos** (vídeo in-feed, carousel, spark) con objetivo, textos rotatorios, @usuario y música (v0.55.0). Requiere migración 0022. |
 | GEO Tester | `/geo` | **Motores reales** (Claude, ChatGPT, Perplexity) con búsqueda web y citas desde v0.56.0; modelos por motor en `/tokens`. AI Overview y Gemini como `Próx.`. |
 | Perfiles | `/profiles` | Explorer con grid/tabla, filtros, CSV import/export, generación LLM (50 seeds), retratos IA (v0.57), el set de 15 perfiles IVI (`source = investigacion-publico-ivi-2026-06`) y el set de 3 perfiles de Adeslas Dental (`source = investigacion-publico-adeslas-dental-2026-06`). |
+| Cerebro | `/cerebro` | **Base de conocimiento de marca** (v0.59): crea Marcas con documentos `.md` y rellena los campos de marca de los módulos vía selector. Cableado en GEO y Momentum; resto de formularios pendientes. |
 
 Sistemas auxiliares: `/diag`, `/tokens`, `/trash` (soft delete con `deleted_at`, 9 tipos desde v0.32: incluye geo, momentum y perfiles), `/seed-examples` (siembra los 8 módulos en una pasada con gate; acepta un brief opcional para generar el contenido con IA a medida).
 
