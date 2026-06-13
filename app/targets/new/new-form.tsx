@@ -2,6 +2,7 @@
 
 import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { BrandPicker } from "@/components/brand-picker";
 import { createTargetAction, type CreateTargetState } from "./actions";
 
 const initial: CreateTargetState = { ok: false };
@@ -13,6 +14,9 @@ export function NewTargetForm() {
   const [mode, setMode] = useState<Mode>("url");
   const [dataUrl, setDataUrl] = useState<string>("");
   const [preview, setPreview] = useState<string>("");
+  const [mainPromise, setMainPromise] = useState(
+    "Préstamo personal sin papeleo, respuesta en 2 minutos.",
+  );
   const fileRef = useRef<HTMLInputElement>(null);
 
   function onFile(file: File | null) {
@@ -54,6 +58,10 @@ export function NewTargetForm() {
         defaultValue="Landing préstamo personal"
       />
 
+      <BrandPicker
+        onPick={(b) => setMainPromise(b.description || b.context)}
+        hint="Rellena la promesa con la descripción de una marca de Cerebro y recórtala a la promesa concreta de esta pantalla. Solo la usa el juez para puntuar el recuerdo, nunca el perfil (que ve la pantalla a ciegas)."
+      />
       <TextArea
         label="Promesa principal"
         name="main_promise"
@@ -61,7 +69,8 @@ export function NewTargetForm() {
         required
         minLength={3}
         placeholder="Préstamo personal sin papeleo, respuesta en 2 minutos."
-        defaultValue="Préstamo personal sin papeleo, respuesta en 2 minutos."
+        value={mainPromise}
+        onChange={setMainPromise}
       />
 
       <FieldGroup
@@ -300,7 +309,10 @@ function TextArea(props: {
   required?: boolean;
   defaultValue?: string;
   minLength?: number;
+  value?: string;
+  onChange?: (v: string) => void;
 }) {
+  const controlled = props.onChange !== undefined;
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       {props.label && (
@@ -321,9 +333,11 @@ function TextArea(props: {
         rows={props.rows ?? 4}
         placeholder={props.placeholder}
         required={props.required}
-        defaultValue={props.defaultValue}
         minLength={props.minLength}
-        style={{ ...inputStyle, fontFamily: "var(--font-sans)", lineHeight: 1.5 }}
+        style={{ ...inputStyle, fontFamily: "var(--font-sans)", lineHeight: 1.5, resize: "vertical" }}
+        {...(controlled
+          ? { value: props.value ?? "", onChange: (e) => props.onChange!(e.currentTarget.value) }
+          : { defaultValue: props.defaultValue })}
       />
     </label>
   );

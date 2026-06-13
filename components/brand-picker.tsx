@@ -4,7 +4,12 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { BrainCircuit } from "lucide-react";
 
-export type PickerBrand = { id: string; name: string; context: string };
+export type PickerBrand = {
+  id: string;
+  name: string;
+  description: string;
+  context: string;
+};
 
 /**
  * Selector de marca de Cerebro. Carga las marcas guardadas y, al elegir una,

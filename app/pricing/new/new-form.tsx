@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { BrandPicker } from "@/components/brand-picker";
 import { RemoveIconButton } from "@/components/remove-icon-button";
 import { createPricingAction, type CreatePricingState } from "./actions";
 
@@ -17,6 +18,7 @@ export function NewPricingForm() {
     { label: "actual", price: "19.99" },
     { label: "premium", price: "29.99" },
   ]);
+  const [description, setDescription] = useState("");
 
   function update(i: number, patch: Partial<Level>) {
     setPrices((prev) => prev.map((p, idx) => (idx === i ? { ...p, ...patch } : p)));
@@ -41,6 +43,10 @@ export function NewPricingForm() {
       }}
     >
       <Field label="Nombre de la oferta" name="name" placeholder="Suscripción premium" required />
+      <BrandPicker
+        onPick={(b) => setDescription(b.context)}
+        hint="Rellena la descripción de la oferta con el contexto de una marca de Cerebro (propuesta de valor, qué incluye, alternativas). Edítala para que describa la oferta concreta que pruebas."
+      />
       <TextArea
         label="Descripción"
         name="description"
@@ -48,6 +54,8 @@ export function NewPricingForm() {
         placeholder="Acceso ilimitado a todos los cursos, sin anuncios, certificados oficiales."
         required
         minLength={10}
+        value={description}
+        onChange={setDescription}
       />
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
         <Field label="Moneda" name="currency" placeholder="EUR" />
@@ -150,7 +158,10 @@ function TextArea(props: {
   placeholder?: string;
   required?: boolean;
   minLength?: number;
+  value?: string;
+  onChange?: (v: string) => void;
 }) {
+  const controlled = props.onChange !== undefined;
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <Label>{props.label}</Label>
@@ -160,7 +171,10 @@ function TextArea(props: {
         placeholder={props.placeholder}
         required={props.required}
         minLength={props.minLength}
-        style={{ ...inputStyle, fontFamily: "var(--font-sans)", lineHeight: 1.5 }}
+        style={{ ...inputStyle, fontFamily: "var(--font-sans)", lineHeight: 1.5, resize: "vertical" }}
+        {...(controlled
+          ? { value: props.value ?? "", onChange: (e) => props.onChange!(e.currentTarget.value) }
+          : {})}
       />
     </label>
   );

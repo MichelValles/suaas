@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { BrandPicker } from "@/components/brand-picker";
 import { RemoveIconButton } from "@/components/remove-icon-button";
 import { createCopyAction, type CreateCopyState } from "./actions";
 
@@ -16,6 +17,7 @@ export function NewCopyForm() {
     { label: "Variante 1", text: "" },
     { label: "Variante 2", text: "" },
   ]);
+  const [context, setContext] = useState("");
 
   function update(i: number, patch: Partial<Block>) {
     setBlocks((prev) => prev.map((b, idx) => (idx === i ? { ...b, ...patch } : b)));
@@ -40,10 +42,16 @@ export function NewCopyForm() {
       }}
     >
       <Field label="Nombre del deck" name="name" placeholder="CTA prestamos personales" required />
+      <BrandPicker
+        onPick={(b) => setContext(b.context)}
+        hint="Vuelca el contexto de una marca de Cerebro para que el perfil juzgue el copy con el frame correcto. Déjalo vacío para una reacción en frío al texto."
+      />
       <Field
         label="Contexto (opcional)"
         name="context"
         placeholder="Anuncio en Instagram · hero de landing · email transaccional"
+        value={context}
+        onChange={setContext}
       />
       <TextArea
         label="Descripción (opcional)"
@@ -151,11 +159,27 @@ export function NewCopyForm() {
   );
 }
 
-function Field(props: { label: string; name: string; placeholder?: string; required?: boolean }) {
+function Field(props: {
+  label: string;
+  name: string;
+  placeholder?: string;
+  required?: boolean;
+  value?: string;
+  onChange?: (v: string) => void;
+}) {
+  const controlled = props.onChange !== undefined;
   return (
     <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
       <Label>{props.label}</Label>
-      <input name={props.name} placeholder={props.placeholder} required={props.required} style={inputStyle} />
+      <input
+        name={props.name}
+        placeholder={props.placeholder}
+        required={props.required}
+        style={inputStyle}
+        {...(controlled
+          ? { value: props.value ?? "", onChange: (e) => props.onChange!(e.currentTarget.value) }
+          : {})}
+      />
     </label>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
+import { BrandPicker } from "@/components/brand-picker";
 import { useFormStatus } from "react-dom";
 import {
   Bookmark,
@@ -515,6 +516,13 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
         {/* Campos comunes a todas las estrategias: primero, para que el
             cambio de estrategia nunca borre ni esconda lo ya rellenado. */}
         <Section title="Campaña">
+          <BrandPicker
+            onPick={(b) => {
+              setCompanyName(b.name);
+              setBrief(b.context);
+            }}
+            hint="Rellena el nombre de empresa y el brief desde Cerebro. El brief solo alimenta a los jueces, nunca al perfil que ve el anuncio."
+          />
           <Controlled
             label="Nombre interno de la campaña"
             value={name}

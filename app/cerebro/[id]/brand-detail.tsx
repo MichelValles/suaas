@@ -146,6 +146,7 @@ function AddDocumentForm({ brandId }: { brandId: string }) {
   const [state, formAction] = useActionState(addBrandDocumentAction, initial);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
+  const [sensitive, setSensitive] = useState(false);
   const lastDone = useRef<number | undefined>(undefined);
 
   useEffect(() => {
@@ -153,6 +154,7 @@ function AddDocumentForm({ brandId }: { brandId: string }) {
       lastDone.current = state.doneAt;
       setTitle("");
       setContent("");
+      setSensitive(false);
     }
   }, [state]);
 
@@ -227,6 +229,32 @@ function AddDocumentForm({ brandId }: { brandId: string }) {
           fontSize: 13,
         }}
       />
+      <label
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 10,
+          cursor: "pointer",
+          fontSize: 12,
+          lineHeight: 1.5,
+          color: "rgba(var(--fg),0.6)",
+        }}
+      >
+        <input
+          type="checkbox"
+          name="sensitive"
+          checked={sensitive}
+          onChange={(e) => setSensitive(e.target.checked)}
+          style={{ width: 16, height: 16, marginTop: 1, accentColor: "var(--accent-500)", cursor: "pointer", flexShrink: 0 }}
+        />
+        <span>
+          <strong style={{ color: "var(--text-strong)", fontWeight: 700 }}>
+            Privado · no enviar a los modelos (ZDR)
+          </strong>
+          . Se guarda en Cerebro pero queda excluido de los prompts: no se
+          inyecta en ningún módulo y no viaja al gateway ni a los proveedores.
+        </span>
+      </label>
       {state.error && <ErrorBox>{state.error}</ErrorBox>}
       <AddButton />
     </form>
@@ -274,6 +302,23 @@ function DocumentCard({ doc, brandId }: { doc: BrandDocument; brandId: string })
           >
             {doc.kind}
           </span>
+          {doc.sensitive && (
+            <span
+              className="mono"
+              title="Privado: no se envía a los modelos"
+              style={{
+                fontSize: 9,
+                letterSpacing: "0.14em",
+                textTransform: "uppercase",
+                color: "var(--warning-text)",
+                border: "1px solid var(--warning-text)",
+                borderRadius: "var(--radius-pill)",
+                padding: "2px 8px",
+              }}
+            >
+              privado · ZDR
+            </span>
+          )}
         </span>
         <form action={deleteBrandDocumentAction}>
           <input type="hidden" name="id" value={doc.id} />

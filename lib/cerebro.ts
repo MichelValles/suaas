@@ -35,6 +35,11 @@ export const BrandDocumentInputSchema = z.object({
   title: z.string().min(1, "El título del documento es obligatorio."),
   kind: z.string().min(1).default("nota"),
   content: z.string().min(1, "El documento no puede estar vacío."),
+  /**
+   * Documento privado: se guarda pero NUNCA se inyecta en prompts (queda
+   * fuera de buildBrandContext), así no viaja al gateway ni a los proveedores.
+   */
+  sensitive: z.boolean().default(false),
 });
 
 export const BrandDocumentSchema = BrandDocumentInputSchema.extend({
@@ -221,7 +226,10 @@ export function buildBrandContext(
   if (brand.description && brand.description.trim()) {
     parts.push(brand.description.trim());
   }
+  // Los documentos privados (sensitive) NO se inyectan: se quedan en Cerebro
+  // y nunca salen al gateway.
   for (const d of docs) {
+    if (d.sensitive) continue;
     parts.push(`## ${d.title}\n${d.content.trim()}`);
   }
   let ctx = parts.join("\n\n");
@@ -229,9 +237,14 @@ export function buildBrandContext(
   return ctx;
 }
 
-/** Lista ligera para el desplegable: id, nombre y contexto inyectable. */
+/**
+ * Lista ligera para el desplegable: id, nombre, descripción pública y el
+ * contexto inyectable (descripción + documentos no privados). `description`
+ * es para campos cortos (p.ej. la promesa del test 5s); `context` para los
+ * cajones largos de "describe la marca".
+ */
 export async function listBrandsForPicker(): Promise<
-  { id: string; name: string; context: string }[]
+  { id: string; name: string; description: string; context: string }[]
 > {
   const brands = await listBrands();
   if (brands.length === 0) return [];
@@ -248,6 +261,7 @@ export async function listBrandsForPicker(): Promise<
   return brands.map((b) => ({
     id: b.id,
     name: b.name,
+    description: (b.description ?? "").trim(),
     context: buildBrandContext(b, docs.filter((d) => d.brand_id === b.id)),
   }));
 }

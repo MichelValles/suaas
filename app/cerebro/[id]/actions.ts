@@ -38,8 +38,15 @@ export async function addBrandDocumentAction(
   const title = String(formData.get("title") ?? "").trim();
   const kind = String(formData.get("kind") ?? "nota").trim() || "nota";
   const content = String(formData.get("content") ?? "").trim();
+  const sensitive = formData.get("sensitive") === "on";
   try {
-    const input = BrandDocumentInputSchema.parse({ brand_id, title, kind, content });
+    const input = BrandDocumentInputSchema.parse({
+      brand_id,
+      title,
+      kind,
+      content,
+      sensitive,
+    });
     await addBrandDocument(input);
   } catch (err) {
     return { ok: false, error: (err as Error).message };
