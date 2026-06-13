@@ -69,6 +69,7 @@ a {
   --accent-500: #facc0d;
   --accent-600: #c7a007;
   --accent-700: #8a6f04;
+  --accent-800: #6b5503;
   --accent-900: #4a3d02;
 
   /* semantic */
@@ -145,6 +146,8 @@ a {
   --surface-app: var(--ink-900);
   --surface-panel: var(--ink-800);
   --text-strong: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-faint: rgba(255, 255, 255, 0.42);
   --accent-text: var(--accent-500);
   /* semánticos legibles como texto/estado sobre la superficie del
      tema. En oscuro: versiones desaturadas; en claro: los 700. */
@@ -159,10 +162,19 @@ a {
 html[data-theme="light"] {
   color-scheme: light;
   --fg: 10, 11, 13;
-  --surface-app: var(--paper);
+  /* Neutros cálidos: el lienzo deja de ser blanco puro (#fff) para no
+     deslumbrar. paper/ink-50 quedan como blanco roto cálido para que
+     paneles y tarjetas resalten sobre el lienzo, un punto más tenue. */
+  --paper: #faf7f0;
+  --ink-50: #faf7f0;
+  --ink-100: #efe9df;
+  --ink-200: #e4ddce;
+  --surface-app: #f1ede4;
   --surface-panel: var(--ink-50);
   --text-strong: var(--ink-900);
-  --accent-text: var(--accent-700);
+  --text-secondary: rgba(10, 11, 13, 0.72);
+  --text-faint: rgba(10, 11, 13, 0.6);
+  --accent-text: var(--accent-800);
   --success-text: var(--success-700);
   --warning-text: var(--warning-700);
   --error-text: var(--error-700);
@@ -178,6 +190,8 @@ html[data-theme="light"] {
   --surface-app: var(--ink-900);
   --surface-panel: var(--ink-800);
   --text-strong: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-faint: rgba(255, 255, 255, 0.42);
   --accent-text: var(--accent-500);
   --success-text: #6cbf8f;
   --warning-text: #d3a049;
@@ -214,7 +228,7 @@ body {
   letter-spacing: var(--ls-eyebrow);
   text-transform: uppercase;
   font-weight: 500;
-  color: rgba(var(--fg), 0.55);
+  color: var(--text-secondary);
 }
 
 .h1,
@@ -273,7 +287,7 @@ p {
 .caption {
   font-size: var(--fs-caption);
   line-height: 1.5;
-  color: rgba(var(--fg), 0.55);
+  color: var(--text-secondary);
 }
 .mono {
   font-family: var(--font-mono);
@@ -290,6 +304,8 @@ p {
   color-scheme: dark;
   --fg: 255, 255, 255;
   --text-strong: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.55);
+  --text-faint: rgba(255, 255, 255, 0.42);
   --accent-text: var(--accent-500);
 }
 .surface-feature .display,
@@ -304,7 +320,9 @@ p {
   color-scheme: light;
   --fg: 10, 11, 13;
   --text-strong: var(--ink-900);
-  --accent-text: var(--accent-700);
+  --text-secondary: rgba(10, 11, 13, 0.72);
+  --text-faint: rgba(10, 11, 13, 0.6);
+  --accent-text: var(--accent-800);
 }
 .surface-tone {
   background-color: var(--ink-50);
@@ -312,7 +330,9 @@ p {
   color-scheme: light;
   --fg: 10, 11, 13;
   --text-strong: var(--ink-900);
-  --accent-text: var(--accent-700);
+  --text-secondary: rgba(10, 11, 13, 0.72);
+  --text-faint: rgba(10, 11, 13, 0.6);
+  --accent-text: var(--accent-800);
 }
 
 /* ============================================================
@@ -482,7 +502,7 @@ p {
   font-size: 9px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(var(--fg), 0.42);
+  color: var(--text-faint);
 }
 .entity-card__stat-value {
   font-size: 14px;
@@ -563,7 +583,7 @@ textarea.backstory-input:focus-visible {
   border-radius: 999px;
   border: 1px solid rgba(var(--fg), 0.25);
   background: transparent;
-  color: rgba(var(--fg), 0.55);
+  color: var(--text-secondary);
   font-size: 10px;
   line-height: 1;
   font-weight: 700;
@@ -651,7 +671,7 @@ textarea.backstory-input:focus-visible {
   gap: 24px;
   flex-wrap: wrap;
   font-size: 11px;
-  color: rgba(var(--fg), 0.55);
+  color: var(--text-secondary);
 }
 
 /* Sidebar */
@@ -691,7 +711,7 @@ html[data-theme="light"] .sidebar-logo {
   display: none;
   background: transparent;
   border: 0;
-  color: rgba(var(--fg), 0.55);
+  color: var(--text-secondary);
   cursor: pointer;
   padding: 6px;
   border-radius: var(--radius-sm);
@@ -959,7 +979,7 @@ select option {
   width: 100%;
   padding: 10px 12px;
   border-radius: var(--radius-sm);
-  color: rgba(var(--fg), 0.55);
+  color: var(--text-secondary);
   font-size: 11px;
   letter-spacing: 0.08em;
   transition:
