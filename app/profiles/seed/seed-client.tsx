@@ -137,7 +137,7 @@ export function SeedClient({
   const running = phase === "running";
 
   return (
-    <section style={{ display: "flex", flexDirection: "column", gap: 24, maxWidth: 960, width: "100%", marginInline: "auto" }}>
+    <section style={{ display: "flex", flexDirection: "column", gap: 24, width: "100%" }}>
       <div
         style={{
           display: "grid",

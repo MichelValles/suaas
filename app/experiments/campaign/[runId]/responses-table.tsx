@@ -276,7 +276,7 @@ export function CampaignResponsesTable({
 
 function ResponseDetail({ response: r }: { response: CampaignResponse }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 8, maxWidth: 760 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <p style={{ color: "rgba(var(--fg),0.85)", fontSize: 13, margin: 0, lineHeight: 1.55 }}>
         «{r.perceived_offer}»
       </p>

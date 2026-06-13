@@ -37,7 +37,6 @@ export function NewPricingForm() {
         display: "grid",
         gridTemplateColumns: "1fr",
         gap: 24,
-        maxWidth: 880,
         width: "100%",
         marginInline: "auto",
       }}

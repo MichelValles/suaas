@@ -43,7 +43,6 @@ export function BrandDetail({
         display: "flex",
         flexDirection: "column",
         gap: 36,
-        maxWidth: 880,
         width: "100%",
       }}
     >

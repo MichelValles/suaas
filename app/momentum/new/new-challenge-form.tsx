@@ -335,7 +335,7 @@ export function NewChallengeForm({ profiles }: { profiles: Profile[] }) {
   return (
     <form
       action={createMomentumChallengeAction}
-      style={{ display: "flex", flexDirection: "column", gap: 28, maxWidth: 720 }}
+      style={{ display: "flex", flexDirection: "column", gap: 28 }}
     >
       <Field label="Nombre del Trigger" hint="Corto y descriptivo.">
         <input

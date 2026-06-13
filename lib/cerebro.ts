@@ -211,12 +211,15 @@ export async function deleteBrandDocument(id: string): Promise<void> {
 // Contexto inyectable (lo que el selector vuelca en los campos de marca)
 // ============================================================
 
-const CONTEXT_CAP = 8000;
+// Tope de caracteres del contexto inyectable. Más alto = se inyecta más
+// conocimiento de marca, pero también más tokens por llamada (atención al
+// runner de campañas, que reconstruye el prompt por combinación).
+const CONTEXT_CAP = 30000;
 
 /**
  * Construye el texto que el selector de marca vuelca en los cajones de
  * "describe la marca" de los módulos: la descripción más los documentos .md
- * concatenados. Se recorta a un tope razonable para no inflar payloads.
+ * concatenados. Se recorta a CONTEXT_CAP para no inflar payloads sin control.
  */
 export function buildBrandContext(
   brand: Pick<Brand, "description">,

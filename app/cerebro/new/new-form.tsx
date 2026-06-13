@@ -28,7 +28,6 @@ export function NewBrandForm() {
         display: "grid",
         gridTemplateColumns: "1fr",
         gap: 24,
-        maxWidth: 760,
         width: "100%",
         marginInline: "auto",
       }}

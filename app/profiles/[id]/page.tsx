@@ -100,7 +100,6 @@ export default async function ProfileDetailPage({
           <section
             className="backstory-box"
             aria-label="Backstory del perfil"
-            style={{ maxWidth: 880 }}
           >
             <span
               className="mono"
