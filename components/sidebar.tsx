@@ -24,36 +24,48 @@ import {
   Clock,
 } from "lucide-react";
 import { ThemeSwitch } from "@/components/theme-switch";
+import { useBetaMode } from "@/components/use-beta-mode";
 
-const CONSTRUCTION_ITEMS = [
+type NavItem = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ size?: number }>;
+  exact: boolean;
+  /** Solo visible con el modo beta activo (módulo aún sin desarrollar). */
+  beta?: boolean;
+};
+
+const CONSTRUCTION_ITEMS: NavItem[] = [
   { href: "/profiles", label: "Perfiles", icon: Users, exact: false },
   { href: "/momentum", label: "Momentum", icon: Zap, exact: false },
   { href: "/targets", label: "Claridad 5s", icon: ScanEye, exact: false },
-  { href: "/funnels", label: "Embudos", icon: Filter, exact: false },
+  { href: "/funnels", label: "Embudos", icon: Filter, exact: false, beta: true },
 ];
 
-const ACCELERATION_ITEMS = [
+const ACCELERATION_ITEMS: NavItem[] = [
   { href: "/geo", label: "GEO Tester", icon: Bot, exact: false },
   { href: "/campaigns", label: "Campañas", icon: Megaphone, exact: false },
 ];
 
-const KNOWLEDGE_ITEMS = [
-  { href: "/ab", label: "A/B tests", icon: Split, exact: false },
+const KNOWLEDGE_ITEMS: NavItem[] = [
+  { href: "/ab", label: "A/B tests", icon: Split, exact: false, beta: true },
   { href: "/copy", label: "Copy", icon: MessageSquareText, exact: false },
-  { href: "/pricing", label: "Pricing", icon: Tag, exact: false },
+  { href: "/pricing", label: "Pricing", icon: Tag, exact: false, beta: true },
 ];
 
-const SYSTEM_ITEMS = [
+const SYSTEM_ITEMS: NavItem[] = [
   { href: "/diag", label: "Diagnóstico", icon: Activity, exact: false },
   { href: "/tokens", label: "Tokens", icon: Coins, exact: false },
   { href: "/gravity", label: "Gravity Model", icon: Layers, exact: false },
   { href: "/trash", label: "Papelera", icon: Trash2, exact: false },
-  { href: "/seed-examples", label: "Sembrar", icon: Sprout, exact: false },
+  { href: "/seed-examples", label: "Sembrar", icon: Sprout, exact: false, beta: true },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [beta] = useBetaMode();
+  const visible = (items: NavItem[]) => items.filter((i) => !i.beta || beta);
 
   useEffect(() => {
     setOpen(false);
@@ -123,7 +135,7 @@ export function Sidebar() {
 
         <nav className="sidebar-nav">
           <NavGroup label="Construction">
-            {CONSTRUCTION_ITEMS.map((item) => (
+            {visible(CONSTRUCTION_ITEMS).map((item) => (
               <NavLink
                 key={item.href}
                 href={item.href}
@@ -151,7 +163,7 @@ export function Sidebar() {
           </NavGroup>
 
           <NavGroup label="Knowledge Tools">
-            {KNOWLEDGE_ITEMS.map((item) => (
+            {visible(KNOWLEDGE_ITEMS).map((item) => (
               <NavLink
                 key={item.href}
                 href={item.href}
@@ -163,7 +175,7 @@ export function Sidebar() {
           </NavGroup>
 
           <NavGroup label="Sistema">
-            {SYSTEM_ITEMS.map((item) => (
+            {visible(SYSTEM_ITEMS).map((item) => (
               <NavLink
                 key={item.href}
                 href={item.href}

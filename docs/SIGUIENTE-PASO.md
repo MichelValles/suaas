@@ -1,9 +1,14 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-13 tras v0.57.2 (3 perfiles target de SegurCaixa Adeslas Dental).
+> Última actualización: 2026-06-14 tras v0.58.0 (modo beta en /diag para ocultar los módulos sin desarrollar).
 
-## Estado actual (v0.57.2 desplegada)
+## Estado actual (v0.58.0 desplegada)
+
+- **Modo beta (v0.58.0)**: toggle en `/diag` (sustituye a la antigua tarjeta «Esquema · todo verde») que revela los módulos aún sin desarrollar: Embudos (`/funnels`), A/B tests (`/ab`), Pricing (`/pricing`) y Sembrar (`/seed-examples`). Apagado de serie: esos cuatro quedan ocultos en el sidebar y en las tarjetas de la home salvo que el operador lo active. Persistencia por navegador en `localStorage` (`suaas-beta`) y sincronización en vivo vía evento de ventana. Piezas: `components/use-beta-mode.ts` (hook + helpers), `beta-mode-toggle.tsx` (la tarjeta) y `beta-only.tsx` (wrapper para la home, que pasa la tarjeta ya renderizada como children para no cruzar el icono no serializable). El detalle del esquema sigue íntegro en las secciones inferiores de `/diag`. Para sumar un módulo nuevo al modo beta: marcar su ítem con `beta: true` en `components/sidebar.tsx` y, si está en la home, en `app/page.tsx`.
+- **Modo claro cálido y contraste AA (v0.57.3)**: el lienzo del tema claro pasó de blanco puro a marfil cálido `#f1ede4` (paneles `#faf7f0`); el texto secundario y tenue se enrutó por `--text-secondary`/`--text-faint` para pasar AA en claro sin tocar el oscuro, y el texto accent baja a `--accent-800` en claro. Detalle en `docs/SISTEMA-DISENO.md → Tema`.
+
+### Paquete de público objetivo de SegurCaixa Adeslas Dental (v0.57.2)
 
 Sprint 2026-06-13 (tarde): paquete de público objetivo de **SegurCaixa Adeslas Dental** (seguro dental), análogo al de IVI pero para otra marca y otro vertical.
 

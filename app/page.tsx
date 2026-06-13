@@ -12,6 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { BetaOnly } from "@/components/beta-only";
 
 const CONSTRUCTION_MODULES: ModuleItem[] = [
   {
@@ -41,6 +42,7 @@ const CONSTRUCTION_MODULES: ModuleItem[] = [
     label: "Embudos",
     body: "El perfil recorre el flujo con su carga cognitiva real. Devuelve effort, intent_match y dropoff por paso antes del lanzamiento.",
     cta: "Analizar flujo",
+    beta: true,
   },
 ];
 
@@ -68,6 +70,7 @@ const KNOWLEDGE_MODULES: ModuleItem[] = [
     label: "A/B tests",
     body: "Dos variantes en paralelo. Compara comprensión, fricción y barreras emergentes con la misma cohorte de perfiles.",
     cta: "Comparar variantes",
+    beta: true,
   },
   {
     href: "/copy",
@@ -82,6 +85,7 @@ const KNOWLEDGE_MODULES: ModuleItem[] = [
     label: "Pricing",
     body: "N niveles de precio. Por nivel: would_buy, willingness to pay y valor percibido. Detecta el umbral psicológico antes de tocar la web.",
     cta: "Calibrar precio",
+    beta: true,
   },
 ];
 
@@ -91,6 +95,8 @@ type ModuleItem = {
   label: string;
   body: string;
   cta: string;
+  /** Solo visible con el modo beta activo (módulo aún sin desarrollar). */
+  beta?: boolean;
 };
 
 export default function HomePage() {
@@ -647,9 +653,15 @@ function PlaneSection({
           gap: 16,
         }}
       >
-        {modules.map((m) => (
-          <ModuleCard key={m.href} item={m} />
-        ))}
+        {modules.map((m) =>
+          m.beta ? (
+            <BetaOnly key={m.href}>
+              <ModuleCard item={m} />
+            </BetaOnly>
+          ) : (
+            <ModuleCard key={m.href} item={m} />
+          ),
+        )}
       </div>
     </section>
   );

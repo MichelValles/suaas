@@ -1,4 +1,5 @@
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { BetaModeToggle } from "@/components/beta-mode-toggle";
 import { isGatewayConfigured } from "@/lib/gateway";
 import { getMigrationsStatus, type MigrationsStatus } from "@/lib/migrations";
 import { getServerClient, isSupabaseConfigured } from "@/lib/supabase";
@@ -137,9 +138,6 @@ export default async function DiagPage() {
       ...missingColumns.map((c) => c.migration),
     ]),
   ].sort();
-  const schemaOk =
-    results.every((r) => r.ok) && missingColumns.length === 0;
-
   // Agrupar columnas por tabla para la UI, conservando el orden de la lista.
   const columnGroups: { table: string; columns: ColumnStatus[] }[] = [];
   for (const col of columns) {
@@ -180,17 +178,7 @@ export default async function DiagPage() {
           value={gatewayConfigured ? "configurado" : "no configurado"}
           tone={gatewayConfigured ? "ok" : "off"}
         />
-        <StatusBlock
-          label="Esquema"
-          value={
-            !supabaseConfigured
-              ? "·"
-              : schemaOk
-                ? "todo verde"
-                : "faltan migraciones"
-          }
-          tone={!supabaseConfigured ? "off" : schemaOk ? "ok" : "warn"}
-        />
+        <BetaModeToggle />
       </section>
 
       <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
