@@ -1,9 +1,28 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-06-12 tras v0.55.0 (canal TikTok Ads).
+> Última actualización: 2026-06-13 tras v0.57.2 (3 perfiles target de SegurCaixa Adeslas Dental).
 
-## Estado actual (v0.55.0 desplegada)
+## Estado actual (v0.57.2 desplegada)
+
+Sprint 2026-06-13 (tarde): paquete de público objetivo de **SegurCaixa Adeslas Dental** (seguro dental), análogo al de IVI pero para otra marca y otro vertical.
+
+- **Investigación verificada del público de Adeslas Dental** (`docs/ADESLAS-DENTAL-PUBLICO-OBJETIVO.md`): workflow multiagente (8 ángulos de búsqueda web + 16 verificadores adversariales + síntesis). Cubre la marca y su cartera dental vigente 2026 (Adeslas Dental Max sin carencia desde 10 €/mes; Adeslas Dental Total trienal 379/339/319 €), el mercado del seguro dental en cifras verificadas (penetración ~28-30%, costes de tratamientos que disparan la compra, posicionamiento de precio gama media), una taxonomía de 6 segmentos y el canal diferencial CaixaBank. La verificación tumbó varios datos mal atribuidos (cuotas dentales de 2017, rango de implante del Consejo de Dentistas, odontofobia de 2022): documentados como «no usar como dato actual».
+- **3 perfiles calibrados de Adeslas Dental creados** (`/profiles`, `source = investigacion-publico-adeslas-dental-2026-06`), en tres estadios de embudo: Nuria Castellano (28, Valencia, **valorando** la categoría), Joaquín Bermúdez (43, Zaragoza, **conoce la marca**, familia con ortodoncia) y Amparo Quintela (63, Vigo, **cerca de la conversión**, implantes). **La marca «SegurCaixa Adeslas Dental» aparece una sola vez en todo el set, en el `intent_context` de Joaquín**; los otros dos son 100% libres de marca (verificado con query). Sin retrato todavía (opcional, generable desde el detalle).
+- **Insertados vía MCP de Supabase** (`execute_sql`), sin migración (reutilizan el esquema de `profiles`). El set IVI (15 perfiles) sigue intacto.
+
+## Estado anterior (v0.57.0)
+
+Sprint 2026-06-12/13: el GEO Tester pasa de simular a consultar motores reales, y se construye el paquete completo de IVI (investigación de público, 15 perfiles calibrados y retratos).
+
+- **GEO Tester con motores reales (v0.56.0)**: la query de cada segmento se lanza tal cual contra **Claude** (web search server-side de Anthropic), **ChatGPT** (web_search de OpenAI) y **Perplexity** (Sonar) vía AI Gateway, con citas reales y análisis honesto por motor (scope nuevo `geo_analysis`); pestañas funcionales en `/geo/[id]` con citas clicables y visibilidad por motor. **Modelos por motor elegibles en `/tokens`** (tabla `app_settings`, migración 0023): ligeros para pruebas (~0,10 $/análisis de 3 segmentos), frontera para análisis serios (~2 $). Los resultados v1 (simulados) se renderizan como legado. v0.56.1: saneado de U+0000 antes de persistir en jsonb (las sondas frontera arrastran ese carácter del contenido web). Protocolo repetible con IVI y comparativa ligeros vs frontera en `docs/GEO-PRUEBA-IVI.md` (la varianza entre runs es real: mirar tendencia, no foto única).
+- **Investigación del público objetivo de IVI** (`docs/IVI-PUBLICO-OBJETIVO.md`): workflow multiagente (8 ángulos de búsqueda web + 14 verificadores adversariales + síntesis), mercado en cifras verificadas y taxonomía de 12 segmentos con journey, miedos y canales.
+- **15 perfiles calibrados de IVI creados** (`/profiles`, `source = investigacion-publico-ivi-2026-06`): cubren los 12 segmentos (FIV primaria x3, ovodonación x2 con una internacional, madre soltera, ROPA, preservación social y oncológica, factor masculino, secundaria, aborto de repetición, DGP, derivada de la pública, embriodonación). **Sin marca** en intent, backstory y barreras (verificado con query) para no sesgar tests; canales integrados como frase final del backstory.
+- **Retratos fotorrealistas (v0.57.0)**: `profiles.avatar_url` (migración 0024), `lib/avatar.ts` con `generateImage` vía gateway (`google/imagen-4.0-generate-001`, ~0,04 $/retrato, env opcional `SUAAS_AVATAR_MODEL`) y subida a Blob. El prompt NO incluye el nombre y la UI etiqueta «retrato generado por IA». `POST /api/profiles/[id]/avatar` (402 accionable sin créditos), botón generar/regenerar en el detalle, miniaturas en explorer. Los 15 perfiles IVI tienen retrato.
+- **⚠️ Saldo del AI Gateway BAJO: ~4 $** (el sprint consumió ~6 $ entre GEO frontera, investigación y retratos). Antes de runs grandes: recargar créditos o activar auto top-up (Vercel → AI Gateway → Billing). El umbral ámbar de `/tokens` ya avisa por debajo de 5 $.
+- **Migraciones aplicadas: 0001 a 0024** (0023 y 0024 vía MCP de Supabase del proyecto, operativo y estable: `apply_migration`/`execute_sql` sin re-OAuth).
+
+## Estado anterior (v0.55.0)
 
 - **Canal TikTok Ads completo (v0.55.0)**: 3 formatos como estrategias (`tiktok_video`, `tiktok_carousel`, `tiktok_spark`), objetivo + 1..5 textos de anuncio + @usuario + música en `campaigns.channel_spec` con discriminador `network: "tiktok"` (`ChannelSpec` ahora es union `MetaSpec | TikTokSpec`; usar `metaSpecOf`/`tiktokSpecOf`), caps oficiales verificados (ad text 100c sin emojis ni «#», display name 40/20, carousel 2-35 imágenes con música obligatoria, vídeo 9:16 5-60s), CTAs de TikTok localizadas, preview en vivo del feed «Para ti» (columna de iconos, caption con «más», disco con `.spin-slow`), export `?format=tiktok` y seed IVI ampliado a 7 estrategias. Detalle en `ROADMAP.md → v0.55.0` y `PROYECTO.md → Módulo Campañas`.
 - **Migraciones 0021 y 0022 APLICADAS** (2026-06-12, SQL editor) y **campaña de ejemplo «IVI · TikTok · Vídeo in-feed» creada** (id `e387fea0`, vía MCP de Supabase, SIN runs). El MCP del proyecto quedó operativo tras eliminar el servidor global caducado que lo eclipsaba (`claude mcp remove supabase -s user`) y completar el OAuth; si las herramientas no aparecen tras autenticar, reconectar en `/mcp`.
@@ -95,7 +114,9 @@
 | Pricing | `/pricing` | Estable desde v0.7.0 |
 | Campañas · Google Ads | `/campaigns` | 6 de 7 estrategias implementadas según specs oficiales (v0.41-v0.45): Search RSA, Display, PMax, Demand Gen, Video, Shopping. Solo App Campaigns como `Próx.`. |
 | Campañas · Meta Ads | `/campaigns` | **3 formatos** (single, carousel, collection) con objetivo ODAX, placement de simulación y textos principales (v0.54.0). Requiere migración 0021. |
-| Perfiles | `/profiles` | Explorer con grid/tabla, filtros, CSV import/export, generación LLM (50 seeds). |
+| Campañas · TikTok Ads | `/campaigns` | **3 formatos** (vídeo in-feed, carousel, spark) con objetivo, textos rotatorios, @usuario y música (v0.55.0). Requiere migración 0022. |
+| GEO Tester | `/geo` | **Motores reales** (Claude, ChatGPT, Perplexity) con búsqueda web y citas desde v0.56.0; modelos por motor en `/tokens`. AI Overview y Gemini como `Próx.`. |
+| Perfiles | `/profiles` | Explorer con grid/tabla, filtros, CSV import/export, generación LLM (50 seeds), retratos IA (v0.57), el set de 15 perfiles IVI (`source = investigacion-publico-ivi-2026-06`) y el set de 3 perfiles de Adeslas Dental (`source = investigacion-publico-adeslas-dental-2026-06`). |
 
 Sistemas auxiliares: `/diag`, `/tokens`, `/trash` (soft delete con `deleted_at`, 9 tipos desde v0.32: incluye geo, momentum y perfiles), `/seed-examples` (siembra los 8 módulos en una pasada con gate; acepta un brief opcional para generar el contenido con IA a medida).
 
@@ -116,18 +137,13 @@ Sistemas auxiliares: `/diag`, `/tokens`, `/trash` (soft delete con `deleted_at`,
 
 ## Próximo paso candidato
 
-**Recomendado: plan de mejora del módulo de campañas.** Detalle completo (diagnóstico, quick wins, releases mayores, descartados y orden) en [`CAMPANAS-PLAN-MEJORA.md`](./CAMPANAS-PLAN-MEJORA.md). Sale de una investigación multiagente del módulo (2026-06-11), verificada contra el código. Resumen del diagnóstico: cuatro frentes de deuda (fidelidad metodológica con el brief filtrado al persona, robustez del runner que cae entero ante un fallo y deja runs zombi, deuda de esquema con 8 migraciones y RLS apagado, y loop de producto roto sin duplicar/comparar/exportar). Plan en cinco releases:
+El plan de mejora de campañas (v0.35 a v0.40) y los canales Meta/TikTok ya están completados. Candidatos vivos, por orden recomendado:
 
-| Release | Contenido | SQL |
-|---|---|---|
-| **v0.35 · Fidelidad y honestidad** | Retirar brief del prompt, razonamiento antes del score, bugs latentes del runner, métricas honestas («Intent ≥ 0,5» en vez de «CTR»), frontera de BD tipada | No |
-| **v0.36 · Loop de iteración** | Duplicar campaña, repetir run con la misma muestra, export CSV/Ads Editor, comparativa run vs run | No |
-| **v0.37 · Consolidación de BD** | Migración `0019` (`suaas_migrations`, RLS, checks reales, drop `channel` legacy) + poda de fallbacks | Sí |
-| **v0.38 · Robustez operativa** | Runner tolerante a fallos con progreso y reanudación, presupuesto de tokens con estimación previa | No |
-| **v0.39 · Profundidad** | Juez neutral de comprensión, `behavior_class` del Gravity Model, tabla interactiva, síntesis «Qué cambiar» | Sí |
-| **v0.40 · Ranking por asset** | Muestreo de combinaciones RSA y rendimiento por titular | Sí |
+**A) Actividades IVI con los 15 perfiles (recomendado).** El paquete está listo para explotarse: claridad 5s sobre landings de ivi.es con los perfiles nuevos, relanzar las campañas IVI seed con esta muestra, Momentum con triggers de fertilidad (un seminograma alterado, el cumpleaños clave, la carta de exclusión de la pública, el diagnóstico oncológico: los disparadores están documentados por segmento en `IVI-PUBLICO-OBJETIVO.md`), y re-run del GEO IVI para empezar la serie temporal. **Antes: recargar el gateway** (~4 $ restantes; un run de campaña con 15 perfiles consume bastante más que un GEO).
 
-Empezar por v0.35: es lo más barato, no toca SQL y corrige el sesgo de fidelidad cuanto antes (menos histórico contaminado). En la sesión de SQL de v0.37, agrupar también las columnas de v0.39 y v0.40.
+**B) AI Overview como cuarto motor del GEO Tester.** Vía SerpAPI (alta en serpapi.com + env `SERPAPI_KEY`, ~1-2 céntimos/búsqueda): devuelve el bloque AI Overview REAL de Google con sus fuentes, en dos pasos con `page_token` que caduca en 1 minuto. Matiz honesto: no aparece para todas las queries y eso es señal GEO en sí. La pestaña «Próx.» ya existe en `app/geo/[id]/engine-tabs.tsx`.
+
+**C) Monitorización GEO periódica.** Re-runs programados de los análisis GEO (cron de Vercel) y gráfica de evolución del visibility score por motor: la varianza entre runs documentada en `GEO-PRUEBA-IVI.md` hace que la foto única sea ruido y la tendencia sea el producto.
 
 ## Otros candidatos (aplazados)
 
