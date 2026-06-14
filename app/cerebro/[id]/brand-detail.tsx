@@ -3,6 +3,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Trash2, Upload } from "lucide-react";
+import { Markdown } from "@/components/markdown";
 import {
   BRAND_DOCUMENT_KINDS,
   type Brand,
@@ -349,18 +350,22 @@ function DocumentCard({ doc, brandId }: { doc: BrandDocument; brandId: string })
           </form>
         </div>
       </div>
-      <p
-        style={{
-          margin: 0,
-          fontSize: open ? 13 : 12,
-          lineHeight: 1.6,
-          color: open ? "rgba(var(--fg),0.82)" : "rgba(var(--fg),0.6)",
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
-        }}
-      >
-        {open ? doc.content : preview}
-      </p>
+      {open ? (
+        <Markdown>{doc.content}</Markdown>
+      ) : (
+        <p
+          style={{
+            margin: 0,
+            fontSize: 12,
+            lineHeight: 1.55,
+            color: "rgba(var(--fg),0.6)",
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+          }}
+        >
+          {preview}
+        </p>
+      )}
     </li>
   );
 }

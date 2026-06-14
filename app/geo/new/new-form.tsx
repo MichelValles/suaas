@@ -71,6 +71,10 @@ export function NewGeoForm() {
             setBrandName(b.name);
             setBrandDescription(b.context);
           }}
+          onClear={() => {
+            setBrandName("");
+            setBrandDescription("");
+          }}
           hint="Rellena nombre y descripción desde Cerebro. Solo alimenta el análisis del juez, nunca la consulta desnuda que se manda al buscador."
         />
         <CField

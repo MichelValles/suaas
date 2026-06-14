@@ -43,6 +43,7 @@ export function NewCopyForm() {
       <Field label="Nombre del deck" name="name" placeholder="CTA prestamos personales" required />
       <BrandPicker
         onPick={(b) => setContext(b.context)}
+        onClear={() => setContext("")}
         hint="Vuelca el contexto de una marca de Cerebro para que el perfil juzgue el copy con el frame correcto. Déjalo vacío para una reacción en frío al texto."
       />
       <Field

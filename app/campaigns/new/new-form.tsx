@@ -521,6 +521,10 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               setCompanyName(b.name);
               setBrief(b.context);
             }}
+            onClear={() => {
+              setCompanyName("");
+              setBrief("");
+            }}
             hint="Rellena el nombre de empresa y el brief desde Cerebro. El brief solo alimenta a los jueces, nunca al perfil que ve el anuncio."
           />
           <Controlled

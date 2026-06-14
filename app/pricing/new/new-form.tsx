@@ -44,6 +44,7 @@ export function NewPricingForm() {
       <Field label="Nombre de la oferta" name="name" placeholder="Suscripción premium" required />
       <BrandPicker
         onPick={(b) => setDescription(b.context)}
+        onClear={() => setDescription("")}
         hint="Rellena la descripción de la oferta con el contexto de una marca de Cerebro (propuesta de valor, qué incluye, alternativas). Edítala para que describa la oferta concreta que pruebas."
       />
       <TextArea

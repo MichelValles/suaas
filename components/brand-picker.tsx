@@ -20,12 +20,15 @@ export type PickerBrand = {
  */
 export function BrandPicker({
   onPick,
+  onClear,
   hint = "Rellena los campos de marca desde una marca de Cerebro. Puedes editar el texto después.",
 }: {
   onPick: (brand: PickerBrand) => void;
+  onClear?: () => void;
   hint?: string;
 }) {
   const [brands, setBrands] = useState<PickerBrand[] | null>(null);
+  const [selectedId, setSelectedId] = useState("");
 
   useEffect(() => {
     let alive = true;
@@ -72,10 +75,15 @@ export function BrandPicker({
         </p>
       ) : (
         <select
-          defaultValue=""
+          value={selectedId}
           onChange={(e) => {
-            const picked = brands.find((b) => b.id === e.currentTarget.value);
-            e.currentTarget.value = "";
+            const id = e.currentTarget.value;
+            setSelectedId(id);
+            if (id === "") {
+              onClear?.();
+              return;
+            }
+            const picked = brands.find((b) => b.id === id);
             if (picked) onPick(picked);
           }}
           aria-label="Rellenar desde una marca de Cerebro"
@@ -93,9 +101,7 @@ export function BrandPicker({
             cursor: "pointer",
           }}
         >
-          <option value="" disabled>
-            Rellenar desde una marca…
-          </option>
+          <option value="">Rellenar desde una marca…</option>
           {brands.map((b) => (
             <option
               key={b.id}

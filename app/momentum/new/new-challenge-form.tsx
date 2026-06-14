@@ -367,6 +367,7 @@ export function NewChallengeForm({ profiles }: { profiles: Profile[] }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <BrandPicker
             onPick={(b) => setBrandContext(b.context)}
+            onClear={() => setBrandContext("")}
             hint="Vuelca la información de una marca de Cerebro. Momentum mide la reacción antes del primer contacto con la marca: úsalo solo si quieres un análisis orientado a marca."
           />
           <textarea

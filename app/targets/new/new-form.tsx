@@ -59,6 +59,7 @@ export function NewTargetForm() {
 
       <BrandPicker
         onPick={(b) => setMainPromise(b.description || b.context)}
+        onClear={() => setMainPromise("")}
         hint="Rellena la promesa con la descripción de una marca de Cerebro y recórtala a la promesa concreta de esta pantalla. Solo la usa el juez para puntuar el recuerdo, nunca el perfil (que ve la pantalla a ciegas)."
       />
       <TextArea
