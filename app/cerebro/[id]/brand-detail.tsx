@@ -13,6 +13,7 @@ import {
   addBrandDocumentAction,
   deleteBrandDocumentAction,
   updateBrandAction,
+  updateBrandDocumentAction,
   type DetailState,
 } from "./actions";
 
@@ -263,6 +264,7 @@ function AddDocumentForm({ brandId }: { brandId: string }) {
 
 function DocumentCard({ doc, brandId }: { doc: BrandDocument; brandId: string }) {
   const [open, setOpen] = useState(false);
+  const [editing, setEditing] = useState(false);
   const long = doc.content.length > 240;
   const preview = long ? `${doc.content.slice(0, 240)}…` : doc.content;
   return (
@@ -277,6 +279,14 @@ function DocumentCard({ doc, brandId }: { doc: BrandDocument; brandId: string })
         background: "rgba(var(--fg),0.02)",
       }}
     >
+      {editing ? (
+        <EditDocumentForm
+          doc={doc}
+          brandId={brandId}
+          onClose={() => setEditing(false)}
+        />
+      ) : (
+        <>
       <div
         style={{
           display: "flex",
@@ -343,6 +353,24 @@ function DocumentCard({ doc, brandId }: { doc: BrandDocument; brandId: string })
               {open ? "Ocultar" : "Ver"}
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="mono"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--accent-text)",
+              background: "transparent",
+              border: "1px solid rgba(var(--fg),0.15)",
+              borderRadius: "var(--radius-pill)",
+              padding: "4px 12px",
+              cursor: "pointer",
+            }}
+          >
+            Editar
+          </button>
           <form action={deleteBrandDocumentAction}>
             <input type="hidden" name="id" value={doc.id} />
             <input type="hidden" name="brand_id" value={brandId} />
@@ -366,7 +394,138 @@ function DocumentCard({ doc, brandId }: { doc: BrandDocument; brandId: string })
           {preview}
         </p>
       )}
+        </>
+      )}
     </li>
+  );
+}
+
+function EditDocumentForm({
+  doc,
+  brandId,
+  onClose,
+}: {
+  doc: BrandDocument;
+  brandId: string;
+  onClose: () => void;
+}) {
+  const [state, formAction] = useActionState(updateBrandDocumentAction, initial);
+  const [title, setTitle] = useState(doc.title);
+  const [kind, setKind] = useState(doc.kind);
+  const [content, setContent] = useState(doc.content);
+  const [sensitive, setSensitive] = useState(doc.sensitive);
+  const lastDone = useRef<number | undefined>(undefined);
+
+  useEffect(() => {
+    if (state.ok && state.doneAt && state.doneAt !== lastDone.current) {
+      lastDone.current = state.doneAt;
+      onClose();
+    }
+  }, [state, onClose]);
+
+  function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.currentTarget.files?.[0];
+    e.currentTarget.value = "";
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => setContent(String(reader.result ?? ""));
+    reader.readAsText(file);
+  }
+
+  return (
+    <form action={formAction} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <input type="hidden" name="id" value={doc.id} />
+      <input type="hidden" name="brand_id" value={brandId} />
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <input
+          name="title"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+          style={{ ...inputStyle, flex: "1 1 220px" }}
+        />
+        <select
+          name="kind"
+          value={kind}
+          onChange={(e) => setKind(e.target.value)}
+          style={{ ...inputStyle, width: 160, cursor: "pointer" }}
+        >
+          {BRAND_DOCUMENT_KINDS.map((k) => (
+            <option
+              key={k}
+              value={k}
+              style={{ background: "var(--surface-app)", color: "var(--text-strong)" }}
+            >
+              {k}
+            </option>
+          ))}
+        </select>
+        <label className="btn-pill" style={{ cursor: "pointer", fontSize: 11, whiteSpace: "nowrap" }}>
+          <Upload size={14} /> Reemplazar .md
+          <input
+            type="file"
+            accept=".md,.markdown,.txt,text/markdown,text/plain"
+            onChange={onFile}
+            style={{ display: "none" }}
+          />
+        </label>
+      </div>
+      <textarea
+        name="content"
+        value={content}
+        onChange={(e) => setContent(e.target.value)}
+        rows={14}
+        required
+        style={{
+          ...inputStyle,
+          resize: "vertical",
+          lineHeight: 1.5,
+          fontFamily: "var(--font-mono)",
+          fontSize: 13,
+        }}
+      />
+      <label
+        style={{
+          display: "flex",
+          alignItems: "flex-start",
+          gap: 10,
+          cursor: "pointer",
+          fontSize: 12,
+          lineHeight: 1.5,
+          color: "rgba(var(--fg),0.6)",
+        }}
+      >
+        <input
+          type="checkbox"
+          name="sensitive"
+          checked={sensitive}
+          onChange={(e) => setSensitive(e.target.checked)}
+          style={{ width: 16, height: 16, marginTop: 1, accentColor: "var(--accent-500)", cursor: "pointer", flexShrink: 0 }}
+        />
+        <span>
+          <strong style={{ color: "var(--text-strong)", fontWeight: 700 }}>
+            Privado · no enviar a los modelos (ZDR)
+          </strong>
+          . Excluido de los prompts: no se inyecta en ningún módulo.
+        </span>
+      </label>
+      {state.error && <ErrorBox>{state.error}</ErrorBox>}
+      <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+        <EditSaveButton />
+        <button type="button" onClick={onClose} className="btn-pill" style={{ fontSize: 11 }}>
+          Cancelar
+        </button>
+      </div>
+    </form>
+  );
+}
+
+function EditSaveButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" className="btn-pill solid" disabled={pending}>
+      {pending ? "Guardando..." : "Guardar cambios"}
+    </button>
   );
 }
 

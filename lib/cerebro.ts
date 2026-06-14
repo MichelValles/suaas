@@ -52,6 +52,12 @@ export type Brand = z.infer<typeof BrandSchema>;
 export type BrandDocumentInput = z.infer<typeof BrandDocumentInputSchema>;
 export type BrandDocument = z.infer<typeof BrandDocumentSchema>;
 
+/** Edición de un documento: igual que el alta pero sin cambiar de marca. */
+export const BrandDocumentUpdateSchema = BrandDocumentInputSchema.omit({
+  brand_id: true,
+});
+export type BrandDocumentUpdate = z.infer<typeof BrandDocumentUpdateSchema>;
+
 const MIGRATION = "0025_cerebro.sql";
 
 // ============================================================
@@ -195,6 +201,22 @@ export async function addBrandDocument(
   const { data, error } = await supa
     .from("brand_documents")
     .insert(parsed)
+    .select("*")
+    .single();
+  if (error) throw new Error(error.message);
+  return data as BrandDocument;
+}
+
+export async function updateBrandDocument(
+  id: string,
+  input: BrandDocumentUpdate,
+): Promise<BrandDocument> {
+  const parsed = BrandDocumentUpdateSchema.parse(input);
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("brand_documents")
+    .update(parsed)
+    .eq("id", id)
     .select("*")
     .single();
   if (error) throw new Error(error.message);
