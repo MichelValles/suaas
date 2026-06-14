@@ -261,8 +261,9 @@ function AddDocumentForm({ brandId }: { brandId: string }) {
 }
 
 function DocumentCard({ doc, brandId }: { doc: BrandDocument; brandId: string }) {
-  const preview =
-    doc.content.length > 240 ? `${doc.content.slice(0, 240)}…` : doc.content;
+  const [open, setOpen] = useState(false);
+  const long = doc.content.length > 240;
+  const preview = long ? `${doc.content.slice(0, 240)}…` : doc.content;
   return (
     <li
       style={{
@@ -319,22 +320,46 @@ function DocumentCard({ doc, brandId }: { doc: BrandDocument; brandId: string })
             </span>
           )}
         </span>
-        <form action={deleteBrandDocumentAction}>
-          <input type="hidden" name="id" value={doc.id} />
-          <input type="hidden" name="brand_id" value={brandId} />
-          <DeleteButton title={doc.title} />
-        </form>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          {long && (
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-expanded={open}
+              className="mono"
+              style={{
+                fontSize: 10,
+                letterSpacing: "0.12em",
+                textTransform: "uppercase",
+                color: "var(--accent-text)",
+                background: "transparent",
+                border: "1px solid rgba(var(--fg),0.15)",
+                borderRadius: "var(--radius-pill)",
+                padding: "4px 12px",
+                cursor: "pointer",
+              }}
+            >
+              {open ? "Ocultar" : "Ver"}
+            </button>
+          )}
+          <form action={deleteBrandDocumentAction}>
+            <input type="hidden" name="id" value={doc.id} />
+            <input type="hidden" name="brand_id" value={brandId} />
+            <DeleteButton title={doc.title} />
+          </form>
+        </div>
       </div>
       <p
         style={{
           margin: 0,
-          fontSize: 12,
-          lineHeight: 1.55,
-          color: "rgba(var(--fg),0.6)",
+          fontSize: open ? 13 : 12,
+          lineHeight: 1.6,
+          color: open ? "rgba(var(--fg),0.82)" : "rgba(var(--fg),0.6)",
           whiteSpace: "pre-wrap",
+          wordBreak: "break-word",
         }}
       >
-        {preview}
+        {open ? doc.content : preview}
       </p>
     </li>
   );
