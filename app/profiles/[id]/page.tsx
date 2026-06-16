@@ -89,7 +89,7 @@ export default async function ProfileDetailPage({
               hasAvatar={Boolean(profile.avatar_url)}
               estimatedUsd={AVATAR_EST_USD}
             />
-            <span style={{ fontSize: 11, color: "rgba(var(--fg),0.45)", maxWidth: 320, lineHeight: 1.4 }}>
+            <span style={{ fontSize: 11, color: "rgba(var(--fg),0.45)", lineHeight: 1.4 }}>
               Retrato generado por IA a partir de la demografía del perfil: no
               corresponde a ninguna persona real.
             </span>
@@ -203,7 +203,6 @@ function SectionLabel({
             fontSize: 13,
             lineHeight: 1.55,
             margin: 0,
-            maxWidth: 720,
           }}
         >
           {description}

@@ -1734,7 +1734,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             Search (RSA) exige: 1 a 15 titulares (máx. 30c), 1 a 4 descripciones
@@ -1750,7 +1749,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             Display exige: nombre de empresa (máx. 25c), titular largo (máx. 90c) y
@@ -1766,7 +1764,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             Performance Max exige: mínimo 3 titulares (al menos uno de 15c o menos),
@@ -1783,7 +1780,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             Demand Gen exige: 1 a 5 titulares (máx. 40c, al menos uno de 30c o menos),
@@ -1800,7 +1796,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             Video lleva: 1 vídeo de YouTube (duración recomendada 10s o más),
@@ -1816,7 +1811,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             Shopping exige: producto completo (título máx. 150c, descripción, precio
@@ -1833,7 +1827,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             El anuncio único de Meta exige: nombre de página, 1 a 5 textos
@@ -1851,7 +1844,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             La secuencia de Meta exige: nombre de página, 1 a 5 textos principales
@@ -1868,7 +1860,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             La colección de Meta exige: nombre de página, 1 a 5 textos principales,
@@ -1884,7 +1875,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             El vídeo in-feed de TikTok exige: nombre visible (40c técnicos, ~20
@@ -1901,7 +1891,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             El carousel de TikTok exige: nombre visible, 1 a 5 textos de anuncio
@@ -1917,7 +1906,6 @@ export function NewCampaignForm({ duplicateFrom }: { duplicateFrom?: CampaignEnt
               fontSize: 12,
               lineHeight: 1.55,
               color: "rgba(var(--fg),0.55)",
-              maxWidth: 640,
             }}
           >
             El Spark Ad exige: la cuenta del post (@usuario y nombre visible), el
@@ -2989,7 +2977,6 @@ function ShoppingAdPreview({
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
-        maxWidth: 240,
       }}
     >
       <div
@@ -4229,7 +4216,6 @@ function UnderConstruction({ strategy }: { strategy: Strategy }) {
           color: "rgba(var(--fg),0.75)",
           fontSize: 14,
           lineHeight: 1.65,
-          maxWidth: 720,
         }}
       >
         {STRATEGY_DESCRIPTION[strategy]}

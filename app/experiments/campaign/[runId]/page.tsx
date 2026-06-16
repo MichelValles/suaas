@@ -213,7 +213,6 @@ export default async function CampaignRunPage({
           fontSize: 12,
           lineHeight: 1.6,
           color: "rgba(var(--fg),0.5)",
-          maxWidth: 760,
         }}
       >
         Nota metodológica: «Intent ≥ 0,5» mide la proporción de respuestas de los perfiles
@@ -477,7 +476,6 @@ export default async function CampaignRunPage({
               fontSize: 13,
               lineHeight: 1.6,
               margin: 0,
-              maxWidth: 720,
             }}
           >
             Intent medio de las respuestas en cuya combinación apareció cada titular,
@@ -585,7 +583,6 @@ export default async function CampaignRunPage({
             fontSize: 13,
             lineHeight: 1.6,
             margin: 0,
-            maxWidth: 720,
           }}
         >
           Cada fila es la propuesta de un perfil bajo una query, en su voz. Ordenadas por

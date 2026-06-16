@@ -199,7 +199,6 @@ export function ProfileLaunchPanel({
             fontSize: 14,
             lineHeight: 1.6,
             margin: 0,
-            maxWidth: 640,
           }}
         >
           {profiles.length === 0

@@ -60,7 +60,7 @@ export function AvatarButton({
       {error && (
         <span
           role="alert"
-          style={{ fontSize: 12, color: "var(--error-text)", maxWidth: 280, lineHeight: 1.4 }}
+          style={{ fontSize: 12, color: "var(--error-text)", lineHeight: 1.4 }}
         >
           {error}
         </span>

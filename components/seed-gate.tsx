@@ -42,7 +42,6 @@ export function SeedGate() {
   return (
     <section
       style={{
-        maxWidth: 460,
         padding: 28,
         border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-md)",

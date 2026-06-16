@@ -227,7 +227,6 @@ export function ChatPanel({
               lineHeight: 1.55,
               margin: 0,
               textAlign: "center",
-              maxWidth: 520,
               alignSelf: "center",
             }}
           >

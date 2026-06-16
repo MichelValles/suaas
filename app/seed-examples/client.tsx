@@ -207,7 +207,6 @@ export function SeedExamplesClient({
               fontSize: 14,
               outline: "none",
               fontFamily: "var(--font-sans)",
-              maxWidth: 160,
             }}
           />
         </label>

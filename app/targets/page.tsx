@@ -84,7 +84,6 @@ function Notice({
         borderRadius: "var(--radius-md)",
         background: "rgba(var(--fg),0.02)",
         color: "rgba(var(--fg),0.85)",
-        maxWidth: 720,
         lineHeight: 1.6,
       }}
     >

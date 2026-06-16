@@ -58,7 +58,6 @@ export function GeoRunButton({
           style={{
             fontSize: 12,
             color: "var(--error-text)",
-            maxWidth: 300,
             lineHeight: 1.4,
           }}
         >

@@ -280,7 +280,6 @@ const S: Record<string, React.CSSProperties> = {
     gap: 48,
     textAlign: "center",
     width: "100%",
-    maxWidth: 480,
   },
   eyebrow: {
     fontSize: 11,
@@ -299,7 +298,6 @@ const S: Record<string, React.CSSProperties> = {
     flexDirection: "column",
     alignItems: "stretch",
     width: "100%",
-    maxWidth: 400,
     gap: 20,
   },
   inputWrap: {

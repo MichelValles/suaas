@@ -231,7 +231,6 @@ function EnginePanel({ result }: { result: EngineResult }) {
                   border: "1px solid rgba(var(--fg),0.14)",
                   color: "rgba(var(--fg),0.65)",
                   textDecoration: "none",
-                  maxWidth: 260,
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",

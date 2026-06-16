@@ -28,7 +28,6 @@ export default async function OnboardResultPage({
         flexDirection: "column",
         padding: "clamp(20px, 5vw, 56px)",
         gap: 32,
-        maxWidth: 720,
         margin: "0 auto",
         width: "100%",
       }}

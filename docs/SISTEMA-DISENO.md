@@ -145,7 +145,7 @@ Props:
 - `text` *(string)*: contenido del panel. Máximo 1-2 frases.
 - `label` *(string, opcional)*: `aria-label` del trigger. Default `"Información"`.
 
-Patrón de uso recomendado: trigger en círculo de 16×16 con la "i" alineado a la derecha del label de un campo o eyebrow. El panel aparece centrado encima con `max-width: 260px`, fondo `var(--ink-800)` y texto blanco. Para datos puntuales sobre rasgos de personalidad (Big Five), los textos viven en `lib/big-five.ts` como fuente única.
+Patrón de uso recomendado: trigger en círculo de 16×16 con la "i" alineado a la derecha del label de un campo o eyebrow. El panel aparece centrado encima con `width: max-content` (sin tope en px desde v0.61.4), fondo `var(--ink-800)` y texto blanco. Para datos puntuales sobre rasgos de personalidad (Big Five), los textos viven en `lib/big-five.ts` como fuente única.
 
 ## Componente `ResultBar`
 
@@ -199,13 +199,13 @@ Desde v0.6.0 SUAAS usa un app shell tipo software, no web. `AppShell` aplica un 
 
 - **Sidebar**: cliente (`components/sidebar.tsx`). En desktop ≥881px queda fijo a la izquierda. En móvil <881px se oculta y aparece un botón hamburguesa que abre la sidebar como overlay con backdrop. Los enlaces activos se resaltan con `data-active="true"` (clase `.sidebar-link`).
 - **Footer**: badges de estado (`.status-badge[data-status="ok|warn|off"]`) para Supabase y AI Gateway. Verdes cuando `isSupabaseConfigured()` / `isGatewayConfigured()` devuelven `true`.
-- **PageHeading**: sin maxWidth en el wrapper; el `<h1>` (720) y `<p>` (640) limitan internamente. Las "actions" quedan en el extremo derecho.
+- **PageHeading**: sin `maxWidth` en el wrapper ni topes en px; título y descripción ocupan el ancho disponible. Las "actions" quedan en el extremo derecho.
 - **Iconos**: `lucide-react`. Importar individualmente (`Users`, `Target`, `Filter`, `Activity`, `Coins`, etc.) para que tree-shaking elimine el resto.
 
 Reglas:
 - ❌ No reintroducir el header superior con nav: el menú vive en el sidebar.
 - ✅ Las nuevas páginas se añaden al sidebar editando `MAIN_ITEMS` o `SYSTEM_ITEMS` en `components/sidebar.tsx`. Con un icono lucide y un `href`.
-- ⚠️ El `<main>` ya no tiene un container central de 1280: el ancho útil lo determina el grid del shell menos el sidebar. Bloques con `maxWidth` interno deben centrarse con `marginInline: "auto"` si quieren no quedarse pegados al borde izquierdo.
+- ⚠️ El `<main>` ya no tiene un container central de 1280: el ancho útil lo determina el grid del shell menos el sidebar. Desde v0.61.4 el front no usa `max-width`/`maxWidth` con valor en px (se retiraron todas): los bloques fluyen al ancho disponible. Si un bloque necesita acotarse, usar valores relativos (`%`, `clamp`, `ch`) y centrar con `marginInline: "auto"`, nunca un tope en px.
 
 ## Antipatrones
 
@@ -216,7 +216,7 @@ Reglas:
 - ❌ `rgba(255,255,255,x)` hardcodeado en estilos de la app: rompe el modo claro. Usar `rgba(var(--fg), x)`.
 - ❌ Saturar con más de un accent. El amarillo `--accent-500` es el único color brand. Los hexes de la paleta Tailwind (`#60a5fa`, `#fb923c`, `#a78bfa`, `#4ade80`, `#f87171`...) están prohibidos: son la firma visual del diseño-por-LLM.
 - ❌ Glow exterior / neón (`box-shadow` con blur de color). Elevación con borde de 1px; énfasis con peso y tamaño.
-- ❌ Aplicar `maxWidth: 1100` (u otros valores genéricos) a secciones de página: el container global del AppShell ya centra a 1280.
+- ❌ Aplicar `maxWidth`/`max-width` con valor en px (`maxWidth: 1100`, `max-width: 720px`...) a secciones o bloques de página: el front no usa topes en px (se retiraron en v0.61.4) y el ancho lo gobierna el grid del AppShell. Para acotar, valores relativos (`%`, `clamp`, `ch`). Excepción válida: los breakpoints `@media (max-width: …)`.
 - ❌ Diferenciar categorías conceptuales con un color por categoría (los «tres planos» de colores). Diferenciar con numeración editorial (`01 · 02 · 03` en accent), jerarquía tipográfica o alphas del canal `--fg`.
 
 ## Patrón: descripción destacada (`descriptionVariant="panel"`)

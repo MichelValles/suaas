@@ -218,7 +218,7 @@ export default async function PropuestaPage() {
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12, color: "rgba(var(--fg),0.45)" }}>
           <FlatLogo size={48} />
-          <span style={{ fontSize: 12, maxWidth: 360, lineHeight: 1.5 }}>
+          <span style={{ fontSize: 12, lineHeight: 1.5 }}>
             {BRAND} · una solución de Flat 101. Cifras orientativas (2026), basadas en medias de uso reales.
           </span>
         </div>

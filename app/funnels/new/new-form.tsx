@@ -316,7 +316,6 @@ function StepCard({
           src={step.preview}
           alt={`preview paso ${index + 1}`}
           style={{
-            maxWidth: 320,
             borderRadius: "var(--radius-sm)",
             border: "1px solid rgba(var(--fg),0.08)",
           }}

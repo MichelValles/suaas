@@ -335,7 +335,7 @@ export function OnboardClient() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -12 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            style={{ width: "100%", maxWidth: 560 }}
+            style={{ width: "100%" }}
           >
             <StepBody
               step={currentStep}
@@ -430,7 +430,7 @@ function ProgressHeader({
         Gravity · Crea tu gemelo
       </span>
       {showProgress && (
-        <div style={{ flex: 1, maxWidth: 200, marginLeft: 24 }}>
+        <div style={{ flex: 1, marginLeft: 24 }}>
           <div
             style={{
               height: 4,
@@ -700,7 +700,6 @@ function SubmittingScreen({ phase }: { phase: string }) {
             fontSize: "clamp(22px, 3vw, 32px)",
             color: "#fff",
             margin: 0,
-            maxWidth: 480,
           }}
         >
           {phrases[phase] ?? "Trabajando…"}
@@ -758,7 +757,7 @@ function StepBody({
         </h1>
         <p
           className="body-lg"
-          style={{ color: "rgba(255,255,255,0.7)", margin: 0, maxWidth: 480 }}
+          style={{ color: "rgba(255,255,255,0.7)", margin: 0 }}
         >
           Contesta unas preguntas durante 10 minutos. Convertiremos tus respuestas
           en un perfil calibrado que reacciona como tú: con tus rasgos

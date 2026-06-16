@@ -79,7 +79,6 @@ export function OnboardShareModal() {
               border: "1px solid rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-lg)",
               padding: "clamp(24px, 4vw, 36px)",
-              maxWidth: 460,
               width: "100%",
               display: "flex",
               flexDirection: "column",

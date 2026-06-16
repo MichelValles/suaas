@@ -75,7 +75,6 @@ export function ConceptosPendientes() {
             display: "flex",
             flexDirection: "column",
             gap: 14,
-            maxWidth: 360,
           }}
         >
           <p

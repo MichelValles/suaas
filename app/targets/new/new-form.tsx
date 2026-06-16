@@ -123,7 +123,6 @@ export function NewTargetForm() {
             src={preview}
             alt="preview"
             style={{
-              maxWidth: 320,
               borderRadius: "var(--radius-sm)",
               border: "1px solid rgba(var(--fg),0.08)",
             }}

@@ -604,7 +604,6 @@ textarea.backstory-input:focus-visible {
   left: 50%;
   transform: translateX(-50%);
   width: max-content;
-  max-width: 260px;
   padding: 10px 12px;
   /* panel siempre oscuro, independiente del tema */
   background: var(--ink-800);
@@ -902,7 +901,6 @@ html[data-theme="light"] .sidebar-logo {
   line-height: 1.5;
   white-space: normal;
   width: max-content;
-  max-width: 220px;
   pointer-events: none;
   opacity: 0;
   transition: opacity var(--dur-micro);

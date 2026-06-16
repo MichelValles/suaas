@@ -182,7 +182,6 @@ export function SeedClient({
               fontSize: 14,
               outline: "none",
               fontFamily: "var(--font-sans)",
-              maxWidth: 160,
             }}
             inputMode="numeric"
             pattern="[0-9]*"

@@ -461,7 +461,6 @@ function DayBars({
             <div
               style={{
                 width: "100%",
-                maxWidth: 56,
                 height: `${(r.total / max) * 100}%`,
                 minHeight: 4,
                 background: "var(--accent-500)",
