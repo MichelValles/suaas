@@ -114,12 +114,12 @@ export function Sidebar() {
               priority
             />
             <span
-              className="mono"
               style={{
-                fontSize: 10,
-                letterSpacing: "0.28em",
+                fontFamily: "var(--font-display)",
+                fontSize: 17,
+                lineHeight: 1,
+                letterSpacing: "0.01em",
                 color: "var(--accent-text)",
-                textTransform: "uppercase",
               }}
             >
               Gravity
