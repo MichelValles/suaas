@@ -56,7 +56,7 @@ export default async function FiveSecondRunPage({
     <AppShell>
       <PageHeading
         eyebrow="CONSTRUCTION · Claridad 5s"
-        title={target?.payload.main_promise ?? "Run de claridad 5s"}
+        title={target?.name ?? "Run de claridad 5s"}
         description={
           target
             ? "Cada perfil ve la pantalla durante 5 segundos y reporta recall, oferta percibida y barreras. Un LLM-as-judge contrasta el recuerdo contra la promesa principal."
