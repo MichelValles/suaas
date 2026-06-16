@@ -5,7 +5,7 @@ import { useState } from "react";
 const PENDING = [
   {
     label: "Instancias como entidad",
-    note: "SUAAS tiene perfiles individuales, pero no el par «perfil comportamental → N instancias»: mismo comportamiento observable, orígenes y aha moments radicalmente distintos.",
+    note: "Gravity tiene perfiles individuales, pero no el par «perfil comportamental → N instancias»: mismo comportamiento observable, orígenes y aha moments radicalmente distintos.",
   },
   {
     label: "Gravedad agregada",

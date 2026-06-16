@@ -5,7 +5,7 @@ import { APP_VERSION } from "@/lib/version";
 
 export function ConsoleBanner() {
   useEffect(() => {
-    const label = "SUAAS · FLAT 101";
+    const label = "Gravity · FLAT 101";
     const host =
       typeof window !== "undefined"
         ? window.location.hostname

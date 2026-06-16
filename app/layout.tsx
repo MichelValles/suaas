@@ -19,7 +19,7 @@ const dmSerif = DM_Serif_Text({
 });
 
 export const metadata: Metadata = {
-  title: "SUAAS · Flat 101",
+  title: "Gravity · Flat 101",
   description: "Plataforma de test con perfiles calibrados.",
   robots: {
     index: false,

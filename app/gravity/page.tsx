@@ -109,7 +109,7 @@ export default function GravityPage() {
       <PageHeading
         eyebrow="Sistema · gravity model"
         title="Gravity Model."
-        description="Marco estratégico de referencia de SUAAS. La intención del usuario es un vector con intensidad, dirección y velocidad. Los módulos de la plataforma operan en tres planos de influencia que determinan la órbita de un usuario alrededor de una marca."
+        description="Marco estratégico de referencia de Gravity. La intención del usuario es un vector con intensidad, dirección y velocidad. Los módulos de la plataforma operan en tres planos de influencia que determinan la órbita de un usuario alrededor de una marca."
         descriptionVariant="panel"
       />
 

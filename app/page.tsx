@@ -112,7 +112,7 @@ export default function HomePage() {
       >
         {/* HERO */}
         <PageHeading
-          eyebrow="SUAAS · Perfiles calibrados"
+          eyebrow="Gravity · Perfiles calibrados"
           title="La intención tiene masa."
           description="Perfiles grounded con Big Five, COM-B y backstory. Los enfrentamos a pantallas, embudos, copies y precios: devolvemos el vector de intención antes de que el usuario llegue a tu web."
           actions={
@@ -290,7 +290,7 @@ function IntentMomentumSection() {
           }}
         >
           Cada perfil emite un vector de tres dimensiones en cada interacción. Los módulos
-          de SUAAS lo calculan, lo agregan y lo cruzan para medir la fuerza gravitacional
+          de Gravity lo calculan, lo agregan y lo cruzan para medir la fuerza gravitacional
           real antes de lanzar cualquier campaña o experimento.
         </p>
       </div>

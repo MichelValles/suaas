@@ -112,7 +112,7 @@ export function LoginForm() {
 
       {/* Marca esquinas inferiores */}
       <div aria-hidden className="mono" style={S.cornerLeft}>
-        FLAT 101 · SUAAS
+        FLAT 101 · Gravity
       </div>
       <div aria-hidden className="mono" style={S.cornerRight}>
         <span
@@ -155,7 +155,7 @@ export function LoginForm() {
           }}
         >
           <span className="mono" style={S.eyebrow}>
-            SUAAS · Perfiles calibrados
+            Gravity · Perfiles calibrados
           </span>
           <p className="display" style={S.headline}>
             Acceso privado.

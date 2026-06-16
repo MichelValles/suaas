@@ -7,7 +7,7 @@ import { getProfile, type Profile } from "@/lib/profiles";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "Tu gemelo digital · SUAAS",
+  title: "Tu gemelo digital · Gravity",
   robots: { index: false, follow: false },
 };
 
@@ -98,7 +98,7 @@ export default async function OnboardResultPage({
           }}
         >
           <ExternalLink size={14} />
-          Ver en SUAAS
+          Ver en Gravity
         </Link>
       </div>
 

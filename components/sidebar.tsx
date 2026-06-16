@@ -101,7 +101,7 @@ export function Sidebar() {
         <div className="sidebar-head">
           <Link
             href="/"
-            aria-label="Inicio SUAAS"
+            aria-label="Inicio Gravity"
             style={{ display: "inline-flex", alignItems: "center", gap: 12 }}
           >
             <Image
@@ -122,7 +122,7 @@ export function Sidebar() {
                 textTransform: "uppercase",
               }}
             >
-              SUAAS
+              Gravity
             </span>
           </Link>
           <button

@@ -427,7 +427,7 @@ function ProgressHeader({
           color: "var(--accent-500)",
         }}
       >
-        SUAAS · Crea tu gemelo
+        Gravity · Crea tu gemelo
       </span>
       {showProgress && (
         <div style={{ flex: 1, maxWidth: 200, marginLeft: 24 }}>

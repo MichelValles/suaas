@@ -160,7 +160,7 @@ export default async function TokensPage() {
         >
           Si el saldo aparece como «no disponible», puede ser que la clave
           actual no tenga permiso para consultar `/v1/credits` o que tu plan no
-          exponga ese endpoint. El consumo de tokens en SUAAS sigue siendo válido.
+          exponga ese endpoint. El consumo de tokens en Gravity sigue siendo válido.
         </p>
       </div>
     </AppShell>
