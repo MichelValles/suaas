@@ -116,10 +116,10 @@ export function Sidebar() {
             <span
               style={{
                 fontFamily: "var(--font-display)",
-                fontSize: 17,
+                fontSize: 13,
                 lineHeight: 1,
                 letterSpacing: "0.01em",
-                color: "var(--accent-text)",
+                color: "var(--text-strong)",
               }}
             >
               Gravity
