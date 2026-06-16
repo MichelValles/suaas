@@ -170,6 +170,23 @@ Props:
 
 Reutilízalo para cualquier ratio normalizado (porcentaje de éxito, recall, share). Si necesitas varias barras alineadas verticalmente, envuélvelas en un grid de columna única o un `auto-fit` con `minmax(280px, 1fr)`.
 
+## Componente `BrandContextBox`
+
+`components/brand-context-box.tsx`. Caja para volcar el «Contexto de marca» en las vistas de resultados. Por defecto muestra un extracto (primeros 280 caracteres con «…»); si el texto es largo, aparece un botón «Ampliar» que despliega el contenido completo en una caja con `maxHeight: 320` y scroll vertical (botón «Reducir» para colapsar).
+
+```tsx
+import { BrandContextBox } from "@/components/brand-context-box";
+
+{challenge.brand_context && <BrandContextBox text={challenge.brand_context} />}
+```
+
+Props:
+
+- `text` *(string)*: el contexto de marca a mostrar.
+- `label` *(string, opcional)*: eyebrow en `.mono`. Default `"Contexto de marca"`.
+
+Es un client component (usa `useState` para el toggle). Úsalo en cualquier vista que vuelque el contexto de marca con esta plantilla (ahora `momentum/[id]`; reutilizable en futuros módulos).
+
 ## Patrón HUD (login)
 
 `app/login/login-form.tsx` implementa un patrón "HUD oscuro":

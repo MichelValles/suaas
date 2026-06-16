@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { BrandContextBox } from "@/components/brand-context-box";
 import { estimateAction, partsForKind } from "@/lib/estimate";
 import {
   getMomentumChallenge,
@@ -103,24 +104,7 @@ export default async function MomentumDetailPage({
       )}
 
       {challenge.brand_context && (
-        <div
-          style={{
-            padding: "12px 16px",
-            border: "1px solid rgba(var(--fg),0.07)",
-            borderRadius: "var(--radius-sm)",
-            background: "rgba(var(--fg),0.025)",
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-          }}
-        >
-          <span className="mono" style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(var(--fg),0.35)" }}>
-            Contexto de marca
-          </span>
-          <span style={{ fontSize: 13, color: "rgba(var(--fg),0.6)", lineHeight: 1.5 }}>
-            {challenge.brand_context}
-          </span>
-        </div>
+        <BrandContextBox text={challenge.brand_context} />
       )}
 
       {challenge.status === "running" && (
