@@ -11,7 +11,7 @@ export default async function AbListPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="A/B tests" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -27,8 +27,8 @@ export default async function AbListPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="A/B tests · comparar dos tests de claridad"
-        title="Enfrenta dos pantallas con el mismo set de perfiles."
+        eyebrow="KNOWLEDGE"
+        title="A/B tests"
         actions={
           <Link href="/ab/new" className="btn-pill solid">
             Crear A/B test

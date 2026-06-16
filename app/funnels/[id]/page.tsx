@@ -21,7 +21,7 @@ export default async function FunnelDetailPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Embudo" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="CONSTRUCTION · Embudos" title="Supabase aún no está conectado." />
         <Link href="/funnels" className="btn-pill">
           Volver
         </Link>
@@ -43,7 +43,7 @@ export default async function FunnelDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Embudo · ${funnel.steps.length} ${funnel.steps.length === 1 ? "paso" : "pasos"}`}
+        eyebrow="CONSTRUCTION · Embudos"
         title={funnel.name}
         description={funnel.description ?? undefined}
         descriptionVariant="panel"

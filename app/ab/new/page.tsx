@@ -10,7 +10,7 @@ export default async function NewAbPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Nuevo A/B test" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE · A/B tests" title="Supabase aún no está conectado." />
         <Link href="/ab" className="btn-pill">Volver</Link>
       </AppShell>
     );
@@ -19,8 +19,8 @@ export default async function NewAbPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Nuevo A/B test"
-        title="Elige dos tests de claridad para enfrentar."
+        eyebrow="KNOWLEDGE · A/B tests"
+        title="Nuevo A/B test"
         actions={<Link href="/ab" className="btn-pill">Volver</Link>}
       />
       <NewAbForm

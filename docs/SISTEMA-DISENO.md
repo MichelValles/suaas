@@ -199,7 +199,7 @@ Desde v0.6.0 SUAAS usa un app shell tipo software, no web. `AppShell` aplica un 
 
 - **Sidebar**: cliente (`components/sidebar.tsx`). En desktop ≥881px queda fijo a la izquierda. En móvil <881px se oculta y aparece un botón hamburguesa que abre la sidebar como overlay con backdrop. Los enlaces activos se resaltan con `data-active="true"` (clase `.sidebar-link`).
 - **Footer**: badges de estado (`.status-badge[data-status="ok|warn|off"]`) para Supabase y AI Gateway. Verdes cuando `isSupabaseConfigured()` / `isGatewayConfigured()` devuelven `true`.
-- **PageHeading**: sin `maxWidth` en el wrapper ni topes en px; título y descripción ocupan el ancho disponible. Las "actions" quedan en el extremo derecho.
+- **PageHeading**: sin `maxWidth` en el wrapper ni topes en px; título y descripción ocupan el ancho disponible. Las "actions" quedan en el extremo derecho. Desde v0.61.8 el `eyebrow` es un breadcrumb (sin enlaces) por plano del Gravity Model: los índices llevan solo el plano (`CONSTRUCTION` / `ACCELERATION` / `KNOWLEDGE` / `SISTEMA`, y `GRAVITY` en la home) y las subpáginas `PLANO · Módulo`; el título es el nombre del módulo en los índices y el de la entidad o la acción en las subpáginas. Hereda el estilo uppercase tracked del eyebrow, así que renderiza en mayúsculas.
 - **Iconos**: `lucide-react`. Importar individualmente (`Users`, `Target`, `Filter`, `Activity`, `Coins`, etc.) para que tree-shaking elimine el resto.
 
 Reglas:
@@ -225,7 +225,7 @@ Desde v0.17.0, `PageHeading` acepta `descriptionVariant: "inline" | "panel"`. Cu
 
 ```tsx
 <PageHeading
-  eyebrow="Oferta · 3 precios"
+  eyebrow="KNOWLEDGE · Pricing"
   title={offer.name}
   description={offer.description}
   descriptionVariant="panel"

@@ -46,7 +46,7 @@ export default async function CampaignRunPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Resultados campaign" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="ACCELERATION · Campañas" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -94,7 +94,7 @@ export default async function CampaignRunPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Run · ${run.status} · ${totalProfiles} ${totalProfiles === 1 ? "perfil" : "perfiles"} · ${summary.n_responses} respuestas`}
+        eyebrow="ACCELERATION · Campañas"
         title={campaign.name}
         description={campaign.brief ?? undefined}
         descriptionVariant="panel"

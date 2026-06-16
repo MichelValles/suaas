@@ -39,7 +39,7 @@ export default async function CampaignComparePage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Comparativa" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="ACCELERATION · Campañas" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -52,7 +52,7 @@ export default async function CampaignComparePage({
     return (
       <AppShell>
         <PageHeading
-          eyebrow={`Comparativa · ${campaign.name}`}
+          eyebrow="ACCELERATION · Campañas"
           title="Hacen falta al menos 2 runs completados para comparar."
           actions={
             <Link href={`/campaigns/${campaign.id}`} className="btn-pill">
@@ -91,8 +91,8 @@ export default async function CampaignComparePage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Comparativa run vs run · ${campaign.name}`}
-        title="Antes y después de la iteración."
+        eyebrow="ACCELERATION · Campañas"
+        title="Comparativa"
         actions={
           <Link href={`/campaigns/${campaign.id}`} className="btn-pill">
             Volver a la campaña

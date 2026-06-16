@@ -10,7 +10,7 @@ export default async function MomentumPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Momentum" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="CONSTRUCTION" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -23,7 +23,7 @@ export default async function MomentumPage() {
     if (message.includes("does not exist") || message.includes("relation")) {
       return (
         <AppShell>
-          <PageHeading eyebrow="Momentum" title="Tabla pendiente de migración." />
+          <PageHeading eyebrow="CONSTRUCTION" title="Tabla pendiente de migración." />
           <p style={{ color: "rgba(var(--fg),0.6)", fontSize: 14, margin: 0 }}>
             Aplica la migración <code>0016_momentum.sql</code> en Supabase para activar este módulo.
           </p>
@@ -32,7 +32,7 @@ export default async function MomentumPage() {
     }
     return (
       <AppShell>
-        <PageHeading eyebrow="Momentum" title="Error al cargar los Triggers." />
+        <PageHeading eyebrow="CONSTRUCTION" title="Error al cargar los Triggers." />
         <p style={{ color: "var(--error-text)", fontSize: 14, margin: 0 }}>Error interno.</p>
       </AppShell>
     );
@@ -41,8 +41,8 @@ export default async function MomentumPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Momentum"
-        title="Intent Momentum"
+        eyebrow="CONSTRUCTION"
+        title="Momentum"
         description="Define Triggers de activación y descubre cómo tus perfiles los abordarían en su vida real, antes de que ninguna marca entre en su radar."
         actions={
           <Link href="/momentum/new" className="btn-pill solid">

@@ -14,7 +14,7 @@ export default async function NewCampaignPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Nueva campaña" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="ACCELERATION · Campañas" title="Supabase aún no está conectado." />
         <Link href="/campaigns" className="btn-pill">Volver</Link>
       </AppShell>
     );
@@ -29,12 +29,8 @@ export default async function NewCampaignPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={duplicateFrom ? "Nueva campaña · duplicado" : "Nueva campaña · Paid Search"}
-        title={
-          duplicateFrom
-            ? `Iterando sobre «${duplicateFrom.name}».`
-            : "Sube los assets del anuncio bajo test."
-        }
+        eyebrow="ACCELERATION · Campañas"
+        title="Nueva campaña"
         actions={<Link href="/campaigns" className="btn-pill">Volver</Link>}
       />
       <NewCampaignForm duplicateFrom={duplicateFrom ?? undefined} />

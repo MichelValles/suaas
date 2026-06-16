@@ -24,7 +24,7 @@ export default async function ProfileDetailPage({
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Perfil"
+          eyebrow="CONSTRUCTION · Perfiles"
           title="Supabase aún no está conectado."
         />
         <Link href="/profiles" className="btn-pill">Volver</Link>
@@ -40,7 +40,6 @@ export default async function ProfileDetailPage({
     () => null,
   );
 
-  const d = profile.demographics;
   const b = profile.big_five;
 
   return (
@@ -53,7 +52,7 @@ export default async function ProfileDetailPage({
         }}
       >
         <PageHeading
-          eyebrow={`${d.age} · ${d.gender} · ${d.occupation}`}
+          eyebrow="CONSTRUCTION · Perfiles"
           title={profile.name}
           actions={
             <Link href="/profiles" className="btn-pill">

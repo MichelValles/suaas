@@ -51,7 +51,7 @@ export default async function GeoDetailPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="GEO" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="ACCELERATION · GEO Tester" title="Supabase aún no está conectado." />
         <Link href="/geo" className="btn-pill">Volver</Link>
       </AppShell>
     );
@@ -84,7 +84,7 @@ export default async function GeoDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`GEO Tester · ${analysis.brand_name}`}
+        eyebrow="ACCELERATION · GEO Tester"
         title={analysis.name}
         description={analysis.brand_description}
         descriptionVariant="panel"

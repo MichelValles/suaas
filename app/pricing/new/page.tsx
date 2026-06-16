@@ -9,7 +9,7 @@ export default function NewPricingPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Nueva oferta" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE · Pricing" title="Supabase aún no está conectado." />
         <Link href="/pricing" className="btn-pill">Volver</Link>
       </AppShell>
     );
@@ -17,8 +17,8 @@ export default function NewPricingPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Nueva oferta de pricing"
-        title="Define la oferta y los precios a testear."
+        eyebrow="KNOWLEDGE · Pricing"
+        title="Nueva oferta"
         actions={<Link href="/pricing" className="btn-pill">Volver</Link>}
       />
       <NewPricingForm />

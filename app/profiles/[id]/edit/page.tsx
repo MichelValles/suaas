@@ -16,7 +16,7 @@ export default async function EditProfilePage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Editar perfil" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="CONSTRUCTION · Perfiles" title="Supabase aún no está conectado." />
         <Link href="/profiles" className="btn-pill">Volver</Link>
       </AppShell>
     );
@@ -27,8 +27,8 @@ export default async function EditProfilePage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Editar perfil"
-        title={profile.name}
+        eyebrow="CONSTRUCTION · Perfiles"
+        title="Editar perfil"
         actions={
           <Link href={`/profiles/${id}`} className="btn-pill">
             Cancelar

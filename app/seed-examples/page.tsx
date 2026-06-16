@@ -82,8 +82,8 @@ export default async function SeedExamplesPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Sembrar ejemplos"
-        title="Crea ejemplos en los 8 módulos."
+        eyebrow="SISTEMA"
+        title="Sembrar"
         description="Sin brief se siembran los ejemplos de muestra predefinidos. Con brief, el contenido de cada módulo se genera con IA a medida de la marca o sector que describas."
         actions={
           <Link href="/" className="btn-pill">

@@ -9,7 +9,7 @@ export default function NewBrandPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Nueva marca" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE · Cerebro" title="Supabase aún no está conectado." />
         <Link href="/cerebro" className="btn-pill">
           Volver
         </Link>
@@ -19,8 +19,8 @@ export default function NewBrandPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Cerebro · nueva marca"
-        title="Crea una marca."
+        eyebrow="KNOWLEDGE · Cerebro"
+        title="Nueva marca"
         actions={
           <Link href="/cerebro" className="btn-pill">
             Volver

@@ -9,7 +9,7 @@ export default function NewCopyPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Nuevo deck de copy" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE · Copy" title="Supabase aún no está conectado." />
         <Link href="/copy" className="btn-pill">Volver</Link>
       </AppShell>
     );
@@ -17,8 +17,8 @@ export default function NewCopyPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Nuevo deck de copy"
-        title="Variantes de texto a evaluar."
+        eyebrow="KNOWLEDGE · Copy"
+        title="Nuevo deck de copy"
         actions={<Link href="/copy" className="btn-pill">Volver</Link>}
       />
       <NewCopyForm />

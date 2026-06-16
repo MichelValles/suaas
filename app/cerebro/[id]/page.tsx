@@ -16,7 +16,7 @@ export default async function BrandPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Cerebro" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE · Cerebro" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -26,7 +26,7 @@ export default async function BrandPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Cerebro · marca"
+        eyebrow="KNOWLEDGE · Cerebro"
         title={data.brand.name}
         actions={
           <Link href="/cerebro" className="btn-pill">

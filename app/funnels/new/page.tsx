@@ -10,7 +10,7 @@ export default function NewFunnelPage() {
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Nuevo embudo"
+          eyebrow="CONSTRUCTION · Embudos"
           title="Supabase aún no está conectado."
         />
         <Link href="/funnels" className="btn-pill">
@@ -22,8 +22,8 @@ export default function NewFunnelPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Nuevo embudo · v0.5.0"
-        title="Encadena pantallas para simular un recorrido."
+        eyebrow="CONSTRUCTION · Embudos"
+        title="Nuevo embudo"
         actions={
           <Link href="/funnels" className="btn-pill">
             Volver

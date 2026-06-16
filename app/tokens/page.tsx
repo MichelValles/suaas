@@ -38,8 +38,8 @@ export default async function TokensPage() {
         }}
       >
         <PageHeading
-          eyebrow="Sistema · tokens"
-          title="Consumo del AI Gateway."
+          eyebrow="SISTEMA"
+          title="Tokens"
         />
 
         {/* HERO: saldo en dinero + total tokens */}

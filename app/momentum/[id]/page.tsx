@@ -48,7 +48,7 @@ export default async function MomentumDetailPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Momentum" title="Supabase no configurado." />
+        <PageHeading eyebrow="CONSTRUCTION · Momentum" title="Supabase no configurado." />
         <Link href="/momentum" className="btn-pill">Volver</Link>
       </AppShell>
     );
@@ -70,7 +70,7 @@ export default async function MomentumDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Momentum"
+        eyebrow="CONSTRUCTION · Momentum"
         title={challenge.name}
         description={challenge.trigger_scenario}
         descriptionVariant="panel"

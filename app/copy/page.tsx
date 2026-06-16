@@ -11,7 +11,7 @@ export default async function CopyListPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Copy" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -27,8 +27,8 @@ export default async function CopyListPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Copy · resonancia de texto"
-        title="Cómo reaccionan los perfiles a un copy puro."
+        eyebrow="KNOWLEDGE"
+        title="Copy"
         actions={
           <Link href="/copy/new" className="btn-pill solid">
             Crear deck

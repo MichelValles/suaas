@@ -21,7 +21,7 @@ export default async function TargetDetailPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Test de claridad" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="CONSTRUCTION · Claridad 5s" title="Supabase aún no está conectado." />
         <Link href="/targets" className="btn-pill">
           Volver
         </Link>
@@ -47,8 +47,8 @@ export default async function TargetDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Claridad 5s · ${target.name}`}
-        title={target.payload.main_promise}
+        eyebrow="CONSTRUCTION · Claridad 5s"
+        title={target.name}
         description={
           target.payload.source_url
             ? `Fuente: ${target.payload.source_url}`

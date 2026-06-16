@@ -104,7 +104,7 @@ export default async function CampaignDetailPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Campaña" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="ACCELERATION · Campañas" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -133,17 +133,7 @@ export default async function CampaignDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={
-          isMetaStrategy(campaign.strategy) && metaSpec
-            ? `Campaña · Meta · ${STRATEGY_LABEL[campaign.strategy]} · ${META_PLACEMENT_LABEL[metaSpec.placement]} · ${metaSpec.primary_texts.length} ${metaSpec.primary_texts.length === 1 ? "texto" : "textos"}`
-            : isTikTokStrategy(campaign.strategy) && tiktokSpec
-              ? `Campaña · TikTok · ${STRATEGY_LABEL[campaign.strategy]} · ${TIKTOK_OBJECTIVE_LABEL[tiktokSpec.objective]} · ${tiktokSpec.ad_texts.length} ${tiktokSpec.ad_texts.length === 1 ? "texto" : "textos"}`
-            : campaign.strategy === "display"
-              ? `Campaña · Display · ${campaign.headlines.length} titulares cortos · ${campaign.creatives.length} assets`
-              : campaign.strategy === "shopping"
-                ? `Campaña · Shopping · ${campaign.queries.length} ${campaign.queries.length === 1 ? "búsqueda" : "búsquedas"} · ${campaign.creatives.length} ${campaign.creatives.length === 1 ? "imagen" : "imágenes"}`
-                : `Campaña · ${STRATEGY_LABEL[campaign.strategy]} · ${campaign.queries.length} ${campaign.queries.length === 1 ? "query" : "queries"} · ${campaign.headlines.length} titulares`
-        }
+        eyebrow="ACCELERATION · Campañas"
         title={campaign.name}
         description={campaign.brief ?? undefined}
         descriptionVariant="panel"

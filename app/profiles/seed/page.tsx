@@ -26,8 +26,8 @@ export default async function ProfileSeedPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Generar perfiles · LLM"
-        title="Crea perfiles realistas en lote."
+        eyebrow="CONSTRUCTION · Perfiles"
+        title="Generar perfiles"
         actions={
           <Link href="/profiles" className="btn-pill">
             Volver

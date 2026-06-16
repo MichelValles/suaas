@@ -19,7 +19,7 @@ export default async function PricingDetailPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Oferta" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE · Pricing" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -33,7 +33,7 @@ export default async function PricingDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Oferta · ${offer.prices.length} ${offer.prices.length === 1 ? "precio" : "precios"}`}
+        eyebrow="KNOWLEDGE · Pricing"
         title={offer.name}
         description={offer.description}
         descriptionVariant="panel"

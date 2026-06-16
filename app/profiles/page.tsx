@@ -11,7 +11,7 @@ export default async function ProfilesPage() {
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Perfiles · vignettes grounded"
+          eyebrow="CONSTRUCTION"
           title="Supabase aún no está conectado."
           description="Provisiona Supabase desde el Marketplace de Vercel y aplica las migraciones."
         />
@@ -28,8 +28,8 @@ export default async function ProfilesPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Perfiles · vignettes grounded"
-        title="Hablamos con perfiles calibrados."
+        eyebrow="CONSTRUCTION"
+        title="Perfiles"
         actions={
           <Link href="/profiles/new" className="btn-pill solid">
             Nuevo perfil

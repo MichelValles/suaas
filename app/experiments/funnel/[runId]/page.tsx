@@ -25,7 +25,7 @@ export default async function FunnelRunPage({
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Resultados · funnel"
+          eyebrow="CONSTRUCTION · Embudos"
           title="Supabase aún no está conectado."
         />
         <Link href="/funnels" className="btn-pill">
@@ -64,7 +64,7 @@ export default async function FunnelRunPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Run · ${run.status} · ${funnel.steps.length} pasos · ${summary.n} ${summary.n === 1 ? "perfil" : "perfiles"}`}
+        eyebrow="CONSTRUCTION · Embudos"
         title={funnel.name}
         description={funnel.description ?? undefined}
         descriptionVariant="panel"

@@ -10,7 +10,7 @@ export default async function TrashPage() {
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Sistema · papelera"
+          eyebrow="SISTEMA"
           title="Supabase aún no está conectado."
           description="Provisiona Supabase desde el Marketplace de Vercel y aplica las migraciones (incluidas 0007_trash.sql y 0017_trash_geo_momentum_profiles.sql)."
         />
@@ -58,8 +58,8 @@ export default async function TrashPage() {
         }}
       >
         <PageHeading
-          eyebrow="Sistema · papelera"
-          title="Papelera."
+          eyebrow="SISTEMA"
+          title="Papelera"
         />
 
         {err && (

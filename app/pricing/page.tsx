@@ -11,7 +11,7 @@ export default async function PricingListPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Pricing" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -27,8 +27,8 @@ export default async function PricingListPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Pricing · elasticidad por precio"
-        title="Cómo reacciona el público a diferentes niveles."
+        eyebrow="KNOWLEDGE"
+        title="Pricing"
         actions={
           <Link href="/pricing/new" className="btn-pill solid">
             Crear oferta

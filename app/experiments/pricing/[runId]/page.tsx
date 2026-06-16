@@ -21,7 +21,7 @@ export default async function PricingRunPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Resultados pricing" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE · Pricing" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -51,7 +51,7 @@ export default async function PricingRunPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Run · ${run.status} · ${summary.n} ${summary.n === 1 ? "perfil" : "perfiles"}`}
+        eyebrow="KNOWLEDGE · Pricing"
         title={offer.name}
         description={offer.description}
         descriptionVariant="panel"

@@ -19,7 +19,7 @@ export default async function AbDetailPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="A/B test" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE · A/B tests" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -54,7 +54,7 @@ export default async function AbDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow="A/B test"
+        eyebrow="KNOWLEDGE · A/B tests"
         title={ab.name}
         description={ab.hypothesis ?? undefined}
         descriptionVariant="panel"

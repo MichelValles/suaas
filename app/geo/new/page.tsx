@@ -7,7 +7,7 @@ export default function NewGeoPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Nuevo análisis GEO" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="ACCELERATION · GEO Tester" title="Supabase aún no está conectado." />
         <Link href="/geo" className="btn-pill">Volver</Link>
       </AppShell>
     );
@@ -15,8 +15,8 @@ export default function NewGeoPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Nuevo análisis GEO"
-        title="Define la marca y los segmentos de intención."
+        eyebrow="ACCELERATION · GEO Tester"
+        title="Nuevo análisis GEO"
         actions={
           <Link href="/geo" className="btn-pill">
             Cancelar

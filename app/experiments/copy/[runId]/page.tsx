@@ -21,7 +21,7 @@ export default async function CopyRunPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Resultados copy" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE · Copy" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -47,7 +47,7 @@ export default async function CopyRunPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Run · ${run.status} · ${summary.n} ${summary.n === 1 ? "perfil" : "perfiles"}`}
+        eyebrow="KNOWLEDGE · Copy"
         title={deck.name}
         description={deck.description ?? deck.context ?? undefined}
         descriptionVariant="panel"

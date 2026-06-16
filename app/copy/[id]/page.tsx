@@ -19,7 +19,7 @@ export default async function CopyDeckDetailPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Deck" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE · Copy" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -33,7 +33,7 @@ export default async function CopyDeckDetailPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Deck · ${deck.blocks.length} ${deck.blocks.length === 1 ? "bloque" : "bloques"}`}
+        eyebrow="KNOWLEDGE · Copy"
         title={deck.name}
         description={deck.description ?? deck.context ?? undefined}
         descriptionVariant="panel"

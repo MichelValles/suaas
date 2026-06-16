@@ -18,7 +18,7 @@ export default async function CampaignsListPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Campañas" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="ACCELERATION" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -34,8 +34,8 @@ export default async function CampaignsListPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Campañas · Paid Search tester"
-        title="Cómo reaccionan los perfiles a tu anuncio bajo cada query."
+        eyebrow="ACCELERATION"
+        title="Campañas"
         actions={
           <Link href="/campaigns/new" className="btn-pill solid">
             Crear campaña

@@ -26,7 +26,7 @@ export default async function AbResultsPage({
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Resultados A/B" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE · A/B tests" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -45,7 +45,7 @@ export default async function AbResultsPage({
     return (
       <AppShell>
         <PageHeading
-          eyebrow={`A/B · ${ab.name}`}
+          eyebrow="KNOWLEDGE · A/B tests"
           title="Sin runs comparables todavía."
           actions={
             <Link href={ab.deleted_at ? "/ab" : `/ab/${ab.id}`} className="btn-pill">
@@ -76,8 +76,8 @@ export default async function AbResultsPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`A/B · ${ab.name}`}
-        title="Comparativa por variante."
+        eyebrow="KNOWLEDGE · A/B tests"
+        title={ab.name}
         description={ab.hypothesis ?? undefined}
         descriptionVariant="panel"
         actions={

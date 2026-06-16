@@ -11,7 +11,7 @@ export default async function TargetsPage() {
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Claridad 5s · qué se evalúa"
+          eyebrow="CONSTRUCTION"
           title="Supabase aún no está conectado."
           description="Provisiona Supabase desde el Marketplace de Vercel y aplica las migraciones."
         />
@@ -30,8 +30,8 @@ export default async function TargetsPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Targets · qué se evalúa"
-        title="Pantallas que ponemos delante de los perfiles calibrados."
+        eyebrow="CONSTRUCTION"
+        title="Claridad 5s"
         actions={
           <Link href="/targets/new" className="btn-pill solid">
             Nuevo test

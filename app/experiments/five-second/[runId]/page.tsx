@@ -26,7 +26,7 @@ export default async function FiveSecondRunPage({
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Resultados · 5s_test"
+          eyebrow="CONSTRUCTION · Claridad 5s"
           title="Supabase aún no está conectado."
         />
         <Link href="/targets" className="btn-pill">
@@ -55,7 +55,7 @@ export default async function FiveSecondRunPage({
   return (
     <AppShell>
       <PageHeading
-        eyebrow={`Run · ${run.status} · ${summary.n} ${summary.n === 1 ? "perfil" : "perfiles"}${target ? ` · ${target.name}` : ""}`}
+        eyebrow="CONSTRUCTION · Claridad 5s"
         title={target?.payload.main_promise ?? "Run de claridad 5s"}
         description={
           target

@@ -11,7 +11,7 @@ export default async function CerebroPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="Cerebro" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="KNOWLEDGE" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -29,8 +29,8 @@ export default async function CerebroPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Cerebro · base de conocimiento de marca"
-        title="Tus marcas, listas para reutilizar."
+        eyebrow="KNOWLEDGE"
+        title="Cerebro"
         actions={
           <Link href="/cerebro/new" className="btn-pill solid">
             Crear marca

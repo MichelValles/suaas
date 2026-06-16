@@ -152,8 +152,8 @@ export default async function DiagPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Sistema · diagnóstico"
-        title="Estado de la plataforma."
+        eyebrow="SISTEMA"
+        title="Diagnóstico"
       />
 
       <section

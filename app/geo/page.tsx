@@ -11,7 +11,7 @@ export default async function GeoListPage() {
   if (!isSupabaseConfigured()) {
     return (
       <AppShell>
-        <PageHeading eyebrow="GEO Tester" title="Supabase aún no está conectado." />
+        <PageHeading eyebrow="ACCELERATION" title="Supabase aún no está conectado." />
       </AppShell>
     );
   }
@@ -29,8 +29,8 @@ export default async function GeoListPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="GEO Tester · Generative Engine Optimization"
-        title="Visibilidad de tu marca en buscadores con IA."
+        eyebrow="ACCELERATION"
+        title="GEO Tester"
         description="Simula cómo Perplexity, Google AI Overview o ChatGPT Search describe tu marca ante cada segmento de intención (JTBD). Detecta huecos antes de que los detecte el mercado."
         descriptionVariant="panel"
         actions={

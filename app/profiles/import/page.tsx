@@ -10,7 +10,7 @@ export default function ProfilesImportPage() {
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Importar perfiles"
+          eyebrow="CONSTRUCTION · Perfiles"
           title="Supabase aún no está conectado."
         />
         <Link href="/profiles" className="btn-pill">
@@ -22,8 +22,8 @@ export default function ProfilesImportPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Importar perfiles · CSV"
-        title="Sube un CSV con tus perfiles."
+        eyebrow="CONSTRUCTION · Perfiles"
+        title="Importar perfiles"
         actions={
           <Link href="/profiles" className="btn-pill">
             Volver

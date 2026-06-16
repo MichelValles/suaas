@@ -112,7 +112,7 @@ export default function HomePage() {
       >
         {/* HERO */}
         <PageHeading
-          eyebrow="Gravity · Perfiles calibrados"
+          eyebrow="GRAVITY"
           title="La intención tiene masa."
           description="Perfiles grounded con Big Five, COM-B y backstory. Los enfrentamos a pantallas, embudos, copies y precios: devolvemos el vector de intención antes de que el usuario llegue a tu web."
           actions={

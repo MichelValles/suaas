@@ -11,7 +11,7 @@ export default async function FunnelsPage() {
     return (
       <AppShell>
         <PageHeading
-          eyebrow="Embudos · simulación de recorrido"
+          eyebrow="CONSTRUCTION"
           title="Supabase aún no está conectado."
           description="Provisiona Supabase desde el Marketplace de Vercel y aplica las migraciones."
         />
@@ -30,8 +30,8 @@ export default async function FunnelsPage() {
   return (
     <AppShell>
       <PageHeading
-        eyebrow="Embudos · simulación de recorrido"
-        title="Pantallas encadenadas que un perfil recorre paso a paso."
+        eyebrow="CONSTRUCTION"
+        title="Embudos"
         actions={
           <Link href="/funnels/new" className="btn-pill solid">
             Crear embudo
