@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { BrandContextBox } from "@/components/brand-context-box";
 import { estimateAction, partsForKind } from "@/lib/estimate";
 import { getGeoAnalysis, type GeoAnalysis, type SegmentInput, type SegmentResult } from "@/lib/geo";
 import { GEO_ENGINE_IDS, GEO_ENGINE_LABEL, getGeoEngineModels } from "@/lib/geo-engines";
@@ -86,8 +87,6 @@ export default async function GeoDetailPage({
       <PageHeading
         eyebrow="ACCELERATION · GEO Tester"
         title={analysis.name}
-        description={analysis.brand_description}
-        descriptionVariant="panel"
         actions={
           <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
             {canRun && (
@@ -102,6 +101,10 @@ export default async function GeoDetailPage({
           </div>
         }
       />
+
+      {analysis.brand_description && (
+        <BrandContextBox text={analysis.brand_description} />
+      )}
 
       {trashed && (
         <div
