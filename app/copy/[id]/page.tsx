@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { BrandContextBox } from "@/components/brand-context-box";
 import { ProfileLaunchPanel } from "@/components/profile-launch-panel";
 import { RunsPreviousGrid } from "@/components/runs-previous";
 import { getCopyDeck } from "@/lib/copy";
@@ -35,7 +36,7 @@ export default async function CopyDeckDetailPage({
       <PageHeading
         eyebrow="KNOWLEDGE · Copy"
         title={deck.name}
-        description={deck.description ?? deck.context ?? undefined}
+        description={deck.description ?? undefined}
         descriptionVariant="panel"
         actions={
           <Link href="/copy" className="btn-pill">
@@ -43,6 +44,8 @@ export default async function CopyDeckDetailPage({
           </Link>
         }
       />
+
+      {deck.context && <BrandContextBox text={deck.context} />}
 
       <section
         style={{
