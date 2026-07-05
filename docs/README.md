@@ -17,6 +17,7 @@
 | [`IVI-PUBLICO-OBJETIVO.md`](./IVI-PUBLICO-OBJETIVO.md) | Investigación multiagente del público objetivo de IVI (mercado en cifras verificadas, taxonomía de 12 segmentos) y los 15 perfiles calibrados creados a partir de ella (`source = investigacion-publico-ivi-2026-06`, sin marca en intents y backstories). |
 | [`ADESLAS-DENTAL-PUBLICO-OBJETIVO.md`](./ADESLAS-DENTAL-PUBLICO-OBJETIVO.md) | Investigación multiagente del público objetivo de SegurCaixa Adeslas Dental (mercado del seguro dental en cifras verificadas, marca y producto, taxonomía de 6 segmentos) y los 3 perfiles calibrados creados a partir de ella (`source = investigacion-publico-adeslas-dental-2026-06`), en tres estadios de embudo y con la marca solo en el intent de uno. |
 | [`Plan-venta.md`](./Plan-venta.md) | Plan de venta a clientes: instancias dedicadas (arquitectura A vs B), prerrequisitos, costes por instancia (infra verificada + LLM y escalado), **precio de venta y plan comercial** (tiers Starter/Pro/Agency en EUR, setup, ROI, anclaje de mercado) y plan de mantenimiento con runbook. |
+| [`VERTEX-AI-VALORACION.md`](./VERTEX-AI-VALORACION.md) | Valoración verificada (jul-2026) de Google Vertex AI (Model Garden, RAG Engine, grounding, Gen AI Evaluation, Agent Engine) frente al stack actual: tres arquitecturas candidatas, riesgos y hoja de ruta. Conclusión: pgvector en Supabase como base, Vertex solo como proveedor puntual de grounding y evaluación. |
 
 ## Cómo mantener esta carpeta
 
