@@ -434,7 +434,7 @@ function ProgressHeader({
           <div
             style={{
               height: 4,
-              background: "rgba(255,255,255,0.08)",
+              background: "rgba(var(--fg),0.08)",
               borderRadius: 999,
               overflow: "hidden",
             }}
@@ -456,7 +456,7 @@ function ProgressHeader({
               fontSize: 10,
               letterSpacing: "0.2em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.5)",
+              color: "rgba(var(--fg),0.5)",
               marginTop: 6,
               display: "block",
             }}
@@ -517,8 +517,8 @@ function Footer({
         className="mono"
         style={{
           background: "transparent",
-          color: index === 0 ? "rgba(255,255,255,0.2)" : "rgba(255,255,255,0.6)",
-          border: "1px solid rgba(255,255,255,0.1)",
+          color: index === 0 ? "rgba(var(--fg),0.2)" : "rgba(var(--fg),0.6)",
+          border: "1px solid rgba(var(--fg),0.1)",
           borderRadius: "var(--radius-pill)",
           padding: "10px 18px",
           fontSize: 11,
@@ -540,11 +540,11 @@ function Footer({
             opacity: enabled ? 1 : 0.4,
             cursor: enabled ? "pointer" : "not-allowed",
             background: reviewIncomplete
-              ? "rgba(255,255,255,0.08)"
+              ? "rgba(var(--fg),0.08)"
               : undefined,
-            color: reviewIncomplete ? "#fff" : undefined,
+            color: reviewIncomplete ? "var(--text-strong)" : undefined,
             borderColor: reviewIncomplete
-              ? "rgba(255,255,255,0.2)"
+              ? "rgba(var(--fg),0.2)"
               : undefined,
           }}
         >
@@ -577,10 +577,10 @@ function MissingPanel({
       }}
     >
       <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        <strong style={{ color: "#fff", fontSize: 15 }}>
+        <strong style={{ color: "var(--text-strong)", fontSize: 15 }}>
           Te {missing.length === 1 ? "falta 1 pregunta" : `faltan ${missing.length} preguntas`} por contestar
         </strong>
-        <span style={{ color: "rgba(255,255,255,0.65)", fontSize: 13 }}>
+        <span style={{ color: "rgba(var(--fg),0.65)", fontSize: 13 }}>
           Toca cada una para ir directo a esa pantalla.
         </span>
       </div>
@@ -604,10 +604,10 @@ function MissingPanel({
               style={{
                 width: "100%",
                 textAlign: "left",
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.12)",
+                background: "rgba(var(--fg),0.04)",
+                border: "1px solid rgba(var(--fg),0.12)",
                 borderRadius: "var(--radius-md)",
-                color: "rgba(255,255,255,0.9)",
+                color: "rgba(var(--fg),0.9)",
                 padding: "10px 14px",
                 cursor: "pointer",
                 fontFamily: "inherit",
@@ -641,7 +641,7 @@ function MissingPanel({
               </span>
               <span
                 style={{
-                  color: "rgba(255,255,255,0.4)",
+                  color: "rgba(var(--fg),0.4)",
                   fontSize: 16,
                   flexShrink: 0,
                 }}
@@ -684,7 +684,7 @@ function SubmittingScreen({ phase }: { phase: string }) {
           width: 72,
           height: 72,
           borderRadius: "50%",
-          border: "2px solid rgba(255,255,255,0.08)",
+          border: "2px solid rgba(var(--fg),0.08)",
           borderTopColor: "var(--accent-500)",
         }}
       />
@@ -698,7 +698,7 @@ function SubmittingScreen({ phase }: { phase: string }) {
           transition={{ duration: 0.3 }}
           style={{
             fontSize: "clamp(22px, 3vw, 32px)",
-            color: "#fff",
+            color: "var(--text-strong)",
             margin: 0,
           }}
         >
@@ -711,7 +711,7 @@ function SubmittingScreen({ phase }: { phase: string }) {
           fontSize: 11,
           letterSpacing: "0.28em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.4)",
+          color: "rgba(var(--fg),0.4)",
         }}
       >
         Esto suele tardar entre 15 y 30 segundos
@@ -747,7 +747,7 @@ function StepBody({
         <h1
           className="display"
           style={{
-            color: "#fff",
+            color: "var(--text-strong)",
             fontSize: "clamp(34px, 5vw, 60px)",
             lineHeight: 1.05,
             margin: 0,
@@ -757,7 +757,7 @@ function StepBody({
         </h1>
         <p
           className="body-lg"
-          style={{ color: "rgba(255,255,255,0.7)", margin: 0 }}
+          style={{ color: "rgba(var(--fg),0.7)", margin: 0 }}
         >
           Contesta unas preguntas durante 10 minutos. Convertiremos tus respuestas
           en un perfil calibrado que reacciona como tú: con tus rasgos
@@ -773,7 +773,7 @@ function StepBody({
             display: "flex",
             flexDirection: "column",
             gap: 10,
-            color: "rgba(255,255,255,0.6)",
+            color: "rgba(var(--fg),0.6)",
             fontSize: 14,
           }}
         >
@@ -938,7 +938,7 @@ function StepBody({
         <h1
           className="display"
           style={{
-            color: "#fff",
+            color: "var(--text-strong)",
             fontSize: "clamp(28px, 4vw, 44px)",
             lineHeight: 1.1,
             margin: 0,
@@ -951,7 +951,7 @@ function StepBody({
         {missing.length === 0 ? (
           <p
             className="body-lg"
-            style={{ color: "rgba(255,255,255,0.7)", margin: 0 }}
+            style={{ color: "rgba(var(--fg),0.7)", margin: 0 }}
           >
             Cuando le des al botón, calcularemos tus rasgos y compondremos tu
             gemelo digital. Toma entre 15 y 30 segundos.
@@ -961,15 +961,15 @@ function StepBody({
         )}
         <div
           style={{
-            border: "1px solid rgba(255,255,255,0.08)",
+            border: "1px solid rgba(var(--fg),0.08)",
             borderRadius: "var(--radius-md)",
             padding: "18px 22px",
-            color: "rgba(255,255,255,0.75)",
+            color: "rgba(var(--fg),0.75)",
             fontSize: 14,
             lineHeight: 1.6,
           }}
         >
-          <strong style={{ color: "#fff" }}>{state.name}</strong>
+          <strong style={{ color: "var(--text-strong)" }}>{state.name}</strong>
           {" · "}
           {state.age} años · {state.gender} ·{" "}
           {state.geo === "Otro país" ? otherCountry || "Otro país" : state.geo}
@@ -1012,7 +1012,7 @@ function QuestionLayout({
       <h2
         className="display"
         style={{
-          color: "#fff",
+          color: "var(--text-strong)",
           fontSize: "clamp(22px, 3vw, 32px)",
           lineHeight: 1.2,
           margin: 0,
@@ -1021,7 +1021,7 @@ function QuestionLayout({
         {title}
       </h2>
       {hint && (
-        <p style={{ color: "rgba(255,255,255,0.55)", margin: 0, fontSize: 14 }}>
+        <p style={{ color: "var(--text-secondary)", margin: 0, fontSize: 14 }}>
           {hint}
         </p>
       )}
@@ -1057,10 +1057,10 @@ function TextInput({
       style={{
         width: "100%",
         padding: "14px 18px",
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.14)",
+        background: "rgba(var(--fg),0.04)",
+        border: "1px solid rgba(var(--fg),0.14)",
         borderRadius: "var(--radius-md)",
-        color: "#fff",
+        color: "var(--text-strong)",
         fontSize: 18,
         fontFamily: "inherit",
         outline: "none",
@@ -1091,10 +1091,10 @@ function Textarea({
         style={{
           width: "100%",
           padding: "14px 18px",
-          background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.14)",
+          background: "rgba(var(--fg),0.04)",
+          border: "1px solid rgba(var(--fg),0.14)",
           borderRadius: "var(--radius-md)",
-          color: "#fff",
+          color: "var(--text-strong)",
           fontSize: 16,
           lineHeight: 1.5,
           fontFamily: "inherit",
@@ -1111,7 +1111,7 @@ function Textarea({
           bottom: 8,
           fontSize: 10,
           letterSpacing: "0.2em",
-          color: "rgba(255,255,255,0.4)",
+          color: "rgba(var(--fg),0.4)",
         }}
       >
         {value.length} / 400
@@ -1151,12 +1151,12 @@ function ChoiceGroup<V extends string>({
               padding: "14px 18px",
               background: selected
                 ? "rgba(255, 220, 60, 0.12)"
-                : "rgba(255,255,255,0.04)",
+                : "rgba(var(--fg),0.04)",
               border: selected
                 ? "1px solid var(--accent-500)"
-                : "1px solid rgba(255,255,255,0.12)",
+                : "1px solid rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-md)",
-              color: selected ? "#fff" : "rgba(255,255,255,0.8)",
+              color: selected ? "var(--text-strong)" : "rgba(var(--fg),0.8)",
               fontSize: 15,
               cursor: "pointer",
               fontFamily: "inherit",
@@ -1194,12 +1194,12 @@ function LikertGroup({
               padding: "12px 16px",
               background: selected
                 ? "rgba(255, 220, 60, 0.12)"
-                : "rgba(255,255,255,0.04)",
+                : "rgba(var(--fg),0.04)",
               border: selected
                 ? "1px solid var(--accent-500)"
-                : "1px solid rgba(255,255,255,0.12)",
+                : "1px solid rgba(var(--fg),0.12)",
               borderRadius: "var(--radius-md)",
-              color: selected ? "#fff" : "rgba(255,255,255,0.8)",
+              color: selected ? "var(--text-strong)" : "rgba(var(--fg),0.8)",
               fontSize: 15,
               cursor: "pointer",
               fontFamily: "inherit",
@@ -1215,9 +1215,9 @@ function LikertGroup({
                 borderRadius: "50%",
                 border: selected
                   ? "1px solid var(--accent-500)"
-                  : "1px solid rgba(255,255,255,0.2)",
+                  : "1px solid rgba(var(--fg),0.2)",
                 background: selected ? "var(--accent-500)" : "transparent",
-                color: selected ? "var(--ink-900)" : "rgba(255,255,255,0.6)",
+                color: selected ? "var(--ink-900)" : "rgba(var(--fg),0.6)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

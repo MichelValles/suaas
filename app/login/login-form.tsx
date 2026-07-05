@@ -68,7 +68,7 @@ export function LoginForm() {
         style={{
           ...S.layer,
           backgroundImage:
-            "linear-gradient(to right, rgba(255,255,255,0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.04) 1px, transparent 1px)",
+            "linear-gradient(to right, rgba(var(--fg),0.04) 1px, transparent 1px), linear-gradient(to bottom, rgba(var(--fg),0.04) 1px, transparent 1px)",
           backgroundSize: "56px 56px",
         }}
       />
@@ -240,7 +240,7 @@ const S: Record<string, React.CSSProperties> = {
     overflow: "hidden",
     background: "var(--ink-900)",
     padding: "0 24px",
-    color: "#fff",
+    color: "var(--text-strong)",
   },
   layer: {
     position: "absolute",
@@ -253,7 +253,7 @@ const S: Record<string, React.CSSProperties> = {
     bottom: 24,
     left: 24,
     zIndex: 1,
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(var(--fg),0.4)",
     fontSize: 10,
     letterSpacing: "0.22em",
     pointerEvents: "none",
@@ -266,7 +266,7 @@ const S: Record<string, React.CSSProperties> = {
     display: "flex",
     alignItems: "center",
     gap: 8,
-    color: "rgba(255,255,255,0.4)",
+    color: "rgba(var(--fg),0.4)",
     fontSize: 10,
     letterSpacing: "0.22em",
     pointerEvents: "none",
@@ -285,10 +285,10 @@ const S: Record<string, React.CSSProperties> = {
     fontSize: 11,
     letterSpacing: "0.28em",
     textTransform: "uppercase",
-    color: "rgba(255,255,255,0.55)",
+    color: "var(--text-secondary)",
   },
   headline: {
-    color: "#fff",
+    color: "var(--text-strong)",
     fontSize: "clamp(28px, 3.6vw, 48px)",
     lineHeight: 1.1,
     letterSpacing: "-0.01em",
@@ -306,23 +306,23 @@ const S: Record<string, React.CSSProperties> = {
   input: {
     display: "block",
     width: "100%",
-    borderBottom: "1px solid rgba(255,255,255,0.25)",
+    borderBottom: "1px solid rgba(var(--fg),0.25)",
     background: "transparent",
     padding: "16px 4px",
     textAlign: "center",
     fontSize: 18,
     letterSpacing: "0.18em",
-    color: "#fff",
+    color: "var(--text-strong)",
     outline: "none",
     border: "none",
     borderBottomWidth: 1,
     borderBottomStyle: "solid",
-    borderBottomColor: "rgba(255,255,255,0.25)",
+    borderBottomColor: "rgba(var(--fg),0.25)",
   },
   errorMsg: {
     fontSize: 11,
     textTransform: "uppercase",
     letterSpacing: "0.22em",
-    color: "rgba(255,255,255,0.6)",
+    color: "rgba(var(--fg),0.6)",
   },
 };

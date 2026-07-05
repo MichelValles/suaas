@@ -299,7 +299,7 @@ p {
    ============================================================ */
 .surface-feature {
   background-color: var(--ink-900);
-  color: #fff;
+  color: var(--text-strong);
   /* siempre oscura, independiente del tema */
   color-scheme: dark;
   --fg: 255, 255, 255;
@@ -605,10 +605,11 @@ textarea.backstory-input:focus-visible {
   transform: translateX(-50%);
   width: max-content;
   padding: 10px 12px;
-  /* panel siempre oscuro, independiente del tema */
+  /* panel siempre oscuro, independiente del tema: redefine el canal localmente */
+  --fg: 255, 255, 255;
   background: var(--ink-800);
-  color: rgba(255, 255, 255, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: rgba(var(--fg), 0.88);
+  border: 1px solid rgba(var(--fg), 0.12);
   border-radius: var(--radius-sm);
   font-family: var(--font-sans);
   font-size: 12px;
@@ -887,11 +888,12 @@ html[data-theme="light"] .sidebar-logo {
   bottom: calc(100% + 8px);
   right: 0;
   padding: 8px 12px;
-  /* panel siempre oscuro, independiente del tema */
+  /* panel siempre oscuro, independiente del tema: redefine el canal localmente */
+  --fg: 255, 255, 255;
   background: rgba(12, 12, 16, 0.97);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(var(--fg), 0.12);
   border-radius: var(--radius-sm);
-  color: rgba(255, 255, 255, 0.85);
+  color: rgba(var(--fg), 0.85);
   font-size: 12px;
   font-family: var(--font-sans);
   font-style: normal;

@@ -12,7 +12,7 @@ export default function OnboardLayout({
         // visible y obliga a hacer scroll para alcanzar el footer.
         minHeight: "100svh",
         background: "var(--ink-900)",
-        color: "rgba(255,255,255,0.92)",
+        color: "rgba(var(--fg),0.92)",
         display: "flex",
         flexDirection: "column",
       }}

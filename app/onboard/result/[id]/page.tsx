@@ -47,7 +47,7 @@ export default async function OnboardResultPage({
         <h1
           className="display"
           style={{
-            color: "#fff",
+            color: "var(--text-strong)",
             fontSize: "clamp(32px, 5vw, 56px)",
             lineHeight: 1.05,
             margin: 0,
@@ -57,7 +57,7 @@ export default async function OnboardResultPage({
         </h1>
         <p
           className="body-lg"
-          style={{ color: "rgba(255,255,255,0.7)", margin: 0 }}
+          style={{ color: "rgba(var(--fg),0.7)", margin: 0 }}
         >
           Hemos convertido tus respuestas en este perfil calibrado. Lo usaremos
           en estrategias de captación, creatividades y UX para anticipar cómo
@@ -107,7 +107,7 @@ export default async function OnboardResultPage({
           fontSize: 10,
           letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(255,255,255,0.35)",
+          color: "rgba(var(--fg),0.35)",
           marginTop: "auto",
           textAlign: "center",
         }}
@@ -130,9 +130,9 @@ function ProfileCard({ profile }: { profile: Profile }) {
   return (
     <div
       style={{
-        border: "1px solid rgba(255,255,255,0.1)",
+        border: "1px solid rgba(var(--fg),0.1)",
         borderRadius: "var(--radius-lg)",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(var(--fg),0.02)",
         padding: "clamp(20px, 4vw, 36px)",
         display: "flex",
         flexDirection: "column",
@@ -145,11 +145,11 @@ function ProfileCard({ profile }: { profile: Profile }) {
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <strong
             className="display"
-            style={{ color: "#fff", fontSize: "clamp(22px, 3vw, 32px)" }}
+            style={{ color: "var(--text-strong)", fontSize: "clamp(22px, 3vw, 32px)" }}
           >
             {profile.name}
           </strong>
-          <span style={{ color: "rgba(255,255,255,0.6)", fontSize: 14 }}>
+          <span style={{ color: "rgba(var(--fg),0.6)", fontSize: 14 }}>
             {d.age} años · {d.gender} · {d.occupation}
           </span>
           <span
@@ -158,7 +158,7 @@ function ProfileCard({ profile }: { profile: Profile }) {
               fontSize: 10,
               letterSpacing: "0.22em",
               textTransform: "uppercase",
-              color: "rgba(255,255,255,0.4)",
+              color: "rgba(var(--fg),0.4)",
             }}
           >
             {d.geo}
@@ -172,7 +172,7 @@ function ProfileCard({ profile }: { profile: Profile }) {
         className="display"
         style={{
           fontStyle: "italic",
-          color: "rgba(255,255,255,0.85)",
+          color: "rgba(var(--fg),0.85)",
           fontSize: "clamp(16px, 1.5vw, 19px)",
           lineHeight: 1.55,
           margin: 0,
@@ -191,7 +191,7 @@ function ProfileCard({ profile }: { profile: Profile }) {
             fontSize: 10,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(var(--fg),0.4)",
           }}
         >
           Personalidad OCEAN
@@ -211,7 +211,7 @@ function ProfileCard({ profile }: { profile: Profile }) {
             fontSize: 10,
             letterSpacing: "0.28em",
             textTransform: "uppercase",
-            color: "rgba(255,255,255,0.4)",
+            color: "rgba(var(--fg),0.4)",
           }}
         >
           Barreras COM-B
@@ -261,7 +261,7 @@ function SparkBar({ label, value }: { label: string; value: number }) {
         style={{
           width: 110,
           fontSize: 12,
-          color: "rgba(255,255,255,0.7)",
+          color: "rgba(var(--fg),0.7)",
           flexShrink: 0,
         }}
       >
@@ -271,7 +271,7 @@ function SparkBar({ label, value }: { label: string; value: number }) {
         style={{
           flex: 1,
           height: 6,
-          background: "rgba(255,255,255,0.06)",
+          background: "rgba(var(--fg),0.06)",
           borderRadius: 999,
           overflow: "hidden",
         }}
@@ -291,7 +291,7 @@ function SparkBar({ label, value }: { label: string; value: number }) {
           width: 36,
           textAlign: "right",
           fontSize: 11,
-          color: "rgba(255,255,255,0.5)",
+          color: "rgba(var(--fg),0.5)",
         }}
       >
         {pct}%
@@ -307,7 +307,7 @@ function BarrierBlock({ label, items }: { label: string; items: string[] }) {
       <span
         style={{
           fontSize: 12,
-          color: "rgba(255,255,255,0.55)",
+          color: "var(--text-secondary)",
         }}
       >
         {label}
@@ -316,7 +316,7 @@ function BarrierBlock({ label, items }: { label: string; items: string[] }) {
         style={{
           margin: 0,
           paddingLeft: 18,
-          color: "rgba(255,255,255,0.8)",
+          color: "rgba(var(--fg),0.8)",
           fontSize: 14,
           lineHeight: 1.5,
         }}

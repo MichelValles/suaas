@@ -120,7 +120,7 @@ Reglas:
 
 - Header (`<summary>`) en `.mono` 10px tracked, con `tono` y `esfuerzo` como chips.
 - Body: `dl` con grid de 2 columnas (`auto 1fr`), `dt` en `.mono` minúsculas-tracked y `dd` en cuerpo.
-- Borde `rgba(255,255,255,0.08)` y fondo `rgba(255,255,255,0.02)`: nunca un panel sólido para no robarle peso al mensaje del Talker.
+- Borde `rgba(var(--fg),0.08)` y fondo `rgba(var(--fg),0.02)`: nunca un panel sólido para no robarle peso al mensaje del Talker.
 
 Si reutilizas el patrón para otra traza meta, factoriza a `<Disclosure>` en `components/`.
 
@@ -192,7 +192,7 @@ Es un client component (usa `useState` para el toggle). Úsalo en cualquier vist
 `app/login/login-form.tsx` implementa un patrón "HUD oscuro":
 
 - Fondo `var(--ink-900)`.
-- Rejilla de 56×56 con líneas `rgba(255,255,255,0.04)`.
+- Rejilla de 56×56 con líneas `rgba(var(--fg),0.04)` (el HUD vive bajo `.theme-dark-fixed`, que fija el canal a blanco).
 - Viñeta radial hacia los bordes `rgba(10,11,13,0.7)`.
 - Cuatro corchetes en esquinas en `var(--accent-500)`.
 - Pixel trail: cuadrados 8×8 amarillos snap-to-grid bajo el cursor (solo en `hover: hover`).
@@ -291,7 +291,7 @@ Patrón de uso: dentro de un chip o de una pestaña, con un `display: inline-fle
 Cuando una pestaña / opción está modelada pero no implementada todavía (canales no-Google, estrategias no-Search/Display), se renderiza con:
 
 - `cursor: not-allowed`.
-- `opacity: 0.6` (en `ChannelTabs`) o color desaturado (`rgba(255,255,255,0.35)`).
+- `opacity: 0.6` (en `ChannelTabs`) o color desaturado (`rgba(var(--fg),0.35)`).
 - Chip `Próx.` en `.mono` con `padding: 2px 6px`, `borderRadius: var(--radius-pill)`, borde sutil.
 - `title` con explicación: "En construcción · [descripción larga]".
 - Si se hace click, no llama a `onChange`.
