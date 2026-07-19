@@ -438,18 +438,20 @@ p {
   gap: 14px;
   padding: 28px 26px 24px;
   border: 1px solid rgba(var(--fg), 0.08);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: rgba(var(--fg), 0.02);
   height: 100%;
   transition:
     border-color var(--dur-short) var(--ease-out),
     transform var(--dur-short) var(--ease-out),
+    box-shadow var(--dur-short) var(--ease-out),
     background var(--dur-short) var(--ease-out);
 }
 .feature-card:hover {
   border-color: var(--accent-500);
-  background: rgba(250, 204, 13, 0.04);
+  background: rgba(249, 203, 13, 0.05);
   transform: translateY(-2px);
+  box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.5);
 }
 .feature-card:hover svg {
   color: var(--accent-500);
@@ -465,18 +467,20 @@ p {
   flex-direction: column;
   width: 100%;
   border: 1px solid rgba(var(--fg), 0.08);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   background: rgba(var(--fg), 0.02);
   overflow: hidden;
   transition:
     border-color var(--dur-short) var(--ease-out),
     transform var(--dur-short) var(--ease-out),
+    box-shadow var(--dur-short) var(--ease-out),
     background var(--dur-short) var(--ease-out);
 }
 .entity-card:hover {
   border-color: var(--accent-500);
-  background: rgba(250, 204, 13, 0.04);
+  background: rgba(249, 203, 13, 0.05);
   transform: translateY(-2px);
+  box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.5);
 }
 
 .entity-card__media {
