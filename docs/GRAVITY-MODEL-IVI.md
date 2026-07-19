@@ -28,7 +28,7 @@ Lo que está en el centro no es la paciente, es **su intención en cada momento*
 
 | Componente | Qué mide | Ejemplo IVI |
 |---|---|---|
-| **Intensidad** | Cuánta motivación hay para actuar ahora (de 0 a máximo). | Mujer de 41 con dos FIV fallidas: intensidad muy alta, siente el reloj. |
+| **Intensidad** | Cuánta motivación hay para actuar ahora (escala 0..1, como en la plataforma). | Mujer de 41 con dos FIV fallidas: intensidad muy alta, siente el reloj. |
 | **Dirección** | Hacia dónde se mueve: se acerca a la solución, está parada o se aleja. | Tras el segundo fallo puede «alejarse» (desánimo) aunque la urgencia siga ahí. |
 | **Velocidad** | Cómo cambia el momentum en el tiempo: se acelera, constante o se disipa. | El límite de edad de la sanidad pública «acelera» a la derivada de 39. |
 
@@ -73,7 +73,7 @@ Sustituir la segmentación demográfica por **hipersegmentación por intención*
 
 **Cada situación define un segmento; cada segmento define un mensaje, un miedo a desactivar y un momento óptimo.** Las técnicas del plano:
 
-- **Mapa de intención por segmento**: para cada uno de los 12 segmentos de IVI (FIV primaria, ovodonación 40+, madre soltera por elección, ROPA, preservación social, factor masculino, secundaria, aborto de repetición, DGP, sensible a precio, derivada de la pública, internacional), su miedo dominante y su lenguaje.
+- **Mapa de intención por segmento**: para cada uno de los 12 segmentos de IVI (FIV primaria, ovodonación 40+, madre soltera por elección, ROPA, preservación social, factor masculino, secundaria, aborto de repetición, DGP, sensible a precio, derivada de la pública, internacional), su miedo dominante y su lenguaje. Estos segmentos ya están encarnados en la plataforma: existen **15 perfiles calibrados reales** construidos con investigación verificada ([`IVI-PUBLICO-OBJETIVO.md`](./IVI-PUBLICO-OBJETIVO.md)), sin mención de marca en sus intents y backstories. El «miedo dominante» no es un campo estructurado de la plataforma: vive en la narrativa de cada perfil (backstory y barreras COM-B).
 - **Medir el momentum antes de que la marca entre en el radar**: anticipar qué piensa la paciente, qué primeros pasos da (buscar en Google, preguntar en un foro, ir al ginecólogo) y por qué canales, **antes** de cualquier contacto con IVI.
 - **Test de claridad del primer vistazo**: comprobar si el mensaje principal se entiende en los primeros segundos, que es todo lo que dura la primera impresión.
 
@@ -95,7 +95,7 @@ Veremos cómo **ponemos un mensaje o una pantalla delante de cada segmento del p
 
 La paciente de IVI no empieza en ivi.es. Empieza preguntando: *«mejor clínica de fertilidad en España para FIV»*, *«congelar óvulos precio y mejores clínicas»*, *«tasas de éxito FIV comparativa»*. Y el buscador de IA **no muestra diez enlaces: construye una respuesta** a partir de foros, el registro SEF, prensa y las webs de las clínicas, y recomienda. **Ahí se inclina la decisión, antes de cualquier clic.**
 
-El dato real lo confirma: en una medición contra Claude, ChatGPT y Perplexity, la visibilidad media de IVI quedó en torno al **49% al 62%**, y en varias consultas la marca aparecía **secundaria o ausente** frente a la competencia. En paralelo, el performance de pago suele tirar de creatividades genéricas («tu sueño de ser madre») que no encajan con la intención concreta de cada búsqueda.
+El dato real lo confirma: en la medición de junio de 2026 contra Claude, ChatGPT y Perplexity (protocolo y datos exactos en [`GEO-PRUEBA-IVI.md`](./GEO-PRUEBA-IVI.md)), la visibilidad media de IVI quedó en torno al **49% al 62%**, y en varias consultas la marca aparecía **secundaria o ausente** frente a la competencia. *(El GEO tiene varianza entre ejecuciones: estas cifras son la foto de aquella medición, no un valor estable; lo que importa es la tendencia.)* En paralelo, el performance de pago suele tirar de creatividades genéricas («tu sueño de ser madre») que no encajan con la intención concreta de cada búsqueda.
 
 ### La solución del plano
 
@@ -106,7 +106,7 @@ Modular el momentum en cada interacción previa al clic. Dos frentes:
 
 ### Cómo optimizamos para IVI
 
-- **Cerrar los huecos que detecta la IA.** En la medición real, los atributos que faltaban de forma consistente eran **«tasas de éxito verificadas (SEF) por grupo de edad»** y **«volumen de ciclos realizados»**. Comunicar eso de forma estructurada y citable es lo que hace que la IA pase a IVI de secundaria a protagonista en la respuesta.
+- **Cerrar los huecos que detecta la IA.** En la medición de junio de 2026, los atributos que faltaban de forma consistente eran **«tasas de éxito verificadas (SEF) por grupo de edad»** y **«volumen de ciclos realizados»**. Comunicar eso de forma estructurada y citable es lo que hace que la IA pase a IVI de secundaria a protagonista en la respuesta.
 - **Resolver el matiz de las tasas como ventaja, no como riesgo.** IVI comunica 97% al 99% acumulado a tres ciclos (auditado por SGS), mientras el registro independiente SEF mide en torno al 26% al 43% de parto por transferencia según la edad. No es contradicción (miden cosas distintas), pero la IA y la paciente informada lo notan. Explicarlo con honestidad convierte un punto débil percibido en **confianza diferencial**.
 - **Adaptar la creatividad al público objetivo.** La consulta de **preservación social** recibe una pieza sobre congelar óvulos con precio transparente y el alivio del «no pagar por algo que no uses»; la de **ovodonación 40+** una pieza que respeta el duelo genético; la de **comparar tasas** una pieza con cifras verificables, no con un claim aspiracional.
 
@@ -145,7 +145,7 @@ Convertir el alta en el **principio de una relación**, no en el final de una ca
 
 ### Con la herramienta veremos el cómo
 
-La herramienta concentra hoy su fuerza donde se gana la decisión: los dos planos previos al clic. El Value Plane es la extensión natural del mismo método: **simular el recorrido posterior paso a paso** para anticipar dónde abandonaría cada segmento y qué mensaje lo recuperaría, antes de que ocurra con pacientes reales.
+**Este plano es visión, no capacidad actual.** La herramienta concentra hoy su fuerza donde se gana la decisión: los dos planos previos al clic (el Value Plane no tiene módulo construido; ver los conceptos pendientes de [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md)). El Value Plane es la extensión natural del mismo método: **simular el recorrido posterior paso a paso** para anticipar dónde abandonaría cada segmento y qué mensaje lo recuperaría, antes de que ocurra con pacientes reales.
 
 ---
 

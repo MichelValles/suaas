@@ -19,7 +19,8 @@
  *   C = C_hex
  *   E = X_hex
  *   A = A_hex
- *   N = 1 - E_hex (emocionalidad alta = neuroticismo alto)
+ *   N = E_hex, sin invertir (emocionalidad alta = neuroticismo alto;
+ *       decisión ratificada en docs/ROADMAP.md, v0.31)
  *
  * Honestidad-Humildad NO se persiste como rasgo (Big Five solo tiene cinco),
  * pero el score H se pasa al LLM como contexto para que se refleje en la
@@ -136,9 +137,9 @@ export function scoreHexaco(answers: HexacoAnswers): HexacoScores {
 
 /**
  * Mapeo determinista HEXACO -> Big Five (OCEAN). Las 5 dimensiones compartidas
- * van directas. Neuroticismo se obtiene invirtiendo Emocionalidad (E_hex alto
+ * van directas. Neuroticismo toma Emocionalidad sin invertir: E_hex alto
  * significa baja estabilidad emocional, equivalente a N alto en el modelo Big
- * Five tradicional).
+ * Five tradicional.
  */
 export function mapToOcean(scores: HexacoScores): OceanScores {
   return {

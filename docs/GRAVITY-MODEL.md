@@ -1,8 +1,10 @@
 # Gravity Model: base teórica
 
-> **Fuente**: presentación estratégica de Flat 101 (deck «Suas», caso de aplicación: captación de no clientes en banca, ejemplo BBVA) más la síntesis operativa de SUAAS. Este documento es la referencia teórica del marco; la base de los agentes que lo ejecutan está en [`CONOCIMIENTO-USUARIOS-SINTETICOS.md`](./CONOCIMIENTO-USUARIOS-SINTETICOS.md). El mapa teoría → módulos vive en la sección 8.
+> **Fuente**: presentación estratégica de Flat 101 (deck «Suas», caso de aplicación: captación de no clientes en banca, ejemplo BBVA) más la síntesis operativa de SUAAS. Este documento es la referencia teórica del marco; la base de los agentes que lo ejecutan está en [`CONOCIMIENTO-USUARIOS-SINTETICOS.md`](./CONOCIMIENTO-USUARIOS-SINTETICOS.md) y la anatomía completa del motor de perfiles (con su fundamento académico y sus límites) en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md). El mapa teoría → módulos vive en la sección 8.
 >
-> **Relación entre ambos documentos**: los perfiles calibrados (en la literatura, «usuarios sintéticos») son el *motor* (cómo se simula). El Gravity Model es el *marco estratégico* (qué se simula, por qué y en qué plano de la relación marca-usuario actúa cada simulación).
+> **Relación entre los documentos**: los perfiles calibrados (en la literatura, «usuarios sintéticos») son el *motor* (cómo se simula). El Gravity Model es el *marco estratégico* (qué se simula, por qué y en qué plano de la relación marca-usuario actúa cada simulación).
+>
+> **Nomenclatura de marca**: el producto interno es **SUAAS**; **Gravity** es la marca de la superficie comercial (la página `/gravity` se autodescribe como «Marco estratégico de referencia de Gravity», la landing `/propuesta` y todo el onboard público usan «Gravity»). En este documento, «Gravity Model» nombra el marco teórico y «SUAAS» la plataforma que lo implementa.
 
 ---
 
@@ -50,6 +52,11 @@ Tres consecuencias del planteamiento, las dos primeras del deck y la tercera es 
 3. **El usuario llega a la web con un momentum preexistente.** Si la intención ya tiene intensidad, dirección y velocidad antes del clic, entonces medirla y modularla **antes** de que el usuario llegue es la palanca de mayor apalancamiento. La web no crea el vector: lo recibe.
 
 Esto sustituye la metáfora del funnel (lineal, por etapas, unidireccional, que asume que la marca controla un recorrido que **empieza con la entrada al site**) por una metáfora orbital (continua, multidireccional, acumulativa, en la que la web es **un punto de la órbita, no su origen**).
+
+Dos precisiones que conviene tener presentes al usar el concepto:
+
+- **El ancla académica del vector es la teoría de campo de Kurt Lewin** (*Principles of Topological Psychology*, 1936; *Field Theory in Social Science*, 1951): la conducta como resultante de fuerzas con valencia, dirección y magnitud en un espacio vital. La formalización «la intención es un vector, la marca ejerce atracción, el usuario orbita» es lewiniana casi término a término; la `intensity` 0..1 conecta además con la fuerza de la intención conductual de Ajzen (1991). El mapeo completo está en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md), sección 3.1.
+- **El vector no se calcula: se declara.** No existe fórmula determinista del momentum en ningún punto del sistema; intensidad, dirección y velocidad son salida estructurada del LLM guiada por descripciones de esquema (`lib/momentum.ts`, `lib/agents.ts`). Es una **medición declarativa simulada** y así debe presentarse. El detalle de dónde se emite y qué se hace (y qué no) con él está en la sección 8.
 
 ## 3. Los tres planos de influencia
 
@@ -104,11 +111,13 @@ El lenguaje formal del segmento de intención es el **Job To Be Done**:
 
 **Cada situación y motivación define un segmento. Cada segmento define un onboarding.** En SUAAS este formato es exactamente el campo `intent_context` de los perfiles.
 
-### 4.3 Agentes sintéticos e instancias
+### 4.3 Perfiles comportamentales e instancias
 
-El agente sintético es el cerebro de la hipersegmentación:
+> Nota terminológica: el deck original habla de «agentes sintéticos». En SUAAS ese concepto se nombra **perfil comportamental** (y su realización operativa es el **perfil calibrado**); «usuarios sintéticos» queda reservado a la base teórica. Esta sección conserva la idea del deck con el vocabulario del producto.
 
-- Un **agente sintético** es un modelo generativo alimentado con investigación cualitativa real (entrevistas, etnografías, datos de comportamiento, características sociológicas, fuentes). No es un perfil demográfico: es una **representación computacional de cómo razona, qué teme y cómo toma decisiones** un tipo específico de usuario en un contexto específico. Es un **perfil comportamental**: no describe quién es, sino cómo se relaciona con el dominio (en banca: con el dinero y con su banco, sus motivaciones, sus miedos, su nivel de confianza, cómo decide).
+El perfil comportamental es el cerebro de la hipersegmentación:
+
+- Un **perfil comportamental** es un modelo generativo alimentado con investigación cualitativa real (entrevistas, etnografías, datos de comportamiento, características sociológicas, fuentes). No es un perfil demográfico: es una **representación computacional de cómo razona, qué teme y cómo toma decisiones** un tipo específico de usuario en un contexto específico. No describe quién es, sino cómo se relaciona con el dominio (en banca: con el dinero y con su banco, sus motivaciones, sus miedos, su nivel de confianza, cómo decide).
 - Sus **instancias** son las diferentes historias que explican **por qué ese perfil existe**. El mismo comportamiento observable puede tener orígenes completamente distintos, y aunque hoy se comporten igual, **lo que les haría cambiar, lo que les genera confianza y lo que activa su aha moment es radicalmente distinto** por instancia.
 
 Ejemplo del deck: perfil comportamental «multibancarizado pasivo» (gestión fragmentada en 2-3 bancos sin que ninguno sea «su banco»; comparación activa pero sin decisión: la intención existe, el momentum no se ha activado; el cambio no le da miedo, le da pereza: coste percibido de gestión del cambio). Tres instancias del mismo perfil:
@@ -128,6 +137,13 @@ El deck llama a este enfoque **certeza predictiva**: simular antes de lanzar par
 - ¿El mensaje post-alta **activa el aha moment** o solo confirma que la cuenta existe?
 
 > «No lanzamos el onboarding para descubrir dónde falla. Lo lanzamos ya sabiendo dónde falla y habiéndolo corregido.»
+
+La certeza predictiva solo es creíble si la simulación está protegida contra sus propios sesgos. SUAAS implementa cuatro controles experimentales que sostienen esa credibilidad (detalle y fundamento en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md), sección 4.3):
+
+1. **Cegado del brief**: el brief del anunciante nunca se inyecta al perfil que evalúa; solo lo ve un juez neutral sin persona. Evita la cámara de eco (el riesgo 1 de la base teórica).
+2. **Rúbricas por bandas** en todos los scores 0..1, con instrucción de usar el rango completo: evitan la tendencia central del evaluador.
+3. **Orden razón→número**: los esquemas de salida generan percepción y razonamiento antes que los scores, para que el número salga del texto y no al revés.
+4. **Negative prompting** en la persona («NO eres servicial ni complaciente», «escéptico ante el marketing... pides pruebas»): control de la complacencia del agente.
 
 ### 4.5 Framework de conductas
 
@@ -166,7 +182,7 @@ Entender correctamente la intención de cada consulta (informativa vs. transacci
 - **URLs**: la mejor página de destino del site para cada consulta.
 - **Audiencias**: dotar a la IA de señales para identificar la audiencia más propensa y de mayor calidad.
 
-Complementado con cobertura de marca: share of voice, plan omnicanal, colaboraciones y alianzas, acciones de cobertura incremental (cTV, DOOH), con la hipersegmentación como foco para optimizar el performance.
+Complementado con cobertura de marca: share of voice, plan omnicanal, colaboraciones y alianzas, acciones de cobertura incremental (cTV, DOOH), con la hipersegmentación como foco para optimizar el performance. *(Estos conceptos, junto con «One Search», incrementalidad y atribución de la aplicación del deck en la sección 3, pertenecen al deck original de servicios de agencia: están fuera del alcance de la plataforma y no aparecen en el mapa de implementación.)*
 
 El anuncio es uno de los lugares donde la decisión se inclina antes del clic: si el mensaje no encaja con la intención previa del usuario, no hay web que recupere esa pérdida.
 
@@ -217,12 +233,14 @@ El producto se desbloquea en función de lo que el usuario hace, no de lo que la
 
 Dos módulos merecen leerse no solo como funcionalidad, sino como la **demostración operativa** de que la decisión se forma antes del clic. Son la evidencia de que la tesis es accionable, no retórica.
 
-- **Momentum** (Construction). Es el módulo que más literalmente prueba la tesis: define un *Trigger* (un escenario que enciende una necesidad) y simula cómo cada perfil reaccionaría en su vida real **antes de que ninguna marca entre en su radar**. Por defecto el contexto de marca va vacío. Devuelve la cadena de decisión completa que ocurre fuera de la web: narrativa de intención, intensidad, dirección, velocidad, primeros pasos, canales y barreras, más el JTBD expresado en palabras del propio usuario. Conocer esos primeros pasos y canales es lo que permite a la marca **insertarse en el recorrido temprano** en vez de esperar al usuario en el site.
+- **Momentum** (Construction). Es el módulo que más literalmente prueba la tesis: define un *Trigger* (un escenario que enciende una necesidad) y simula cómo cada perfil reaccionaría en su vida real. Tiene **dos modos que la interpretación debe distinguir**: con el contexto de marca vacío (el caso por defecto) mide el momentum **desnudo, antes de que ninguna marca entre en el radar**; con `brand_context` relleno (desde v0.59 el selector de Cerebro lo hace de forma sistemática) mide el momentum **con la gravedad de una marca ya presente en el escenario**. Devuelve la cadena de decisión completa que ocurre fuera de la web: narrativa de intención, intensidad, dirección, velocidad, primeros pasos, canales y barreras, más el JTBD expresado en palabras del propio usuario. Conocer esos primeros pasos y canales es lo que permite a la marca **insertarse en el recorrido temprano** en vez de esperar al usuario en el site.
 - **GEO Tester** (Acceleration). Lanza la query de cada segmento de intención, desnuda y sin instrucciones, contra Claude, ChatGPT y Perplexity reales con búsqueda web, y analiza la respuesta: ¿aparece la marca?, ¿en qué posición?, ¿con qué tono?, ¿qué le falta comunicar para entrar en esa respuesta? Es la decisión condicionándose **en la respuesta de la IA, antes del clic**, medida con motores reales.
 
 Entre los dos cubren los dos planos pre-clic: Momentum mide el momentum **antes** de que la marca exista para el usuario; GEO mide qué hace la marca con ese momentum **en el primer punto de contacto, que ya no es la web**.
 
-## 8. Mapa teoría → implementación en SUAAS (v0.61.x)
+## 8. Mapa teoría → implementación en SUAAS
+
+> **Verificado contra el código a v0.61.15 (2026-07-19).** Este mapa caduca con cada cambio funcional: al tocar un módulo listado aquí, actualizar su fila en la misma sesión (regla 1 de `CLAUDE.md`). Las citas van por archivo y migración concreta, no por rangos.
 
 Los módulos se agrupan por plano, igual que la navegación de la app (`/gravity`). La columna «momento» ancla cada uno a la tesis: la mayoría de la plataforma trabaja **antes del clic**.
 
@@ -230,17 +248,17 @@ Los módulos se agrupan por plano, igual que la navegación de la app (`/gravity
 
 | Módulo | Ruta | Propósito | Concepto del modelo | Momento | Dónde |
 |---|---|---|---|---|---|
-| **Perfiles** | `/profiles` | Crea y gestiona perfiles calibrados (vignette grounded: demografía, Big Five, COM-B, backstory) y permite chatear con ellos. El Reasoner (Opus) emite un plan y el vector `momentum {intensity, direction, velocity}` por turno; el Talker (Sonnet) responde en voz del perfil. | Intent Momentum, JTBD (`intent_context`), COM-B, Talker-Reasoner | Pre-clic | `lib/profiles.ts`, `lib/prompts.ts`, `lib/agents.ts`, `app/profiles/[id]/chat-panel.tsx` |
-| **Momentum** | `/momentum` | Triggers de activación y simulación de cómo cada perfil los abordaría **antes de que ninguna marca entre en su radar**: narrativa, intensidad, dirección, velocidad, primeros pasos, canales, barreras, JTBD expresado. | Intent Momentum ante-touchpoint | Pre-clic | `lib/momentum.ts`, tabla `momentum_challenges` (migración 0016) |
-| **Claridad 5s** | `/targets` | Muestra una pantalla 5 segundos y la oculta; el perfil dice qué recuerda y un juez compara contra la promesa principal (`comprehension_rate`). Clasifica `behavior_class`. | Conductas óptima / fuga / repesca, certeza predictiva del primer vistazo | Pre-clic | `lib/experiments/five-second.ts`, `five_second_responses` (migración 0015) |
-| **Embudos** *(beta)* | `/funnels` | El perfil recorre el flujo paso a paso con su carga cognitiva real; un Reasoner multimodal ve cada pantalla y decide si continúa. `effort`, `intent_match`, `dropoff` y fricción por paso, sin tráfico real. | Certeza predictiva, mapa de fricción | Pre-clic | `lib/experiments/funnel.ts`, `funnel_step_responses` (migraciones 0003, 0004) |
+| **Perfiles** | `/profiles` | Crea y gestiona perfiles calibrados (vignette grounded: demografía, Big Five, COM-B, backstory, JTBD) por cuatro vías: formulario manual, CSV (17 columnas, máx. 500 filas), generación LLM desde 50 briefs curados (Opus) y el onboard público «gemelo digital» (HEXACO-24 con scoring determinista). Permite chatear con ellos: el Reasoner (Opus) emite un plan y el vector `momentum {intensity, direction, velocity}` por turno; el Talker (Sonnet) responde en voz del perfil. Retratos IA opcionales y papelera con soft delete que protege los runs históricos. | Intent Momentum, JTBD (`intent_context`), COM-B, Talker-Reasoner | Pre-clic | `lib/profiles.ts`, `lib/prompts.ts`, `lib/agents.ts`, `lib/seed-profiles.ts`, `lib/onboard.ts`, `lib/hexaco.ts`, `app/profiles/[id]/chat-panel.tsx` |
+| **Momentum** | `/momentum` | Triggers de activación y simulación de cómo cada perfil los abordaría: narrativa, intensidad, dirección, velocidad, primeros pasos, canales, barreras, JTBD expresado. Dos modos: momentum desnudo (sin marca, el caso por defecto) o con contexto de marca de Cerebro. **Atención**: su prompt de persona es reducido (demografía, backstory y JTBD; sin Big Five, sin COM-B, sin negative prompts). | Intent Momentum ante-touchpoint | Pre-clic | `lib/momentum.ts`, tabla `momentum_challenges` (migración 0016; papelera en 0017) |
+| **Claridad 5s** | `/targets` | Muestra una pantalla 5 segundos y la oculta; el perfil dice qué recuerda y un juez sin persona compara contra la promesa principal (`comprehension_rate`, rúbrica por bandas). El propio perfil autoclasifica su `behavior_class`. Agrega `mean_clarity`, `mean_comprehension`, `top_barriers` y `behavior_counts`. | Conductas óptima / fuga / repesca, certeza predictiva del primer vistazo | Pre-clic | `lib/experiments/five-second.ts`, tabla `five_second_responses` (migración 0002; `behavior_class` en 0015) |
+| **Embudos** *(beta)* | `/funnels` | El perfil recorre el flujo paso a paso con su carga cognitiva real; un agente multimodal (Sonnet, una pasada por paso, con memoria episódica de los pasos previos) ve cada pantalla y decide si continúa; el abandono corta el recorrido de verdad. `effort`, `intent_match`, `completion_rate`, `dropoff_by_step` y fricción por paso, sin tráfico real. | Certeza predictiva, mapa de fricción | Pre-clic | `lib/experiments/funnel.ts`, `funnel_step_responses` (migraciones 0003, 0004) |
 
 ### Acceleration Plane (pre-clic): modular el momentum hacia la marca
 
 | Módulo | Ruta | Propósito | Concepto del modelo | Momento | Dónde |
 |---|---|---|---|---|---|
-| **GEO Tester** | `/geo` | La query de cada segmento JTBD contra Claude, ChatGPT y Perplexity reales (con búsqueda web y citas). Mide por motor `visibility_score`, `brand_position`, `recommendation_tone`, `key_claims`, `missing_attributes`. | GEO / nuevo estándar de búsqueda | Pre-clic | `lib/geo.ts`, `lib/geo-engines.ts`, `geo_analyses` (migraciones 0015 y 0023) |
-| **Campañas** | `/campaigns` | Enfrenta cada perfil al anuncio (Google, Meta, TikTok) bajo su query. Solo si `intent_to_click ≥ 0.5` se le muestra la landing: la atracción se juega en el anuncio. Propone la versión ideal por perfil. | Performance guiado por intención, conductas, decisión pre-web | Pre-clic | `lib/experiments/campaign.ts`, `lib/campaigns.ts` (migraciones 0008 a 0022) |
+| **GEO Tester** | `/geo` | Proceso en dos pasos: (1) sonda real con búsqueda web por motor (Claude, ChatGPT y Perplexity, con citas), lanzando la query de cada segmento JTBD desnuda y sin instrucciones; (2) análisis con Sonnet que puntúa `brand_mentioned`, `visibility_score`, `brand_position`, `recommendation_tone`, `key_claims`, `missing_attributes`. Modelo configurable por motor (`app_settings.geo_engine_models`, editable en `/tokens`). | GEO / nuevo estándar de búsqueda | Pre-clic | `lib/geo.ts`, `lib/geo-engines.ts`, `geo_analyses` (migraciones 0015, 0017 y 0023) |
+| **Campañas** | `/campaigns` | Enfrenta cada perfil al anuncio bajo su query, en 5 canales (`google`, `meta`, `linkedin`, `tiktok`, `x`) y 13 estrategias (search, display, pmax, demand_gen, video, shopping, formatos Meta y TikTok; `app` declarada sin implementar). Solo si `intent_to_click ≥ 0,5` se le muestra la landing: la atracción se juega en el anuncio. Controles: cegado del brief (solo lo ve el juez neutral de comprensión), rúbricas por bandas, orden razón→score, muestreo determinista de combinaciones (reproducible por perfil y query), chequeo `behavior_inconsistencies` y `behavior_class` con semántica de ads. Propone la versión ideal por perfil y una síntesis LLM de recomendaciones. | Performance guiado por intención, conductas, decisión pre-web | Pre-clic | `lib/experiments/campaign.ts`, `lib/campaigns.ts` (migraciones 0008 a 0014 y 0018 a 0022) |
 
 ### Value Plane (en y post-clic): validar y blindar la decisión
 
@@ -261,21 +279,42 @@ No son un plano: son instrumentos que alimentan o calibran a los módulos de los
 
 ### Motor de los perfiles (transversal a todo el modelo)
 
-| Concepto del modelo | Implementación | Dónde |
+La anatomía completa del perfil, sus fundamentos académicos y sus límites están en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md). Lo esencial para este mapa, incluidas las excepciones que rompen la uniformidad aparente:
+
+| Concepto del modelo | Implementación real | Dónde |
 |---|---|---|
-| Perfiles calibrados grounded | Demografía + Big Five + COM-B + backstory, arquitectura Talker-Reasoner, negative prompting. | `lib/profiles.ts`, `lib/prompts.ts`, `lib/agents.ts`, base teórica en `CONOCIMIENTO-USUARIOS-SINTETICOS.md` |
+| Perfiles calibrados grounded | Demografía + Big Five (0..1) + COM-B + backstory + JTBD, serializados por `buildSystemPrompt` (la única función de voz del perfil) con negative prompting anti-complacencia. | `lib/profiles.ts`, `lib/prompts.ts`, base teórica en `CONOCIMIENTO-USUARIOS-SINTETICOS.md` |
+| Talker-Reasoner (Sistema 1/2) | **Solo en el chat 1:1** (Opus planifica, Sonnet habla). Todos los experimentos batch (5s, A/B, embudos, copy, pricing, campañas) son una sola pasada con Sonnet que colapsa deliberación y expresión. | `lib/agents.ts`, `app/api/chat/route.ts` |
+| Fidelidad por módulo | **Excepción conocida**: el módulo Momentum no usa `buildSystemPrompt`; su persona ad hoc omite Big Five, COM-B y los negative prompts. Los jueces (5s, campañas) van sin persona por diseño (cegado). | `lib/momentum.ts:110-132`, `lib/experiments/campaign.ts` |
+
+### Estado del vector Intent Momentum (dónde se emite y qué se hace con él)
+
+- **Se emite en dos superficies**: en el chat, por turno, dentro del plan del Reasoner (Opus); en el módulo Momentum, por perfil y escenario (Sonnet). En ambas es salida declarada del LLM guiada por descripciones de esquema: **no hay fórmula determinista, ni temperatura, ni muestreo** en ningún punto del proyecto.
+- **Lo que todavía no hace**: en el chat, el vector no se pasa al Talker ni se persiste como métrica agregada (solo se pinta en la UI; la única métrica de sesión derivada del plan es `effort_ratio`, la media de los `effort` por turno). El Reasoner no tiene memoria de sus propios planes: re-infiere el estado y la «velocidad» cada turno desde el texto visible, sin serie temporal real. Ningún módulo cruza el vector con `behavior_class`. Estos tres huecos son la base técnica de los pendientes «gravedad agregada» y «evolución temporal» de la lista de abajo.
+
+### Las dos semánticas de `behavior_class`
+
+El enum es único (`optima` / `fuga` / `repesca`) pero el criterio operacional cambia por módulo; cualquier comparación inter-módulo debe explicitarlo. En ambos casos la clasificación la hace el propio agente sobre su conducta («Clasifica TU propia conducta») y NULL significa «sin clasificar» (filas anteriores al Gravity Model).
+
+| Módulo | óptima | fuga | repesca |
+|---|---|---|---|
+| Claridad 5s (migración 0015) | Entendió y seguiría hacia la acción | Carga cognitiva o promesa poco clara: abandonaría | Dudas, pero la intención sigue viva |
+| Campañas (migración 0019) | Conecta con su intención: haría click | Ignora el anuncio y sigue con lo suyo | Sin click ahora, pero la necesidad sigue viva |
+
+En embudos, copy y pricing la taxonomía no existe (el embudo colapsa fuga y repesca en el booleano `would_continue`).
 
 ### Conceptos del modelo aún sin implementación directa
 
-Huecos identificados (insumo para el roadmap), reverificados contra v0.61.x:
+Huecos identificados (insumo para el roadmap), reverificados contra v0.61.15. Esta lista está duplicada con redacción propia en el componente `ConceptosPendientes` de la página `/gravity` (`app/gravity/conceptos-pendientes.tsx`): este documento es la fuente de verdad; al cambiar la lista, sincronizar el componente en la misma sesión.
 
 - **Value Plane completo**: no hay simulación post-alta (descubrimiento, adopción, pertenencia, hábito recurrente, churn). Es el plano con menos cobertura: la plataforma es hoy fuerte en pre-clic (Construction + Acceleration) y débil en post-clic (Value).
 - **Instancias** como entidad: SUAAS tiene perfiles individuales, pero no el par «perfil comportamental → N instancias» (mismo comportamiento, orígenes y aha moments distintos).
 - **Gravedad agregada**: no existe una métrica que sume el momentum de las interacciones de una cohorte en una «fuerza gravitacional» de la marca, ni vista que cruce el momentum entre módulos.
 - **Mapa de fricción priorizado por impacto** cruzando todas las instancias (sección 4.5): los embudos ya rankean fricciones por frecuencia entre perfiles (`top_friction`), pero falta la dimensión «instancia» como entidad y la regla de severidad «lo que falla en todas las instancias se toca primero».
 - **Aha moment por instancia** (6.2): no se modela ni detecta el momento de propiedad psicológica.
-- **Repesca accionable**: `behavior_class='repesca'` se cuenta pero no genera la «ventana de recuperación» (qué mensaje recuperaría a ese usuario).
-- **Evolución temporal del momentum**: el vector se mide por interacción, pero no se traza su trayectoria a lo largo del tiempo ni entre touchpoints.
+- **Repesca accionable**: `behavior_class='repesca'` se cuenta pero no genera la «ventana de recuperación» (qué mensaje recuperaría a ese usuario). El hueco es menor de lo que parece: campañas ya recoge la «versión ideal por perfil», materia prima directa de esa ventana.
+- **Evolución temporal del momentum**: el vector se mide por interacción, pero no se traza su trayectoria a lo largo del tiempo ni entre touchpoints (ver «Estado del vector Intent Momentum» más arriba: hoy ni siquiera se persiste como métrica en el chat).
+- **GEO pendiente**: AI Overview (vía SerpAPI) y Gemini como cuarto y quinto motor (la pestaña «Próximamente» ya existe en la UI), y la monitorización periódica con cron: con la varianza inter-run reconocida del GEO, la tendencia es el producto y la foto única es ruido.
 
 ## 9. Síntesis: el trabajo se desplaza a la órbita
 
@@ -304,3 +343,6 @@ Dos tercios del modelo, y casi toda la plataforma, trabajan **antes del clic**. 
 | **GEO** | Generative Engine Optimization: influir en cómo los motores de respuesta IA interpretan, citan y recomiendan la marca antes del clic. |
 | **Cerebro** | Base de conocimiento de marca de SUAAS; contexto gravitacional reutilizable que se inyecta en los módulos. Documentos privados (ZDR) que no salen al gateway. |
 | **Trigger (SUAAS)** | Escenario de activación JTBD sobre el que se simula el momentum de los perfiles antes de cualquier touchpoint de marca. |
+| **Perfil calibrado** | Término de producto: la realización operativa del perfil comportamental en SUAAS (registro estructurado + agente LLM). En el onboard público se llama «gemelo digital» cuando lo protagoniza una persona real. |
+| **Medición declarativa simulada** | Naturaleza de todas las métricas del vector y de los scores: valores que el LLM declara guiado por esquemas y rúbricas, no calculados por un modelo formal. Sin fórmula, sin muestreo, sin validación contra conducta humana real. |
+| **SUAAS / Gravity** | SUAAS es el producto interno; Gravity, la marca de la superficie comercial (página `/gravity`, landing `/propuesta`, onboard). El marco teórico se llama Gravity Model en ambos contextos. |
