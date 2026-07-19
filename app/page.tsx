@@ -189,7 +189,7 @@ function Hero() {
         <p
           className="body-lg"
           style={{
-            color: "rgba(var(--fg),0.7)",
+            color: "rgba(var(--fg),0.82)",
             maxWidth: 540,
             margin: 0,
             lineHeight: 1.55,
@@ -270,7 +270,7 @@ const DIMENSIONS = [
               {s.v}
             </span>
             <span
-              style={{ fontSize: 10, color: "rgba(var(--fg),0.25)" }}
+              style={{ fontSize: 10, color: "rgba(var(--fg),0.42)" }}
             >
               {s.note}
             </span>
@@ -299,7 +299,7 @@ const DIMENSIONS = [
             </span>
             <span
               className="mono"
-              style={{ fontSize: 11, color: "rgba(var(--fg),0.45)", letterSpacing: "0.08em" }}
+              style={{ fontSize: 11, color: "rgba(var(--fg),0.63)", letterSpacing: "0.08em" }}
             >
               {s.v}
             </span>
@@ -339,7 +339,7 @@ function IntentMomentumSection() {
         <p
           style={{
             fontSize: 14,
-            color: "rgba(var(--fg),0.55)",
+            color: "rgba(var(--fg),0.73)",
             lineHeight: 1.6,
             margin: 0,
           }}
@@ -361,7 +361,7 @@ function IntentMomentumSection() {
           <div
             key={d.label}
             style={{
-              border: "1px solid rgba(var(--fg),0.07)",
+              border: "1px solid rgba(var(--fg),0.13)",
               borderRadius: "var(--radius-lg)",
               padding: "22px 22px 20px",
               display: "flex",
@@ -373,10 +373,10 @@ function IntentMomentumSection() {
             <span
               className="mono"
               style={{
-                fontSize: 9,
-                letterSpacing: "0.24em",
+                fontSize: 10,
+                letterSpacing: "0.2em",
                 textTransform: "uppercase",
-                color: "rgba(var(--fg),0.35)",
+                color: "rgba(var(--fg),0.56)",
               }}
             >
               {d.label}
@@ -385,7 +385,7 @@ function IntentMomentumSection() {
             <p
               style={{
                 fontSize: 12,
-                color: "rgba(var(--fg),0.45)",
+                color: "rgba(var(--fg),0.63)",
                 lineHeight: 1.55,
                 margin: 0,
               }}
@@ -407,7 +407,7 @@ function GravityVisual() {
       style={{
         position: "relative",
         overflow: "hidden",
-        border: "1px solid rgba(var(--fg),0.08)",
+        border: "1px solid rgba(var(--fg),0.13)",
         borderRadius: "var(--radius-lg)",
         padding: "clamp(32px, 4vw, 52px)",
         background: "rgba(var(--fg),0.015)",
@@ -467,7 +467,7 @@ function GravityVisual() {
           <p
             style={{
               fontSize: 14,
-              color: "rgba(var(--fg),0.6)",
+              color: "rgba(var(--fg),0.72)",
               lineHeight: 1.65,
               margin: 0,
               maxWidth: 500,
@@ -516,7 +516,7 @@ function GravityVisual() {
               <span
                 style={{
                   fontSize: 12,
-                  color: "rgba(var(--fg),0.35)",
+                  color: "rgba(var(--fg),0.56)",
                   letterSpacing: "0.02em",
                 }}
               >
@@ -576,9 +576,9 @@ function OrbitalDiagram({
           página siempre «ocupada»). */}
       {!faint && (
         <>
-          <RingLabel r={rOuter} angle={-28} alpha={0.5} text="01 Construction" />
-          <RingLabel r={rMid} angle={42} alpha={0.38} text="02 Acceleration" />
-          <RingLabel r={rInner} angle={-55} alpha={0.22} text="03 Value" />
+          <RingLabel r={rOuter} angle={-28} alpha={0.82} text="01 Construction" />
+          <RingLabel r={rMid} angle={42} alpha={0.66} text="02 Acceleration" />
+          <RingLabel r={rInner} angle={-55} alpha={0.5} text="03 Value" />
 
           {/* Center: la intención, la única masa con color */}
           <div className="gm-center" />
@@ -639,8 +639,8 @@ function RingLabel({
         top: "50%",
         left: "50%",
         transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
-        fontSize: 8,
-        letterSpacing: "0.2em",
+        fontSize: 10,
+        letterSpacing: "0.14em",
         textTransform: "uppercase",
         color: `rgba(var(--fg), ${alpha})`,
         whiteSpace: "nowrap",
@@ -725,7 +725,7 @@ function PlaneSection({
         <p
           style={{
             fontSize: 13,
-            color: "rgba(var(--fg),0.5)",
+            color: "rgba(var(--fg),0.72)",
             lineHeight: 1.6,
             margin: 0,
           }}
@@ -798,7 +798,7 @@ function ModuleCard({ item }: { item: ModuleItem }) {
           </div>
           <p
             style={{
-              color: "rgba(var(--fg),0.62)",
+              color: "rgba(var(--fg),0.74)",
               fontSize: 14.5,
               lineHeight: 1.55,
               margin: 0,
@@ -826,21 +826,24 @@ function ModuleCard({ item }: { item: ModuleItem }) {
 
   return (
     <Link href={item.href} className="feature-card">
-      <item.icon size={20} />
-      <h3
-        style={{
-          fontFamily: "var(--font-display)",
-          fontSize: 20,
-          lineHeight: 1.15,
-          color: "var(--text-strong)",
-          margin: 0,
-        }}
-      >
-        {item.label}
-      </h3>
+      {/* Icono siempre en línea con el título, nunca suelto encima. */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <item.icon size={20} />
+        <h3
+          style={{
+            fontFamily: "var(--font-display)",
+            fontSize: 20,
+            lineHeight: 1.15,
+            color: "var(--text-strong)",
+            margin: 0,
+          }}
+        >
+          {item.label}
+        </h3>
+      </div>
       <p
         style={{
-          color: "rgba(var(--fg),0.6)",
+          color: "rgba(var(--fg),0.72)",
           fontSize: 13,
           lineHeight: 1.55,
           margin: 0,

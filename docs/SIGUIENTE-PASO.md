@@ -1,9 +1,11 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-07-20 tras v0.64.9 (rediseño «oscuro editorial» cerrado + home rediseñada: max-width, firma orbital, cards destacadas, ritmo).
+> Última actualización: 2026-07-20 tras v0.64.10 (home rediseñada + pasada de accesibilidad: contraste, tamaños mínimos, bordes de card, botón secundario en claro).
 
-## Estado actual (v0.64.9 desplegada)
+## Estado actual (v0.64.10 desplegada)
+
+- **Pendientes abiertos de la revisión de la home**: (1) **breakpoint intermedio ~1024px**: entre 880 y 1200px el hero a dos columnas queda apretado (título en dos líneas + orbital comprimido); falta reducir el titular y reorganizar en ese rango. (2) **Selección de modelo en `/tokens`**: añadir un selector por empresa (proveedor) y modelo, encima de «modelos del GEO Tester» (módulo nuevo); hoy está fijo en `claude-sonnet-4.6`. Ambos anotados por el usuario el 20-jul.
 
 - **Home rediseñada (v0.64.9, P1+P2 de un review externo)**: `max-width: 1200` centrado y ritmo vertical más apretado; hero a dos columnas con el diagrama orbital como firma; el orbital recurre como marca de agua tenue en el bloque Gravity Model; cards destacadas anchas (Perfiles, GEO Tester) rompen la rejilla uniforme. Se descartó por decisión/antipatrón lo que el review pedía y no procede: serif en titulares, color por plano y kit de marketing. **Opcionales pendientes** si se quiere seguir puliendo la home: iconos custom (hoy Lucide), capturas reales del producto dentro de las cards, y una mono con carácter para tokens de datos técnicos (INTENSIDAD 0→1, approaching/stable/drifting). Detalle en `ROADMAP.md → v0.64.9`.
 

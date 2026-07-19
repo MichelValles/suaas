@@ -216,10 +216,10 @@ function NavGroup({
         className="mono"
         style={{
           padding: "0 12px",
-          fontSize: 9,
-          letterSpacing: "0.28em",
+          fontSize: 11,
+          letterSpacing: "0.22em",
           textTransform: "uppercase",
-          color: "rgba(var(--fg),0.35)",
+          color: "rgba(var(--fg),0.55)",
         }}
       >
         {label}
