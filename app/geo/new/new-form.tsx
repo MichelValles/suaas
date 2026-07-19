@@ -27,6 +27,9 @@ export function NewGeoForm() {
   const [segments, setSegments] = useState<SegmentDraft[]>([newSegment()]);
   const [brandName, setBrandName] = useState("");
   const [brandDescription, setBrandDescription] = useState("");
+  // Marca de Cerebro elegida: viaja como hidden para que el runner recupere
+  // los documentos por similitud (RAG) en lugar del volcado íntegro.
+  const [brandId, setBrandId] = useState("");
 
   const segmentsJson = JSON.stringify(
     segments.map(({ label, jtbd, query }) => ({ label, jtbd, query })),
@@ -57,6 +60,7 @@ export function NewGeoForm() {
       }}
     >
       <input type="hidden" name="segments_json" value={segmentsJson} />
+      <input type="hidden" name="brand_id" value={brandId} />
 
       <FieldGroup title="Identificación">
         <CField
@@ -68,10 +72,13 @@ export function NewGeoForm() {
         />
         <BrandPicker
           onPick={(b) => {
+            setBrandId(b.id);
             setBrandName(b.name);
-            setBrandDescription(b.context);
+            // La descripción corta basta: los documentos llegarán por RAG.
+            setBrandDescription(b.description || b.context);
           }}
           onClear={() => {
+            setBrandId("");
             setBrandName("");
             setBrandDescription("");
           }}

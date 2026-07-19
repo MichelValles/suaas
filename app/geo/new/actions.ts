@@ -9,6 +9,8 @@ const GeoFormSchema = z.object({
   name: z.string().min(1, "Nombre obligatorio"),
   brand_name: z.string().min(1, "Nombre de marca obligatorio"),
   brand_description: z.string().min(20, "Descripción mínima de 20 caracteres"),
+  // Marca de Cerebro (opcional): habilita el retrieval RAG en el runner.
+  brand_id: z.string().optional(),
   segments_json: z.string().min(2, "Introduce al menos un segmento"),
 });
 
@@ -53,6 +55,7 @@ export async function createGeoAnalysisAction(
       name: result.data.name,
       brand_name: result.data.brand_name,
       brand_description: result.data.brand_description,
+      brand_id: result.data.brand_id?.trim() || null,
       segments: segParsed.data,
     });
     analysisId = analysis.id;

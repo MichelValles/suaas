@@ -20,7 +20,8 @@ export type UsageScope =
   | "momentum_probe"
   | "seed_brief"
   | "seed_profile"
-  | "batch_intent";
+  | "batch_intent"
+  | "rag_embed";
 
 type RawUsage = {
   promptTokens?: number;

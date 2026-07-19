@@ -21,6 +21,10 @@ export const DEFAULT_MODEL =
 export const REASONER_MODEL =
   process.env.SUAAS_REASONER_MODEL ?? "anthropic/claude-opus-4.7";
 
+// Modelo de embeddings del RAG de Cerebro (1536 dims, vía gateway).
+export const EMBEDDING_MODEL =
+  process.env.SUAAS_EMBEDDING_MODEL ?? "openai/text-embedding-3-small";
+
 export function isGatewayConfigured(): boolean {
   // En Vercel la var se inyecta sin acción del usuario. En local, depende del pull.
   return Boolean(process.env.AI_GATEWAY_API_KEY) || process.env.VERCEL === "1";

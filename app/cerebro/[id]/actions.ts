@@ -10,6 +10,7 @@ import {
   updateBrand,
   updateBrandDocument,
 } from "@/lib/cerebro";
+import { indexBrand } from "@/lib/rag";
 
 export type DetailState = { ok: boolean; error?: string; doneAt?: number };
 
@@ -71,6 +72,21 @@ export async function updateBrandDocumentAction(
     if (!id) throw new Error("Falta el identificador del documento.");
     const input = BrandDocumentUpdateSchema.parse({ title, kind, content, sensitive });
     await updateBrandDocument(id, input);
+  } catch (err) {
+    return { ok: false, error: (err as Error).message };
+  }
+  revalidatePath(`/cerebro/${brand_id}`);
+  return { ok: true, doneAt: Date.now() };
+}
+
+export async function reindexBrandAction(
+  _prev: DetailState,
+  formData: FormData,
+): Promise<DetailState> {
+  const brand_id = String(formData.get("brand_id") ?? "");
+  try {
+    if (!brand_id) throw new Error("Falta el identificador de la marca.");
+    await indexBrand(brand_id);
   } catch (err) {
     return { ok: false, error: (err as Error).message };
   }

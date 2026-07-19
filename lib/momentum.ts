@@ -6,6 +6,7 @@ import {
   isMissingColumnError,
   MigrationPendingError,
 } from "@/lib/supabase";
+import { buildBrandContextRag } from "@/lib/rag";
 import { recordUsage } from "@/lib/usage";
 import { chunks } from "@/lib/experiments/shared";
 import { listProfilesByIds, type Profile } from "@/lib/profiles";
@@ -35,6 +36,8 @@ export type MomentumChallengeInput = {
   name: string;
   trigger_scenario: string;
   brand_context?: string;
+  /** Marca de Cerebro elegida en el picker: habilita el retrieval RAG por trigger. */
+  brand_id?: string | null;
   profile_ids: string[];
 };
 
@@ -45,6 +48,8 @@ export type MomentumChallenge = {
   name: string;
   trigger_scenario: string;
   brand_context: string | null;
+  /** Null en triggers históricos o escritos a mano: comportamiento legado. */
+  brand_id?: string | null;
   profile_ids: string[];
   results: ProfileMomentumResult[] | null;
   status: "pending" | "running" | "done" | "error";
@@ -103,6 +108,9 @@ const MomentumOutputSchema = z.object({
 export async function analyzeProfileMomentum(
   challenge: MomentumChallenge,
   profile: Profile,
+  // Contexto de marca ya resuelto por el runner (RAG o texto del challenge):
+  // esta función no decide de dónde sale, solo lo inyecta si existe.
+  brandContext: string | null,
 ): Promise<{ result: ProfileMomentumResult; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
 
@@ -136,8 +144,8 @@ export async function analyzeProfileMomentum(
     "## Escenario de activación",
     challenge.trigger_scenario,
   ];
-  if (challenge.brand_context) {
-    promptLines.push("", "## Contexto de marca", challenge.brand_context);
+  if (brandContext) {
+    promptLines.push("", "## Contexto de marca", brandContext);
   }
   promptLines.push("", "Describe cómo asumirías este Trigger en tu vida.");
   const prompt = promptLines.join("\n");
@@ -174,6 +182,7 @@ export async function createMomentumChallenge(
       name: input.name,
       trigger_scenario: input.trigger_scenario,
       brand_context: input.brand_context ?? null,
+      brand_id: input.brand_id ?? null,
       profile_ids: input.profile_ids,
       status: "pending",
     })
@@ -276,6 +285,19 @@ export async function runMomentumChallenge(
   try {
     const profiles = await listProfilesByIds(challenge.profile_ids);
 
+    // RAG por trigger: el escenario de activación es común a todos los
+    // perfiles, así que una sola recuperación por run. Si no devuelve nada
+    // (marca sin indexar, gateway caído) se usa el texto guardado en el
+    // challenge, como hasta ahora.
+    let brandContext = challenge.brand_context;
+    if (challenge.brand_id) {
+      const ragCtx = await buildBrandContextRag(
+        challenge.brand_id,
+        challenge.trigger_scenario,
+      );
+      if (ragCtx) brandContext = ragCtx;
+    }
+
     const results: ProfileMomentumResult[] = [];
     for (const chunk of chunks(profiles, 5)) {
       const chunkResults = await Promise.all(
@@ -283,6 +305,7 @@ export async function runMomentumChallenge(
           const { result, latencyMs, usage } = await analyzeProfileMomentum(
             challenge,
             profile,
+            brandContext,
           );
           await recordUsage({
             scope: "momentum_probe",

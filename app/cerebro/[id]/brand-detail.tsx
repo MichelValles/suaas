@@ -12,6 +12,7 @@ import {
 import {
   addBrandDocumentAction,
   deleteBrandDocumentAction,
+  reindexBrandAction,
   updateBrandAction,
   updateBrandDocumentAction,
   type DetailState,
@@ -139,7 +140,65 @@ function DocumentsSection({
           ))}
         </ul>
       )}
+      {documents.length > 0 && <ReindexForm brandId={brandId} />}
     </Section>
+  );
+}
+
+/**
+ * Reindexado manual del RAG: regenera los chunks vectorizados de todos los
+ * documentos no privados de la marca. Útil como backfill (documentos previos
+ * al índice) o si el indexado automático falló al guardar.
+ */
+function ReindexForm({ brandId }: { brandId: string }) {
+  const [state, formAction] = useActionState(reindexBrandAction, initial);
+  return (
+    <form
+      action={formAction}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 10,
+        borderTop: "1px solid rgba(var(--fg),0.08)",
+        paddingTop: 16,
+      }}
+    >
+      <input type="hidden" name="brand_id" value={brandId} />
+      <p
+        style={{
+          fontSize: 12,
+          color: "rgba(var(--fg),0.5)",
+          margin: 0,
+          lineHeight: 1.55,
+        }}
+      >
+        El índice de búsqueda se regenera solo al guardar o editar un
+        documento. Usa «Reindexar marca» para reconstruirlo entero: por
+        ejemplo, con documentos anteriores al índice o tras un fallo de
+        indexado. Los documentos privados nunca se indexan.
+      </p>
+      {state.error && <ErrorBox>{state.error}</ErrorBox>}
+      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+        <ReindexButton />
+        {state.ok && (
+          <span
+            className="mono"
+            style={{ fontSize: 11, letterSpacing: "0.1em", color: "var(--success-text)" }}
+          >
+            Índice regenerado
+          </span>
+        )}
+      </div>
+    </form>
+  );
+}
+
+function ReindexButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" className="btn-pill" disabled={pending} style={{ alignSelf: "flex-start" }}>
+      {pending ? "Reindexando..." : "Reindexar marca"}
+    </button>
   );
 }
 

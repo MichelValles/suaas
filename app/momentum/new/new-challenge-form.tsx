@@ -271,6 +271,9 @@ export function NewChallengeForm({ profiles }: { profiles: Profile[] }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [intentFilter, setIntentFilter] = useState<IntentFilter>("all");
   const [brandContext, setBrandContext] = useState("");
+  // Marca de Cerebro elegida: viaja como hidden para que el runner recupere
+  // los documentos por similitud (RAG) en lugar del volcado íntegro.
+  const [brandId, setBrandId] = useState("");
 
   // Refleja intent_context de cada perfil; se actualiza al guardar
   const [localIntents, setLocalIntents] = useState<Record<string, string>>(
@@ -366,8 +369,15 @@ export function NewChallengeForm({ profiles }: { profiles: Profile[] }) {
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <BrandPicker
-            onPick={(b) => setBrandContext(b.context)}
-            onClear={() => setBrandContext("")}
+            onPick={(b) => {
+              setBrandId(b.id);
+              // El contexto corto basta: los documentos llegarán por RAG.
+              setBrandContext(b.description || b.context);
+            }}
+            onClear={() => {
+              setBrandId("");
+              setBrandContext("");
+            }}
             hint="Vuelca la información de una marca de Cerebro. Momentum mide la reacción antes del primer contacto con la marca: úsalo solo si quieres un análisis orientado a marca."
           />
           <textarea
@@ -449,6 +459,8 @@ export function NewChallengeForm({ profiles }: { profiles: Profile[] }) {
           )}
         </div>
       </div>
+
+      <input type="hidden" name="brand_id" value={brandId} />
 
       <input
         type="hidden"

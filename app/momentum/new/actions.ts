@@ -8,6 +8,8 @@ export async function createMomentumChallengeAction(formData: FormData) {
   const name = (formData.get("name") as string)?.trim();
   const trigger_scenario = (formData.get("trigger_scenario") as string)?.trim();
   const brand_context = (formData.get("brand_context") as string)?.trim() || undefined;
+  // Marca de Cerebro (opcional): habilita el retrieval RAG en el runner.
+  const brand_id = (formData.get("brand_id") as string)?.trim() || undefined;
   const profile_ids_raw = formData.get("profile_ids") as string;
 
   if (!name || !trigger_scenario) throw new Error("Nombre y escenario son obligatorios.");
@@ -25,6 +27,7 @@ export async function createMomentumChallengeAction(formData: FormData) {
     name,
     trigger_scenario,
     brand_context,
+    brand_id,
     profile_ids,
   });
 

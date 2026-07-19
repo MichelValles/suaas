@@ -4,6 +4,7 @@ import {
   neutralizeDelimiters,
   wrapUntrusted,
 } from "@/lib/guardrails";
+import { indexDocument } from "@/lib/rag";
 import {
   getServerClient,
   isMissingColumnError,
@@ -209,7 +210,15 @@ export async function addBrandDocument(
     .select("*")
     .single();
   if (error) throw new Error(error.message);
-  return data as BrandDocument;
+  const doc = data as BrandDocument;
+  try {
+    await indexDocument(doc);
+  } catch (err) {
+    // El indexado nunca bloquea el guardado: si falla, el retrieval de esa
+    // marca caerá al modo legado hasta el próximo guardado o reindexado.
+    console.warn("[cerebro] indexado RAG falló:", (err as Error).message);
+  }
+  return doc;
 }
 
 export async function updateBrandDocument(
@@ -225,7 +234,15 @@ export async function updateBrandDocument(
     .select("*")
     .single();
   if (error) throw new Error(error.message);
-  return data as BrandDocument;
+  const doc = data as BrandDocument;
+  try {
+    await indexDocument(doc);
+  } catch (err) {
+    // El indexado nunca bloquea el guardado: si falla, el retrieval de esa
+    // marca caerá al modo legado hasta el próximo guardado o reindexado.
+    console.warn("[cerebro] indexado RAG falló:", (err as Error).message);
+  }
+  return doc;
 }
 
 export async function deleteBrandDocument(id: string): Promise<void> {

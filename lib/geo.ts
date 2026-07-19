@@ -1,7 +1,9 @@
 import { generateObject } from "ai";
 import { z } from "zod";
+import { buildBrandContext, getBrandWithDocuments } from "@/lib/cerebro";
 import { DEFAULT_MODEL } from "@/lib/gateway";
 import { UNTRUSTED_LIMITS, wrapUntrusted } from "@/lib/guardrails";
+import { buildBrandContextRag } from "@/lib/rag";
 import {
   type EngineCitation,
   type EngineProbe,
@@ -95,6 +97,8 @@ export type GeoAnalysisInput = {
   name: string;
   brand_name: string;
   brand_description: string;
+  /** Marca de Cerebro elegida en el picker: habilita el retrieval RAG por segmento. */
+  brand_id?: string | null;
   segments: SegmentInput[];
 };
 
@@ -105,6 +109,8 @@ export type GeoAnalysis = {
   name: string;
   brand_name: string;
   brand_description: string;
+  /** Null en análisis históricos o escritos a mano: comportamiento legado. */
+  brand_id?: string | null;
   segments: SegmentInput[];
   results: SegmentResult[] | null;
   status: "pending" | "running" | "done" | "error";
@@ -292,6 +298,7 @@ export async function createGeoAnalysis(input: GeoAnalysisInput): Promise<GeoAna
       name: input.name,
       brand_name: input.brand_name,
       brand_description: input.brand_description,
+      brand_id: input.brand_id ?? null,
       segments: input.segments,
       status: "pending",
     })
@@ -376,6 +383,23 @@ export async function runGeoAnalysis(id: string): Promise<GeoAnalysis> {
 
   try {
     const models = await getGeoEngineModels();
+
+    // Modo legado como red de seguridad del RAG: si la marca viene de
+    // Cerebro pero el retrieval no devuelve nada (sin indexar, gateway
+    // caído), se usa el contexto completo de buildBrandContext, calculado
+    // una sola vez para todos los segmentos.
+    let fallbackContext: string | null = null;
+    if (analysis.brand_id) {
+      try {
+        const brandData = await getBrandWithDocuments(analysis.brand_id);
+        if (brandData) {
+          fallbackContext = buildBrandContext(brandData.brand, brandData.documents);
+        }
+      } catch (err) {
+        console.warn("[geo] contexto legado de marca falló:", (err as Error).message);
+      }
+    }
+
     const results: SegmentResult[] = [];
     // Una sonda con búsqueda web tarda 30-50 s: segmentos de dos en dos
     // (6 sondas concurrentes máx.) para que 10 segmentos quepan en el
@@ -386,6 +410,18 @@ export async function runGeoAnalysis(id: string): Promise<GeoAnalysis> {
       const chunk = analysis.segments.slice(i, i + SEGMENT_CHUNK);
       const chunkResults = await Promise.all(
         chunk.map(async (segment) => {
+          // RAG por segmento: el JTBD y la query son la mejor descripción
+          // de qué conocimiento de marca es pertinente aquí. Los análisis
+          // históricos (brand_id null) conservan el comportamiento actual.
+          let description = analysis.brand_description;
+          if (analysis.brand_id) {
+            const ragCtx = await buildBrandContextRag(
+              analysis.brand_id,
+              `${segment.jtbd}. ${segment.query}`,
+            );
+            if (ragCtx) description = `${analysis.brand_description}\n\n${ragCtx}`;
+            else if (fallbackContext) description = fallbackContext;
+          }
           const engines = await Promise.all(
             GEO_ENGINE_IDS.map((engine) =>
               runEngineForSegment(
@@ -393,7 +429,7 @@ export async function runGeoAnalysis(id: string): Promise<GeoAnalysis> {
                 models[engine],
                 id,
                 analysis.brand_name,
-                analysis.brand_description,
+                description,
                 segment,
               ),
             ),
