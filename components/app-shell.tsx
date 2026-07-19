@@ -56,12 +56,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 export function PageHeading({
-  eyebrow,
   title,
   description,
   descriptionVariant = "inline",
   actions,
 }: {
+  /**
+   * Retirado en el rediseño editorial (v0.64.3): el eyebrow mono en
+   * mayúsculas (CONSTRUCTION · Perfiles) duplicaba la sección que ya marca
+   * el sidebar y arrastraba el registro «dashboard de IA». Se sigue
+   * aceptando en la firma por compatibilidad con las llamadas existentes,
+   * pero no se destructura ni se pinta.
+   */
   eyebrow?: string;
   title: string;
   description?: string;
@@ -83,19 +89,6 @@ export function PageHeading({
         gap: 16,
       }}
     >
-      {eyebrow && (
-        <span
-          className="mono"
-          style={{
-            fontSize: 11,
-            letterSpacing: "0.28em",
-            textTransform: "uppercase",
-            color: "var(--accent-text)",
-          }}
-        >
-          {eyebrow}
-        </span>
-      )}
       <div
         style={{
           display: "flex",
