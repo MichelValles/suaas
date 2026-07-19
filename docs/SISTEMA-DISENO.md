@@ -119,6 +119,18 @@ Reglas:
 | `.spin-slow` | Rotación continua lenta (4s, lineal) sobre el mismo keyframe `spin`. Hoy la usa el disco de música del preview de TikTok en `/campaigns/new`. |
 | `.serp-link` | Titular de anuncio estilo enlace de buscador (`color: var(--serp-link)`). El token es themable: azul SERP desaturado en oscuro, azul de enlace clásico en claro, fijo en `.theme-dark-fixed`. No hardcodear `rgba(132,192,255,…)`. |
 
+## Chat estilo WhatsApp (panel de perfil, v0.64.4)
+
+`app/profiles/[id]/chat-panel.tsx` presenta la conversación Talker-Reasoner con registro de app de mensajería, no de log de terminal:
+
+- **Cabecera** con avatar del perfil, nombre en display 700 y línea de estado que alterna entre «Talker-Reasoner · en voz del perfil» y «escribiendo…» mientras el Reasoner/Talker trabajan.
+- **Lienzo propio** (`--chat-wall`): superficie distinta del panel que la contiene, para que el hilo destaque. La sección va dentro de un `--surface-panel` con borde, y el lienzo es más profundo.
+- **Burbujas con cola** (triángulo por `clipPath`): saliente (humano) a la derecha con `--chat-out` (amarillo de marca atenuado) y radio `14px 6px 14px 14px`; entrante (perfil) a la izquierda con `--chat-in` neutro y radio `6px 14px 14px 14px`. La entrante lleva avatar pequeño y nombre del perfil en accent.
+- **Sello de mensaje**: hora local `HH:MM` (cliente, sin SSR) y, en las salientes, doble check en `--serp-link` (leído).
+- **Tokens temables** `--chat-wall` / `--chat-in` / `--chat-out` / `--chat-out-border` (los tres bloques de tema): sólidos para que las colas casen y para que el chat funcione igual en claro que en oscuro. Nunca hardcodear los darks del preview.
+- **«escribiendo…»**: tres puntos con `@keyframes chatTyping` (clase `.chat-typing-dot`) en una mini-burbuja entrante.
+- La traza del Reasoner (abajo) mantiene el patrón `<details>` de la sección siguiente, indentada bajo la burbuja.
+
 ## Patrón "Razonamiento" colapsable (CoT)
 
 `app/profiles/[id]/chat-panel.tsx` usa `<details>` nativo para exponer el plan del Reasoner bajo cada respuesta del Talker.

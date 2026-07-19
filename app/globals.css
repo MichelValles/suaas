@@ -164,6 +164,14 @@ a {
   /* azul de enlace tipo SERP (titulares de anuncio en previews y
      resultados de campañas). En claro, el azul de enlace clásico. */
   --serp-link: rgba(132, 192, 255, 0.95);
+  /* Chat estilo WhatsApp (panel de perfil), v0.64.4. Theme-aware y sólido
+     para que las colas de burbuja casen exactas. wall = superficie propia,
+     distinta del panel; out = saliente (amarillo de marca atenuado);
+     in = entrante (voz del perfil), burbuja neutra. */
+  --chat-wall: #14110e;
+  --chat-in: #211d18;
+  --chat-out: #2f2713;
+  --chat-out-border: rgba(249, 203, 13, 0.24);
 }
 
 html[data-theme="light"] {
@@ -186,6 +194,10 @@ html[data-theme="light"] {
   --warning-text: var(--warning-700);
   --error-text: var(--error-700);
   --serp-link: #1558d6;
+  --chat-wall: #e8e1d3;
+  --chat-in: #ffffff;
+  --chat-out: #fbf1c5;
+  --chat-out-border: rgba(201, 160, 7, 0.45);
 }
 
 /* Contextos que nunca cambian de tema (login HUD, tooltips, bloques
@@ -204,11 +216,36 @@ html[data-theme="light"] {
   --warning-text: #d3a049;
   --error-text: #d98075;
   --serp-link: rgba(132, 192, 255, 0.95);
+  --chat-wall: #14110e;
+  --chat-in: #211d18;
+  --chat-out: #2f2713;
+  --chat-out-border: rgba(249, 203, 13, 0.24);
 }
 
 /* Titular de anuncio estilo enlace de buscador */
 .serp-link {
   color: var(--serp-link);
+}
+
+/* Indicador «escribiendo…» del chat (panel de perfil) */
+@keyframes chatTyping {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 0.9;
+    transform: translateY(-2px);
+  }
+}
+.chat-typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(var(--fg), 0.65);
+  animation: chatTyping 1.2s var(--ease-in-out) infinite;
 }
 
 /* ============================================================

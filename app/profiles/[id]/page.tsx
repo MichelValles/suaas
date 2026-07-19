@@ -167,6 +167,8 @@ export default async function ProfileDetailPage({
 
         <ChatPanel
           profileId={profile.id}
+          profileName={profile.name}
+          avatarUrl={profile.avatar_url}
           costPerTurnUsd={chatEstimate?.est_usd ?? null}
         />
       </div>
