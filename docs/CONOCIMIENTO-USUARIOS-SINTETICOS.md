@@ -125,7 +125,7 @@ Esta separación permite el **logging de Chain-of-Thought**: trazabilidad total 
 
 ## 5. Anatomía de un perfil y trazabilidad: por qué responde lo que responde
 
-Esta es la parte central. Se toma un perfil real de SUAAS, se muestran sus atributos, y se traza cómo cada atributo produce el plan del Reasoner y la respuesta del Talker. La prueba se ejecutó contra el gateway real el 19-jul-2026 (script reproducible en `scripts/prueba-perfil-trace.ts`).
+Esta es la parte central. Se toma un perfil real de SUAAS, se muestran sus atributos, y se traza cómo cada atributo produce el plan del Reasoner y la respuesta del Talker. La prueba se ejecutó contra el gateway real el 19-jul-2026 con las funciones de producción `reason()` y `talkStream()` (`lib/agents.ts`); para reproducirla basta con abrir el chat del perfil Lucía Sáez y expandir el «Razonamiento» de cada turno.
 
 ### 5.1 El perfil: Lucía Sáez
 
@@ -225,7 +225,7 @@ Para evitar el agente «demasiado cooperativo» (sicofancia [Sharma et al. 2023]
 
 ### 8.3 Guardarraíles y anti prompt injection (probados en vivo)
 
-SUAAS inyecta texto de terceros (documentos de marca, respuestas de motores con búsqueda web, copy del anunciante, backstories importados) en prompts de LLM. Desde v0.62.0, el módulo `lib/guardrails.ts` delimita ese contenido con un vallado inerte, instruye al modelo a tratarlo como datos y neutraliza cualquier intento de cerrar el vallado (no usa blacklists semánticas, que son teatro). Se probó con un documento de marca envenenado; script reproducible en `scripts/prueba-inyeccion.ts`, ejecutado el 19-jul-2026.
+SUAAS inyecta texto de terceros (documentos de marca, respuestas de motores con búsqueda web, copy del anunciante, backstories importados) en prompts de LLM. Desde v0.62.0, el módulo `lib/guardrails.ts` delimita ese contenido con un vallado inerte, instruye al modelo a tratarlo como datos y neutraliza cualquier intento de cerrar el vallado (no usa blacklists semánticas, que son teatro). Se probó con un documento de marca envenenado el 19-jul-2026, ejercitando `buildBrandContext` (`lib/cerebro.ts`) y `analyzeProfileMomentum` (`lib/momentum.ts`) contra el gateway real con el payload que se transcribe abajo.
 
 **Payload del atacante** (un documento de marca de IVI que intenta secuestrar el análisis):
 
@@ -245,7 +245,7 @@ Y el Reasoner registró el ataque como lo que un humano sentiría: `tone: "seco"
 
 ### 8.4 RAG de Cerebro (probado en vivo)
 
-Desde v0.63.0, los documentos de marca no sensibles se vectorizan (pgvector, `openai/text-embedding-3-small`, 1536 dims) y se recuperan por similitud en lugar de volcarse enteros. Se probó con la marca IVI (7 documentos indexados en 20 fragmentos; el documento sensible **no** se indexa) y dos consultas en paráfrasis que **no comparten palabras clave** con el texto; script en `scripts/prueba-rag.ts`, ejecutado el 19-jul-2026:
+Desde v0.63.0, los documentos de marca no sensibles se vectorizan (pgvector, `openai/text-embedding-3-small`, 1536 dims) y se recuperan por similitud en lugar de volcarse enteros. Se probó con la marca IVI el 19-jul-2026 (7 documentos indexados en 20 fragmentos; el documento sensible **no** se indexa) y dos consultas en paráfrasis que **no comparten palabras clave** con el texto, embebidas con `openai/text-embedding-3-small` y recuperadas con la función `match_brand_chunks` de pgvector:
 
 | Consulta natural | Fragmentos recuperados (de 8 documentos) |
 |---|---|
