@@ -11,7 +11,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
-import { AppShell, PageHeading } from "@/components/app-shell";
+import { AppShell } from "@/components/app-shell";
 import { BetaOnly } from "@/components/beta-only";
 
 const CONSTRUCTION_MODULES: ModuleItem[] = [
@@ -21,6 +21,7 @@ const CONSTRUCTION_MODULES: ModuleItem[] = [
     label: "Perfiles",
     body: "Demografía, Big Five, COM-B y backstory. Cada perfil tiene chat propio con arquitectura Talker · Reasoner y emite el vector Intent Momentum en cada turno.",
     cta: "Construir cohorte",
+    featured: true,
   },
   {
     href: "/momentum",
@@ -53,6 +54,7 @@ const ACCELERATION_MODULES: ModuleItem[] = [
     label: "GEO Tester",
     body: "La query de cada segmento JTBD lanzada contra Claude, ChatGPT y Perplexity reales, con búsqueda web y citas. Mide visibility_score, brand_position, recommendation_tone y missing_attributes por motor.",
     cta: "Auditar visibilidad",
+    featured: true,
   },
   {
     href: "/campaigns",
@@ -95,6 +97,8 @@ type ModuleItem = {
   label: string;
   body: string;
   cta: string;
+  /** Card destacada, ancha, al frente de su plano (rompe la rejilla uniforme). */
+  featured?: boolean;
   /** Solo visible con el modo beta activo (módulo aún sin desarrollar). */
   beta?: boolean;
 };
@@ -106,28 +110,17 @@ export default function HomePage() {
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "clamp(64px, 8vw, 108px)",
-          paddingBlock: "clamp(8px, 2vw, 24px)",
+          gap: "clamp(48px, 6vw, 80px)",
+          paddingBlock: "clamp(8px, 2vw, 20px)",
+          width: "100%",
+          maxWidth: 1200,
+          marginInline: "auto",
         }}
       >
-        {/* HERO */}
-        <PageHeading
-          eyebrow="GRAVITY"
-          title="La intención tiene masa."
-          description="Perfiles grounded con Big Five, COM-B y backstory. Los enfrentamos a pantallas, embudos, copies y precios: devolvemos el vector de intención antes de que el usuario llegue a tu web."
-          actions={
-            <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-              <Link href="/profiles" className="btn-pill solid">
-                Empezar con perfiles
-              </Link>
-              <Link href="/gravity" className="btn-pill">
-                Ver el modelo
-              </Link>
-            </div>
-          }
-        />
+        {/* HERO a dos columnas: el orbital es la firma visual */}
+        <Hero />
 
-        {/* GRAVITY MODEL VISUAL */}
+        {/* GRAVITY MODEL: el orbital recurre como marca de agua tenue */}
         <GravityVisual />
 
         {/* INTENT MOMENTUM */}
@@ -157,6 +150,69 @@ export default function HomePage() {
         />
       </div>
     </AppShell>
+  );
+}
+
+// ── Hero ──────────────────────────────────────────────────────
+
+function Hero() {
+  return (
+    <section
+      style={{
+        display: "flex",
+        gap: "clamp(28px, 5vw, 72px)",
+        alignItems: "center",
+        flexWrap: "wrap",
+        paddingTop: "clamp(4px, 2vw, 20px)",
+      }}
+    >
+      <div
+        style={{
+          flex: "1 1 400px",
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: 22,
+        }}
+      >
+        <h1
+          className="display"
+          style={{
+            color: "var(--text-strong)",
+            fontSize: "clamp(40px, 5.2vw, 72px)",
+            lineHeight: 1.0,
+            margin: 0,
+          }}
+        >
+          La intención tiene masa.
+        </h1>
+        <p
+          className="body-lg"
+          style={{
+            color: "rgba(var(--fg),0.7)",
+            maxWidth: 540,
+            margin: 0,
+            lineHeight: 1.55,
+          }}
+        >
+          Perfiles grounded con Big Five, COM-B y backstory. Los enfrentamos a
+          pantallas, embudos, copies y precios: devolvemos el vector de intención
+          antes de que el usuario llegue a tu web.
+        </p>
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
+          <Link href="/profiles" className="btn-pill solid">
+            Empezar con perfiles
+          </Link>
+          <Link href="/gravity" className="btn-pill">
+            Ver el modelo
+          </Link>
+        </div>
+      </div>
+
+      <div style={{ flex: "0 0 auto", margin: "0 auto" }}>
+        <OrbitalDiagram size={320} />
+      </div>
+    </section>
   );
 }
 
@@ -257,7 +313,7 @@ const DIMENSIONS = [
 function IntentMomentumSection() {
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, maxWidth: 640 }}>
         <span
           className="mono"
           style={{
@@ -272,8 +328,8 @@ function IntentMomentumSection() {
         <h2
           style={{
             fontFamily: "var(--font-display)",
-            fontSize: "clamp(22px, 3vw, 30px)",
-            lineHeight: 1.1,
+            fontSize: "clamp(24px, 3vw, 34px)",
+            lineHeight: 1.08,
             color: "var(--text-strong)",
             margin: 0,
           }}
@@ -282,8 +338,8 @@ function IntentMomentumSection() {
         </h2>
         <p
           style={{
-            fontSize: 13,
-            color: "rgba(var(--fg),0.5)",
+            fontSize: 14,
+            color: "rgba(var(--fg),0.55)",
             lineHeight: 1.6,
             margin: 0,
           }}
@@ -306,7 +362,7 @@ function IntentMomentumSection() {
             key={d.label}
             style={{
               border: "1px solid rgba(var(--fg),0.07)",
-              borderRadius: "var(--radius-md)",
+              borderRadius: "var(--radius-lg)",
               padding: "22px 22px 20px",
               display: "flex",
               flexDirection: "column",
@@ -349,18 +405,41 @@ function GravityVisual() {
   return (
     <section
       style={{
+        position: "relative",
+        overflow: "hidden",
         border: "1px solid rgba(var(--fg),0.08)",
         borderRadius: "var(--radius-lg)",
-        padding: "clamp(36px, 5vw, 60px)",
+        padding: "clamp(32px, 4vw, 52px)",
         background: "rgba(var(--fg),0.015)",
-        display: "flex",
-        gap: "clamp(36px, 6vw, 80px)",
-        alignItems: "center",
-        flexWrap: "wrap",
       }}
     >
-      {/* Text */}
-      <div style={{ flex: "1 1 280px", display: "flex", flexDirection: "column", gap: 28 }}>
+      {/* Marca de agua: el orbital recurre, en grande y muy tenue, sangrando
+          por la derecha. El overflow:hidden del section lo recorta, así que
+          no añade scroll horizontal a la página. */}
+      <div
+        aria-hidden
+        style={{
+          position: "absolute",
+          right: "clamp(-180px, -8vw, -100px)",
+          top: "50%",
+          transform: "translateY(-50%)",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      >
+        <OrbitalDiagram size={540} faint />
+      </div>
+
+      <div
+        style={{
+          position: "relative",
+          zIndex: 1,
+          display: "flex",
+          flexDirection: "column",
+          gap: 28,
+          maxWidth: 640,
+        }}
+      >
         <span
           className="mono"
           style={{
@@ -378,7 +457,7 @@ function GravityVisual() {
             style={{
               fontFamily: "var(--font-display)",
               fontSize: "clamp(28px, 4vw, 42px)",
-              lineHeight: 1.1,
+              lineHeight: 1.08,
               color: "var(--text-strong)",
               margin: 0,
             }}
@@ -391,6 +470,7 @@ function GravityVisual() {
               color: "rgba(var(--fg),0.6)",
               lineHeight: 1.65,
               margin: 0,
+              maxWidth: 500,
             }}
           >
             La intención no es binaria: tiene{" "}
@@ -460,50 +540,60 @@ function GravityVisual() {
           Explorar el modelo →
         </Link>
       </div>
-
-      {/* Orbital diagram */}
-      <div
-        style={{
-          flex: "0 0 auto",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          margin: "0 auto",
-        }}
-      >
-        <OrbitalDiagram />
-      </div>
     </section>
   );
 }
 
-function OrbitalDiagram() {
-  const SIZE = 280;
+function OrbitalDiagram({
+  size = 280,
+  faint = false,
+}: {
+  size?: number;
+  faint?: boolean;
+}) {
+  // Radios como proporción del tamaño (los originales 128/84/44 sobre 280).
+  const rOuter = size * 0.457;
+  const rMid = size * 0.3;
+  const rInner = size * 0.157;
   return (
-    <div style={{ position: "relative", width: SIZE, height: SIZE }}>
+    <div
+      style={{
+        position: "relative",
+        width: size,
+        height: size,
+        opacity: faint ? 0.5 : 1,
+      }}
+    >
       {/* Rings: un solo acento (el centro); las órbitas viven en el
           canal del tema con alphas decrecientes hacia el interior */}
-      <Ring r={128} alpha={0.28} />
-      <Ring r={84} alpha={0.18} />
-      <Ring r={44} alpha={0.1} />
+      <Ring r={rOuter} alpha={0.28} />
+      <Ring r={rMid} alpha={0.18} />
+      <Ring r={rInner} alpha={0.1} />
 
-      {/* Labels */}
-      <RingLabel r={128} angle={-28} alpha={0.5} text="01 Construction" />
-      <RingLabel r={84} angle={42} alpha={0.38} text="02 Acceleration" />
-      <RingLabel r={44} angle={-55} alpha={0.22} text="03 Value" />
+      {/* La versión nítida lleva labels, centro y dots orbitando; la marca de
+          agua (faint) es solo los anillos estáticos: más limpia como fondo
+          decorativo y sin sumar animación continua (que además mantenía la
+          página siempre «ocupada»). */}
+      {!faint && (
+        <>
+          <RingLabel r={rOuter} angle={-28} alpha={0.5} text="01 Construction" />
+          <RingLabel r={rMid} angle={42} alpha={0.38} text="02 Acceleration" />
+          <RingLabel r={rInner} angle={-55} alpha={0.22} text="03 Value" />
 
-      {/* Center: la intención, la única masa con color */}
-      <div className="gm-center" />
+          {/* Center: la intención, la única masa con color */}
+          <div className="gm-center" />
 
-      {/* Orbiting dots:Construction (2 dots, slow) */}
-      <Dot r={128} dur="16s" delay="0s" opacity={0.9} />
-      <Dot r={128} dur="16s" delay="-8s" opacity={0.5} />
+          {/* Orbiting dots: Construction (2 dots, slow) */}
+          <Dot r={rOuter} dur="16s" delay="0s" opacity={0.9} />
+          <Dot r={rOuter} dur="16s" delay="-8s" opacity={0.5} />
 
-      {/* Orbiting dot:Acceleration */}
-      <Dot r={84} dur="10s" delay="-3s" opacity={0.75} />
+          {/* Orbiting dot: Acceleration */}
+          <Dot r={rMid} dur="10s" delay="-3s" opacity={0.75} />
 
-      {/* Orbiting dot:Value (faint, pending) */}
-      <Dot r={44} dur="6s" delay="-1.5s" opacity={0.25} />
+          {/* Orbiting dot: Value (faint, pending) */}
+          <Dot r={rInner} dur="6s" delay="-1.5s" opacity={0.25} />
+        </>
+      )}
     </div>
   );
 }
@@ -605,7 +695,7 @@ function PlaneSection({
 }) {
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: 24 }}>
-      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 640 }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
           {index && (
             <span
@@ -666,6 +756,74 @@ function PlaneSection({
 }
 
 function ModuleCard({ item }: { item: ModuleItem }) {
+  // Card destacada: ancha (ocupa toda la fila), horizontal, con más peso
+  // tipográfico. Rompe la rejilla uniforme de icono+título+texto.
+  if (item.featured) {
+    return (
+      <Link
+        href={item.href}
+        className="feature-card"
+        style={{
+          gridColumn: "1 / -1",
+          flexDirection: "row",
+          alignItems: "center",
+          gap: "clamp(20px, 4vw, 44px)",
+          flexWrap: "wrap",
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            flex: "1 1 320px",
+            minWidth: 0,
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <item.icon size={26} />
+            <h3
+              style={{
+                fontFamily: "var(--font-display)",
+                fontWeight: 700,
+                fontSize: "clamp(24px, 2.6vw, 30px)",
+                letterSpacing: "-0.02em",
+                lineHeight: 1.05,
+                color: "var(--text-strong)",
+                margin: 0,
+              }}
+            >
+              {item.label}
+            </h3>
+          </div>
+          <p
+            style={{
+              color: "rgba(var(--fg),0.62)",
+              fontSize: 14.5,
+              lineHeight: 1.55,
+              margin: 0,
+              maxWidth: 620,
+            }}
+          >
+            {item.body}
+          </p>
+        </div>
+        <span
+          className="mono"
+          style={{
+            fontSize: 11,
+            letterSpacing: "0.18em",
+            textTransform: "uppercase",
+            color: "var(--accent-text)",
+            flexShrink: 0,
+          }}
+        >
+          {item.cta} →
+        </span>
+      </Link>
+    );
+  }
+
   return (
     <Link href={item.href} className="feature-card">
       <item.icon size={20} />
