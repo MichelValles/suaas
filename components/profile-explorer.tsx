@@ -678,7 +678,6 @@ function ProfileCard({
             <h3
               style={{
                 fontFamily: "var(--font-display)",
-                fontStyle: "italic",
                 fontSize: 22,
                 lineHeight: 1.15,
                 color: "var(--text-strong)",

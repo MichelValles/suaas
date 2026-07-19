@@ -50,7 +50,6 @@ export default async function PropuestaPage() {
         <h1
           style={{
             fontFamily: "var(--font-display)",
-            fontStyle: "italic",
             fontSize: "clamp(42px, 8vw, 96px)",
             lineHeight: 1.0,
             letterSpacing: "-0.02em",
@@ -125,7 +124,7 @@ export default async function PropuestaPage() {
               <span className="mono" style={{ fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--accent-text)" }}>
                 {m.plane}
               </span>
-              <h3 style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: 19, color: "var(--text-strong)", margin: 0 }}>
+              <h3 style={{ fontFamily: "var(--font-display)", fontSize: 19, color: "var(--text-strong)", margin: 0 }}>
                 {m.title}
               </h3>
               <p style={{ fontSize: 13, color: "rgba(var(--fg),0.6)", lineHeight: 1.55, margin: 0 }}>{m.body}</p>
@@ -286,7 +285,6 @@ function SectionHead({ label, title }: { label: string; title: string }) {
       <h2
         style={{
           fontFamily: "var(--font-display)",
-          fontStyle: "italic",
           fontSize: "clamp(26px, 3.6vw, 44px)",
           lineHeight: 1.1,
           color: "var(--text-strong)",

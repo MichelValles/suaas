@@ -319,7 +319,7 @@ function ProfileCard({ result }: { result: ProfileMomentumResult }) {
             {initials}
           </div>
           <span
-            style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: 18, color: "var(--text-strong)", lineHeight: 1.2 }}
+            style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 18, color: "var(--text-strong)", lineHeight: 1.2 }}
           >
             {result.profile_name}
           </span>

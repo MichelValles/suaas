@@ -1,9 +1,11 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-07-19 tras v0.63.6 (RAG de Cerebro, hardening v0.62.0, dossier de perfiles, saneado del doc fundacional, pasada de coherencia de docs/, lente de fricción simbólica en el Reasoner y su contraste por habitus).
+> Última actualización: 2026-07-20 tras v0.64.1 (arranque del rediseño «oscuro editorial»: Hanken Grotesk sin serif, acento #F9CB0D, titulares sin itálica).
 
-## Estado actual (v0.63.6 desplegada)
+## Estado actual (v0.64.1 desplegada)
+
+- **Rediseño «oscuro editorial» en marcha (Fase 1, v0.64.0-v0.64.1)**: dirección validada en preview (registro Stripe/Linear, coherente con flat101.es, amarillo #F9CB0D). Fase 1 hecha: familia única **Hanken Grotesk** (fuera DM Serif Text y Nunito Sans), titulares a peso 700 con tracking negativo y **sin serif ni cursiva** (itálica reservada a citas). Cambio global vía `layout.tsx` + aliases de fuente en `globals.css`. **Pendiente del rollout**: Fase 2 superficies cálidas y refinamiento de componentes; Fase 3 composición por pantalla (masthead, retirada de eyebrows, columnas, chat estilo WhatsApp en `chat-panel.tsx`); Fase 4 motion; borrar `/diseno-preview`. Detalle en `SISTEMA-DISENO.md` y `ROADMAP.md → v0.64.x`.
 
 - **RAG de Cerebro (v0.63.0)**: los documentos de marca no sensibles se trocean, se vectorizan (pgvector, `openai/text-embedding-3-small`, 1536 dims, vía AI Gateway) y se recuperan por similitud en lugar del volcado íntegro de 30.000 caracteres; GEO recupera por segmento y Momentum por trigger, ambos con fallback al modo legado. `lib/rag.ts`, tabla `brand_document_chunks` (RLS + índice HNSW, función `match_brand_chunks` que excluye `sensitive` también en SQL), migración **0029**. `buildBrandContext` queda como fallback legado. Detalle en `docs/ROADMAP.md → v0.63.0` y `docs/VERTEX-AI-VALORACION.md`.
 - **Hardening integral (v0.62.0)**: guardarraíles anti prompt injection (`lib/guardrails.ts`, 8 superficies mapeadas; la más expuesta, las respuestas de motores GEO con búsqueda web); **RLS** activado en `app_settings`, `brands` y `brand_documents` (migración **0027**, advisory crítico de Supabase); **crons** de operación en `vercel.json` (keep-alive del Supabase Free y reaper anti-zombi, ambos con `Bearer CRON_SECRET` fail-closed, `/api/cron/` exento de cookie en `proxy.ts`); `upsertMetric` atómico (migración **0028**); contraseña de «Conceptos pendientes» de `/gravity` fuera del bundle (`POST /api/gravity/unlock`, `timingSafeEqual`, env `GRAVITY_PASSWORD`).

@@ -95,7 +95,6 @@ export default async function FunnelDetailPage({
               <h2
                 style={{
                   fontFamily: "var(--font-display)",
-                  fontStyle: "italic",
                   fontSize: 28,
                   lineHeight: 1.15,
                   color: "var(--text-strong)",

@@ -228,7 +228,7 @@ export default function GravityPage() {
                       href={mod.href}
                       style={{
                         fontFamily: "var(--font-display)",
-                        fontStyle: "italic",
+                        fontWeight: 700,
                         fontSize: 20,
                         color: "var(--text-strong)",
                         textDecoration: "none",

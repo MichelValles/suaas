@@ -88,7 +88,6 @@ export function CompareCard({
         <h3
           style={{
             fontFamily: "var(--font-display)",
-            fontStyle: "italic",
             fontSize: 26,
             color: "var(--text-strong)",
             margin: 0,
@@ -156,7 +155,7 @@ function CompareMetricCell({ label, value }: { label: string; value: string }) {
           fontSize: 26,
           color: "var(--text-strong)",
           fontFamily: "var(--font-display)",
-          fontStyle: "italic",
+          fontWeight: 700,
           lineHeight: 1,
         }}
       >

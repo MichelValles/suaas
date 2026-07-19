@@ -272,7 +272,6 @@ function IntentMomentumSection() {
         <h2
           style={{
             fontFamily: "var(--font-display)",
-            fontStyle: "italic",
             fontSize: "clamp(22px, 3vw, 30px)",
             lineHeight: 1.1,
             color: "var(--text-strong)",
@@ -378,7 +377,6 @@ function GravityVisual() {
           <h2
             style={{
               fontFamily: "var(--font-display)",
-              fontStyle: "italic",
               fontSize: "clamp(28px, 4vw, 42px)",
               lineHeight: 1.1,
               color: "var(--text-strong)",
@@ -674,7 +672,6 @@ function ModuleCard({ item }: { item: ModuleItem }) {
       <h3
         style={{
           fontFamily: "var(--font-display)",
-          fontStyle: "italic",
           fontSize: 20,
           lineHeight: 1.15,
           color: "var(--text-strong)",

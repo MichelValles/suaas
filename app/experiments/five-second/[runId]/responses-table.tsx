@@ -164,7 +164,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                         title={`Ver perfil de ${row.profileName}`}
                         style={{
                           fontFamily: "var(--font-display)",
-                          fontStyle: "italic",
+                          fontWeight: 700,
                           fontSize: 16,
                           color: "var(--text-strong)",
                           textDecoration: "none",

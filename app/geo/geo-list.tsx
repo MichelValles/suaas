@@ -243,7 +243,7 @@ function GeoCard({ analysis }: { analysis: GeoAnalysis }) {
           <span
             style={{
               fontFamily: "var(--font-display)",
-              fontStyle: "italic",
+              fontWeight: 700,
               fontSize: 18,
               color: "var(--text-strong)",
               lineHeight: 1.25,

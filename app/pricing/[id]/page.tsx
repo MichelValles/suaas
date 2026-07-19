@@ -78,7 +78,7 @@ export default async function PricingDetailPage({
             <span
               style={{
                 fontFamily: "var(--font-display)",
-                fontStyle: "italic",
+                fontWeight: 700,
                 fontSize: 30,
                 color: "var(--text-strong)",
                 lineHeight: 1,

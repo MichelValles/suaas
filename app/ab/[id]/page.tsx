@@ -256,7 +256,6 @@ function VariantCard({
       <h3
         style={{
           fontFamily: "var(--font-display)",
-          fontStyle: "italic",
           fontSize: 26,
           lineHeight: 1.15,
           color: "var(--text-strong)",

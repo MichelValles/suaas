@@ -22,7 +22,7 @@ export function LandingNav({ brand }: { brand: string }) {
     >
       <a href="#top" style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <FlatLogo size={50} />
-        <span style={{ fontFamily: "var(--font-display)", fontStyle: "italic", fontSize: 20, color: "var(--text-strong)" }}>
+        <span style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: 20, color: "var(--text-strong)" }}>
           {brand}
         </span>
       </a>

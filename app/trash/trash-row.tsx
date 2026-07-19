@@ -47,7 +47,6 @@ export function TrashRow({ item }: { item: TrashItem }) {
         <h3
           style={{
             fontFamily: "var(--font-display)",
-            fontStyle: "italic",
             fontSize: 18,
             lineHeight: 1.2,
             color: "var(--text-strong)",

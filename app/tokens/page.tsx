@@ -218,7 +218,7 @@ function BigKpi({
       <span
         style={{
           fontFamily: "var(--font-display)",
-          fontStyle: "italic",
+          fontWeight: 700,
           fontSize: "clamp(36px, 4vw, 56px)",
           lineHeight: 1,
           color: accent,
