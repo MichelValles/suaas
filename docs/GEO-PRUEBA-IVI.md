@@ -39,7 +39,7 @@ Media global de IVI: 49% con ligeros, 62% con frontera.
 
 ## Hallazgos
 
-- **La varianza entre runs es real y grande**: cada sonda busca la web de nuevo y sintetiza distinto (ChatGPT pasó de ausente a protagonista en FIV y de secundaria a ausente en tasas). Una foto única es una muestra, no una verdad: la diferencia ligeros/frontera mezcla calidad del modelo y ruido entre runs. Para conclusiones de cliente, repetir y mirar tendencia (argumento de producto para la monitorización periódica).
+- **La varianza entre runs es real y grande**: cada sonda busca la web de nuevo y sintetiza distinto (ChatGPT pasó de ausente a protagonista en FIV y de secundaria a ausente en tasas). Una foto única es una muestra, no una verdad: la diferencia ligeros/frontera mezcla calidad del modelo y ruido entre runs. Para conclusiones de cliente, repetir el análisis a mano y mirar tendencia.
 - **La señal robusta son los huecos**: «tasas de éxito verificadas (SEF) por grupo de edad» y «volumen de ciclos realizados» aparecen como atributos ausentes en ambos niveles y en varios motores. Eso es lo accionable.
 - **Perplexity es el motor más estable** (secundaria 50-70% en los 6 runs, siempre con citas). **Claude aporta más fuentes** (16-20 citas por respuesta con Opus). **ChatGPT es el más volátil** para esta marca.
 - **Coste real medido**: ~0,10 $ el análisis ligero, ~2 $ el frontera (GPT-5.5 dispara el input: ~37k tokens por sonda con `searchContextSize: medium`). Estrategia validada: iterar en ligero, validar en frontera.

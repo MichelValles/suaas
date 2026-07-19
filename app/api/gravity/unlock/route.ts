@@ -48,7 +48,7 @@ const PENDING = [
   },
   {
     label: "GEO pendiente",
-    note: "AI Overview y Gemini como cuarto y quinto motor, y la monitorización periódica con cron: la tendencia es el producto, la foto única es ruido.",
+    note: "AI Overview y Gemini como cuarto y quinto motor del GEO Tester (la pestaña «Próximamente» ya existe en la UI).",
   },
 ];
 

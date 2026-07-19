@@ -314,7 +314,7 @@ Huecos identificados (insumo para el roadmap), reverificados contra v0.61.15. Es
 - **Aha moment por instancia** (6.2): no se modela ni detecta el momento de propiedad psicológica.
 - **Repesca accionable**: `behavior_class='repesca'` se cuenta pero no genera la «ventana de recuperación» (qué mensaje recuperaría a ese usuario). El hueco es menor de lo que parece: campañas ya recoge la «versión ideal por perfil», materia prima directa de esa ventana.
 - **Evolución temporal del momentum**: el vector se mide por interacción, pero no se traza su trayectoria a lo largo del tiempo ni entre touchpoints (ver «Estado del vector Intent Momentum» más arriba: hoy ni siquiera se persiste como métrica en el chat).
-- **GEO pendiente**: AI Overview (vía SerpAPI) y Gemini como cuarto y quinto motor (la pestaña «Próximamente» ya existe en la UI), y la monitorización periódica con cron: con la varianza inter-run reconocida del GEO, la tendencia es el producto y la foto única es ruido.
+- **GEO pendiente**: AI Overview (vía SerpAPI) y Gemini como cuarto y quinto motor (la pestaña «Próximamente» ya existe en la UI). La monitorización GEO periódica con cron quedó **descartada por decisión de producto** (19-jul-2026): la varianza inter-run se gestiona repitiendo análisis a mano cuando haga falta.
 
 ## 9. Síntesis: el trabajo se desplaza a la órbita
 

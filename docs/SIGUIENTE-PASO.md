@@ -150,7 +150,7 @@ El plan de mejora de campañas (v0.35 a v0.40) y los canales Meta/TikTok ya est�
 
 **B) AI Overview como cuarto motor del GEO Tester.** Vía SerpAPI (alta en serpapi.com + env `SERPAPI_KEY`, ~1-2 céntimos/búsqueda): devuelve el bloque AI Overview REAL de Google con sus fuentes, en dos pasos con `page_token` que caduca en 1 minuto. Matiz honesto: no aparece para todas las queries y eso es señal GEO en sí. La pestaña «Próx.» ya existe en `app/geo/[id]/engine-tabs.tsx`.
 
-**C) Monitorización GEO periódica.** Re-runs programados de los análisis GEO (cron de Vercel) y gráfica de evolución del visibility score por motor: la varianza entre runs documentada en `GEO-PRUEBA-IVI.md` hace que la foto única sea ruido y la tendencia sea el producto.
+**C) ~~Monitorización GEO periódica~~ Descartada (decisión de producto, 19-jul-2026).** No se construirán re-runs programados del GEO; cuando haga falta comparar, se relanza el análisis a mano (la advertencia de varianza inter-run de `GEO-PRUEBA-IVI.md` sigue vigente al interpretar resultados).
 
 ## Otros candidatos (aplazados)
 

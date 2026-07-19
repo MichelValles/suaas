@@ -24,7 +24,7 @@ Ese coste fijo por proyecto rompe la economía de instancia dedicada por cliente
 
 Dos piezas con encaje inmediato:
 
-1. **Grounding with Google Search**: en Gemini 3, 5.000 consultas gratis/mes y después 14 $/1.000 consultas, facturado por consulta desde el 5 de enero de 2026 (en Gemini 2.5, 35 $/1.000 grounded prompts). Es el candidato natural a cuarto motor GEO (`lib/geo-engines.ts`) y a la monitorización GEO periódica; a los volúmenes actuales entraría probablemente en la franja gratuita. Según la documentación del gateway funciona a través del propio Vercel AI Gateway (`vertex.tools.googleSearch`), sin cuenta GCP directa.
+1. **Grounding with Google Search**: en Gemini 3, 5.000 consultas gratis/mes y después 14 $/1.000 consultas, facturado por consulta desde el 5 de enero de 2026 (en Gemini 2.5, 35 $/1.000 grounded prompts). Es el candidato natural a cuarto motor GEO (`lib/geo-engines.ts`); a los volúmenes actuales entraría probablemente en la franja gratuita. Según la documentación del gateway funciona a través del propio Vercel AI Gateway (`vertex.tools.googleSearch`), sin cuenta GCP directa.
 2. **Grounding con datos propios** (GA desde mayo de 2025): 2,50 $/1.000 prompts más las queries del datastore. Ancla respuestas de perfiles en un corpus VoC con citas, alineado con el pilar de calibración VoC de la base teórica (`docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md`).
 
 ### Gen AI Evaluation: la pieza para el «grounding testing»
@@ -74,7 +74,7 @@ Reescribir Talker-Reasoner y runners en Python o Go y dejar Next.js como fronten
 **No adoptar Vertex como plataforma; adoptarlo como proveedor puntual de dos capacidades (grounding y evaluación) sobre la base A.**
 
 1. **Ya**: RAG con pgvector en Supabase para Cerebro, sustituyendo el truncado de 30.000 caracteres por retrieval selectivo. Riesgo bajo, coste casi nulo, cierra el hueco mayor.
-2. **Siguiente sprint**: sonda GEO con Gemini más Grounding with Google Search a través del gateway actual, sin cuenta GCP, como cuarto motor y base de la monitorización periódica (5.000 consultas gratis/mes).
+2. **Siguiente sprint**: sonda GEO con Gemini más Grounding with Google Search a través del gateway actual, sin cuenta GCP, como cuarto motor (5.000 consultas gratis/mes).
 3. **Después**: proyecto GCP mínimo con WIF para Gen AI Evaluation: dataset golden, groundedness e instruction following en CI, y la comparación Opus vs Sonnet pendiente.
 4. **Solo bajo demanda enterprise** (residencia de datos, gobernanza): BYOK de Vertex en el gateway con región europea.
 

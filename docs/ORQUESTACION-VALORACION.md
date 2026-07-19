@@ -10,7 +10,7 @@ Los tres problemas operativos de SUAAS no son de «orquestación visual», son d
 |---|---|
 | **B-01/B-03**: GEO y Momentum corren síncronos dentro del POST (`maxDuration 300`); un timeout deja la fila en `running` para siempre (deadlock) | GEO en `lib/geo.ts`, Momentum en `lib/momentum.ts`. Campañas ya lo resolvió a mano: `after()` + pool de 5 + deadline interno 270 s + resume (`lib/experiments/campaign.ts`) |
 | **Keep-alive**: el Supabase Free se pausa tras ~1 semana sin actividad de API (incidente del 19-jul-2026: 7 deploys bloqueados y app degradada) | Resuelto con cron diario (v0.62.0) |
-| **Monitorización GEO periódica**: «la tendencia es el producto, la foto única es ruido» | Pendiente; encaja como cron diario |
+| **Monitorización GEO periódica**: «la tendencia es el producto, la foto única es ruido» | **Descartada por decisión de producto (19-jul-2026)**: no se construirá; los re-runs del GEO se lanzan a mano |
 
 ## 2. n8n: qué aporta y qué costaría
 
@@ -36,7 +36,7 @@ Los tres problemas operativos de SUAAS no son de «orquestación visual», son d
 ## 4. Hoja de ruta adoptada
 
 1. **Hecho (v0.62.0)**: cron de keep-alive de Supabase (`/api/cron/keepalive`, diario) y reaper anti-zombi (`/api/cron/reaper`, diario) que libera los deadlocks B-01/B-03 marcando `error` los `running` de más de 1 hora (los runs de campaña quedan reanudables: `prepareCampaignResume` acepta zombis). Prerrequisito aplicado: GEO y Momentum fijan `updated_at` al pasar a `running`.
-2. **Pendiente (cron diario)**: monitor GEO periódico: re-lanzar un análisis marcado para seguimiento (lista de ids en `app_settings.geo_monitor_ids`) una vez al día.
+2. **Descartado (decisión de producto, 19-jul-2026)**: el monitor GEO periódico como cron. Si algún día se retomara, el diseño era: re-lanzar una vez al día un análisis marcado para seguimiento, con la lista de ids en `app_settings`.
 3. **Siguiente iteración de robustez**: migrar los tres runners a Workflow DevKit (un step por combinación/segmento-motor/perfil, retry automático, sin deadline interno). Antes de tocarlo: verificar compatibilidad del paquete `workflow` con Next 16.2.6 en `node_modules/next/dist/docs/` y probar en preview.
 
 Reevaluar n8n solo si aparece el caso de uso de integraciones no-code con sistemas del cliente (sección 2).
