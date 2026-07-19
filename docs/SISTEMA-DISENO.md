@@ -70,18 +70,20 @@ Por qué: SUAAS no es un deck editorial sino una herramienta de producto. El DS 
 Oscuro por defecto. `html[data-theme="light"]` activa el modo claro. El conmutador vive al pie del sidebar (`components/theme-switch.tsx`), persiste en `localStorage` (`suaas-theme`) y un script inline en `app/layout.tsx` aplica la preferencia antes del primer paint.
 
 ```css
---fg              /* canal RGB del primer plano: "255, 255, 255" en oscuro,
-                     "10, 11, 13" en claro. Se consume como rgba(var(--fg), a) */
---surface-app     /* fondo del shell: ink-900 / #f1ede4 (marfil cálido, no #fff) */
---surface-panel   /* sidebar, paneles: ink-800 / #faf7f0 (blanco roto cálido) */
---text-strong     /* titulares: #fff / ink-900 */
---text-secondary  /* texto secundario (eyebrow, caption): blanco 0.55 en oscuro,
+--fg              /* canal RGB del primer plano: "244, 242, 238" (marfil cálido)
+                     en oscuro, "10, 11, 13" en claro. rgba(var(--fg), a) */
+--surface-app     /* fondo del shell: #0c0b0a (negro cálido) / #f1ede4 (marfil) */
+--surface-panel   /* sidebar, paneles: #1a1815 (panel cálido) / #faf7f0 */
+--text-strong     /* titulares: #f7f5f1 (marfil) / ink-900 */
+--text-secondary  /* texto secundario (eyebrow, caption): marfil 0.55 en oscuro,
                      ink 0.72 en claro. Garantiza AA sobre el lienzo claro */
---text-faint      /* texto terciario/tenue: blanco 0.42 / ink 0.6 */
+--text-faint      /* texto terciario/tenue: marfil 0.42 / ink 0.6 */
 --accent-text     /* texto accent: accent-500 / accent-800 (contraste AA en claro) */
 --success-text / --warning-text / --error-text
                   /* estados como texto, legibles en ambos temas */
 ```
+
+**Oscuro editorial cálido (v0.64.2, Fase 2 del rediseño)**: el tema oscuro dejó de ser blanco crudo sobre el negro azulado de la ink scale. El primer plano `--fg` baja de `255,255,255` a `244,242,238` (marfil), el lienzo `--surface-app` pasa de `ink-900` (`#0a0b0d`) a `#0c0b0a` (negro cálido), los paneles `--surface-panel` de `ink-800` (`#181b21`, azulado) a `#1a1815` (cálido) y los titulares `--text-strong` de `#fff` a `#f7f5f1`. Calcado del preview validado (Stripe/Linear, coherente con flat101.es). Como todo el chrome consume `rgba(var(--fg), a)`, la calidez se propaga sola a texto, bordes y rellenos; los mismos cambios se replican en `.theme-dark-fixed` (login, tooltips, bloques feature) para no dejar contextos fríos. El blanco puro deslumbraba y arrastraba el registro «dashboard de IA» que se quería evitar. AA intacto (marfil sobre negro cálido sigue > 18:1). El tema claro no se toca.
 
 **Tema claro cálido y contraste AA (v0.57.3)**: el modo claro dejó de ser blanco puro. El lienzo (`--surface-app`) es un marfil cálido `#f1ede4` y los paneles/tarjetas un blanco roto `#faf7f0` un punto más claro, que resalta sobre el lienzo. En claro se calientan también `--paper`, `--ink-50/100/200`. El texto secundario y tenue ya no se escribe como `rgba(var(--fg), 0.55/0.42)` (washeaba a ~4,3:1 y ~2,9:1 sobre blanco): se enrutó por `--text-secondary` / `--text-faint`, que en claro suben el alfa para pasar AA (>= 4,5:1) y en oscuro conservan los valores previos (sin regresión). Por la misma razón el texto accent baja a `--accent-800` en claro.
 

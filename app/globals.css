@@ -144,12 +144,17 @@ a {
      Texto en accent usa --accent-text (en claro baja a accent-700
      para mantener contraste sobre paper). */
   color-scheme: dark;
-  --fg: 255, 255, 255;
-  --surface-app: var(--ink-900);
-  --surface-panel: var(--ink-800);
-  --text-strong: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.55);
-  --text-faint: rgba(255, 255, 255, 0.42);
+  /* Oscuro editorial (v0.64.2): el primer plano deja de ser blanco crudo y
+     el lienzo deja de ser el negro azulado de la ink scale. Marfil cálido
+     sobre negro cálido, calcado del preview (FG #f4f2ee, canvas #0c0b0a,
+     panel #1a1815, hairlines por el canal --fg). El blanco puro deslumbraba
+     y arrastraba el registro «dashboard de IA». */
+  --fg: 244, 242, 238;
+  --surface-app: #0c0b0a;
+  --surface-panel: #1a1815;
+  --text-strong: #f7f5f1;
+  --text-secondary: rgba(244, 242, 238, 0.55);
+  --text-faint: rgba(244, 242, 238, 0.42);
   --accent-text: var(--accent-500);
   /* semánticos legibles como texto/estado sobre la superficie del
      tema. En oscuro: versiones desaturadas; en claro: los 700. */
@@ -188,12 +193,12 @@ html[data-theme="light"] {
    la paleta oscura aunque el tema global sea claro. */
 .theme-dark-fixed {
   color-scheme: dark;
-  --fg: 255, 255, 255;
-  --surface-app: var(--ink-900);
-  --surface-panel: var(--ink-800);
-  --text-strong: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.55);
-  --text-faint: rgba(255, 255, 255, 0.42);
+  --fg: 244, 242, 238;
+  --surface-app: #0c0b0a;
+  --surface-panel: #1a1815;
+  --text-strong: #f7f5f1;
+  --text-secondary: rgba(244, 242, 238, 0.55);
+  --text-faint: rgba(244, 242, 238, 0.42);
   --accent-text: var(--accent-500);
   --success-text: #6cbf8f;
   --warning-text: #d3a049;
