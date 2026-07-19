@@ -653,6 +653,8 @@ textarea.backstory-input:focus-visible {
   left: 50%;
   transform: translateX(-50%);
   width: max-content;
+  max-width: min(320px, calc(100vw - 24px));
+  white-space: normal;
   padding: 10px 12px;
   /* panel siempre oscuro, independiente del tema: redefine el canal localmente */
   --fg: 255, 255, 255;
@@ -667,18 +669,30 @@ textarea.backstory-input:focus-visible {
   text-transform: none;
   letter-spacing: 0;
   opacity: 0;
-  visibility: hidden;
   pointer-events: none;
+  /* Oculto con display:none para que NO ocupe layout ni sume al scroll
+     horizontal de la página: un panel centrado junto al borde derecho
+     (tooltip de la columna MOTIVACIÓN de COM-B) desbordaba el body. El
+     fundido se conserva en navegadores modernos vía @starting-style +
+     transition-behavior: allow-discrete; donde no haya soporte, el tooltip
+     aparece al instante. */
+  display: none;
   transition:
     opacity var(--dur-short) var(--ease-out),
-    visibility 0s linear var(--dur-short);
+    display var(--dur-short);
+  transition-behavior: allow-discrete;
   z-index: 100;
 }
 .tooltip-host:hover .tooltip-panel,
 .tooltip-host:focus-within .tooltip-panel {
+  display: block;
   opacity: 1;
-  visibility: visible;
-  transition-delay: 0s, 0s;
+}
+@starting-style {
+  .tooltip-host:hover .tooltip-panel,
+  .tooltip-host:focus-within .tooltip-panel {
+    opacity: 0;
+  }
 }
 
 /* ============================================================
