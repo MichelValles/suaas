@@ -1,6 +1,6 @@
 # Proyecto
 
-> **Estado de este documento**: refleja el código a fecha de `v0.34.0` (2026-06). Si tocas estructura, schema o flujos, actualízalo en la misma sesión (regla `CLAUDE.md`).
+> **Estado de este documento**: refleja el código a fecha de `v0.63.3` (2026-07). Si tocas estructura, schema o flujos, actualízalo en la misma sesión (regla `CLAUDE.md`).
 
 ## Qué es
 
@@ -24,8 +24,8 @@
 | Estilos | **CSS plano + tokens del DS** (sd.michelvalles.com) | Sin Tailwind. Sólo `globals.css` + `style={{}}` inline. |
 | Animación | `motion` 12.x |  |
 | Fuentes | Nunito Sans + DM Serif Text vía `next/font/google` |  |
-| Datos | Supabase (Postgres + Storage) | Provisionado vía Marketplace de Vercel. Sin RLS (acceso por service role server-only). |
-| LLM | Vercel AI Gateway | Multi-proveedor con failover. `Reasoner = anthropic/claude-opus-4-7`. `Talker = anthropic/claude-sonnet-4-6`. Override por env. |
+| Datos | Supabase (Postgres + Storage) | Provisionado vía Marketplace de Vercel. RLS activada sin policies en las tablas sensibles (bloquea anon y authenticated); el acceso es server-only vía service role, que ignora RLS. |
+| LLM | Vercel AI Gateway | Multi-proveedor con failover. `Reasoner = anthropic/claude-opus-4.7`. `Talker = anthropic/claude-sonnet-4.6`. Override por env. |
 | Almacén media | Vercel Blob | Uploads de imágenes / vídeos (data:URLs) suben a Blob y se persiste la URL. Fallback a data: URL si `BLOB_READ_WRITE_TOKEN` falta. |
 | Lenguaje | TypeScript 5 estricto |  |
 | Lint | ESLint 9 con `eslint-config-next` |  |
@@ -122,6 +122,13 @@ app/
     [id]/
       page.tsx                          Detalle: chips de canal y estrategia + secciones por campo + creatividades por rol + LaunchPanel
 
+  geo/                                  GEO Tester (v0.29): page (lista), new/, [id] (pestañas por motor + citas + visibilidad por motor)
+  momentum/                             Momentum (v0.30): page (lista), new/ (server action), [id]
+  cerebro/                              Cerebro (v0.59): page (lista de marcas), new/, [id] (marca + documentos)
+  gravity/                              Marco teórico Gravity Model: page + «Conceptos pendientes» (desbloqueo server-side, v0.62)
+  onboard/                              Onboard público (sin login): wizard HEXACO + result; genera un perfil calibrado
+  propuesta/                            Landing comercial pública + calculadora; la vista interna (márgenes) tras el gate landing_internal
+
   experiments/                          Páginas de resultados de runs (lectura)
     five-second/[runId]/page.tsx
     funnel/[runId]/page.tsx
@@ -140,7 +147,9 @@ app/
     chat/route.ts                       POST chat con perfil: Reasoner + Talker streaming NDJSON
     profiles/
       [id]/route.ts                     DELETE perfil
+      [id]/avatar/route.ts              POST genera/regenera el retrato del perfil (lib/avatar.ts, scope profile_avatar)
       seed/route.ts                     POST stream NDJSON de generación de N perfiles. Protegido por seed_access (401 sin cookie)
+      batch-intent/route.ts             POST genera JTBD (intent_context) en lote para los perfiles recientes (scope batch_intent)
     trash/[type]/[id]/route.ts          POST a papelera, DELETE definitivo, PATCH restaurar. 409 si falta la migración 0017
     runs/
       five-second/route.ts              POST runFiveSecondTest
@@ -149,6 +158,18 @@ app/
       copy/route.ts                     POST runCopyTest
       pricing/route.ts                  POST runPricingTest
       campaign/route.ts                 POST runCampaignTest
+    geo/run/route.ts                    POST { geoId } lanza el análisis GEO (sondas reales + análisis)
+    momentum/run/route.ts               POST { challengeId } lanza el reto de Momentum
+    estimate/run/route.ts               GET estima el coste ($) de una acción antes de lanzarla (lib/estimate.ts)
+    brands/route.ts                     GET lista ligera de marcas para el selector de Cerebro (buildBrandContext por marca)
+    export/campaign/[runId]/route.ts    GET exporta el run de campaña (CSV/JSON) con respuestas por perfil
+    onboard/submit/route.ts             POST público: sintetiza un perfil desde el wizard del onboard (rate limit + errores genéricos)
+    propuesta/access/route.ts           POST desbloquea/bloquea la vista interna de /propuesta (cookie landing_internal)
+    gravity/unlock/route.ts             POST verifica GRAVITY_PASSWORD en servidor y desbloquea «Conceptos pendientes» (v0.62)
+    qr/route.ts                         GET genera el QR de acceso
+    cron/
+      keepalive/route.ts                GET latido diario contra Supabase (evita la pausa del Free); exige CRON_SECRET (v0.62)
+      reaper/route.ts                   GET marca 'error' los runs zombis en 'running' > 1h (GEO/Momentum); exige CRON_SECRET (v0.62)
 
 lib/
   auth.ts                               AUTH_COOKIE, AUTH_VALUE, getAccessPassword, verifyAccessPassword (timingSafeEqual)
@@ -157,15 +178,24 @@ lib/
   url-safety.ts                         assertPublicUrl: DNS lookup + reglas IPv4/IPv6 anti-SSRF
   version.ts                            APP_VERSION (espejo de package.json, manual sync)
   supabase.ts                           getServerClient (singleton service role), isMissingTableError, isMissingColumnError, MigrationPendingError
-  gateway.ts                            DEFAULT_MODEL, REASONER_MODEL, isGatewayConfigured (true en Vercel via OIDC)
+  gateway.ts                            DEFAULT_MODEL, REASONER_MODEL, EMBEDDING_MODEL (RAG de Cerebro, v0.63), isGatewayConfigured (true en Vercel via OIDC)
   blob.ts                               uploadDataUrlToBlob (acepta image|video|audio data:URL)
-  utils.ts                              cx() helper
+  guardrails.ts                         Guardarraíles anti prompt injection (v0.62): delimita y acota el texto de terceros (spotlighting), no lo interpreta por blacklist
+  budget.ts                             BudgetExceededError + gate del presupuesto diario de tokens (SUAAS_DAILY_TOKEN_BUDGET, ventana 24h)
+  migrations.ts                         KNOWN_MIGRATIONS + getMigrationsStatus (tracking de suaas_migrations; alimenta /diag)
+  settings.ts                           getSetting / setSetting sobre app_settings (fallback si falta la tabla; primer uso geo_engine_models)
+  landing-auth.ts                       Gate de la vista interna de la landing /propuesta (cookie landing_internal, timingSafeEqual)
 
   profiles.ts                           ProfileInputSchema + CRUD (create / update / get / list / listByIds / softDelete / restore / hardDelete)
   profile-form.ts                       ProfileFormSchema + parseProfileForm (reusado por new y edit)
   profile-filters.ts                    ProfileFilters (rangos + texto contiene) + filterProfiles
   csv.ts                                parseCSV, stringifyCSV, detectSeparator (RFC 4180 simplificado)
   profile-csv.ts                        PROFILE_CSV_HEADERS, profileToCsvRow, validateCsvRow
+  avatar.ts                             AVATAR_MODEL + generación del retrato fotorrealista del perfil (IA vía gateway, fijado en Blob; el prompt no incluye el nombre)
+  big-five.ts                           BIG_FIVE_TRAITS: glosario OCEAN para los tooltips del form y del detalle de perfil
+  com-b.ts                              COM_B_BARRIERS: glosario Capability/Opportunity/Motivation (Michie et al., 2011) para tooltips
+  hexaco.ts                             HEXACO-24 del onboard público: ítems Likert + mapeo determinista HEXACO→OCEAN (sin LLM)
+  onboard.ts                            Onboard público: sintetiza un perfil calibrado desde el wizard (HEXACO + preguntas abiertas), Reasoner via generateObject
   seed-profiles.ts                      PROFILE_SEEDS (50 curados) + streamSeededProfiles (Reasoner via generateObject)
   seed-examples.ts                      seedFiveSecondExample, seedCopyExample, seedPricingExample, seedAbExample, seedFunnelExample, seedCampaignExample, seedGeoExample, seedMomentumExample + pickRandomProfileIds. Cada seed acepta un plan opcional generado desde un brief
   seed-brief.ts                         generateSeedPlan(brief, kinds): una llamada generateObject produce contenido coherente (misma marca/sector) para los módulos seleccionados; sanea límites duros (headlines 30 chars, etc.). Scope de telemetría seed_brief
@@ -186,7 +216,12 @@ lib/
   pricing.ts                            PricingOfferInputSchema + CRUD + getPricingOfferWithTrashed
   campaigns.ts                          CHANNEL_VALUES, STRATEGY_VALUES (7 Google + 3 Meta), CHANNEL_STRATEGIES, CREATIVE_ROLE_VALUES, CTA_VALUES + META_CTA_VALUES, META_OBJECTIVE/PLACEMENT_*, META_LIMITS, MetaSpecSchema, CampaignInputSchema con superRefine por strategy + CRUD + normalizeCampaign (defensivo) + getCampaignWithTrashed
                                         (patrón v0.34: los getters normales filtran papelera; las variantes WithTrashed no filtran deleted_at y alimentan las vistas de resultados históricos para que no rompan)
-  trash.ts                              TRASH_TYPES (9 tipos: targets, funnels, ab, copy, pricing, campaign, geo, momentum, profiles), sendToTrash/restoreFromTrash/hardDelete despachan por tipo
+  trash.ts                              TRASH_TYPES (10 tipos: targets, funnels, ab, copy, pricing, campaign, geo, momentum, profiles, brand), sendToTrash/restoreFromTrash/hardDelete despachan por tipo
+  cerebro.ts                            Cerebro (v0.59): CRUD de brands + brand_documents, buildBrandContext (excluye documentos sensitive), wrappers de guardrails; indexa vía rag.ts
+  rag.ts                                RAG de Cerebro (v0.63): chunking + embeddings (EMBEDDING_MODEL) + buildBrandContextRag (recupera por similitud vía match_brand_chunks)
+  geo.ts                                GEO Tester: SegmentInput/SegmentResult + runGeoAnalysis (analiza con generateObject la respuesta real de cada motor)
+  geo-engines.ts                        Motores reales del GEO Tester (claude/perplexity/chatgpt) con tool de búsqueda web; modelo por motor desde app_settings
+  momentum.ts                           Momentum (Gravity Model): runMomentumChallenge, simula cómo cada perfil aborda un trigger JTBD antes de que entre la marca
 
   experiments/
     five-second.ts                      probeProfile + judgeComprehension + runFiveSecondTest + listFiveSecondResponses
@@ -243,6 +278,13 @@ supabase/
     0020_shopping.sql                   campaigns.product (jsonb): producto del feed para Shopping
     0021_meta_ads.sql                   canal Meta: strategy check con meta_single/carousel/collection, company_name 75c, CTAs de Meta, campaigns.channel_spec (jsonb)
     0022_tiktok_ads.sql                 canal TikTok: strategy check con tiktok_video/carousel/spark, CTAs de TikTok; defensivo: channel_spec + company_name 75c si la 0021 no consta
+    0023_app_settings.sql               tabla app_settings (clave/valor jsonb) para ajustes globales
+    0024_profile_avatar.sql             profiles.avatar_url (retrato generado por IA)
+    0025_cerebro.sql                    Cerebro: tablas brands y brand_documents
+    0026_brand_documents_sensitive.sql  brand_documents.sensitive (documento privado, fuera de los prompts)
+    0027_rls_cerebro_settings.sql       RLS en app_settings, brands y brand_documents (sin policies)
+    0028_metrics_unique.sql             dedupe de metrics + índice único (run_id, key) para el upsert atómico
+    0029_rag_cerebro.sql                RAG: extensión vector, brand_document_chunks (embedding 1536) + HNSW + match_brand_chunks; brand_id en geo_analyses y momentum_challenges
 
 proxy.ts                                Middleware: redirige a /login todo lo no público sin cookie
 next.config.ts                          experimental.serverActions.bodySizeLimit = "10mb"
@@ -281,7 +323,7 @@ Cookie `seed_access=ok` (`httpOnly`, 8h). Verificada en server-side por las `pag
 
 ## Modelo de datos
 
-Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts → getServerClient`). El navegador nunca habla con la base.
+RLS activada sin policies en las tablas sensibles (bloquea `anon` y `authenticated`). El acceso es server-only vía `SUPABASE_SERVICE_ROLE_KEY` (`lib/supabase.ts → getServerClient`), que ignora RLS. El navegador nunca habla con la base.
 
 ### Tablas
 
@@ -296,17 +338,18 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 | `funnels` | `name`, `description`, `deleted_at`. |
 | `funnel_steps` | `funnel_id`, `position` (único), `name`, `intent`, `payload jsonb {kind:"url", image_url, source_url?}`. |
 | `funnel_step_responses` | `(run_id, profile_id, step_id)` único. `position`, `perception`, `intent_match`, `effort`, `friction text[]`, `would_continue`, `reasoning`, `meta`. Sólo filas para pasos evaluados (dropoff corta). |
-| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy: `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `onboard_synthesize`, `profile_avatar` (retratos: coste por imagen en `meta.est_usd`, sin tokens), `geo_probe` (sondas reales: el `model` es el del motor elegido en `/tokens`), `geo_analysis`, `momentum_probe`, `seed_brief`. (`seed_profile` no es un scope: `lib/seed-profiles.ts` usa `reasoner_chat` con `meta.kind`. El JTBD de `batch-intent` no registra scope propio.) |
+| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy (unión `UsageScope` en `lib/usage.ts`): `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `campaign_judge`, `campaign_synthesis`, `onboard_synthesize`, `profile_avatar` (retratos: coste por imagen en `meta.est_usd`, sin tokens), `geo_probe` (sondas reales: el `model` es el del motor elegido en `/tokens`), `geo_analysis`, `momentum_probe`, `seed_brief`, `seed_profile` (generación de perfiles en lote), `batch_intent` (JTBD en lote) y `rag_embed` (embeddings del RAG de Cerebro). |
 | `ab_tests` | `target_a_id` ≠ `target_b_id` (check). `hypothesis`. `deleted_at`. |
 | `ab_test_runs` | Vincula `(ab_test_id, run_id, variant 'A'|'B')`. Unique. |
 | `copy_decks` + `copy_blocks` + `copy_responses` | Deck con 2..10 bloques. Reacción `(run, profile, block)` con sentiment/clarity/persuasion/would_click/critique. |
 | `pricing_offers` + `pricing_prices` + `pricing_responses` | Oferta + 2..8 precios. Reacción por (run, profile, price) con would_buy/willingness_to_pay/perceived_value/critique. |
 | `campaigns` | **Módulo Campañas** (ver sección dedicada). |
 | `campaign_responses` | `(run_id, profile_id, query, channel)` único (multichannel). |
-| `geo_analyses` | **GEO Tester** (v0.29, Gravity Model; sondas reales desde v0.56). `name`, `brand_name`, `brand_description`, `segments jsonb` (array de SegmentInput: label/jtbd/query), `results jsonb` (array de SegmentResult; v2 con array `engines` por segmento: respuesta real, citas y métricas por motor; v1 legado con `simulated_response`), `status` (`pending`/`running`/`done`/`error`). Índice `created_at DESC`. Sin tabla de runs: el análisis vive entero en la fila. | `deleted_at` desde 0017 (papelera). |
+| `geo_analyses` | **GEO Tester** (v0.29, Gravity Model; sondas reales desde v0.56). `name`, `brand_name`, `brand_description`, `segments jsonb` (array de SegmentInput: label/jtbd/query), `results jsonb` (array de SegmentResult; v2 con array `engines` por segmento: respuesta real, citas y métricas por motor; v1 legado con `simulated_response`), `status` (`pending`/`running`/`done`/`error`). Índice `created_at DESC`. Sin tabla de runs: el análisis vive entero en la fila. | `deleted_at` desde 0017 (papelera). `brand_id` (FK `brands`, `on delete set null`) desde 0029: permite recuperar el contexto de marca por similitud (RAG) en el runner. |
 | `app_settings` | **Ajustes globales** (v0.56). Clave/valor jsonb (`key` pk, `value`, `updated_at`). Primer uso: `geo_engine_models` (modelo del gateway por motor del GEO Tester). Lectura/escritura vía `lib/settings.ts` (defaults si falta la tabla). | Migración 0023. |
-| `momentum_challenges` | **Momentum** (v0.30, Gravity Model). `name`, `trigger_scenario`, `brand_context` (nullable), `profile_ids uuid[]`, `results jsonb` (array de ProfileMomentumResult), `status` (`pending`/`running`/`done`/`error`). | `deleted_at` desde 0017 (papelera). |
-| `brands` + `brand_documents` | **Cerebro** (v0.59, base de conocimiento de marca). `brands`: `name`, `description` (identidad reutilizable), `deleted_at`. `brand_documents`: `brand_id` (FK on delete cascade), `title`, `kind` (nota/brief/tono/producto/analytics/voc/informe), `content` (markdown), `sensitive` (v0.60: privado, excluido de `buildBrandContext`, no se envía a los modelos). `lib/cerebro.ts`. El selector (`components/brand-picker.tsx` + `GET /api/brands`) vuelca `buildBrandContext` (descripción + documentos no privados) en los campos de marca de GEO, Momentum, Campañas, Copy, Pricing y Claridad 5s; siempre se puede escribir a mano. | Migraciones 0025 y 0026. `deleted_at` en `brands` (papelera, tipo `brand`). |
+| `momentum_challenges` | **Momentum** (v0.30, Gravity Model). `name`, `trigger_scenario`, `brand_context` (nullable), `profile_ids uuid[]`, `results jsonb` (array de ProfileMomentumResult), `status` (`pending`/`running`/`done`/`error`). | `deleted_at` desde 0017 (papelera). `brand_id` (FK `brands`, `on delete set null`) desde 0029 (RAG). |
+| `brands` + `brand_documents` | **Cerebro** (v0.59, base de conocimiento de marca). `brands`: `name`, `description` (identidad reutilizable), `deleted_at`. `brand_documents`: `brand_id` (FK on delete cascade), `title`, `kind` (nota/brief/tono/producto/analytics/voc/informe), `content` (markdown), `sensitive` (v0.60: privado, excluido de `buildBrandContext`, no se envía a los modelos). `lib/cerebro.ts`. El selector (`components/brand-picker.tsx` + `GET /api/brands`) vuelca `buildBrandContext` (descripción + documentos no privados) en los campos de marca de GEO, Momentum, Campañas, Copy, Pricing y Claridad 5s; siempre se puede escribir a mano. | Migraciones 0025 y 0026. RLS activada sin policies en `brands` y `brand_documents` (0027). `deleted_at` en `brands` (papelera, tipo `brand`). |
+| `brand_document_chunks` | **RAG de Cerebro** (v0.63, migración 0029). Fragmentos vectorizados de los `brand_documents` no sensibles: `document_id` (FK `on delete cascade`), `brand_id` (FK `on delete cascade`), `chunk_index`, `content`, `embedding vector(1536)`, `embedding_model`. Índice HNSW coseno + función `match_brand_chunks` (recupera por similitud y excluye los `sensitive`). Los documentos `sensitive` nunca se indexan. `lib/rag.ts`. | RLS activada sin policies. Los chunks se regeneran al guardar o editar el documento. |
 
 ### Migraciones (orden estricto)
 
@@ -336,8 +379,11 @@ Sin RLS. Acceso vía `SUPABASE_SERVICE_ROLE_KEY` desde server (`lib/supabase.ts 
 24. `0024_profile_avatar.sql` (v0.57: `profiles.avatar_url` para el retrato generado por IA)
 25. `0025_cerebro.sql` (v0.59: Cerebro; tablas `brands` y `brand_documents`)
 26. `0026_brand_documents_sensitive.sql` (v0.60: `brand_documents.sensitive`, documento privado excluido de los prompts)
+27. `0027_rls_cerebro_settings.sql` (v0.62: RLS en `app_settings`, `brands` y `brand_documents`, las 3 únicas tablas que quedaban sin RLS; sin policies bloquea `anon`/`authenticated` y el server entra con la service role)
+28. `0028_metrics_unique.sql` (v0.62: dedupe de `metrics` + índice único `(run_id, key)` para el upsert atómico; debe aplicarse antes de desplegar el código del upsert)
+29. `0029_rag_cerebro.sql` (v0.63: RAG de Cerebro; extensión `vector`, tabla `brand_document_chunks` con `embedding vector(1536)` e índice HNSW, función `match_brand_chunks`, `brand_id` en `geo_analyses` y `momentum_challenges`)
 
-Las 26 constan aplicadas en `suaas_migrations` (las 20 primeras el 2026-06-11; la 0021 y la 0022 el 2026-06-12 vía SQL editor; la 0023 y la 0024 vía MCP de Supabase con `apply_migration`). Para futuras migraciones: el MCP de Supabase del proyecto (`.mcp.json`, OAuth) está operativo y permite `apply_migration`/`execute_sql`; también existe `scripts/apply-tiktok-setup.mjs` como referencia del patrón con `pg` (necesita `POSTGRES_URL_NON_POOLING` en `.env.local`, que Vercel exporta vacía por ser sensitive). Convención desde la 0019: cada migración nueva inserta su propia fila al final. Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado (sección «Tracking de migraciones» y campo `migrations_tracking`); el campo `pending_migrations` del JSON de `/api/diag` es el atajo para saber qué archivos `.sql` faltan por aplicar.
+Las 29 constan aplicadas en `suaas_migrations` (las 20 primeras el 2026-06-11; la 0021 y la 0022 el 2026-06-12 vía SQL editor; la 0023 a la 0029 vía MCP de Supabase con `apply_migration`). Para futuras migraciones: el MCP de Supabase del proyecto (`.mcp.json`, OAuth) está operativo y permite `apply_migration`/`execute_sql`; también existe `scripts/apply-tiktok-setup.mjs` como referencia del patrón con `pg` (necesita `POSTGRES_URL_NON_POOLING` en `.env.local`, que Vercel exporta vacía por ser sensitive). Convención desde la 0019: cada migración nueva inserta su propia fila al final. Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado (sección «Tracking de migraciones» y campo `migrations_tracking`); el campo `pending_migrations` del JSON de `/api/diag` es el atajo para saber qué archivos `.sql` faltan por aplicar.
 
 ## Módulo Campañas (Paid Ads): detalle
 

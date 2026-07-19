@@ -240,7 +240,7 @@ Entre los dos cubren los dos planos pre-clic: Momentum mide el momentum **antes*
 
 ## 8. Mapa teoría → implementación en SUAAS
 
-> **Verificado contra el código a v0.61.15 (2026-07-19).** Este mapa caduca con cada cambio funcional: al tocar un módulo listado aquí, actualizar su fila en la misma sesión (regla 1 de `CLAUDE.md`). Las citas van por archivo y migración concreta, no por rangos.
+> **Verificado contra el código a v0.63.3 (2026-07-19).** Este mapa caduca con cada cambio funcional: al tocar un módulo listado aquí, actualizar su fila en la misma sesión (regla 1 de `CLAUDE.md`). Las citas van por archivo y migración concreta, no por rangos.
 
 Los módulos se agrupan por plano, igual que la navegación de la app (`/gravity`). La columna «momento» ancla cada uno a la tesis: la mayoría de la plataforma trabaja **antes del clic**.
 
@@ -285,7 +285,7 @@ La anatomía completa del perfil, sus fundamentos académicos y sus límites est
 |---|---|---|
 | Perfiles calibrados grounded | Demografía + Big Five (0..1) + COM-B + backstory + JTBD, serializados por `buildSystemPrompt` (la única función de voz del perfil) con negative prompting anti-complacencia. | `lib/profiles.ts`, `lib/prompts.ts`, base teórica en `CONOCIMIENTO-USUARIOS-SINTETICOS.md` |
 | Talker-Reasoner (Sistema 1/2) | **Solo en el chat 1:1** (Opus planifica, Sonnet habla). Todos los experimentos batch (5s, A/B, embudos, copy, pricing, campañas) son una sola pasada con Sonnet que colapsa deliberación y expresión. | `lib/agents.ts`, `app/api/chat/route.ts` |
-| Fidelidad por módulo | **Excepción conocida**: el módulo Momentum no usa `buildSystemPrompt`; su persona ad hoc omite Big Five, COM-B y los negative prompts. Los jueces (5s, campañas) van sin persona por diseño (cegado). | `lib/momentum.ts:110-132`, `lib/experiments/campaign.ts` |
+| Fidelidad por módulo | **Excepción conocida**: el módulo Momentum no usa `buildSystemPrompt`; su persona ad hoc omite Big Five, COM-B y los negative prompts. Los jueces (5s, campañas) van sin persona por diseño (cegado). | `lib/momentum.ts:119-139`, `lib/experiments/campaign.ts` |
 
 ### Estado del vector Intent Momentum (dónde se emite y qué se hace con él)
 
@@ -305,7 +305,7 @@ En embudos, copy y pricing la taxonomía no existe (el embudo colapsa fuga y rep
 
 ### Conceptos del modelo aún sin implementación directa
 
-Huecos identificados (insumo para el roadmap), reverificados contra v0.61.15. Esta lista está duplicada con redacción propia en el componente `ConceptosPendientes` de la página `/gravity` (`app/gravity/conceptos-pendientes.tsx`): este documento es la fuente de verdad; al cambiar la lista, sincronizar el componente en la misma sesión.
+Huecos identificados (insumo para el roadmap), reverificados contra v0.63.3. Esta lista está duplicada con redacción propia en el componente `ConceptosPendientes` de la página `/gravity` (`app/gravity/conceptos-pendientes.tsx`): este documento es la fuente de verdad; al cambiar la lista, sincronizar el componente en la misma sesión.
 
 - **Value Plane completo**: no hay simulación post-alta (descubrimiento, adopción, pertenencia, hábito recurrente, churn). Es el plano con menos cobertura: la plataforma es hoy fuerte en pre-clic (Construction + Acceleration) y débil en post-clic (Value).
 - **Instancias** como entidad: SUAAS tiene perfiles individuales, pero no el par «perfil comportamental → N instancias» (mismo comportamiento, orígenes y aha moments distintos).

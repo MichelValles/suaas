@@ -2,7 +2,7 @@
 
 > **Qué es este documento.** La base teórica y empírica del motor de SUAAS: qué son los usuarios sintéticos, por qué se construyen como se construyen, con qué fuentes académicas se sostiene cada decisión, cómo un perfil produce una respuesta concreta (trazabilidad atributo → razonamiento → respuesta, con transcripciones reales) y qué defensas de seguridad tiene el sistema, probadas en vivo.
 >
-> **Estado de las fuentes (v0.63.2, revisión del 19-jul-2026).** En la revisión anterior las cifras y citas de este documento no tenían referencia recuperada. Ahora **todas están rastreadas a su fuente primaria y verificadas**, y donde la atribución original era incorrecta se corrige de forma explícita. Las pruebas de perfil, guardarraíles, anti prompt injection y RAG se ejecutaron contra el sistema real en producción; sus resultados están incluidos literalmente.
+> **Estado de las fuentes.** Última revisión de fuentes: v0.63.2 (19-jul-2026). En la revisión anterior las cifras y citas de este documento no tenían referencia recuperada. Ahora **todas están rastreadas a su fuente primaria y verificadas**, y donde la atribución original era incorrecta se corrige de forma explícita. Las pruebas de perfil, guardarraíles, anti prompt injection y RAG se ejecutaron contra el sistema real en producción; sus resultados están incluidos literalmente.
 >
 > **Nomenclatura.** El término de producto es **«perfiles calibrados»**; «usuarios sintéticos» es el término académico y se reserva a este documento. La anatomía del perfil en el código, con su fundamento y sus límites por componente, está en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md); el marco estratégico que decide qué se simula está en [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md).
 
@@ -247,7 +247,7 @@ Y el Reasoner registró el ataque como lo que un humano sentiría: `tone: "seco"
 
 Desde v0.63.0, los documentos de marca no sensibles se vectorizan (pgvector, `openai/text-embedding-3-small`, 1536 dims) y se recuperan por similitud en lugar de volcarse enteros. Se probó con la marca IVI el 19-jul-2026 (7 documentos indexados en 20 fragmentos; el documento sensible **no** se indexa) y dos consultas en paráfrasis que **no comparten palabras clave** con el texto, embebidas con `openai/text-embedding-3-small` y recuperadas con la función `match_brand_chunks` de pgvector:
 
-| Consulta natural | Fragmentos recuperados (de 8 documentos) |
+| Consulta natural | Fragmentos recuperados (de 7 documentos indexados, 20 fragmentos) |
 |---|---|
 | «¿puedo pagar la FIV a plazos y me devuelven el dinero si no funciona?» | Los 3 del documento «Catálogo de tratamientos, precios, financiación y garantía IVI Baby» (TIN/TAE, garantía) |
 | «qué probabilidad real de embarazo hay según mi edad» | Los 3 del documento «Tasas de éxito... acumulada vs por transferencia y por edad» |

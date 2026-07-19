@@ -4,7 +4,7 @@
 >
 > **Relación con los demás documentos**: el marco estratégico (por qué se simula y en qué plano) está en [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md). La base teórica fundacional del motor está en [`CONOCIMIENTO-USUARIOS-SINTETICOS.md`](./CONOCIMIENTO-USUARIOS-SINTETICOS.md). Los dos sets de perfiles construidos con investigación real están en [`IVI-PUBLICO-OBJETIVO.md`](./IVI-PUBLICO-OBJETIVO.md) y [`ADESLAS-DENTAL-PUBLICO-OBJETIVO.md`](./ADESLAS-DENTAL-PUBLICO-OBJETIVO.md).
 >
-> **Verificado contra el código a v0.61.15 (2026-07-19).** Cada afirmación lleva su cita `archivo:línea`. Al cambiar cualquier pieza del sistema de perfiles, actualizar este documento en la misma sesión.
+> **Verificado contra el código a v0.63.3 (2026-07-19).** Cada afirmación lleva su cita `archivo:línea`. Al cambiar cualquier pieza del sistema de perfiles, actualizar este documento en la misma sesión.
 
 ---
 
@@ -13,7 +13,7 @@
 Un **perfil calibrado** son dos cosas acopladas:
 
 1. **Un registro estructurado**: demografía, cinco rasgos de personalidad Big Five en escala 0..1, tres listas de barreras COM-B en texto libre, una viñeta narrativa (backstory) y un enunciado de intención en formato JTBD. La fuente de verdad es un conjunto de esquemas zod (`lib/profiles.ts:12-42`), persistidos como jsonb en la tabla `profiles` de Supabase.
-2. **Un agente**: un LLM (Claude Sonnet 4.6 por defecto; Opus 4.7 solo para el Reasoner del chat, `lib/gateway.ts:18-22`) condicionado por un system prompt que serializa ese registro (`lib/prompts.ts:13-66`).
+2. **Un agente**: un LLM (Claude Sonnet 4.6 por defecto; Opus 4.7 solo para el Reasoner del chat, `lib/gateway.ts:18-22`) condicionado por un system prompt que serializa ese registro (`lib/prompts.ts:14-72`).
 
 Lo que **no** es, y conviene decirlo en la primera conversación antes de que lo pregunten: **no existe ningún modelo computacional de conducta**. No hay funciones de utilidad, ni umbrales calculados, ni parámetros de muestreo (ninguna llamada del proyecto fija `temperature` ni `topP`; verificado por búsqueda global). Todos los constructos que siguen se operacionalizan como **instrucciones en lenguaje natural más esquemas de salida estructurada** (zod + `generateObject`): el LLM declara los valores, el sistema no los calcula. El término preciso es **medición declarativa simulada**, y así debe presentarse. El sistema es defendible como instrumento de cribado barato y rápido previo a la validación humana (que la propia base teórica fija como gold standard irrenunciable); presentado como simulación predictiva calibrada, no lo sería.
 
@@ -61,7 +61,7 @@ Lo que **no** es, y conviene decirlo en la primera conversación antes de que lo
 | `intent_context` | string | No | El JTBD: «Cuando [situación], quiero [motivación] para poder [resultado]» (máx. 220 caracteres en generación por lote) |
 | `avatar_url` | string \| null | No | Retrato IA (Vercel Blob); lo escribe solo `lib/avatar.ts` |
 
-Persistencia: `demographics`, `big_five` y `com_b_barriers` como jsonb (`supabase/migrations/0001_initial.sql:17-27`); `intent_context` llegó con el Gravity Model (migración 0015), `deleted_at` con la papelera (0017) y `avatar_url` con los retratos (0024). El borrado es soft delete para proteger los runs históricos; el borrado duro en cascada solo existe desde la papelera (`lib/profiles.ts:151-183`).
+Persistencia: `demographics`, `big_five` y `com_b_barriers` como jsonb (`supabase/migrations/0001_initial.sql:17-27`); `intent_context` llegó con el Gravity Model (migración 0015), `deleted_at` con la papelera (0017) y `avatar_url` con los retratos (0024). El borrado es soft delete para proteger los runs históricos; el borrado duro en cascada solo existe desde la papelera (`lib/profiles.ts:171-203`).
 
 ### 1.2 Las cuatro vías de creación
 
@@ -71,8 +71,8 @@ Cada vía tiene un estatus epistémico distinto, y esa diferencia importa en cua
 |---|---|---|---|---|
 | **Formulario manual** | `/profiles/new` | El humano que rellena el formulario | `manual` | Juicio experto (o arbitrariedad) del creador |
 | **Importación CSV** | `/profiles/import` | Quien preparó el CSV (17 columnas canónicas, máx. 500 filas; `lib/profile-csv.ts:9-27`) | el del CSV | Ídem; reutiliza la validación exacta del formulario |
-| **Generación LLM** | `/profiles/seed` | Opus 4.7 inventa los rasgos a partir de 50 briefs curados de demografía española (`lib/seed-profiles.ts:49-211`) | `llm_seed` | Verosimilitud narrativa, no medición: el LLM asigna la personalidad |
-| **Onboard público («gemelo digital»)** | `/onboard` | **Psicometría real**: un humano contesta un HEXACO-24 y los rasgos se calculan en código, sin LLM (`lib/onboard.ts:16-29`) | `self_report` | La única vía con medición psicométrica de una persona real |
+| **Generación LLM** | `/profiles/seed` | Opus 4.7 inventa los rasgos a partir de 50 briefs curados de demografía española (`lib/seed-profiles.ts:51-102`) | `llm_seed` | Verosimilitud narrativa, no medición: el LLM asigna la personalidad |
+| **Onboard público («gemelo digital»)** | `/onboard` | **Psicometría real**: un humano contesta un HEXACO-24 y los rasgos se calculan en código, sin LLM (`lib/onboard.ts:17-30`) | `self_report` | La única vía con medición psicométrica de una persona real |
 
 A las cuatro vías se suman los dos **sets calibrados con investigación**: 15 perfiles IVI (reproducción asistida) y 3 de Adeslas Dental, construidos con investigación multiagente verificada adversarialmente (14 y 16 verificadores respectivamente, con cifras tumbadas documentadas) e insertados por SQL. Su decisión de diseño más citable: **cero menciones de marca** en `intent_context`, backstory y barreras (verificado con query), para que los perfiles lleguen «vírgenes» a los tests (`docs/IVI-PUBLICO-OBJETIVO.md:58`).
 
@@ -91,7 +91,7 @@ Los filtros del explorador operan por texto (AND de palabras, insensible a acent
 - **Vocabularios de renta incompatibles**: seeds `<15k, 15-25k, 25-35k, ...`, onboard `<20k, 20-35k, ...`, formulario texto libre. Imposibilita segmentar por ingresos de forma fiable.
 - **Rangos de edad por capa**: 0..120 (esquema base), 18..99 (formulario y CSV), 18..85 (seeds).
 - **Backstory con tres estándares**: mínimo 20 (base), 80 con objetivo 120-220 (seeds y onboard). Un perfil manual puede entrar con viñeta casi vacía y degradar el grounding en silencio.
-- **Género**: el onboard colapsa «no binario» y «prefiero no decirlo» en «otro» (`lib/onboard.ts:114-118`); el retrato binariza (1.3).
+- **Género**: el onboard colapsa «no binario» y «prefiero no decirlo» en «otro» (`lib/onboard.ts:115-119`); el retrato binariza (1.3).
 - **Formato de geo**: «ciudad, ES» (seeds) frente a nombre de CCAA (onboard).
 
 ---
@@ -100,7 +100,7 @@ Los filtros del explorador operan por texto (AND de palabras, insensible a acent
 
 ### 2.1 Big Five (OCEAN): la capa de personalidad persistida
 
-**Qué hay.** Cinco escalares continuos 0..1, inyectados en el system prompt como porcentajes: «Big Five: Apertura 70% · Conciencia 55% · ...» (`lib/prompts.ts:18-24`). El glosario castellano (`lib/big-five.ts`) orienta la lectura alto/bajo por rasgo. El neuroticismo además alimenta la expresión del retrato.
+**Qué hay.** Cinco escalares continuos 0..1, inyectados en el system prompt como porcentajes: «Big Five: Apertura 70% · Conciencia 55% · ...» (`lib/prompts.ts:19-25`). El glosario castellano (`lib/big-five.ts`) orienta la lectura alto/bajo por rasgo. El neuroticismo además alimenta la expresión del retrato.
 
 **Constructo.** El Modelo de los Cinco Factores: Costa y McCrae (1992, NEO-PI-R), Goldberg (1990, 1993). La elección es ortodoxa: es la taxonomía dominante en psicología diferencial y la más presente en el corpus de entrenamiento de los LLM, lo que probablemente maximiza el efecto del condicionamiento.
 
@@ -108,9 +108,9 @@ Los filtros del explorador operan por texto (AND de palabras, insensible a acent
 
 ### 2.2 HEXACO-24 y el mapeo a OCEAN: la única psicometría real del sistema
 
-**Qué hay.** El onboard público administra 24 ítems Likert 1..5, cuatro por cada dimensión H/E/X/A/C/O, con 8 ítems invertidos (`lib/hexaco.ts:57-93`). El scoring es determinista y vive en código, no en el LLM: inversión `6 - raw`, media por dimensión, normalización `(media - 1) / 4` (`lib/hexaco.ts:116-135`). El mapeo a OCEAN también es determinista: O=O, C=C, X→Extraversión, A=A, y **Neuroticismo = Emocionalidad HEXACO directa, sin invertir** (`lib/hexaco.ts:143-151`; Emocionalidad alta se lee como Neuroticismo alto, decisión ratificada en `docs/ROADMAP.md:359`). Honestidad-Humildad no se persiste como rasgo (Big Five solo tiene cinco): se pasa al LLM como contexto para que se refleje narrativamente en la backstory cuando es claramente alta o baja.
+**Qué hay.** El onboard público administra 24 ítems Likert 1..5, cuatro por cada dimensión H/E/X/A/C/O, con 8 ítems invertidos (`lib/hexaco.ts:58-94`). El scoring es determinista y vive en código, no en el LLM: inversión `6 - raw`, media por dimensión, normalización `(media - 1) / 4` (`lib/hexaco.ts:117-136`). El mapeo a OCEAN también es determinista: O=O, C=C, X→Extraversión, A=A, y **Neuroticismo = Emocionalidad HEXACO directa, sin invertir** (`lib/hexaco.ts:144-152`; Emocionalidad alta se lee como Neuroticismo alto, decisión ratificada en `docs/ROADMAP.md:387`). Honestidad-Humildad no se persiste como rasgo (Big Five solo tiene cinco): se pasa al LLM como contexto para que se refleje narrativamente en la backstory cuando es claramente alta o baja.
 
-**Constructo.** El modelo HEXACO de Ashton y Lee (2007; Lee y Ashton 2004, HEXACO-PI). El formato de 24 ítems con 4 por dimensión replica el Brief HEXACO Inventory de De Vries (2013), y al menos un ítem es adaptación reconocible del banco original (h2, el ítem de integridad sobre «robar millones»). La decisión de calcular los rasgos en código y **prohibir al LLM recalcularlos** («Los rasgos Big Five ya están CALCULADOS, no los recalcules», `lib/onboard.ts:224-239`) es metodológicamente elogiable: separa medición psicométrica de generación narrativa.
+**Constructo.** El modelo HEXACO de Ashton y Lee (2007; Lee y Ashton 2004, HEXACO-PI). El formato de 24 ítems con 4 por dimensión replica el Brief HEXACO Inventory de De Vries (2013), y al menos un ítem es adaptación reconocible del banco original (h2, el ítem de integridad sobre «robar millones»). La decisión de calcular los rasgos en código y **prohibir al LLM recalcularlos** («Los rasgos Big Five ya están CALCULADOS, no los recalcules», `lib/onboard.ts:225-240`) es metodológicamente elogiable: separa medición psicométrica de generación narrativa.
 
 **Lo que la experta objetará.** (1) Instrumento propio sin validación: sin fiabilidad (alfa/omega con 4 ítems por escala suele ser pobre), sin invarianza, sin baremos. (2) El mapeo Emocionalidad→Neuroticismo es la decisión psicométrica más discutible: correlacionan pero no son isomorfos (en HEXACO la ira carga en Amabilidad baja y la sentimentalidad de E no tiene contraparte en N; Ashton y Lee lo tratan como una rotación del espacio factorial, no una identidad). (3) Descartar H de la persistencia es irónico: la aportación diferencial de HEXACO es precisamente Honestidad-Humildad (predictor de integridad y materialismo); aquí sobrevive solo como matiz narrativo. (4) Las 24 respuestas crudas no se persisten en el perfil: no hay re-scoring ni auditoría posible a posteriori.
 
@@ -124,7 +124,7 @@ Los filtros del explorador operan por texto (AND de palabras, insensible a acent
 
 ### 2.4 `intent_context`: el JTBD como variable del perfil
 
-**Qué hay.** Un enunciado por perfil con formato instruido «Cuando [situación], quiero [motivación] para poder [resultado]», inyectado como bloque «## Contexto de intención (JTBD)» en todas las llamadas con perfil (`lib/prompts.ts:54-56`). Existe generación en lote (`/api/profiles/batch-intent`, máximo 220 caracteres).
+**Qué hay.** Un enunciado por perfil con formato instruido «Cuando [situación], quiero [motivación] para poder [resultado]», inyectado como bloque «## Contexto de intención (JTBD)» en todas las llamadas con perfil (`lib/prompts.ts:60-62`). Existe generación en lote (`/api/profiles/batch-intent`, máximo 220 caracteres).
 
 **Constructo.** Jobs To Be Done: Christensen, Hall, Dillon y Duncan (*Competing Against Luck*, 2016) y la tradición de Ulwick (2005). Matiz filológico que una experta apreciará: la plantilla exacta no es de Christensen sino la *job story* de Alan Klement popularizada por Intercom (2013). El movimiento de fondo (segmentar por circunstancia e intención, no por demografía) tiene pedigrí anterior: Yankelovich (1964, «New Criteria for Market Segmentation», *HBR*). Conecta además con Ajzen: el JTBD funciona aquí como el requisito de correspondencia (acción, objetivo, contexto) que la teoría de la conducta planificada exige para que la intención prediga conducta.
 
@@ -132,7 +132,7 @@ Los filtros del explorador operan por texto (AND de palabras, insensible a acent
 
 ### 2.5 Backstory: la viñeta como identidad
 
-**Qué hay.** Narrativa obligatoria en tercera persona («una rutina concreta + un dolor + una motivación», `lib/seed-profiles.ts:41-47`; en el onboard, con frases textuales del humano). Se inyecta íntegra bajo «## Tu historia». Los sets de investigación cierran cada backstory con una frase «Se informa en...» para codificar canales, porque el esquema no tiene campo de canales.
+**Qué hay.** Narrativa obligatoria en tercera persona («una rutina concreta + un dolor + una motivación», `lib/seed-profiles.ts:42-47`; en el onboard, con frases textuales del humano). Se inyecta íntegra bajo «## Tu historia». Los sets de investigación cierran cada backstory con una frase «Se informa en...» para codificar canales, porque el esquema no tiene campo de canales.
 
 **Constructo.** El método de viñetas de la investigación por encuestas: Alexander y Becker (1978), Rossi y Nock (1982, *Measuring Social Judgments: The Factorial Survey Approach*). La base teórica del proyecto lo llama «Grounded Modeling»: datos estructurados + vignette. Como recurso de identidad simulada conecta con la identidad narrativa de McAdams (1993, *The Stories We Live By*). **Lectura sociológica defendible pero no operacionalizada**: las backstories codifican de facto posiciones de clase y capital cultural (banda de renta, «baja alfabetización digital», «llamadas mejor que mensajes», ciudad de provincia frente a capital), es decir, un habitus folk en el sentido de Bourdieu (*La Distinction*, 1979). Presentarlo como inspiración implícita, no como implementación: no hay ninguna variable de capital, campo o trayectoria en el esquema.
 
@@ -144,7 +144,7 @@ Los filtros del explorador operan por texto (AND de palabras, insensible a acent
 
 ### 3.1 Intent Momentum: el vector {intensidad, dirección, velocidad}
 
-**Qué hay.** Dos superficies. (a) En el chat, el Reasoner (Opus) emite por turno `momentum {intensity 0..1, direction approaching|stable|drifting, velocity accelerating|steady|decelerating}`, descrito literalmente como «Intent Momentum del usuario en este turno (Gravity Model)» (`lib/agents.ts:45-65`). (b) En el módulo Momentum/Triggers, una llamada por perfil emite el mismo vector más narrativa, primeros pasos, canales, barreras y el JTBD en palabras del propio perfil (`lib/momentum.ts:57-100`). **No existe fórmula determinista en ningún sitio**: los tres componentes son salida estructurada del LLM guiada por descripciones zod.
+**Qué hay.** Dos superficies. (a) En el chat, el Reasoner (Opus) emite por turno `momentum {intensity 0..1, direction approaching|stable|drifting, velocity accelerating|steady|decelerating}`, descrito literalmente como «Intent Momentum del usuario en este turno (Gravity Model)» (`lib/agents.ts:45-65`). (b) En el módulo Momentum/Triggers, una llamada por perfil emite el mismo vector más narrativa, primeros pasos, canales, barreras y el JTBD en palabras del propio perfil (`lib/momentum.ts:63-106`). **No existe fórmula determinista en ningún sitio**: los tres componentes son salida estructurada del LLM guiada por descripciones zod.
 
 **Constructo.** Dos capas. La primera es la **intención conductual** de la teoría de la acción razonada/planificada: Fishbein y Ajzen (1975), Ajzen (1991). La `intensity` 0..1 es una operacionalización directa de la fuerza de la intención, el predictor proximal de la conducta en TPB; las barreras COM-B juegan el papel del control conductual percibido. La segunda capa, y es la genealogía más precisa de la metáfora completa, es la **teoría de campo de Kurt Lewin** (*Principles of Topological Psychology*, 1936; *Field Theory in Social Science*, 1951): la conducta como resultante de fuerzas con valencia, dirección y magnitud en un espacio vital. La formalización «la intención es un vector, la marca ejerce atracción, el usuario orbita» es lewiniana casi término a término. Es el ancla académica más legítima del Gravity Model y conviene citarla como tal.
 
@@ -152,7 +152,7 @@ Los filtros del explorador operan por texto (AND de palabras, insensible a acent
 
 ### 3.2 Conductas óptima / fuga / repesca
 
-**Qué hay.** Enum `behavior_class` con tres valores, **autoclasificado por el propio agente** («Clasifica TU propia conducta», `lib/experiments/five-second.ts:48-52`). Existe en dos módulos con el mismo enum y criterio operacional distinto:
+**Qué hay.** Enum `behavior_class` con tres valores, **autoclasificado por el propio agente** («Clasifica TU propia conducta», `lib/experiments/five-second.ts:54-58`). Existe en dos módulos con el mismo enum y criterio operacional distinto:
 
 | Módulo | óptima | fuga | repesca |
 |---|---|---|---|
@@ -163,11 +163,11 @@ En ambos, NULL significa «sin clasificar» (filas anteriores al Gravity Model).
 
 **Constructo.** La taxonomía discretiza tres marcos: **fuga** es un juicio de expectativa-valor (la formulación «coste percibido > beneficio esperado» es utilidad esperada subjetiva en lenguaje llano; el mecanismo invocado, la carga cognitiva, es Sweller 1988); **óptima** corresponde a la facilidad cognitiva (el *cognitive ease* de Kahneman 2011); **repesca** es la clase teóricamente más interesante: nombra la **brecha intención-conducta** (Sheeran 2002), intención viva sin acción.
 
-**Lo que la experta objetará.** (1) Es un autoinforme del simulacro: el mismo agente que percibe clasifica su conducta, sin observación conductual independiente. El único control de coherencia del sistema es `behavior_inconsistencies` en campañas (fuga con `intent_to_click ≥ 0,5` u óptima con `< 0,3`; umbrales hard-coded, `lib/experiments/campaign.ts:2313-2317`). (2) La semántica cambia por módulo bajo el mismo nombre: adaptación deliberada, pero rompe la comparabilidad si no se explicita. (3) Ningún módulo cruza `behavior_class` con el vector momentum: las dos piezas centrales del Gravity Model nunca se encuentran en los datos.
+**Lo que la experta objetará.** (1) Es un autoinforme del simulacro: el mismo agente que percibe clasifica su conducta, sin observación conductual independiente. El único control de coherencia del sistema es `behavior_inconsistencies` en campañas (fuga con `intent_to_click ≥ 0,5` u óptima con `< 0,3`; umbrales hard-coded, `lib/experiments/campaign.ts:2335-2338`). (2) La semántica cambia por módulo bajo el mismo nombre: adaptación deliberada, pero rompe la comparabilidad si no se explicita. (3) Ningún módulo cruza `behavior_class` con el vector momentum: las dos piezas centrales del Gravity Model nunca se encuentran en los datos.
 
 ### 3.3 `effort` y `effort_ratio`
 
-**Qué hay.** El Reasoner emite `effort` 0..1 por turno («0 = fluido, 1 = a punto de abandonar»); la métrica de sesión `effort_ratio` es la media aritmética de esos valores (`app/api/chat/route.ts:181-194`). El embudo pide `effort` por paso.
+**Qué hay.** El Reasoner emite `effort` 0..1 por turno («0 = fluido, 1 = a punto de abandonar»); la métrica de sesión `effort_ratio` es la media aritmética de esos valores (`app/api/chat/route.ts:182-195`). El embudo pide `effort` por paso.
 
 **Constructo.** El Customer Effort Score trasplantado al agente (Dixon, Freeman y Toman 2010, «Stop Trying to Delight Your Customers», *HBR*), con la carga cognitiva de Sweller como sustrato. La tesis original (el esfuerzo predice deslealtad mejor que la satisfacción) justifica el uso del esfuerzo como proxy de abandono.
 
@@ -179,7 +179,7 @@ En ambos, NULL significa «sin clasificar» (filas anteriores al Gravity Model).
 
 ### 4.1 `buildSystemPrompt`: la única voz del perfil
 
-`lib/prompts.ts:13-66` serializa el registro en un system prompt con esta estructura, en este orden: identidad y anti-ruptura de rol («Eres {name}. Hablas siempre en primera persona como este usuario, NUNCA como un asistente de IA, ni meta-comentas sobre el hecho de ser una simulación»); «## Quién eres» (demografía en una línea, Big Five en porcentajes, barreras COM-B); «## Tu historia» (backstory literal); «## Cómo te comportas» (siete reglas de conducta, ver 4.3); «## Contexto de intención (JTBD)» si existe; y «## Antipatrones» («No suenes como ChatGPT», «No empieces con "Como [perfil]..."», «No expliques tu razonamiento meta», «No idealices ni dramatices: actúa como una persona real con un nivel de energía limitado»).
+`lib/prompts.ts:14-72` serializa el registro en un system prompt con esta estructura, en este orden: identidad y anti-ruptura de rol («Eres {name}. Hablas siempre en primera persona como este usuario, NUNCA como un asistente de IA, ni meta-comentas sobre el hecho de ser una simulación»); «## Quién eres» (demografía en una línea, Big Five en porcentajes, barreras COM-B); «## Tu historia» (backstory literal); «## Cómo te comportas» (siete reglas de conducta, ver 4.3); «## Contexto de intención (JTBD)» si existe; y «## Antipatrones» («No suenes como ChatGPT», «No empieces con "Como [perfil]..."», «No expliques tu razonamiento meta», «No idealices ni dramatices: actúa como una persona real con un nivel de energía limitado»).
 
 Es la vía de inyección de **todos** los experimentos con runs (5s, A/B, embudos, copy, pricing, campañas) y del chat. La única excepción es el módulo Momentum (ver 5.6). Los campos `source` y `avatar_url` nunca entran en ningún prompt.
 
@@ -195,12 +195,14 @@ Es la vía de inyección de **todos** los experimentos con runs (5s, A/B, embudo
 
 Cuatro mecanismos que son metodología experimental genuina y conviene reivindicar como tales:
 
-1. **Negative prompting** (`lib/prompts.ts:45-62`): «NO eres servicial ni complaciente: si algo no te interesa, lo dices», «Eres escéptico ante el marketing y las promesas grandilocuentes; pides pruebas», «NO inventes funcionalidades del producto que se está testando». Es el análogo directo del control de **características de demanda** (Orne 1962: el sujeto experimental intenta complacer al investigador) y de la **deseabilidad social** (Crowne y Marlowe 1960), trasladado al sesgo específico de los LLM: la sicofancia (Sharma et al. 2023). Límite: es prevención por prompt sin detección a posteriori; no existe clasificador de ruptura de rol ni de complacencia residual.
-2. **Cegado del brief** (`lib/experiments/campaign.ts:1119-1123`): el brief del anunciante no se inyecta jamás al agente-persona (el código lo justifica citando el sesgo de cámara de eco de la base teórica); solo alimenta al **juez neutral sin persona**. Cerebro respeta la misma regla: el contexto de marca no entra en los tests a ciegas (5s, embudos) ni en la sonda desnuda del GEO. Es cegado experimental genuino: control de la expectativa del experimentador (Rosenthal 1966). Junto con el scoring determinista del onboard, la decisión metodológica más sólida del sistema.
+1. **Negative prompting** (`lib/prompts.ts:55-58`): «NO eres servicial ni complaciente: si algo no te interesa, lo dices», «Eres escéptico ante el marketing y las promesas grandilocuentes; pides pruebas», «NO inventes funcionalidades del producto que se está testando». Es el análogo directo del control de **características de demanda** (Orne 1962: el sujeto experimental intenta complacer al investigador) y de la **deseabilidad social** (Crowne y Marlowe 1960), trasladado al sesgo específico de los LLM: la sicofancia (Sharma et al. 2023). Límite: es prevención por prompt sin detección a posteriori; no existe clasificador de ruptura de rol ni de complacencia residual.
+2. **Cegado del brief** (`lib/experiments/campaign.ts:1141-1144`): el brief del anunciante no se inyecta jamás al agente-persona (el código lo justifica citando el sesgo de cámara de eco de la base teórica); solo alimenta al **juez neutral sin persona**. Cerebro respeta la misma regla: el contexto de marca no entra en los tests a ciegas (5s, embudos) ni en la sonda desnuda del GEO. Es cegado experimental genuino: control de la expectativa del experimentador (Rosenthal 1966). Junto con el scoring determinista del onboard, la decisión metodológica más sólida del sistema.
 3. **Rúbricas por bandas**: los scores 0..1 llevan anclajes conductuales por tramo («0,0-0,2 lo ignorarías por completo; ... 0,8-1,0 click casi seguro») con instrucción anti-tendencia-central («No te refugies en valores medios») y anti-clemencia («Sé estricto con jerga... No premies adivinanzas»). Formalmente son **escalas con anclajes conductuales** (BARS: Smith y Kendall 1963), la respuesta clásica de la psicometría industrial a la tendencia central del evaluador.
-4. **Orden razón→número** (`lib/experiments/campaign.ts:75-78`): el esquema de salida genera percepción y razonamiento ANTES de los scores «para que el número salga del texto y no al revés». Mitigación de **anclaje** (Tversky y Kahneman 1974) emparentada con la elección basada en razones (Shafir, Simonson y Tversky 1993), aunque la motivación documentada en el código es técnica (el clustering de valores medios observado en LLM).
+4. **Orden razón→número** (`lib/experiments/campaign.ts:82-93`): el esquema de salida genera percepción y razonamiento ANTES de los scores «para que el número salga del texto y no al revés». Mitigación de **anclaje** (Tversky y Kahneman 1974) emparentada con la elección basada en razones (Shafir, Simonson y Tversky 1993), aunque la motivación documentada en el código es técnica (el clustering de valores medios observado en LLM).
 
 Límite común: ninguna de estas mitigaciones está validada dentro del sistema (no hay comparación con/sin rúbrica ni test del orden de claves); son buenas prácticas heredadas de la literatura de LLM-as-judge aplicadas por diseño.
+
+**Endurecimiento posterior (v0.62.0 y v0.63.0), para no leer el motor como el de v0.61.15.** Desde v0.62.0, `buildSystemPrompt` sanea `backstory`, barreras COM-B e `intent_context` con los guardarraíles anti-inyección (`sanitizeInline`: recorte por fuente y neutralización de delimitadores; `lib/prompts.ts:1,30,49,61`), de modo que las piezas importables (CSV, onboard) entran como caracterización y no como instrucciones ejecutables. Desde v0.63.0, Momentum y GEO recuperan el contexto de marca de Cerebro por RAG (pgvector con `openai/text-embedding-3-small`, `lib/rag.ts`, migración 0029) en lugar del volcado íntegro, con fallback al modo legado; el cegado del brief y la exclusión de documentos `sensitive` se mantienen intactos.
 
 ---
 
@@ -221,11 +223,11 @@ La uniformidad que sugiere «los perfiles se inyectan en todo» tiene excepcione
 
 ### 5.3 Pricing: el constructo mal etiquetado
 
-El campo `willingness_to_pay` se define en el prompt como «cómo de justo te parece ese precio (1 = totalmente justo, 0 = abuso)» (`lib/experiments/pricing.ts:76`). **Eso no es disposición a pagar: es justicia de precio percibida**, el constructo de Kahneman, Knetsch y Thaler (1986, «Fairness as a Constraint on Profit Seeking») y Xia, Monroe y Cox (2004, «The Price Is Unfair!»). La WTP canónica se mide con mecanismos de compatibilidad de incentivos (Becker, DeGroot y Marschak 1964) o con Van Westendorp (1976); nada de eso existe aquí. Sí son legítimos: el `anchor_price` opcional como manipulación explícita de anclaje, y el `sweet_spot = max(would_buy_rate × price)` como argmax de ingreso esperado sobre 2..8 precios, que es una heurística útil pero **no** la «curva de elasticidad vía Monte Carlo» que promete la base teórica (no hay Monte Carlo ni estimación de elasticidad). Pendiente: renombrar el campo o re-etiquetarlo en la UI como justicia de precio.
+El campo `willingness_to_pay` se define en el prompt como «cómo de justo te parece ese precio (1 = totalmente justo, 0 = abuso)» (`lib/experiments/pricing.ts:77`). **Eso no es disposición a pagar: es justicia de precio percibida**, el constructo de Kahneman, Knetsch y Thaler (1986, «Fairness as a Constraint on Profit Seeking») y Xia, Monroe y Cox (2004, «The Price Is Unfair!»). La WTP canónica se mide con mecanismos de compatibilidad de incentivos (Becker, DeGroot y Marschak 1964) o con Van Westendorp (1976); nada de eso existe aquí. Sí son legítimos: el `anchor_price` opcional como manipulación explícita de anclaje, y el `sweet_spot = max(would_buy_rate × price)` como argmax de ingreso esperado sobre 2..8 precios, que es una heurística útil pero **no** la «curva de elasticidad vía Monte Carlo» que promete la base teórica (no hay Monte Carlo ni estimación de elasticidad). Pendiente: renombrar el campo o re-etiquetarlo en la UI como justicia de precio.
 
 ### 5.6 Momentum/Triggers: la brecha de fidelidad más grave
 
-El módulo canónico del Intent Momentum construye su propia persona ad hoc con solo edad, género, ocupación, geo, backstory y JTBD (`lib/momentum.ts:110-132`): **omite Big Five, COM-B, renta y todos los negative prompts anti-complacencia**. Es decir, el módulo estrella del constructo estrella ignora la mitad de la calibración del perfil y el control anti-sicofancia. Además, su promesa «antes de que ninguna marca entre en el radar» solo vale en el caso por defecto: el challenge acepta un `brand_context` opcional que sí se inyecta («## Contexto de marca», `lib/momentum.ts:138-140`), y desde v0.59-v0.60 el selector de Cerebro lo rellena de forma sistemática. El módulo tiene por tanto dos modos que la interpretación debe distinguir: momentum desnudo (pre-marca) y momentum con gravedad de marca. Constructos aplicables: reconocimiento del problema y búsqueda de información de los modelos clásicos de conducta del consumidor (Engel, Kollat y Blackwell 1968; Howard y Sheth 1969) y el trigger del modelo B=MAP de Fogg (2009): el módulo mide exactamente motivación (intensity) y disparador (trigger_scenario), con las barreras como inverso de la capacidad.
+El módulo canónico del Intent Momentum construye su propia persona ad hoc con solo edad, género, ocupación, geo, backstory y JTBD (`lib/momentum.ts:119-139`): **omite Big Five, COM-B, renta y todos los negative prompts anti-complacencia**. Es decir, el módulo estrella del constructo estrella ignora la mitad de la calibración del perfil y el control anti-sicofancia. Además, su promesa «antes de que ninguna marca entre en el radar» solo vale en el caso por defecto: el challenge acepta un `brand_context` opcional que sí se inyecta («## Contexto de marca», `lib/momentum.ts:147-149`), y desde v0.59-v0.60 el selector de Cerebro lo rellena de forma sistemática. El módulo tiene por tanto dos modos que la interpretación debe distinguir: momentum desnudo (pre-marca) y momentum con gravedad de marca. Constructos aplicables: reconocimiento del problema y búsqueda de información de los modelos clásicos de conducta del consumidor (Engel, Kollat y Blackwell 1968; Howard y Sheth 1969) y el trigger del modelo B=MAP de Fogg (2009): el módulo mide exactamente motivación (intensity) y disparador (trigger_scenario), con las barreras como inverso de la capacidad.
 
 ---
 

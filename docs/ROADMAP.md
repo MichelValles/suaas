@@ -2,7 +2,7 @@
 
 Estado vivo. Actualizar en cada hito.
 
-## v0.1.0 — Esqueleto
+## v0.1.0 · Esqueleto
 
 - [x] Repo git inicializado en `C:\Users\Míchel\suaas`.
 - [x] Next.js 16 App Router, sin Tailwind.
@@ -14,7 +14,7 @@ Estado vivo. Actualizar en cada hito.
 - [x] Reglas operativas en `CLAUDE.md` (docs vivas + bump + deploy + commit).
 - [x] Base de conocimiento (`docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md`).
 
-## v0.2.0 — Datos + primer agente
+## v0.2.0 · Datos + primer agente
 
 - [x] Esquema inicial en `supabase/migrations/0001_initial.sql`: `profiles`, `targets`, `runs`, `messages`, `metrics`.
 - [x] `lib/profiles.ts` con `ProfileInputSchema` (zod) y CRUD vía service role.
@@ -25,7 +25,7 @@ Estado vivo. Actualizar en cada hito.
 - [x] `components/app-shell.tsx` (header con nav + footer con versión).
 - [x] **Bloqueante operativo resuelto**: Supabase provisionado desde el Marketplace de Vercel y migraciones aplicadas. La app opera contra base real en producción.
 
-## v0.3.0 — Talker-Reasoner
+## v0.3.0 · Talker-Reasoner
 
 - [x] `lib/agents.ts` con `reason()` (Opus + `generateObject` + `ReasonerPlanSchema`) y `talkStream()` (Sonnet + `streamText`).
 - [x] `/api/chat` reescrito: Reasoner síncrono → persist turno `reasoner` con `meta.plan` → Talker en streaming → persist turno `talker`.
@@ -33,12 +33,12 @@ Estado vivo. Actualizar en cada hito.
 - [x] `ChatPanel` lee el stream, muestra el texto progresivo y un `<details>` "Razonamiento" colapsable bajo cada turno con tono, esfuerzo, intent, barreras y plan.
 - [x] Métrica `effort_ratio` por run, calculada como media de `effort` sobre turnos `reasoner`. Upsert en `metrics`.
 
-## v0.3.x — Fixes post-lanzamiento
+## v0.3.x · Fixes post-lanzamiento
 
 - [x] `0.3.1`: typo / bump menor.
 - [x] `0.3.2`: `/api/chat` llama a `markRunFinished(runId, "done" | "error")` antes del frame final. Hasta 0.3.1 los runs OK quedaban con `status='running'` y `finished_at=null`.
 
-## v0.4.0 — Test de claridad de 5 segundos
+## v0.4.0 · Test de claridad de 5 segundos
 
 - [x] Migración `0002_five_second.sql`: tabla `five_second_responses` (vista normalizada) + índice por `run_id`. No cambios estructurales en `targets`.
 - [x] `lib/targets.ts` (`TargetInputSchema`, `FiveSecondPayloadSchema`, CRUD, `resolveOgImage`).
@@ -52,14 +52,14 @@ Estado vivo. Actualizar en cada hito.
 
 Decisiones aplicadas: LLM-as-judge para fuzzy-match (no embeddings), batch sync con límite de 20 perfiles, dos modos de captura (URL → `og:image` server-side o upload a `data:` URL).
 
-## v0.5.0 — Simulación de embudo
+## v0.5.0 · Simulación de embudo
 
 - [x] **Definición + persistencia de embudos** (v0.5.0): migración `0003_funnels.sql` (`funnels` + `funnel_steps`), `lib/funnels.ts` con `FunnelInputSchema` / CRUD, `/funnels` (lista), `/funnels/new` (form dinámico, 2..12 pasos, modos URL o upload por paso), `/funnels/[id]` (secuencia ordenada con hero por paso). Nav "Embudos" en el shell.
 - [x] **Run con perfil(es) recorriendo el embudo paso a paso** (v0.5.2): migración `0004_funnel_runs.sql` (`runs.funnel_id` + `funnel_step_responses`), `lib/experiments/funnel.ts` con `probeFunnelStep` (Reasoner multimodal con memoria de pasos previos) y `runFunnelTest` (orquestador en chunks de 5), `/api/runs/funnel`, `LaunchPanel` en `/funnels/[id]`, `/experiments/funnel/[runId]` con summary, dropoff por paso, top fricciones agregadas y tabla por perfil con drill-down expandible.
 - [x] **Detección de fricción**: cada respuesta de paso captura `effort` 0..1, `intent_match` 0..1 y un array de `friction` textual. Las métricas agregadas (`completion_rate`, `mean_effort`, `mean_intent_match`) y el dropoff por paso permiten ver dónde se rompe el embudo.
 - [x] **Almacenamiento de uploads en Vercel Blob** (v0.6.1): `lib/blob.ts` con `uploadDataUrlToBlob` (helper que sube `data:` URLs a Blob con sufijo aleatorio y devuelve la URL pública). Acciones de creación de target y de funnel convierten los uploads en URLs https permanentes en lugar de meter el `data:` URL en jsonb (la base no se llena de blobs base64). Store `suaas-uploads · store_1yLEHreMdAwe3V6D` creado en `iad1`. Si `BLOB_READ_WRITE_TOKEN` no está disponible, hace fallback al `data:` URL para no romper desarrollo local.
 
-## v0.7.0 — A/B tests, Copy resonance, Pricing
+## v0.7.0 · A/B tests, Copy resonance, Pricing
 
 Tres módulos nuevos de experimentación en una sola release.
 
@@ -73,7 +73,7 @@ Tres módulos nuevos de experimentación en una sola release.
 
 Aplicar `0006_ab_copy_pricing.sql` en Supabase antes de crear el primer registro de cualquiera de los tres.
 
-## v0.8.0 — Explorador de perfiles + reutilización de selección
+## v0.8.0 · Explorador de perfiles + reutilización de selección
 
 Refactor grande del módulo de perfiles para tratarlo como software (no como lista web).
 
@@ -94,7 +94,7 @@ Aplazadas a futuras subversiones (por alcance):
 - ~~v0.8.2~~ → reasignada a la retirada del hover de backstory (ver más abajo).
 - v0.8.3: generación automática de 48 perfiles vía LLM.
 
-## v0.8.1 — Importador y exportador CSV de perfiles
+## v0.8.1 · Importador y exportador CSV de perfiles
 
 - [x] `lib/csv.ts`: parser/serializer CSV isomórfico sin dependencias (RFC 4180 simplificado, soporte `,` y `;`, comillas dobles, BOM, EOL `\n`/`\r\n`).
 - [x] `lib/profile-csv.ts`: schema CSV con 16 columnas (`PROFILE_CSV_HEADERS`), `profileToCsvRow` (export) y `validateCsvRow` (import, reutiliza `ProfileFormSchema` para que las reglas sean idénticas al formulario web).
@@ -103,11 +103,11 @@ Aplazadas a futuras subversiones (por alcance):
 - [x] Columnas desconocidas del CSV se ignoran con aviso, y faltantes generan un error claro en la validación (no se importa la fila).
 - [x] Listas COM-B (capability/opportunity/motivation) se serializan con `;` interno para sobrevivir al separador `,` del CSV.
 
-## v0.8.2 — Retirada del hover de backstory
+## v0.8.2 · Retirada del hover de backstory
 
 - [x] Quitado el tooltip flotante de backstory en el grid y la tabla (ruido visual). La backstory sigue accesible abriendo el detalle del perfil. Limpieza de `.profile-hover*` en `globals.css`.
 
-## v0.8.3 — Generación de perfiles vía LLM
+## v0.8.3 · Generación de perfiles vía LLM
 
 - [x] `lib/seed-profiles.ts`: 50 seeds curados en castellano (demografía española variada, desde estudiantes a jubilados, urbano/rural, diferentes ocupaciones y barreras COM-B). Schema `SeedOutputSchema` con validación zod estricta. Generación con Reasoner (Opus) via `generateObject`.
 - [x] `streamSeededProfiles(n)`: orquestador async generator que produce eventos `started` / `progress` / `error` / `done`. Inserta cada perfil inmediatamente para no perder trabajo si algo falla a mitad.
@@ -116,7 +116,7 @@ Aplazadas a futuras subversiones (por alcance):
 - [x] Botón "Generar con LLM" añadido a la toolbar de `/profiles` junto a "Importar/Exportar CSV".
 - [x] Telemetría: cada generación registra en `gateway_usage` con `scope: reasoner_chat` y meta `kind: seed_profile`.
 
-## v0.9.0 — Auditoría de seguridad / estabilidad / limpieza
+## v0.9.0 · Auditoría de seguridad / estabilidad / limpieza
 
 Hardening del login y manejo robusto de migraciones pendientes, sin cambios funcionales.
 
@@ -126,7 +126,7 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **Limpieza · código muerto**: eliminado `getBrowserClient` de `lib/supabase.ts` (no se usaba en ningún sitio; SUAAS opera todo desde server con service role). Eliminado `app/profiles/actions.ts` completo (sus dos exports `deleteProfileAction` / `deleteProfileAndRedirect` fueron reemplazados por `DELETE /api/profiles/[id]` en v0.8.0).
 - [x] **Docs**: árbol en `docs/PROYECTO.md` sincronizado con la realidad.
 
-## v0.6.0 — App shell tipo software
+## v0.6.0 · App shell tipo software
 
 - [x] Sidebar lateral izquierdo (240px en desktop, overlay colapsable en móvil con botón hamburguesa) reemplazando el header con nav. Iconos `lucide-react` por entrada.
 - [x] Footer global con badges de estado (Supabase ready / AI Gateway ready) en verde cuando están configurados.
@@ -134,7 +134,7 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] Nueva ruta `/diag`: vista visual del estado del esquema y configuración (mismo dato que `/api/diag` pero renderizado).
 - [x] Nueva ruta `/tokens`: créditos del AI Gateway + acumulado interno por modelo y por scope. Soportada por migración `0005_gateway_usage.sql` y `lib/usage.ts`. Llamadas instrumentadas: probe_5s, judge_5s, probe_funnel, reasoner_chat, talker_chat.
 
-## v0.10.x — Pulido visual y layout
+## v0.10.x · Pulido visual y layout
 
 - [x] **v0.10.0**: home rediseñada (presentación del software con feature cards + 3 pasos), cursiva display en backstory, grid uniforme en cards.
 - [x] **v0.10.1**: armonía visual en `/profiles/[id]` (detalle de perfil).
@@ -143,18 +143,18 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.10.4**: tabla de perfiles oculta la columna OCEAN en mobile para no desbordar.
 - [x] **v0.10.5**: quitada la franja de KPI de la home (redundante con `/diag` y `/tokens`).
 
-## v0.11.x — Sembrador de ejemplos en los 4 módulos
+## v0.11.x · Sembrador de ejemplos en los 4 módulos
 
 - [x] **v0.11.0**: `/seed-examples` con endpoint POST `/api/seed/examples`. Crea en una pasada: copy deck (4 variantes CRO de Flat 101), pricing offer (Flat 101 Lab con 4 niveles), A/B test y embudo de Stripe. Opcionalmente lanza runs sobre N perfiles aleatorios. `lib/seed-examples.ts` con funciones puras y `pickRandomProfileIds(n)`.
 - [x] **v0.11.1**: home con más respiro, nota redundante eliminada en `/profiles`.
 
-## v0.12.x — Resilencia frente a schema cache
+## v0.12.x · Resilencia frente a schema cache
 
 - [x] **v0.12.0**: `createRun` defensivo (sólo inserta columnas con valor no-null para sobrevivir a un schema cache de PostgREST desactualizado tras una migración). Defaults de seed corregidos (BBVA bloqueaba bots → N26+Revolut; ficha de Filmin sin og:image → Notion). `/tokens` reescrito con KPI grandes y desglose Prompt/Completion.
 - [x] **v0.12.1**: URLs definitivas para los seeds (Vercel vs Netlify para A/B, Stripe en 4 pasos para el embudo) tras probarlas desde el sandbox. Schema cache sigue requiriendo `NOTIFY pgrst, 'reload schema';` manual.
 - [x] **v0.12.1 (docs)**: simplificación del copy del hero de la home.
 
-## v0.13.x — Papelera con soft delete
+## v0.13.x · Papelera con soft delete
 
 - [x] **v0.13.0**: migración `0007_trash.sql` añade `deleted_at timestamptz` a las 5 entidades (targets, funnels, ab_tests, copy_decks, pricing_offers). Botón papelera en cada card. Página `/trash` lista los elementos borrados con acciones "Restaurar" y "Eliminar definitivamente". `lib/trash.ts` orquesta soft delete / restore / hard delete.
 - [x] **v0.13.1**: fallback defensivo cuando la migración 0007 no está aplicada (las queries se reintentan sin `is("deleted_at", null)`).
@@ -163,24 +163,40 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.13.4**: descripción debajo de Big Five y Barreras COM-B en el detalle de perfil.
 - [x] **v0.13.5**: `/diag` y `/api/diag` auditan también las columnas críticas de `runs` (no sólo la existencia de tablas).
 
-## v0.14.x — Tablas más útiles y nomenclatura UI
+## v0.14.x · Tablas más útiles y nomenclatura UI
 
 - [x] **v0.14.0**: runs previos como cards (componente `RunsPreviousGrid` en `components/runs-previous.tsx`) reemplazando el patrón tabla. Aplica en las 5 páginas de detalle.
 - [x] **v0.14.1**: nombres de perfil clicables en las tablas de resultados de experimentos.
 - [x] **v0.14.2**: renombrado UI **Targets → Claridad 5s**. Sidebar con icono `ScanEye`, copy actualizado en `/targets/*`, `/ab/*` y home. Rutas y tabla `targets` se mantienen como nombre técnico interno.
 
-## v0.15.x — Plantilla unificada de listado
+## v0.15.x · Plantilla unificada de listado
 
 - [x] **v0.15.0**: nueva plantilla `EntityListView` + `EntityCard` para los 5 listados (claridad, embudos, ab, copy, pricing) con búsqueda + ordenación.
 - [x] **v0.15.1**: explorer de perfiles con sort ascendente/descendente al click en cabecera, paginación cada 30 items en grid y tabla, rediseño armonioso (Big Five sparkbars en vez de números crudos).
 
-## v0.16.x — UX y QA del formulario de perfil
+## v0.16.x · UX y QA del formulario de perfil
 
 - [x] **v0.16.0**: `EntityCard` muestra fecha arriba y kind abajo. Filtros y ordenación en listados.
 - [x] **v0.16.1**: inputs Big Five aceptan 2 decimales (step 0.01) en `/profiles/new`, `/profiles/[id]/edit` y los filtros del explorer. Antes el navegador rechazaba `0,68` con "los más próximos son 0,65 y 0,70".
 - [x] **v0.16.2**: más aire en buscador, toolbar de listados y entity cards (padding/gap aumentados a través de `entity-list.tsx` y `globals.css`).
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
+
+## v0.63.4 · Saneado de coherencia de toda la carpeta docs/
+
+- [x] **v0.63.4 · Pasada de coherencia documental**: auditoría multiagente de los 17 documentos de `docs/` (barrido mecánico de enlaces, referencias a ficheros y anchors, más lectura semántica cruzada). Enlaces, ficheros citados y anchors resuelven todos; la doctrina era coherente, pero la capa factual de `PROYECTO.md` y `DESARROLLO.md` seguía anclada en v0.34 y no reflejaba v0.62.0-v0.63.3. Corregido: cabeceras de versión a v0.63.3 en `PROYECTO.md`, `GRAVITY-MODEL.md`, `PERFILES-CALIBRADOS.md` y `SIGUIENTE-PASO.md`; listas de migraciones extendidas a 0029 en `PROYECTO.md` y `DESARROLLO.md`; árboles de `lib/`/`app/api/` con guardrails, rag y crons; contradicciones de RLS y de scopes de telemetría (`seed_profile`, `batch_intent`, `rag_embed`) resueltas; slugs de modelo con punto; tabla `brand_document_chunks` y columnas `brand_id` añadidas; citas `archivo:línea` del dossier de perfiles re-verificadas tras el desplazamiento por los imports de guardrails/rag; `README.md` lista ya `GRAVITY-MODEL-IVI.md`; los logs fechados (`AUDITORIA-SEGURIDAD.md`, `VERTEX-AI-VALORACION.md`) anotados inline sin falsear su fecha (RAG implementado, `CRON_SECRET` creado, PoC de inyección ejecutado).
+
+## v0.63.3 · Scripts de prueba fuera del árbol de producción
+
+- [x] **v0.63.3 · Retirada de los scripts de prueba**: los scripts puntuales de verificación en vivo (guardarraíles, inyección de texto y RAG, ejecutados el 19-jul-2026 contra el gateway real y con los resultados ya incorporados a `CONOCIMIENTO-USUARIOS-SINTETICOS.md` §8.3-8.4) se sacan del árbol de producción: eran artefactos de una sesión de pruebas, no código de la app. La última fila del roadmap vuelve a cuadrar con `lib/version.ts`.
+
+## v0.63.2 · Saneado del doc fundacional con fuentes verificadas
+
+- [x] **v0.63.2 · Reescritura de `CONOCIMIENTO-USUARIOS-SINTETICOS.md`**: todas las cifras y citas rastreadas a su fuente primaria y verificadas (las tres cifras de validación a Yun et al. 2025, la encuesta N=1.093 a User Interviews 2023, Talker-Reasoner a Christakopoulou et al. 2024, Concordia a Vezhnevets et al. 2023), con las atribuciones erróneas del original corregidas (Ishii, Stegbauer, Bouzit). Añadidas la trazabilidad atributo → respuesta con una transcripción real (perfil Lucía) y las pruebas en vivo de guardarraíles, anti prompt injection y RAG ejecutadas contra el gateway real el 19-jul-2026 con las funciones de producción (§8.3-8.4).
+
+## v0.63.1 · Monitorización GEO periódica descartada
+
+- [x] **v0.63.1 · Monitorización GEO periódica descartada (decisión de producto)**: no se construirán re-runs programados del GEO Tester con cron; cuando haga falta comparar, se relanza el análisis a mano (la advertencia de varianza inter-run de `GEO-PRUEBA-IVI.md` sigue vigente al interpretar resultados). Sincronizado con `SIGUIENTE-PASO.md` y con los huecos GEO de `GRAVITY-MODEL.md`.
 
 ## v0.63.0 · RAG de Cerebro con pgvector
 
@@ -305,7 +321,7 @@ Cierre de los flecos de papelera detectados en la auditoría de v0.32: una entid
 - [x] **SeedGate compartido**: `seed-gate.tsx` movido de `app/seed-examples/` a `components/`, reutilizado por `/seed-examples` y `/profiles/seed`. El gate de cookie `seed_access` (`SEED_PASSWORD` vía `/api/seed/access`) protege ahora también `GET /profiles/seed` (muestra el gate sin cookie) y `POST /api/profiles/seed` (401 sin cookie).
 - [x] **Limpieza de tema**: `#fff` → `var(--text-strong)` y tonos `*-500` de estado → `var(--*-text)` en diag, tokens, import de perfiles, seed y migration-needed. Keyframe `.spin` global en `globals.css`.
 
-## v0.33.0 — Capa de temas (dark por defecto + modo claro) y limpieza anti-AI-slop
+## v0.33.0 · Capa de temas (dark por defecto + modo claro) y limpieza anti-AI-slop
 
 Lavado de cara alineado con la spec de sd.michelvalles.com (RULES, ANTIPATTERNS, VOICE, PRODUCT-UI). Dos frentes: sistema de temas conmutable y erradicación del slop visual que la spec prohíbe.
 
@@ -319,7 +335,7 @@ Lavado de cara alineado con la spec de sd.michelvalles.com (RULES, ANTIPATTERNS,
 
 Pendiente anotado: la contraseña del bloque «Conceptos pendientes» de `/gravity` sigue hardcodeada en código cliente (antipatrón de PRODUCT-UI.md); moverla a env en el sprint de seguridad.
 
-## v0.32.0 — Consistencia de funcionalidades menores (papelera + seed en todos los módulos, seed con brief)
+## v0.32.0 · Consistencia de funcionalidades menores (papelera + seed en todos los módulos, seed con brief)
 
 Auditoría de consistencia módulo a módulo (10 agentes) y cierre de los huecos de papelera y sembrador. Detalle de lo aplicado:
 
@@ -340,12 +356,12 @@ Pendientes detectados por la auditoría y aplazados (candidatos a próximos spri
 - Runners de GEO/Momentum síncronos dentro del POST (riesgo de timeout y status `running` huérfano; ya señalado en `AUDITORIA-SEGURIDAD.md` B-01/B-03). Mitigado en GEO desde v0.56 (`maxDuration = 300` + segmentos en pares), pero el patrón sigue siendo síncrono.
 - Unificar los dos patrones de UI de borrado que quedan (SendToTrashButton vs `DELETE /api/profiles/[id]` en el explorer de perfiles). Las server actions de borrado de GEO y Momentum se eliminaron en v0.34.0.
 
-## v0.30.0 — Módulo Momentum (Intent Momentum ante-touchpoint)
+## v0.30.0 · Módulo Momentum (Intent Momentum ante-touchpoint)
 
 - [x] **v0.30.0**: nuevo módulo `Momentum`. Define **escenarios de activación** (retos JTBD) y simula cómo cada perfil abordaría ese reto en su vida real, antes de que ninguna marca entre en su radar. Para cada perfil extrae: narrativa en primera persona, intensidad (0-1), dirección (approaching/stable/drifting), velocidad (accelerating/steady/decelerating), primeros pasos ordenados, canales que usaría y barreras. El resumen agrega la distribución de dirección, intensidad media y top 5 canales más frecuentes. Migración `0016_momentum.sql` añade la tabla `momentum_challenges` con campos `trigger_scenario`, `brand_context` (opcional), `profile_ids[]` y `results` jsonb. Nuevo scope de telemetría `momentum_probe`. Entrada `Momentum` (icono Zap) en el sidebar.
    - Aplicar `0016_momentum.sql` en Supabase antes de crear el primer reto.
 
-## v0.29.0 — Gravity Model (4 funcionalidades)
+## v0.29.0 · Gravity Model (4 funcionalidades)
 
 Cuatro nuevas funcionalidades inspiradas en el framework Gravity Model para modelar la intención de los usuarios como un vector (intensidad, dirección, velocidad).
 
@@ -356,7 +372,7 @@ Cuatro nuevas funcionalidades inspiradas en el framework Gravity Model para mode
 
 Aplicar migración `0015_gravity_model.sql` en Supabase antes de usar estas funcionalidades.
 
-## v0.28.0 — Auditoría de seguridad y robustez
+## v0.28.0 · Auditoría de seguridad y robustez
 
 - [x] **v0.28.0**: auditoría completa de seguridad (ver `docs/AUDITORIA-SEGURIDAD.md`). Cuatro correcciones críticas/altas:
   - **VULN-01 (crítica)**: `isSupabaseConfigured()` reescrita para no depender de `NEXT_PUBLIC_SUPABASE_ANON_KEY`. La anon key ya no se incluye en el bundle del navegador, eliminando el vector de acceso directo a Supabase sin RLS desde el cliente.
@@ -366,7 +382,7 @@ Aplicar migración `0015_gravity_model.sql` en Supabase antes de usar estas func
   - Documentadas en el informe: sin rate limit en /api/auth (VULN-05), rate limit en memoria no cross-instance (VULN-06), /api/qr sin validar content (VULN-07), DNS TOCTOU (VULN-08), race condition en upsertMetric (VULN-09).
   - Corregida discrepancia de scope `seed_profile` vs. `reasoner_chat` en docs (STAB-05).
 
-## v0.27.x — Onboard público: humano real → gemelo sintético
+## v0.27.x · Onboard público: humano real → gemelo sintético
 
 - [x] **v0.27.3**: copy de la portada y del resultado del onboard pasa de «Lo usamos en tests de UX y CRO» a «Lo usamos en estrategias de captación, creatividades y UX». Refleja mejor que los gemelos sirven para validar paid ads, copy y creatividades, no sólo tests de usabilidad.
 - [x] **v0.27.2**: la pantalla del wizard cabe en el viewport visible del móvil sin scroll. `layout.tsx` y `SubmittingScreen` pasan de `100vh` a `100svh` (small viewport height descuenta las barras del navegador: barra de URL en Safari iOS, barra de Chrome Android). Padding general reducido con `clamp(14px, 4vw, 48px)`. Antes el footer con el botón «Siguiente» quedaba debajo de la línea visible y obligaba a hacer scroll para pulsarlo.
@@ -376,7 +392,7 @@ Aplicar migración `0015_gravity_model.sql` en Supabase antes de usar estas func
   - Telemetría: scope nuevo `onboard_synthesize` añadido a `UsageScope`. Aparecerá en `/tokens`.
   - Dep nueva: `qrcode` + `@types/qrcode`.
 
-## v0.26.x — Display Ads (RDA)
+## v0.26.x · Display Ads (RDA)
 
 - [x] **v0.26.4**: `docs/SIGUIENTE-PASO.md` refrescado tras llevar congelado en v0.4.0 muchos sprints. Ahora refleja el estado real (v0.26.3, módulos productivos, decisiones recientes a no romper, próximos candidatos: 3ª estrategia de Google Ads / multi-canal real / datasets reales para perfiles).
 - [x] **v0.26.3**: subtítulos (`description=` del `PageHeading`) eliminados de **todas las páginas índice y new** (listados de claridad, embudos, ab, copy, pricing, campañas, perfiles + sus `/new`, `/edit`, `/seed`, `/import`, `/diag`, `/tokens`, `/trash`, `/seed-examples`). El `description` se mantiene sólo en las páginas de detalle, donde el contenido es el `brief` o la descripción de la entidad. Documentación regenerada con detalle exhaustivo: `docs/PROYECTO.md` reescrito desde cero (árbol completo de carpetas, modelo de datos con todas las tablas, sección dedicada al módulo Campañas con schema, strategies, roles de creatividades, runner, defensa frente a migraciones pendientes y seguridad activa), `docs/SISTEMA-DISENO.md` añade espaciado del shell, panel 3x3 de la home, ChannelIcon/StrategyIcon, patrón pestañas con `Próx.` y patrón de preview en vivo, `docs/DESARROLLO.md` lista las 14 migraciones en orden y nuevas entradas de troubleshooting (seed password, /campaigns 500, headlines check, combinatorial cap, imagen Display preview).
@@ -391,14 +407,14 @@ Aplicar migración `0015_gravity_model.sql` en Supabase antes de usar estas func
   - Detalle de la campaña muestra un bloque «Empresa» con company_name, long_headline y CTA cuando es Display, y el eyebrow refleja la estrategia. Las secciones existentes (titulares, descripciones, creatividades, landing) siguen funcionando para los dos modos.
   - Aplicar `0014_campaigns_display.sql` en Supabase + `NOTIFY pgrst, 'reload schema';` antes de crear campañas Display.
 
-## v0.25.x — Estrategias dentro del canal
+## v0.25.x · Estrategias dentro del canal
 
 - [x] **v0.25.0**: dentro de Google Ads aparecen las 7 estrategias publicitarias como sub-pestañas: **Search · Display · Performance Max · Demand Gen · Video / YouTube · App Campaigns · Shopping**. Sólo **Search (RSA)** está implementada; las otras 6 son sub-pestañas con su icono lucide propio (`Image`, `Sparkles`, `TrendingUp`, `Play`, `Smartphone`, `ShoppingBag`) y badge `Próx.`. Al seleccionarlas, el form muestra un panel `En construcción` con la descripción exhaustiva de los campos que tendrá cada una (URLs, caps de caracteres, formatos de imagen, vídeo, CTA, feeds, etc.) en vez de los campos RSA. Helper `isStrategyImplemented(s)` central para activar features futuras sin tocar el form.
   - Modelo: nueva columna `campaigns.strategy text not null default 'search'` con check sobre los 7 valores, migración `0013_campaigns_strategy.sql` idempotente. `lib/campaigns.ts` añade `STRATEGY_VALUES`, `STRATEGY_LABEL`, `STRATEGY_DESCRIPTION` y `Campaign.strategy: Strategy`. `normalizeCampaign` defensivo para BDs sin la columna (cae a `"search"`). `createCampaign` fallback si la migración 0013 no está aplicada todavía.
   - UI: la sección **Estrategia** aparece debajo de la sección **Canal** en `/campaigns/new`. El detalle muestra dos chips: el de canal (gris) y el de estrategia (acento amarillo). El listado añade columna `Estrategia` y reordena los stats (Canal · Estrategia · Runs · Perfiles).
   - Aplicar `0013_campaigns_strategy.sql` en Supabase + `NOTIFY pgrst, 'reload schema';` antes de crear nuevas campañas.
 
-## v0.24.x — Multi-canal por campaña
+## v0.24.x · Multi-canal por campaña
 
 - [x] **v0.24.2**: tres correcciones tras feedback.
    - **Migración 0012 idempotente** que reescribe `campaigns_headlines_check` a `between 1 and 15` por si la 0009 nunca se aplicó (BDs creadas entre v0.21 y v0.22 conservaban el check original `between 3 and 15` y rechazaban campañas con menos de 3 titulares).
@@ -408,13 +424,13 @@ Aplicar migración `0015_gravity_model.sql` en Supabase antes de usar estas func
 - [x] **v0.24.0**: una misma campaña ahora puede simularse en varias redes a la vez. Migración `0011_campaigns_multichannel.sql` convierte `campaigns.channel` (text) en `channels text[]` (1..5 elementos, subconjunto del set de redes válidas), con backfill de las filas existentes. `campaign_responses` añade `channel` y el unique key pasa a `(run_id, profile_id, query, channel)`. El runner itera `profile × channel × query` (en serie por perfil, paralelo entre perfiles), con cap defensivo de 200 combinaciones para no exceder `maxDuration=300`. Persistencia con `onConflict: "run_id,profile_id,query,channel"`. El summary incorpora `byChannel` con las mismas métricas que `byQuery`. UI: form pasa de pestañas single-select a tabs con checkbox e icono por red (mínimo 1, máximo 5), disclaimer dinámico que se adapta según haya search, feed o mixto. Detalle muestra una row de chips por cada canal y el LaunchPanel estima tiempo como `channels × queries × 18s/perfil`. La página de resultados añade tabla «Métricas por canal» (sólo cuando la campaña tenía más de 1) y los chips de canal aparecen en cada response del drill-down y de la sección «como yo lo veo». Listado muestra el primer canal o "N redes" si son más de dos.
    - Aplicar `0011_campaigns_multichannel.sql` en Supabase + `NOTIFY pgrst, 'reload schema';` antes de crear campañas multi-canal.
 
-## v0.23.x — Campañas multi-canal (MVP)
+## v0.23.x · Campañas multi-canal (MVP)
 
 - [x] **v0.23.1**: selector de canal pasa de toggle buttons a **pestañas con iconos** (`components/channel-icon.tsx`). SVGs monocromos (`currentColor`) inline para Google · Meta · LinkedIn · TikTok · X, sin añadir dependencias. La pestaña activa lleva borde inferior accent y peso bold. El detalle de la campaña muestra un chip prominente con icono + nombre de la red junto al botón Volver. Sigue siendo single-select (modelo `channel: Channel` en la BD); si en el futuro queremos multi-canal por campaña, habría que pasar a `channels text[]` con migración.
 - [x] **v0.23.0**: el módulo de Campañas deja de ser exclusivo de Google Ads. Nueva columna `channel` (`google | meta | linkedin | tiktok | x`) con default `google` añadida por la migración `0010_campaigns_channel.sql`. `lib/campaigns.ts` exporta `CHANNEL_VALUES` y `CHANNEL_LABEL` y `CampaignInputSchema` valida el nuevo campo. El runner adapta el framing del prompt según red: para Google sigue siendo SERP search activo, para Meta / LinkedIn / TikTok / X se reformula como feed pasivo y las `queries` pasan a interpretarse como intereses / contexto del usuario en lugar de keywords literales. `judgeLandingMatch` y `proposeIdealVersion` también ajustan el hook por red. El form de `/campaigns/new` añade un selector inicial de canal (5 pestañas con etiqueta humana) y muestra un disclaimer dinámico sobre cómo interpretar las queries. El detalle y el listado muestran el canal como chip / stat. Caps de caracteres por red llegarán en una iteración posterior (v0.24+): por ahora todas las redes comparten los caps RSA (30/90) por consistencia.
    - Aplicar `0010_campaigns_channel.sql` en Supabase + `NOTIFY pgrst, 'reload schema';` antes de crear campañas en redes distintas a Google.
 
-## v0.22.x — Campaign form UX + creatividades multimedia
+## v0.22.x · Campaign form UX + creatividades multimedia
 
 - [x] **v0.22.1**: home rediseñada como panel 3x3. Una sola sección «Panel» con 9 tarjetas (Claridad 5s, Embudos, A/B, Copy, Pricing, Campañas, Perfiles, Tokens, Diag) sustituye las antiguas secciones «Módulos de test», «Agentes y datos» y «Telemetría» finales. Elimina la card de «Talker · Reasoner» como tarjeta suelta (se sigue mencionando en el tutorial). Texto de los 4 pasos ajustado a «seis módulos».
 - [x] **v0.22.0**: ronda de mejoras tras feedback de uso del módulo Campañas.
@@ -425,30 +441,30 @@ Aplicar migración `0015_gravity_model.sql` en Supabase antes de usar estas func
    - **Quitada la description larga** del `PageHeading` en `/campaigns/new` para dejar más aire entre el header y el formulario.
    - Aplicar `0009_campaigns_relax.sql` en Supabase + `NOTIFY pgrst, 'reload schema';` antes de crear campañas con un solo titular.
 
-## v0.21.x — Campaign Tester (Paid Search RSA)
+## v0.21.x · Campaign Tester (Paid Search RSA)
 
 - [x] **v0.21.0**: nuevo módulo `Campaign Tester`. Migración `0008_campaigns.sql` añade `campaigns` (name, brief, final_url, landing_image_url, queries[], headlines[], descriptions[], creatives jsonb) y `campaign_responses` (snippet eval + landing match condicional + versión ideal estructurada y libre) más `runs.campaign_id`. `lib/campaigns.ts` valida con zod los caps RSA reales de Google Ads (3..15 titulares de 30 chars, 2..4 descripciones de 90 chars, 1..5 queries, 0..6 creatividades). `lib/experiments/campaign.ts` orquesta para cada `perfil × query`: `probeCampaignSnippet` (Reasoner multimodal con la SERP simulada y creatividades anexas) → `judgeLandingMatch` (sólo si `intent_to_click >= 0.5`, Reasoner multimodal con la landing) → `proposeIdealVersion` (Sonnet, propuesta del perfil con misma estructura RSA + texto libre opcional). Caps: 5 queries × 20 perfiles = 100 evals snippet + ~60 landing + 100 ideal en `maxDuration=300`. Telemetría con scopes `campaign_probe`, `campaign_landing`, `campaign_ideal`.
    - **Rutas**: `/campaigns` (lista), `/campaigns/new` (form con preview-RSA en vivo, contador de caracteres y modo URL/upload para landing y creatividades), `/campaigns/[id]` (detalle con snippet preview, queries en chips, titulares, descripciones, creatividades, landing y `ProfileLaunchPanel`), `/experiments/campaign/[runId]` (KPIs globales: intent click / click rate / claridad / credibilidad / diferenciación / match landing; tabla por query; top barreras agregadas; ranking de versiones ideales; drill-down por perfil con su `como yo lo veo`).
    - **Integraciones**: nueva entrada `Campañas` (icono `Megaphone`) en sidebar grupo Producto; `campaign` añadido a `TRASH_TYPES` (papelera), `/diag` audita `campaigns`, `campaign_responses` y `runs.campaign_id`. `lib/seed-examples.ts` incluye `seedCampaignExample` (campaña Vercel · Paid Search agosto con 5 titulares, 2 descripciones y 3 queries reales `hosting next.js / deploy aplicación react / alternativa netlify`); kind `campaign` en `/api/seed/examples` y tarjeta dedicada en `/seed-examples`.
    - Aplicar `0008_campaigns.sql` en Supabase + `NOTIFY pgrst, 'reload schema';` antes de crear la primera campaña.
 
-## v0.20.x — Hardening de seguridad
+## v0.20.x · Hardening de seguridad
 
 - [x] **v0.20.0**: paquete de seguridad crítica tras auditoría completa de la app.
    - **Anti-SSRF en og:image** (`lib/url-safety.ts` + `lib/targets.ts:resolveOgImageDetailed`): antes de cualquier fetch server-side iniciado por el usuario (modos URL en `/targets/new` y `/funnels/new`) se valida que el host es público: rechaza loopback, RFC1918, link-local, CGNAT, metadata cloud (169.254.169.254), multicast y direcciones IPv6 equivalentes. Resuelve DNS y revalida todas las IPs devueltas (defensa contra DNS rebinding trivial). Sigue redirects manualmente (`MAX_REDIRECTS=3`) revalidando cada salto y lee el body con tope de 1.5MB y `AbortSignal` con timeout de 5s. Antes el atacante con login podía sondear localhost, IPs internas y endpoints metadata, además de consumir respuestas HTML arbitrarias.
    - **SEED_PASSWORD obligatoria en producción** (`lib/seed-auth.ts`): el fallback `michel101` ahora sólo aplica en `NODE_ENV !== "production"`. En producción `getSeedPassword()` devuelve `null` si la env no está definida y `verifySeedPassword` rechaza cualquier intento. `/api/seed/access` responde 503 con `code: seed_password_unset` para que el `SeedGate` muestre un aviso accionable en vez de "contraseña incorrecta". Acción requerida: añadir `SEED_PASSWORD` en el dashboard de Vercel (producción + preview) o el seed quedará bloqueado.
    - **No filtrar `e.message` al cliente** (`lib/error-response.ts` + endpoints `/api/runs/*`, `/api/chat`, `/api/profiles/[id]`, `/api/trash/[type]/[id]`): mensajes de error 500 devuelven sólo "Error interno." al cliente; el detalle (stack, cause, mensaje original) queda en `console.error` visible en Vercel logs. Los 400 (validación zod) sí mantienen el mensaje porque viene del schema del body que envía el cliente y es seguro. El streaming NDJSON de `/api/chat` también higieniza el frame final de error. `/api/seed/examples` mantiene mensajes detallados al estar detrás de doble auth (login + seed pass).
 
-## v0.19.x — Sembrar como ruta de primer nivel + gate
+## v0.19.x · Sembrar como ruta de primer nivel + gate
 
 - [x] **v0.19.0**: entrada **Sembrar** (icono `Sprout`) en el sidebar (grupo Sistema) apuntando a `/seed-examples`. Antes la ruta sólo era accesible por URL directa. Doble gate de acceso: `/seed-examples` y `/api/seed/examples` exigen ahora una contraseña adicional (`michel101` por defecto, override con env `SEED_PASSWORD`) además del login global. Implementado con cookie httpOnly `seed_access` (8h), helper `lib/seed-auth.ts` con `timingSafeEqual` y endpoint `/api/seed/access` (POST/DELETE). Componente cliente `SeedGate` muestra el formulario cuando falta la cookie. Razón: sembrar consume tokens del gateway, conviene una segunda barrera intencional.
 - [x] **v0.19.1**: añadido el 5º seed faltante (Claridad 5s). `seedFiveSecondExample` crea un target individual (`Linear · purpose built for product development`) con `og:image` resuelto en runtime. Nuevo kind `"clarity"` en el endpoint, tarjeta dedicada en `/seed-examples` y link a `/experiments/five-second/[runId]` cuando se lanza con `launch > 0`. Antes el sembrador sólo cubría 4 de los 5 módulos (faltaba el más antiguo de todos).
 
-## v0.18.x — Seeds por módulo
+## v0.18.x · Seeds por módulo
 
 - [x] **v0.18.0**: `/api/seed/examples` acepta `kinds: ('copy'|'pricing'|'ab'|'funnel')[]` opcional para sembrar sólo un subconjunto (sin `kinds` o vacío sigue sembrando los 4, compatible con consumidores previos). `/seed-examples` muestra un botón "Sembrar sólo este" en cada tarjeta (Copy / Pricing / A/B / Embudo) además del botón global "Crear los 4". Útil para regenerar un ejemplo concreto sin tocar los demás.
 
-## v0.17.x — Descripción destacada y relanzamiento de runs
+## v0.17.x · Descripción destacada y relanzamiento de runs
 
 - [x] **v0.17.0**: nuevo `descriptionVariant="panel"` en `PageHeading`. La descripción se renderiza como caja destacada con borde-izquierdo accent. Aplicado en las 9 páginas que muestran copy descriptivo (4 detalle + 5 results). Eyebrows de results enriquecidas con metadata (status · N perfiles · contexto). Sweet spot de pricing en layout horizontal para coherencia.
 - [x] **v0.17.0 (feat)**: relanzar run desde la página de resultados (panel de lanzamiento de cohorte sobre la misma entidad).

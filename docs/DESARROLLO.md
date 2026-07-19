@@ -23,8 +23,8 @@ Ver `.env.example` para el listado completo. Esenciales:
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Marketplace | Cliente browser. |
 | `SUPABASE_SERVICE_ROLE_KEY` | Marketplace | Cliente server. |
 | `AI_GATEWAY_API_KEY` | Vercel (manual o auto al enlazar AI Gateway) | Llamadas LLM + consulta de saldo en `/tokens`. En Vercel también funciona vía OIDC implícito si la key no está. |
-| `SUAAS_DEFAULT_MODEL` | Vercel + .env.local | Talker model. Default `anthropic/claude-sonnet-4-6`. |
-| `SUAAS_REASONER_MODEL` | Vercel + .env.local | Reasoner model. Default `anthropic/claude-opus-4-7`. Desde v0.47.2 solo lo usan chat (reasoner), onboard y seed de perfiles; el runner de campañas va entero en `SUAAS_DEFAULT_MODEL`. |
+| `SUAAS_DEFAULT_MODEL` | Vercel + .env.local | Talker model. Default `anthropic/claude-sonnet-4.6`. |
+| `SUAAS_REASONER_MODEL` | Vercel + .env.local | Reasoner model. Default `anthropic/claude-opus-4.7`. Desde v0.47.2 solo lo usan chat (reasoner), onboard y seed de perfiles; el runner de campañas va entero en `SUAAS_DEFAULT_MODEL`. |
 | `SUAAS_DAILY_TOKEN_BUDGET` | Vercel (opcional) | Presupuesto diario de tokens (ventana 24h sobre `gateway_usage`). Sin configurar no hay límite. Desde v0.48.0 el gate (429) cubre todas las rutas que consumen LLM: runs, geo, momentum, chat, onboard, seeds y batch-intent. Ojo: es un freno local; el tope real del gasto es el budget de la API key en el dashboard del AI Gateway (recomendado con refresh period mensual, nunca `none`). |
 | `CRON_SECRET` | Vercel | **Necesaria desde v0.62.0** para los crons diarios (`/api/cron/keepalive`, que evita la pausa por inactividad del Supabase Free, y `/api/cron/reaper`, que libera runs zombis). Vercel la envía como `Authorization: Bearer` a cada invocación programada; sin ella los handlers devuelven 401 (fail-closed) y el cron no hace nada. Crear con: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` y `vercel env add CRON_SECRET production` (pegar el valor). |
 | `GRAVITY_PASSWORD` | Vercel (opcional) | Contraseña de «Conceptos pendientes» de `/gravity`, verificada en servidor desde v0.62.0 (antes viajaba en el bundle del cliente). Sin definir cae al valor histórico. |
@@ -37,29 +37,9 @@ Ver `.env.example` para el listado completo. Esenciales:
 
 - **Server Actions body limit**: por defecto Next 16 lo deja en 1MB. SUAAS lo sube a `10mb` en `next.config.ts` (`experimental.serverActions.bodySizeLimit`) para que los uploads de screenshot (data: URL base64) no salten en `/targets/new` ni en `/funnels/new`. Si subes imágenes > 10MB, conviene migrar al patrón **client upload directo a Vercel Blob** con `handleUpload`.
 - **Schema cache de PostgREST**: tras aplicar una migración con `ALTER TABLE`, PostgREST puede tardar en ver las columnas nuevas. Si ves errores tipo `Could not find the 'X' column of 'runs' in the schema cache`, ejecuta en el SQL editor: `NOTIFY pgrst, 'reload schema';`. `lib/runs.ts:createRun` es defensivo y sólo inserta columnas no-null para mitigar el efecto.
-- **Migraciones a aplicar en orden** (estado actual, v0.34.x):
-   1. `0001_initial.sql`
-   2. `0002_five_second.sql`
-   3. `0003_funnels.sql`
-   4. `0004_funnel_runs.sql`
-   5. `0005_gateway_usage.sql`
-   6. `0006_ab_copy_pricing.sql`
-   7. `0007_trash.sql`
-   8. `0008_campaigns.sql`
-   9. `0009_campaigns_relax.sql`
-   10. `0010_campaigns_channel.sql`
-   11. `0011_campaigns_multichannel.sql`
-   12. `0012_campaigns_headlines_fix.sql` (idempotente, parche)
-   13. `0013_campaigns_strategy.sql`
-   14. `0014_campaigns_display.sql`
-   15. `0015_gravity_model.sql`
-   16. `0016_momentum.sql`
-   17. `0017_trash_geo_momentum_profiles.sql`
-   18. `0018_campaigns_descriptions_fix.sql` (idempotente, parche)
-   19. `0019_consolidacion.sql` (idempotente: tracking `suaas_migrations`, checks, RLS, columnas de v0.39/v0.40)
-   20. `0020_shopping.sql` (idempotente: `campaigns.product`)
+- **Migraciones a aplicar en orden** (estado actual, v0.63.x): la lista canónica numerada (`0001`..`0029`) vive en `docs/PROYECTO.md`, sección «Migraciones (orden estricto)». Aquí solo las notas de aplicación:
 
-   Las 20 constan aplicadas (2026-06-11). Usa `/diag` o `/api/diag` para confirmar que todas las tablas + columnas críticas están verdes y que «Tracking de migraciones» no lista pendientes. El campo `pending_migrations` del JSON de `/api/diag` es el atajo: lista deduplicada de los archivos `.sql` que faltan por aplicar.
+   Las 29 constan aplicadas (las 20 primeras el 2026-06-11; el resto según se fueron añadiendo, vía SQL editor o MCP de Supabase). La 0028 (`metrics_unique`) debe aplicarse antes de desplegar el código del upsert de métricas. Usa `/diag` o `/api/diag` para confirmar que todas las tablas + columnas críticas están verdes y que «Tracking de migraciones» no lista pendientes. El campo `pending_migrations` del JSON de `/api/diag` es el atajo: lista deduplicada de los archivos `.sql` que faltan por aplicar.
 
 - **¿Cómo aplico las migraciones?** El proyecto suaas **no está conectado a Git en Vercel**, así que `supabase db push` automático no aplica. El flujo es manual:
    1. Vercel → Marketplace → Supabase → **Open in Supabase** → SQL editor.

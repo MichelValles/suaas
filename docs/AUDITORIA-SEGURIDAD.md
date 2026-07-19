@@ -23,10 +23,10 @@
 
 ## Pendiente tras esta sesión
 
-- **Acción del usuario**: crear `CRON_SECRET` en Vercel (sin ella los crons devuelven 401 fail-closed) y opcionalmente `GRAVITY_PASSWORD` (mientras tanto rige el fallback histórico). Comandos en `DESARROLLO.md`.
+- **Acción del usuario**: crear `CRON_SECRET` en Vercel (sin ella los crons devuelven 401 fail-closed; **actualización: `CRON_SECRET` ya creado y verificado en producción, el fallback histórico rige solo para `GRAVITY_PASSWORD`**) y opcionalmente `GRAVITY_PASSWORD` (mientras tanto rige el fallback histórico). Comandos en `DESARROLLO.md`.
 - **A-01 (cookie de sesión constante)**: sigue pendiente; sigue siendo el hallazgo de mayor severidad del histórico.
 - Los 11 errores del lint recuperado (react-hooks/set-state-in-effect y purity) requieren revisión caso a caso.
-- Límite conocido de los guardarraíles: ninguna defensa de texto sanea instrucciones incrustadas en imágenes; `IMAGE_TEXT_GUARD` es mitigación por instrucción, no garantía. La verificación adversarial con PoC ejecutada queda como trabajo futuro.
+- Límite conocido de los guardarraíles: ninguna defensa de texto sanea instrucciones incrustadas en imágenes; `IMAGE_TEXT_GUARD` es mitigación por instrucción, no garantía. El PoC adversarial de inyección de texto se ejecutó el 19-jul-2026 (ver `CONOCIMIENTO-USUARIOS-SINTETICOS.md` §8.3-8.4); queda pendiente solo el vector de instrucciones incrustadas en imágenes (mitigado por instrucción con `IMAGE_TEXT_GUARD`, sin PoC).
 
 ---
 

@@ -12,7 +12,7 @@ Catálogo de más de 200 modelos con dos modos: MaaS por token (Gemini, Claude, 
 
 ### RAG Engine / Vertex AI Search: el hueco es real, la pieza encaja mal
 
-SUAAS no tiene RAG: `buildBrandContext` (`lib/cerebro.ts`) trunca a ciegas a 30.000 caracteres un corpus creciente (brand_documents, transcripciones, respuestas cualitativas, backstories). Pero RAG Engine encaja mal:
+SUAAS no tiene RAG: `buildBrandContext` (`lib/cerebro.ts`) trunca a ciegas a 30.000 caracteres un corpus creciente (brand_documents, transcripciones, respuestas cualitativas, backstories). **[Actualización (jul-2026): implementado en v0.63.0 (`lib/rag.ts`, migración 0029, tabla `brand_document_chunks`); `buildBrandContext` queda como fallback legado.]** Pero RAG Engine encaja mal:
 
 - GA desde diciembre de 2024, en 2026 solo en 4 regiones (us-central1 y us-east4 con allowlist, europe-west3 y europe-west4).
 - No soporta pgvector ni AlloyDB como backend.
@@ -73,7 +73,7 @@ Reescribir Talker-Reasoner y runners en Python o Go y dejar Next.js como fronten
 
 **No adoptar Vertex como plataforma; adoptarlo como proveedor puntual de dos capacidades (grounding y evaluación) sobre la base A.**
 
-1. **Ya**: RAG con pgvector en Supabase para Cerebro, sustituyendo el truncado de 30.000 caracteres por retrieval selectivo. Riesgo bajo, coste casi nulo, cierra el hueco mayor.
+1. **Ya**: RAG con pgvector en Supabase para Cerebro, sustituyendo el truncado de 30.000 caracteres por retrieval selectivo. Riesgo bajo, coste casi nulo, cierra el hueco mayor. **[Actualización (jul-2026): implementado en v0.63.0 (`lib/rag.ts`, migración 0029, tabla `brand_document_chunks`); `buildBrandContext` queda como fallback legado.]**
 2. **Siguiente sprint**: sonda GEO con Gemini más Grounding with Google Search a través del gateway actual, sin cuenta GCP, como cuarto motor (5.000 consultas gratis/mes).
 3. **Después**: proyecto GCP mínimo con WIF para Gen AI Evaluation: dataset golden, groundedness e instruction following en CI, y la comparación Opus vs Sonnet pendiente.
 4. **Solo bajo demanda enterprise** (residencia de datos, gobernanza): BYOK de Vertex en el gateway con región europea.
