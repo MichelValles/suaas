@@ -18,7 +18,7 @@ import {
   upsertMetric,
 } from "@/lib/runs";
 import { reason, talkStream } from "@/lib/agents";
-import { DEFAULT_MODEL, REASONER_MODEL } from "@/lib/gateway";
+import { getChatModels } from "@/lib/chat-models";
 import { recordUsage } from "@/lib/usage";
 
 export const runtime = "nodejs";
@@ -50,6 +50,10 @@ export async function POST(request: Request) {
   // de presupuesto diario que los runs.
   const gate = await budgetGate();
   if (gate) return gate;
+
+  // Modelos del chat elegidos en /tokens (Talker + Reasoner), con fallback
+  // al modelo por defecto del despliegue si no hay elección guardada.
+  const chatModels = await getChatModels();
 
   let parsed: z.infer<typeof BodySchema>;
   try {
@@ -101,16 +105,15 @@ export async function POST(request: Request) {
     async start(controller) {
       try {
         // 1) Reasoner
-        const reasonerResult = await reason({
-          profile,
-          history,
-          message: parsed.message,
-        });
+        const reasonerResult = await reason(
+          { profile, history, message: parsed.message },
+          chatModels.reasoner,
+        );
 
         await recordUsage({
           runId,
           scope: "reasoner_chat",
-          model: REASONER_MODEL,
+          model: chatModels.reasoner,
           usage: reasonerResult.usage,
           meta: { latency_ms: reasonerResult.latencyMs },
         });
@@ -144,12 +147,10 @@ export async function POST(request: Request) {
         );
 
         // 2) Talker (streaming)
-        const talker = talkStream({
-          profile,
-          plan: reasonerResult.plan,
-          history,
-          message: parsed.message,
-        });
+        const talker = talkStream(
+          { profile, plan: reasonerResult.plan, history, message: parsed.message },
+          chatModels.talker,
+        );
 
         let fullText = "";
         for await (const delta of talker.textStream) {
@@ -164,7 +165,7 @@ export async function POST(request: Request) {
           role: "talker",
           content: fullText,
           meta: {
-            model: DEFAULT_MODEL,
+            model: chatModels.talker,
             provider_metadata: (await talker.providerMetadata) ?? null,
             latency_ms: Date.now() - startedAt,
             usage: talkerUsage ?? null,
@@ -174,7 +175,7 @@ export async function POST(request: Request) {
         await recordUsage({
           runId,
           scope: "talker_chat",
-          model: DEFAULT_MODEL,
+          model: chatModels.talker,
           usage: talkerUsage ?? null,
           meta: { latency_ms: Date.now() - startedAt },
         });

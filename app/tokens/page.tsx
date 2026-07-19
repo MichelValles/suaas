@@ -1,18 +1,22 @@
 import { AppShell, PageHeading } from "@/components/app-shell";
+import { CHAT_MODEL_CATALOG, getChatModels } from "@/lib/chat-models";
 import { GEO_ENGINE_CATALOG, getGeoEngineModels } from "@/lib/geo-engines";
 import { settingsTableReady } from "@/lib/settings";
 import { getGatewayCredits, getUsageSummary } from "@/lib/usage";
+import { ChatModelSettings } from "./chat-models";
 import { GeoModelSettings } from "./geo-models";
 
 export const dynamic = "force-dynamic";
 
 export default async function TokensPage() {
-  const [credits, summary, geoModels, settingsReady] = await Promise.all([
-    getGatewayCredits(),
-    getUsageSummary(),
-    getGeoEngineModels(),
-    settingsTableReady(),
-  ]);
+  const [credits, summary, geoModels, chatModels, settingsReady] =
+    await Promise.all([
+      getGatewayCredits(),
+      getUsageSummary(),
+      getGeoEngineModels(),
+      getChatModels(),
+      settingsTableReady(),
+    ]);
 
   const balanceStr =
     credits.ok && credits.balance !== null
@@ -103,6 +107,16 @@ export default async function TokensPage() {
             label="Última actualización"
             value={summary.lastUpdated ? formatRelative(summary.lastUpdated) : "·"}
             hint={summary.lastUpdated ?? "Aún sin registros."}
+          />
+        </section>
+
+        {/* Modelo del chat 1:1 (Talker-Reasoner) */}
+        <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionLabel>Modelo del chat</SectionLabel>
+          <ChatModelSettings
+            catalog={CHAT_MODEL_CATALOG}
+            current={chatModels}
+            migrationPending={!settingsReady}
           />
         </section>
 

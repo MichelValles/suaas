@@ -106,10 +106,13 @@ export type ReasonerResult = {
   usage: unknown;
 };
 
-export async function reason(input: ReasonerInput): Promise<ReasonerResult> {
+export async function reason(
+  input: ReasonerInput,
+  model: string = REASONER_MODEL,
+): Promise<ReasonerResult> {
   const startedAt = Date.now();
   const result = await generateObject({
-    model: REASONER_MODEL,
+    model,
     schema: ReasonerPlanSchema,
     system: buildReasonerSystem(input.profile),
     messages: [
@@ -120,7 +123,7 @@ export async function reason(input: ReasonerInput): Promise<ReasonerResult> {
   return {
     plan: result.object,
     latencyMs: Date.now() - startedAt,
-    model: REASONER_MODEL,
+    model,
     usage: result.usage ?? null,
   };
 }
@@ -132,9 +135,9 @@ export type TalkerInput = {
   message: string;
 };
 
-export function talkStream(input: TalkerInput) {
+export function talkStream(input: TalkerInput, model: string = DEFAULT_MODEL) {
   return streamText({
-    model: DEFAULT_MODEL,
+    model,
     system: buildTalkerSystem(input.profile, input.plan),
     messages: [
       ...input.history,
