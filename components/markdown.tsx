@@ -14,8 +14,10 @@ export function Markdown({ children }: { children: string }) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          a({ node, ...props }) {
-            return <a {...props} target="_blank" rel="noopener noreferrer" />;
+          a(props) {
+            const { node, ...rest } = props;
+            void node; // se extrae para que no llegue al DOM
+            return <a {...rest} target="_blank" rel="noopener noreferrer" />;
           },
         }}
       >

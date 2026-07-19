@@ -42,8 +42,6 @@ const fieldStyle: CSSProperties = {
   width: "100%",
 };
 
-const TIER_BY_ID = Object.fromEntries(TIERS.map((t) => [t.id, t]));
-
 export function PricingCalculator({ unlocked = false }: { unlocked?: boolean }) {
   if (!unlocked) {
     return (

@@ -1,6 +1,5 @@
 import { getAbTest, linkAbTestRun } from "@/lib/ab";
 import { runFiveSecondTest } from "@/lib/experiments/five-second";
-import { getServerClient } from "@/lib/supabase";
 
 /**
  * Un A/B test reutiliza el test de 5 segundos: lanza DOS runs (uno por
@@ -28,19 +27,14 @@ export async function runAbTest(input: RunAbInput): Promise<RunAbOutput> {
     runFiveSecondTest({
       targetId: ab.target_a_id,
       profileIds: input.profileIds,
+      abTestId: ab.id,
     }),
     runFiveSecondTest({
       targetId: ab.target_b_id,
       profileIds: input.profileIds,
+      abTestId: ab.id,
     }),
   ]);
-
-  // Marcar los runs con el ab_test_id (para listados) y enlazarlos por variant.
-  const supa = getServerClient();
-  await supa
-    .from("runs")
-    .update({ ab_test_id: ab.id })
-    .in("id", [resA.runId, resB.runId]);
 
   await Promise.all([
     linkAbTestRun({ ab_test_id: ab.id, run_id: resA.runId, variant: "A" }),

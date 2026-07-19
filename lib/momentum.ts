@@ -7,6 +7,7 @@ import {
   MigrationPendingError,
 } from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
+import { chunks } from "@/lib/experiments/shared";
 import { listProfilesByIds, type Profile } from "@/lib/profiles";
 
 // ============================================================
@@ -242,6 +243,8 @@ export async function hardDeleteMomentumChallenge(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+const STALE_RUNNING_MS = 10 * 60 * 1000;
+
 export async function runMomentumChallenge(
   id: string,
 ): Promise<MomentumChallenge> {
@@ -252,28 +255,45 @@ export async function runMomentumChallenge(
   if (challenge.deleted_at) {
     throw new Error("El Trigger está en la papelera: restáuralo antes de lanzarlo.");
   }
-  if (challenge.status === "running") throw new Error("El análisis ya está en marcha.");
+  if (challenge.status === "running") {
+    // Un run muerto por timeout deja 'running' para siempre. Si lleva más
+    // de 10 min sin actualizarse se considera zombi y se permite relanzar.
+    const updatedAt = new Date(challenge.updated_at).getTime();
+    if (!Number.isFinite(updatedAt) || Date.now() - updatedAt < STALE_RUNNING_MS) {
+      throw new Error("El análisis ya está en marcha.");
+    }
+  }
   if (challenge.profile_ids.length === 0)
     throw new Error("El Trigger no tiene perfiles asignados.");
+  if (challenge.profile_ids.length > 20)
+    throw new Error("Máximo 20 perfiles por Trigger.");
 
-  await supa.from("momentum_challenges").update({ status: "running" }).eq("id", id);
+  await supa
+    .from("momentum_challenges")
+    .update({ status: "running", updated_at: new Date().toISOString() })
+    .eq("id", id);
 
   try {
     const profiles = await listProfilesByIds(challenge.profile_ids);
 
     const results: ProfileMomentumResult[] = [];
-    for (const profile of profiles) {
-      const { result, latencyMs, usage } = await analyzeProfileMomentum(
-        challenge,
-        profile,
+    for (const chunk of chunks(profiles, 5)) {
+      const chunkResults = await Promise.all(
+        chunk.map(async (profile) => {
+          const { result, latencyMs, usage } = await analyzeProfileMomentum(
+            challenge,
+            profile,
+          );
+          await recordUsage({
+            scope: "momentum_probe",
+            model: DEFAULT_MODEL,
+            usage,
+            meta: { challenge_id: id, profile_id: profile.id, latency_ms: latencyMs },
+          });
+          return result;
+        }),
       );
-      await recordUsage({
-        scope: "momentum_probe",
-        model: DEFAULT_MODEL,
-        usage,
-        meta: { challenge_id: id, profile_id: profile.id, latency_ms: latencyMs },
-      });
-      results.push(result);
+      results.push(...chunkResults);
     }
 
     const { data, error } = await supa

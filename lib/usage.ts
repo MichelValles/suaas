@@ -19,6 +19,7 @@ export type UsageScope =
   | "geo_analysis"
   | "momentum_probe"
   | "seed_brief"
+  | "seed_profile"
   | "batch_intent";
 
 type RawUsage = {

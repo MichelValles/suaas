@@ -164,7 +164,8 @@ export async function POST(request: Request) {
           role: "talker",
           content: fullText,
           meta: {
-            model: (await talker.providerMetadata) ?? null,
+            model: DEFAULT_MODEL,
+            provider_metadata: (await talker.providerMetadata) ?? null,
             latency_ms: Date.now() - startedAt,
             usage: talkerUsage ?? null,
           },

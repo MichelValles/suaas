@@ -63,7 +63,7 @@ export default async function CopyRunPage({
 
       <section style={{ display: "flex", flexDirection: "column", gap: 20 }}>
         {summary.byBlock
-          .sort((a, b) => b.persuasion_mean - a.persuasion_mean)
+          .sort((a, b) => (b.persuasion_mean ?? -1) - (a.persuasion_mean ?? -1))
           .map((b, idx) => (
             <article
               key={b.blockId}
@@ -99,9 +99,18 @@ export default async function CopyRunPage({
                   {idx === 0 && " · mejor"}
                 </span>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                  <Chip label="Persuasión" value={fmtPct(b.persuasion_mean)} />
-                  <Chip label="Claridad" value={fmtPct(b.clarity_mean)} />
-                  <Chip label="CTR" value={fmtPct(b.click_rate)} />
+                  <Chip
+                    label="Persuasión"
+                    value={b.persuasion_mean === null ? "sin datos" : fmtPct(b.persuasion_mean)}
+                  />
+                  <Chip
+                    label="Claridad"
+                    value={b.clarity_mean === null ? "sin datos" : fmtPct(b.clarity_mean)}
+                  />
+                  <Chip
+                    label="CTR"
+                    value={b.click_rate === null ? "sin datos" : fmtPct(b.click_rate)}
+                  />
                 </div>
               </header>
               <p

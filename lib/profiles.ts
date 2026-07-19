@@ -92,6 +92,26 @@ export async function listProfilesByIds(ids: string[]): Promise<Profile[]> {
   return (data ?? []) as Profile[];
 }
 
+/**
+ * Variante de listProfilesByIds que excluye la papelera, con la misma
+ * semántica que getProfile. La usan los runners para cargar la muestra
+ * en UNA sola query.
+ */
+export async function listActiveProfilesByIds(ids: string[]): Promise<Profile[]> {
+  if (ids.length === 0) return [];
+  const supa = getServerClient();
+  let { data, error } = await supa
+    .from("profiles")
+    .select("*")
+    .in("id", ids)
+    .is("deleted_at", null);
+  if (isMissingColumnError(error, "deleted_at")) {
+    ({ data, error } = await supa.from("profiles").select("*").in("id", ids));
+  }
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Profile[];
+}
+
 export async function getProfile(id: string): Promise<Profile | null> {
   const supa = getServerClient();
   let { data, error } = await supa

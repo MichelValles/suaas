@@ -7,7 +7,8 @@ import {
 } from "@/lib/copy";
 import { DEFAULT_MODEL } from "@/lib/gateway";
 import { buildSystemPrompt } from "@/lib/prompts";
-import { type Profile, getProfile } from "@/lib/profiles";
+import { type Profile } from "@/lib/profiles";
+import { chunks, loadRunProfiles } from "@/lib/experiments/shared";
 import { createRun, markRunFinished, upsertMetric } from "@/lib/runs";
 import { getServerClient } from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
@@ -43,9 +44,9 @@ export type CopySummary = {
     position: number;
     label: string;
     text: string;
-    clarity_mean: number;
-    persuasion_mean: number;
-    click_rate: number;
+    clarity_mean: number | null;
+    persuasion_mean: number | null;
+    click_rate: number | null;
     sentiment: { positivo: number; negativo: number; neutro: number; escéptico: number };
   }>;
   top_block: { blockId: string; label: string } | null;
@@ -95,14 +96,7 @@ export async function runCopyTest(input: RunCopyInput): Promise<RunCopyOutput> {
   if (!deck) throw new Error("Deck no encontrado.");
   if (deck.blocks.length < 2) throw new Error("El deck necesita al menos 2 bloques.");
 
-  const profiles: Profile[] = [];
-  for (const pid of input.profileIds) {
-    const p = await getProfile(pid);
-    if (!p) throw new Error(`Perfil ${pid} no encontrado.`);
-    profiles.push(p);
-  }
-  if (profiles.length === 0) throw new Error("Sin perfiles para evaluar.");
-  if (profiles.length > 20) throw new Error("Máximo 20 perfiles por run.");
+  const profiles = await loadRunProfiles(input.profileIds);
 
   const run = await createRun({
     profile_id: profiles[0].id,
@@ -163,23 +157,25 @@ export async function runCopyTest(input: RunCopyInput): Promise<RunCopyOutput> {
 
     const summary = summarize(deck, profiles.length, collected);
     await upsertMetric({ run_id: run.id, key: "n", value: summary.n, unit: "count" });
+    const persuasions = summary.byBlock
+      .map((b) => b.persuasion_mean)
+      .filter((v): v is number => v !== null);
     await upsertMetric({
       run_id: run.id,
       key: "best_persuasion_mean",
-      value:
-        summary.byBlock.length === 0
-          ? 0
-          : Math.max(...summary.byBlock.map((b) => b.persuasion_mean)),
+      value: persuasions.length === 0 ? 0 : Math.max(...persuasions),
       unit: "0..1",
     });
+    const clickRates = summary.byBlock
+      .map((b) => b.click_rate)
+      .filter((v): v is number => v !== null);
     await upsertMetric({
       run_id: run.id,
       key: "mean_click_rate",
       value:
-        summary.byBlock.length === 0
+        clickRates.length === 0
           ? 0
-          : summary.byBlock.reduce((a, b) => a + b.click_rate, 0) /
-            summary.byBlock.length,
+          : clickRates.reduce((a, b) => a + b, 0) / clickRates.length,
       unit: "0..1",
     });
 
@@ -191,12 +187,6 @@ export async function runCopyTest(input: RunCopyInput): Promise<RunCopyOutput> {
   }
 }
 
-function chunks<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
-}
-
 function summarize(
   deck: CopyDeckWithBlocks,
   totalProfiles: number,
@@ -204,10 +194,13 @@ function summarize(
 ): CopySummary {
   const byBlock = deck.blocks.map((b) => {
     const rs = responses.filter((r) => r.blockId === b.id);
-    const n = rs.length || 1;
-    const clarity_mean = rs.reduce((a, r) => a + r.reaction.clarity, 0) / n;
-    const persuasion_mean = rs.reduce((a, r) => a + r.reaction.persuasion, 0) / n;
-    const click_rate = rs.filter((r) => r.reaction.would_click).length / n;
+    const n = rs.length;
+    const clarity_mean =
+      n === 0 ? null : rs.reduce((a, r) => a + r.reaction.clarity, 0) / n;
+    const persuasion_mean =
+      n === 0 ? null : rs.reduce((a, r) => a + r.reaction.persuasion, 0) / n;
+    const click_rate =
+      n === 0 ? null : rs.filter((r) => r.reaction.would_click).length / n;
     const sentiment = {
       positivo: 0,
       negativo: 0,
@@ -226,10 +219,14 @@ function summarize(
       sentiment,
     };
   });
+  const rated = byBlock.filter(
+    (b): b is (typeof byBlock)[number] & { persuasion_mean: number } =>
+      b.persuasion_mean !== null,
+  );
   const top =
-    byBlock.length === 0
+    rated.length === 0
       ? null
-      : byBlock.reduce((best, cur) =>
+      : rated.reduce((best, cur) =>
           cur.persuasion_mean > best.persuasion_mean ? cur : best,
         );
   return {

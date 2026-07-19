@@ -1,6 +1,32 @@
 # Auditoría de seguridad, estabilidad y robustez
 
-> Este documento acumula auditorías. La más reciente va primero. La anterior (v0.28.0) se conserva como histórico más abajo.
+> Este documento acumula auditorías. La más reciente va primero. Las anteriores se conservan como histórico más abajo.
+
+---
+
+# Sesión de hardening v0.62.0 (2026-07-19)
+
+> **Alcance:** aplicación del paquete de guardarraíles diseñado por auditoría multiagente (4 especialistas: optimización, prompt injection, RAG, orquestación). No es una auditoría nueva: es la remediación de hallazgos previos más el cierre de la superficie de prompt injection, que no se había auditado hasta ahora.
+
+## Aplicado en esta sesión
+
+| Ítem | Qué se hizo | Dónde |
+|---|---|---|
+| **RLS en Cerebro y ajustes** (advisory crítico de Supabase) | Migración 0027 aplicada y verificada (`relrowsecurity=true`): `app_settings`, `brands` y `brand_documents` eran las únicas 3 tablas de 26 sin RLS; cualquiera con la anon key podía leer o escribir los documentos de marca, incluidos los `sensitive`. El server usa service role (ignora RLS): sin impacto en backend. | `supabase/migrations/0027_rls_cerebro_settings.sql` |
+| **Guardarraíles de prompt injection** | Nuevo `lib/guardrails.ts` (delimitación con fence + instrucción de inertado + neutralización de delimitadores + caps por fuente; sin blacklists semánticas, que son teatro). Aplicado en las 8 superficies mapeadas: respuestas de motores GEO con búsqueda web (la más expuesta: inyección indirecta desde internet), documentos de Cerebro, copy y queries del anunciante en campañas, `main_promise` del 5s, backstories y barreras del perfil (saneado inline), textos abiertos del onboard público, e instrucción `IMAGE_TEXT_GUARD` en los prompts multimodales (el texto dentro de una imagen es contenido, no una orden). Controles de arquitectura preexistentes que se conservan: jueces sin persona, cegado del brief, salida estructurada con zod, documentos sensitive fuera de prompts. | `lib/guardrails.ts`, `lib/geo.ts`, `lib/cerebro.ts`, `lib/experiments/campaign.ts`, `lib/experiments/five-second.ts`, `lib/experiments/funnel.ts`, `lib/prompts.ts`, `lib/onboard.ts` |
+| **Secretos fuera del bundle** | La contraseña de «Conceptos pendientes» de `/gravity` y su contenido (roadmap interno) viajaban en el JS público. Ahora ambos viven en el servidor: `POST /api/gravity/unlock` compara con `timingSafeEqual` contra `GRAVITY_PASSWORD` (fallback al valor histórico hasta que exista la env var, mismo patrón que `lib/seed-auth.ts`) y devuelve la lista solo tras autenticar. | `app/api/gravity/unlock/route.ts`, `app/gravity/conceptos-pendientes.tsx` |
+| **Crons: keep-alive y reaper** (mitiga B-01/B-03 y el incidente de pausa del 19-jul) | `vercel.json` con dos crons diarios: `/api/cron/keepalive` (latido contra Supabase Free, que se pausa tras ~1 semana sin actividad) y `/api/cron/reaper` (libera los `running` zombis de más de 1 hora en `geo_analyses`, `momentum_challenges` y `runs`; los runs de campaña quedan reanudables). Prerrequisito aplicado: GEO y Momentum fijan `updated_at` al pasar a `running`. Ambos handlers exigen `Bearer CRON_SECRET` (fail-closed hasta que la env var exista). Excepción `/api/cron/` en `proxy.ts` (la barrera es el secret, no la cookie). | `vercel.json`, `app/api/cron/*`, `proxy.ts`, `lib/geo.ts`, `lib/momentum.ts` |
+| **Momentum robustecido** (B-03) | Paralelizado en chunks de 5 (antes serie), cap de 20 perfiles (antes sin cap de coste) y desbloqueo de zombis: un `running` de más de 10 minutos sin actualizar se puede relanzar. | `lib/momentum.ts` |
+| **upsertMetric atómico** | Migración 0028 aplicada (dedupe histórico + índice único `run_id, key`) y el delete+insert pasa a upsert con `onConflict`: sin carreras que dupliquen o pierdan métricas. | `supabase/migrations/0028_metrics_unique.sql`, `lib/runs.ts` |
+| **Pasada de optimización** | Lint reparado (roto desde Next 16: `next lint` eliminado; ahora ESLint flat nativo, 18 hallazgos preexistentes visibles por primera vez), N+1 de perfiles eliminado en los 5 runners (una query en vez de hasta 20), `chunks` desduplicado, scope propio `seed_profile`, placeholder de Display filtrado, `RunKind` muerto eliminado, `batch-intent` paralelo, medias null en copy sin datos, sweet spot de pricing null si nadie compra, y limpieza menor. | `lib/experiments/shared.ts` (nuevo) y 20 archivos más |
+| **RAG de Cerebro (infraestructura)** | Migración 0029 aplicada: pgvector 0.8.0, tabla `brand_document_chunks` (RLS activado), índice HNSW, función `match_brand_chunks` (excluye `sensitive` también en SQL: defensa en profundidad, y `revoke execute` a anon/authenticated), columnas `brand_id` en `geo_analyses` y `momentum_challenges`. El código del RAG llega en v0.63.0. | `supabase/migrations/0029_rag_cerebro.sql` |
+
+## Pendiente tras esta sesión
+
+- **Acción del usuario**: crear `CRON_SECRET` en Vercel (sin ella los crons devuelven 401 fail-closed) y opcionalmente `GRAVITY_PASSWORD` (mientras tanto rige el fallback histórico). Comandos en `DESARROLLO.md`.
+- **A-01 (cookie de sesión constante)**: sigue pendiente; sigue siendo el hallazgo de mayor severidad del histórico.
+- Los 11 errores del lint recuperado (react-hooks/set-state-in-effect y purity) requieren revisión caso a caso.
+- Límite conocido de los guardarraíles: ninguna defensa de texto sanea instrucciones incrustadas en imágenes; `IMAGE_TEXT_GUARD` es mitigación por instrucción, no garantía. La verificación adversarial con PoC ejecutada queda como trabajo futuro.
 
 ---
 
@@ -15,7 +41,7 @@
 
 | Severidad | Cantidad | Estado |
 |---|---|---|
-| Crítica | 0 | — |
+| Crítica | 0 | (ninguna) |
 | Alta | 1 | Documentada (A-01, decisión de diseño a endurecer) |
 | Media | 5 | Documentadas (A-02, A-03, B-01, B-02, B-03) |
 | Baja | 8 | Documentadas |

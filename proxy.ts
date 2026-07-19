@@ -18,6 +18,9 @@ function isPublic(pathname: string): boolean {
   if (pathname.startsWith("/onboard/")) return true;
   if (pathname.startsWith("/api/onboard/")) return true;
   if (pathname === "/api/qr") return true;
+  // Endpoints de cron de Vercel: llegan sin cookie de sesión. La barrera real
+  // es el header Authorization con CRON_SECRET que valida cada handler.
+  if (pathname.startsWith("/api/cron/")) return true;
   // Landing comercial pública (se comparte con clientes). La vista interna de
   // la calculadora se protege aparte con su propia contraseña.
   if (pathname === "/propuesta") return true;

@@ -1,10 +1,12 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
+import { IMAGE_TEXT_GUARD } from "@/lib/guardrails";
 import { resolveImageForApi } from "@/lib/image-source";
 import { buildSystemPrompt } from "@/lib/prompts";
 import { type FunnelStep, type FunnelWithSteps, getFunnel } from "@/lib/funnels";
-import { type Profile, getProfile } from "@/lib/profiles";
+import { type Profile } from "@/lib/profiles";
+import { chunks, loadRunProfiles } from "@/lib/experiments/shared";
 import {
   createRun,
   markRunFinished,
@@ -173,6 +175,7 @@ function buildFunnelSystem(
     "- 'friction' lista barreras concretas que te cita el propio perfil (jerga, formularios largos, falta de prueba, etc.).",
     "- 'would_continue': si abandonarías el recorrido aquí, ponlo en false. Sé estricto: una persona normal abandona ante poca claridad.",
     "- NO completes información que la pantalla no dé. Si dudas, lo dices.",
+    `- ${IMAGE_TEXT_GUARD}`,
   ].join("\n");
 }
 
@@ -199,14 +202,7 @@ export async function runFunnelTest(
     throw new Error("El embudo necesita al menos 2 pasos.");
   }
 
-  const profiles: Profile[] = [];
-  for (const pid of input.profileIds) {
-    const p = await getProfile(pid);
-    if (!p) throw new Error(`Perfil ${pid} no encontrado.`);
-    profiles.push(p);
-  }
-  if (profiles.length === 0) throw new Error("Sin perfiles para evaluar.");
-  if (profiles.length > 20) throw new Error("Máximo 20 perfiles por run.");
+  const profiles = await loadRunProfiles(input.profileIds);
 
   const run = await createRun({
     profile_id: profiles[0].id,
@@ -335,12 +331,6 @@ async function simulateOneProfile(
 // ============================================================
 // Utilidades
 // ============================================================
-
-function chunks<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
-}
 
 function summarize(
   funnel: FunnelWithSteps,

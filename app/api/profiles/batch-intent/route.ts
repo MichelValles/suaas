@@ -87,26 +87,34 @@ export async function POST(req: Request) {
     error?: string;
   }[] = [];
 
-  for (const profile of profiles) {
-    if (!force && profile.intent_context) {
-      results.push({ id: profile.id, name: profile.name, intent: profile.intent_context, status: "skipped" });
-      continue;
-    }
-    try {
-      const { intent, usage } = await generateIntentForProfile(profile);
-      // Era el único call site del gateway sin recordUsage: su gasto no
-      // aparecía en /tokens ni contaba para el presupuesto diario.
-      await recordUsage({
-        scope: "batch_intent",
-        model: DEFAULT_MODEL,
-        usage,
-        meta: { profile_id: profile.id, forced: force },
-      });
-      await updateProfileIntentContext(profile.id, intent);
-      results.push({ id: profile.id, name: profile.name, intent, status: "generated" });
-    } catch (err) {
-      results.push({ id: profile.id, name: profile.name, intent: "", status: "error", error: (err as Error).message });
-    }
+  // Chunks de 5 en paralelo (mismo patrón que los runners), preservando el
+  // orden de results y la semántica skipped/generated/error.
+  const CHUNK = 5;
+  for (let i = 0; i < profiles.length; i += CHUNK) {
+    const chunk = profiles.slice(i, i + CHUNK);
+    const chunkResults = await Promise.all(
+      chunk.map(async (profile) => {
+        if (!force && profile.intent_context) {
+          return { id: profile.id, name: profile.name, intent: profile.intent_context, status: "skipped" as const };
+        }
+        try {
+          const { intent, usage } = await generateIntentForProfile(profile);
+          // Era el único call site del gateway sin recordUsage: su gasto no
+          // aparecía en /tokens ni contaba para el presupuesto diario.
+          await recordUsage({
+            scope: "batch_intent",
+            model: DEFAULT_MODEL,
+            usage,
+            meta: { profile_id: profile.id, forced: force },
+          });
+          await updateProfileIntentContext(profile.id, intent);
+          return { id: profile.id, name: profile.name, intent, status: "generated" as const };
+        } catch (err) {
+          return { id: profile.id, name: profile.name, intent: "", status: "error" as const, error: (err as Error).message };
+        }
+      }),
+    );
+    results.push(...chunkResults);
   }
 
   return NextResponse.json({

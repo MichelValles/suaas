@@ -7,7 +7,8 @@ import {
   getPricingOffer,
 } from "@/lib/pricing";
 import { buildSystemPrompt } from "@/lib/prompts";
-import { type Profile, getProfile } from "@/lib/profiles";
+import { type Profile } from "@/lib/profiles";
+import { chunks, loadRunProfiles } from "@/lib/experiments/shared";
 import { createRun, markRunFinished, upsertMetric } from "@/lib/runs";
 import { getServerClient } from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
@@ -100,14 +101,7 @@ export async function runPricingTest(
   if (offer.prices.length < 2)
     throw new Error("La oferta necesita al menos 2 precios.");
 
-  const profiles: Profile[] = [];
-  for (const pid of input.profileIds) {
-    const p = await getProfile(pid);
-    if (!p) throw new Error(`Perfil ${pid} no encontrado.`);
-    profiles.push(p);
-  }
-  if (profiles.length === 0) throw new Error("Sin perfiles para evaluar.");
-  if (profiles.length > 20) throw new Error("Máximo 20 perfiles por run.");
+  const profiles = await loadRunProfiles(input.profileIds);
 
   const run = await createRun({
     profile_id: profiles[0].id,
@@ -188,12 +182,6 @@ export async function runPricingTest(
   }
 }
 
-function chunks<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
-}
-
 function summarize(
   offer: PricingOfferWithPrices,
   totalProfiles: number,
@@ -213,10 +201,12 @@ function summarize(
       n: rs.length,
     };
   });
-  // Sweet spot: el precio con mayor (would_buy_rate * price). Mezcla volumen y revenue.
+  // Sweet spot: el precio con mayor (would_buy_rate * price). Si nadie
+  // compraría a ningún precio, no hay sweet spot.
   let sweet: PricingSummary["sweet_spot"] = null;
-  let bestScore = -Infinity;
+  let bestScore = 0;
   for (const b of byPrice) {
+    if (b.n === 0) continue;
     const score = b.would_buy_rate * b.price;
     if (score > bestScore) {
       bestScore = score;

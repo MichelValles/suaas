@@ -232,8 +232,8 @@ export function partsForKind(
         { scope: "talker_chat", model: DEFAULT_MODEL, count: 1 },
       ];
     case "seed_profiles":
-      // El histórico de la siembra vive bajo reasoner_chat (meta.kind
-      // seed_profile, scope reciclado): la media mezcla chat y seeds.
-      return [{ scope: "reasoner_chat", model: REASONER_MODEL, count: n }];
+      // Scope propio desde v0.61.x. Sin histórico aún, el estimador cae al
+      // fallback conservador hasta acumular llamadas nuevas.
+      return [{ scope: "seed_profile", model: REASONER_MODEL, count: n }];
   }
 }

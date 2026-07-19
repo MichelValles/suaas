@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { REASONER_MODEL } from "@/lib/gateway";
+import { chunks } from "@/lib/experiments/shared";
 import { createProfile, ProfileInputSchema, type ProfileInput } from "@/lib/profiles";
 import { recordUsage } from "@/lib/usage";
 
@@ -140,7 +141,7 @@ async function generateOneProfile(seed: string): Promise<GeneratedProfile> {
   });
   const usage = result.usage ?? null;
   await recordUsage({
-    scope: "reasoner_chat",
+    scope: "seed_profile",
     model: REASONER_MODEL,
     usage,
     meta: { kind: "seed_profile", seed },
@@ -208,10 +209,4 @@ export async function* streamSeededProfiles(n: number): AsyncGenerator<ProfileSe
     }
   }
   yield { type: "done", created, failed };
-}
-
-function chunks<T>(arr: T[], size: number): T[][] {
-  const out: T[][] = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
 }

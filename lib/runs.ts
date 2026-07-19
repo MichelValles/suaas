@@ -5,7 +5,6 @@ export type RunKind =
   | "funnel"
   | "pricing"
   | "copy_resonance"
-  | "ab_test"
   | "campaign"
   | "chat";
 export type RunStatus = "queued" | "running" | "done" | "error";
@@ -301,13 +300,17 @@ export async function upsertMetric(input: {
   unit?: string | null;
 }) {
   const supa = getServerClient();
-  await supa.from("metrics").delete().eq("run_id", input.run_id).eq("key", input.key);
-  const { error } = await supa.from("metrics").insert({
-    run_id: input.run_id,
-    key: input.key,
-    value: input.value,
-    unit: input.unit ?? null,
-  });
+  // Upsert atómico sobre el índice único (run_id, key) de la migración 0028:
+  // el delete+insert anterior podía perder la métrica en una carrera.
+  const { error } = await supa.from("metrics").upsert(
+    {
+      run_id: input.run_id,
+      key: input.key,
+      value: input.value,
+      unit: input.unit ?? null,
+    },
+    { onConflict: "run_id,key" },
+  );
   if (error) throw new Error(error.message);
 }
 

@@ -2,50 +2,43 @@
 
 import { useState } from "react";
 
-const PENDING = [
-  {
-    label: "Instancias como entidad",
-    note: "Gravity tiene perfiles individuales, pero no el par «perfil comportamental → N instancias»: mismo comportamiento observable, orígenes y aha moments radicalmente distintos.",
-  },
-  {
-    label: "Gravedad agregada",
-    note: "No existe una métrica que sume el momentum de las interacciones de una cohorte como fuerza gravitacional de la marca, ni una vista que cruce el momentum entre módulos.",
-  },
-  {
-    label: "Mapa de fricción priorizado por impacto",
-    note: "Los embudos ya rankean fricciones por frecuencia entre perfiles (top_friction), pero falta la dimensión instancia y la regla de severidad: lo que falla en todas las instancias se toca primero.",
-  },
-  {
-    label: "Aha moment por instancia",
-    note: "El momento de propiedad psicológica no se modela ni detecta. Es específico por instancia, detectable y acelerable.",
-  },
-  {
-    label: "Capas de activación (Value Plane)",
-    note: "No hay simulación post-alta: adopción, pertenencia, inducción de hábitos recurrentes ni predicción de churn.",
-  },
-  {
-    label: "Repesca accionable",
-    note: "behavior_class='repesca' se cuenta pero no genera la ventana de recuperación: qué mensaje recuperaría a ese perfil en función de su instancia.",
-  },
-  {
-    label: "Evolución temporal del momentum",
-    note: "El vector se mide por interacción, pero no se traza su trayectoria a lo largo del tiempo ni entre touchpoints.",
-  },
-];
+type PendingItem = { label: string; note: string };
 
+/**
+ * El contenido y la contraseña viven en el servidor (/api/gravity/unlock):
+ * este componente solo pide el desbloqueo y pinta lo que reciba. Así ni el
+ * roadmap interno ni el secreto viajan en el bundle del cliente.
+ */
 export function ConceptosPendientes() {
-  const [unlocked, setUnlocked] = useState(false);
+  const [pending, setPending] = useState<PendingItem[] | null>(null);
   const [input, setInput] = useState("");
   const [error, setError] = useState(false);
+  const [busy, setBusy] = useState(false);
 
-  function handleSubmit(e: React.FormEvent) {
+  const unlocked = pending !== null;
+
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (input === "michel101") {
-      setUnlocked(true);
-      setError(false);
-    } else {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const res = await fetch("/api/gravity/unlock", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password: input }),
+      });
+      if (res.ok) {
+        const data = (await res.json()) as { pending?: PendingItem[] };
+        setPending(data.pending ?? []);
+        setError(false);
+      } else {
+        setError(true);
+        setInput("");
+      }
+    } catch {
       setError(true);
-      setInput("");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -111,6 +104,7 @@ export function ConceptosPendientes() {
             />
             <button
               type="submit"
+              disabled={busy}
               style={{
                 padding: "8px 16px",
                 fontSize: 12,
@@ -120,11 +114,12 @@ export function ConceptosPendientes() {
                 color: "var(--ink-900)",
                 border: "none",
                 borderRadius: "var(--radius-sm)",
-                cursor: "pointer",
+                cursor: busy ? "wait" : "pointer",
                 fontWeight: 600,
+                opacity: busy ? 0.6 : 1,
               }}
             >
-              Acceder
+              {busy ? "Comprobando…" : "Acceder"}
             </button>
           </div>
           {error && (
@@ -150,7 +145,7 @@ export function ConceptosPendientes() {
             para el roadmap.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {PENDING.map((p) => (
+            {(pending ?? []).map((p) => (
               <div
                 key={p.label}
                 style={{
