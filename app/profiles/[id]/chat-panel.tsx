@@ -9,6 +9,12 @@ type Momentum = {
   velocity: "accelerating" | "steady" | "decelerating";
 };
 
+type SocialFriction = {
+  intensity: number;
+  trigger: string;
+  habitus_note: string;
+};
+
 type ReasonerPlan = {
   state: string;
   intent: string;
@@ -16,6 +22,7 @@ type ReasonerPlan = {
   tone: string;
   effort: number;
   momentum?: Momentum;
+  social_friction?: SocialFriction;
   plan: string;
 };
 
@@ -379,6 +386,17 @@ function TalkerMessage({
                   : "sin barreras"
               }
             />
+            {msg.plan.social_friction &&
+              msg.plan.social_friction.intensity > 0.05 && (
+                <Term
+                  label="Fricción simbólica"
+                  value={`${Math.round(msg.plan.social_friction.intensity * 100)}% · ${msg.plan.social_friction.trigger}${
+                    msg.plan.social_friction.habitus_note
+                      ? ` (${msg.plan.social_friction.habitus_note})`
+                      : ""
+                  }`}
+                />
+              )}
             <Term label="Plan" value={msg.plan.plan} />
             {typeof msg.effortRatio === "number" && (
               <Term

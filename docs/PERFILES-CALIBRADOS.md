@@ -27,6 +27,7 @@ Lo que **no** es, y conviene decirlo en la primera conversación antes de que lo
 | `intent_context` (JTBD) | Jobs To Be Done; job story | Christensen et al. (2016); Ulwick (2005); Klement (2013) | Alta como formato, sin validación de contenido |
 | Vector Intent Momentum | Intención conductual; teoría de campo | Ajzen (1991); Fishbein y Ajzen (1975); Lewin (1936, 1951) | Baja como medida: juicio del LLM sin fórmula ni dinámica |
 | Backstory / vignette | Método de viñetas; identidad narrativa | Alexander y Becker (1978); Rossi y Nock (1982); McAdams (1993) | Media: viñeta como identidad, no como diseño factorial |
+| `social_friction` (lente del Reasoner) | Habitus y capital cultural; dominación simbólica | Bourdieu (1979) | Baja: declarativa, solo chat, sin validar (ver 3.4) |
 | Óptima / fuga / repesca | Expectativa-valor; carga cognitiva; brecha intención-conducta | Kahneman (2011); Sweller (1988); Sheeran (2002) | Media: autoclasificación del propio agente |
 | Talker-Reasoner | Procesamiento dual (Sistemas 1 y 2) | Kahneman (2011); Stanovich y West (2000); Christakopoulou, Mourad y Matarić (2024) | Alta como arquitectura, pero solo en el chat 1:1 |
 | `effort` / `effort_ratio` | Customer Effort Score; esfuerzo percibido | Dixon, Freeman y Toman (2010) | Baja: media de juicios del LLM |
@@ -134,7 +135,7 @@ Los filtros del explorador operan por texto (AND de palabras, insensible a acent
 
 **Qué hay.** Narrativa obligatoria en tercera persona («una rutina concreta + un dolor + una motivación», `lib/seed-profiles.ts:42-47`; en el onboard, con frases textuales del humano). Se inyecta íntegra bajo «## Tu historia». Los sets de investigación cierran cada backstory con una frase «Se informa en...» para codificar canales, porque el esquema no tiene campo de canales.
 
-**Constructo.** El método de viñetas de la investigación por encuestas: Alexander y Becker (1978), Rossi y Nock (1982, *Measuring Social Judgments: The Factorial Survey Approach*). La base teórica del proyecto lo llama «Grounded Modeling»: datos estructurados + vignette. Como recurso de identidad simulada conecta con la identidad narrativa de McAdams (1993, *The Stories We Live By*). **Lectura sociológica defendible pero no operacionalizada**: las backstories codifican de facto posiciones de clase y capital cultural (banda de renta, «baja alfabetización digital», «llamadas mejor que mensajes», ciudad de provincia frente a capital), es decir, un habitus folk en el sentido de Bourdieu (*La Distinction*, 1979). Presentarlo como inspiración implícita, no como implementación: no hay ninguna variable de capital, campo o trayectoria en el esquema.
+**Constructo.** El método de viñetas de la investigación por encuestas: Alexander y Becker (1978), Rossi y Nock (1982, *Measuring Social Judgments: The Factorial Survey Approach*). La base teórica del proyecto lo llama «Grounded Modeling»: datos estructurados + vignette. Como recurso de identidad simulada conecta con la identidad narrativa de McAdams (1993, *The Stories We Live By*). **Lectura sociológica defendible**: las backstories codifican de facto posiciones de clase y capital cultural (banda de renta, «baja alfabetización digital», «llamadas mejor que mensajes», ciudad de provincia frente a capital), es decir, un habitus folk en el sentido de Bourdieu (*La Distinction*, 1979). Desde v0.63.5 esa lectura deja de ser solo implícita: el Reasoner del chat emite una lente de **fricción simbólica** (`social_friction`) que evalúa disonancia de clase y legitimidad leyendo el habitus del perfil (ver 3.4). Sigue siendo **operacionalización parcial y declarativa** (un juicio del LLM, solo en el chat, sin variable estructural de capital/campo/trayectoria en el esquema ni validación), no una medida; pero ya no es mera inspiración.
 
 **Lo que la experta objetará.** (1) En la tradición de Rossi la viñeta es un **diseño experimental**: se varían sistemáticamente sus dimensiones para estimar los pesos del juicio. Aquí la viñeta es carga de identidad fija; no hay diseño factorial en ningún módulo. (2) El mínimo real son 20 caracteres: el grounding puede degradarse en silencio con perfiles manuales. (3) La viñeta condiciona la simulación pero está excluida del buscador (1.4).
 
@@ -172,6 +173,14 @@ En ambos, NULL significa «sin clasificar» (filas anteriores al Gravity Model).
 **Constructo.** El Customer Effort Score trasplantado al agente (Dixon, Freeman y Toman 2010, «Stop Trying to Delight Your Customers», *HBR*), con la carga cognitiva de Sweller como sustrato. La tesis original (el esfuerzo predice deslealtad mejor que la satisfacción) justifica el uso del esfuerzo como proxy de abandono.
 
 **Lo que la experta objetará.** El CES original es un ítem autoinformado por clientes reales tras una interacción real; aquí es un juicio del LLM sobre una fricción simulada, promediado. La etiqueta «métrica predictiva de abandono» de la base teórica es aspiracional: no hay validación predictiva contra abandono real.
+
+### 3.4 `social_friction`: la lente de fricción simbólica (habitus)
+
+**Qué hay.** Desde v0.63.5 el plan del Reasoner incluye un objeto `social_friction` con `intensity` 0..1, `trigger` y `habitus_note` (`lib/agents.ts`). Es la capa **macrosociológica** que faltaba: más allá de las barreras funcionales COM-B, evalúa si el registro de la interacción (tono, jerga, peticiones de datos, trato de la marca) genera disonancia de clase, exclusión cultural o pérdida de legitimidad, leyendo el habitus y el capital cultural del perfil. Se pinta en el panel «Razonamiento» del chat y, cuando es alta, el Reasoner la refleja en `plan` para que el Talker la module en la voz del perfil (no se inyecta al Talker por una vía nueva: viaja por el `plan` existente).
+
+**Constructo.** El habitus y el capital cultural de Bourdieu (*La Distinction*, 1979); la «ruptura de simetría de clase» ante una táctica extractiva es un caso de dominación simbólica. Verificado en vivo (19-jul-2026): ante la captura de lead «teléfono por PDF», Lucía Sáez (capital cultural alto, metódica) produjo `social_friction.intensity 0,7` con `habitus_note` «lee el gate del PDF como táctica comercial poco seria, impropia de un servicio médico», y el turno viró a momentum `drifting/decelerating` y tono escéptico; ante un saludo neutro, 0,2.
+
+**Lo que la experta objetará.** (1) Solo existe en el **chat 1:1** (donde vive el Reasoner), no en los tests por lotes donde se decide el CRO. (2) Es **medición declarativa simulada**: otro juicio del LLM sin verdad de terreno; añade una lente constructual, no rigor empírico. (3) Mide fricción **simbólica** (clase, legitimidad), no la **relacional** (prueba social, fuerza de lazos de Granovetter), que sigue sin operacionalizarse. Para ser una señal de conversión debería llevarse a los esquemas de los experimentos y validarse contra juicio experto. Hueco de roadmap, no capacidad consolidada.
 
 ---
 
@@ -212,7 +221,7 @@ La uniformidad que sugiere «los perfiles se inyectan en todo» tiene excepcione
 
 | Módulo | ¿`buildSystemPrompt` completo? | Arquitectura | Conductas ó/f/r | Vector momentum | Nota |
 |---|---|---|---|---|---|
-| Chat 1:1 | Sí | **Talker-Reasoner** (Opus + Sonnet) | No | **Sí, por turno** (inerte: no pasa al Talker ni se agrega) | El único módulo dual |
+| Chat 1:1 | Sí | **Talker-Reasoner** (Opus + Sonnet) | No | **Sí, por turno** (inerte: no pasa al Talker ni se agrega) | El único módulo dual; único que emite `social_friction` (3.4) |
 | Claridad 5s | Sí | Una pasada + juez sin persona | **Sí** (autoclasificada) | No | La «exposición de 5 s» es ficción del prompt, no límite físico |
 | A/B | Sí (hereda del 5s) | Dos runs 5s en paralelo, misma muestra | Sí | No | Análisis emparejado en la vista |
 | Embudos | Sí | Una pasada por paso, secuencial con dropoff real | No (`would_continue` booleano) | No | Memoria episódica de pasos previos en el prompt |
@@ -246,15 +255,16 @@ El módulo canónico del Intent Momentum construye su propia persona ad hoc con 
 **Citables solo con reservas explícitas**:
 
 - **Christensen (JTBD)**: sí, pero la plantilla operativa es la job story de Klement/Intercom, y la segmentación por jobs no existe como entidad de datos.
-- **Bourdieu**: el habitus está implícito en las viñetas, sin ninguna variable estructural. Inspiración, no implementación.
+- **Bourdieu**: citable con matiz. El habitus está codificado de facto en las viñetas y, desde v0.63.5, parcialmente operacionalizado por la lente `social_friction` del Reasoner del chat (fricción simbólica, disonancia de clase; ver 3.4). Sigue siendo declarativo y solo en el chat, sin variable estructural de capital/campo en el esquema: preséntese como operacionalización parcial, no como medida validada.
 - **Goffman**: aplicable solo como analogía del mecanismo de simulación (el system prompt define la situación y el guion; las reglas anti-ruptura son mantenimiento dramatúrgico del rol), no del usuario simulado.
 - **Zero Moment of Truth (Lecinski 2011) y consumer decision journey (Court et al. 2009, McKinsey)**: parientes de industria de la tesis «la decisión se forma antes del clic»; citarlos como marcos de industria, no como academia.
 
 **No citables** (sobreventa detectable):
 
 - **Cialdini**: ninguno de los seis principios existe como variable, manipulación o rúbrica en el código.
-- **Granovetter**: la lista `channels` de Momentum no modela red ni fuerza de lazos; solo strings.
-- **Las cifras de validación de la base teórica** (89,7% de precisión, 71,4% de recall, la preferencia de expertos en ciego, el estudio de adopción N=1.093 y las citas de Ishii, Stegbauer y Bouzit en `CONOCIMIENTO-USUARIOS-SINTETICOS.md`): **no llevan referencia bibliográfica** y no deben citarse ante una académica sin recuperar la fuente primaria. Es lo primero que pedirá subsanar.
+- **Granovetter**: la dimensión relacional (prueba social, fuerza de lazos) sigue **sin operacionalizar**; la lista `channels` de Momentum no modela red, solo strings, y la lente `social_friction` (3.4) es simbólica, no relacional. Queda como hueco de roadmap: no citar como implementado.
+
+*Actualización de estatus*: las **cifras de validación** de la base teórica (89,7%, 71,4%, la preferencia de expertos en ciego) y la encuesta N=1.093 **ya están rastreadas a su fuente primaria** (Yun et al. 2025 y User Interviews 2023) en `CONOCIMIENTO-USUARIOS-SINTETICOS.md` §2, que además corrige las atribuciones erróneas de Ishii, Stegbauer y Bouzit. Ya son citables; el aviso anterior de «sin referencia» está resuelto.
 
 ---
 

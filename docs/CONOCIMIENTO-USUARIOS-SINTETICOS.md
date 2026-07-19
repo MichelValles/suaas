@@ -114,7 +114,7 @@ En SUAAS estos componentes son literalmente los campos del perfil (`demographics
 
 La simulación avanzada se apoya en agentes con memoria y razonamiento (GABM; la referencia de código abierto es Concordia [Vezhnevets et al. 2023]). SUAAS implementa la arquitectura **Talker-Reasoner** [Christakopoulou et al. 2024], inspirada en el procesamiento dual de Kahneman:
 
-- **Reasoner (Sistema 2):** analítico y lento. Modela el estado interno del usuario, detecta barreras, planifica la acción. En SUAAS es Opus, produce un plan estructurado por turno.
+- **Reasoner (Sistema 2):** analítico y lento. Modela el estado interno del usuario, detecta barreras, evalúa la fricción simbólica del turno (ver §5.6) y planifica la acción. En SUAAS es Opus, produce un plan estructurado por turno.
 - **Talker (Sistema 1):** fluido e intuitivo. Genera el diálogo final siguiendo las directrices del Reasoner. En SUAAS es Sonnet, emite en streaming.
 
 Esta separación permite el **logging de Chain-of-Thought**: trazabilidad total sobre *por qué* el agente decidió lo que decidió. Es exactamente lo que se demuestra en la sección siguiente.
@@ -182,6 +182,26 @@ Esta es la demostración de que la respuesta no es genérica, sino consecuencia 
 
 El `effort` bajo (0,3) refleja que la pregunta no le supone fricción (está en su terreno); el `momentum` «approaching / steady» refleja una intención activa pero no urgente. Ambos son coherentes con un perfil de conciencia alta que ya ha hecho el trabajo previo. **Cambiar un atributo cambia la respuesta**: un perfil con neuroticismo alto y baja alfabetización financiera produciría un `effort` mayor, un `tone` más ansioso y una redacción más insegura.
 
+> **Trazabilidad como etnografía computacional abierta.** El mayor límite de la investigación cualitativa es que los procesos mentales del sujeto son invisibles: se observa la conducta, no el razonamiento que la produce. Aquí el Chain-of-Thought del Sistema 2 (el plan del Reasoner) hace visible ese razonamiento y lo ancla a atributos concretos. No sustituye a la etnografía real, pero abre la caja negra del «por qué», que es justo lo que la observación de usuarios no puede registrar. Advertencia metodológica: los plans que se citan aquí son **salidas reales del sistema**, no relatos ajustados a una tesis; una traza inventada para ilustrar un punto no vale como evidencia.
+
+### 5.6 La capa macrosociológica: fricción simbólica y habitus
+
+Las barreras COM-B son funcionales (capacidad, oportunidad, motivación). Falta la dimensión **estructural**: cómo el origen social y los esquemas de percepción de un perfil (su **habitus**, en el sentido de Bourdieu, *La Distinction*, 1979) reaccionan al registro de la interacción. Desde v0.63.5 el Reasoner emite además, por turno, una lente de **fricción simbólica** (`social_friction`): intensidad 0..1, disparador y una lectura de habitus. Opera como un sociólogo dentro del Sistema 2: evalúa disonancia de clase, exclusión cultural o pérdida de legitimidad.
+
+Prueba en vivo contra el gateway (19-jul-2026), con Lucía Sáez y dos estímulos. Cuando la marca intenta la captura extractiva de lead («danos el teléfono y te descargas el precio en un PDF»):
+
+```json
+"social_friction": {
+  "intensity": 0.7,
+  "trigger": "asimetría extractiva: piden un dato personal a cambio de información que debería ser pública, sin reconocer que ella ya viene comparando",
+  "habitus_note": "Perfil con capital cultural alto que lee el gate del PDF como táctica comercial poco seria, impropia de un servicio médico al que va a pagar miles de euros."
+}
+```
+
+Y no queda aislada: en ese turno el `momentum` viró a `drifting / decelerating`, el `effort` subió a 0,75, el `tono` pasó a escéptico y el `plan` lo recogió («que se plante: no da el teléfono sin ver antes precio y tasas»). Es exactamente el efecto de «ruptura de simetría de clase», pero como **salida real** del sistema, no fabricada, y aparece en el turno que de verdad es extractivo (no en una pregunta benigna). Ante un saludo neutro de call center, la fricción baja a 0,2: la lente no se fuerza.
+
+**Estatus honesto (imprescindible).** Esta lente es (1) **solo del chat 1:1**: el Reasoner no existe en los tests por lotes (5s, campañas, copy, pricing, embudos), donde se toman las decisiones de CRO; (2) **una medición declarativa simulada**, otro juicio del LLM sin verdad de terreno contra la que validar, con el mismo estatus epistémico que el resto de scores; es una **lente constructual** (una operacionalización parcial y declarativa del habitus), no un aumento de rigor empírico. Para convertirla en señal de conversión haría falta llevarla a los esquemas de los experimentos por lotes y validarla contra el juicio de un experto humano. Y una precisión: `social_friction` mide fricción **simbólica** (clase, legitimidad), no la dimensión **relacional** (presión de grupo, prueba social, fuerza de los lazos de Granovetter): esa sigue sin implementarse, porque el campo `channels` de los perfiles es una lista de strings, no una estructura de red. Documentarla como «interseccionalidad» sería sobreventa: el modelo condiciona sobre atributos que co-varían, no «comprende» la interseccionalidad sin un diseño factorial que lo pruebe.
+
 ---
 
 ## 6. Aplicaciones en el ciclo de optimización
@@ -215,7 +235,7 @@ La validez de los usuarios sintéticos grounded se probó en salud de alta compl
 ### 8.1 Riesgos conocidos
 
 1. **Sesgo de cámara de eco:** el modelo puede amplificar sus sesgos de entrenamiento y validar hipótesis falsas si el prompt no es neutral.
-2. **Falta de ruido emocional:** la IA es lógica; los humanos actúan bajo fatiga, distracción o impulso. Los perfiles son centroides, no distribuciones (no hay muestreo: ver `PERFILES-CALIBRADOS.md` §8.2).
+2. **Falta de ruido emocional (con el matiz de Simon):** la IA es lógica y no simula la entropía humana plena (impulso, contradicción intra-individual, crisis). El límite es real, pero conviene reencuadrarlo: en ciencias sociales la desviación de la racionalidad no es un error a eliminar, es **racionalidad limitada** (Herbert Simon) anclada en el contexto: el usuario no se equivoca por fallo, sino porque su situación (fatiga, urgencia, presión social, coste de oportunidad) impone restricciones. El sistema captura parte de esas presiones (el habitus y la fricción simbólica, §5.6; las barreras COM-B), pero no la entropía completa: los perfiles siguen siendo centroides, no distribuciones (no hay muestreo: ver `PERFILES-CALIBRADOS.md` §8.2).
 3. **Alucinaciones de usabilidad:** inventar problemas inexistentes o ignorar bugs obvios.
 4. **Privacidad y RGPD:** permiten testar sin exponer PII, pero hay riesgo de fuga con modelos públicos sin anonimización [Cavoukian 2009].
 
@@ -226,6 +246,8 @@ Para evitar el agente «demasiado cooperativo» (sicofancia [Sharma et al. 2023]
 ### 8.3 Guardarraíles y anti prompt injection (probados en vivo)
 
 SUAAS inyecta texto de terceros (documentos de marca, respuestas de motores con búsqueda web, copy del anunciante, backstories importados) en prompts de LLM. Desde v0.62.0, el módulo `lib/guardrails.ts` delimita ese contenido con un vallado inerte, instruye al modelo a tratarlo como datos y neutraliza cualquier intento de cerrar el vallado (no usa blacklists semánticas, que son teatro). Se probó con un documento de marca envenenado el 19-jul-2026, ejercitando `buildBrandContext` (`lib/cerebro.ts`) y `analyzeProfileMomentum` (`lib/momentum.ts`) contra el gateway real con el payload que se transcribe abajo.
+
+Más allá de la seguridad informática, estos guardarraíles cumplen una **función metodológica: garantizan la validez ecológica del experimento**. Al aislar al perfil de instrucciones externas, aseguran que sus reacciones provengan de sus atributos sociológicos y no de un texto de terceros que le secuestre el rol; mantienen el entorno experimental estéril, que es la condición para que la medición signifique algo.
 
 **Payload del atacante** (un documento de marca de IVI que intenta secuestrar el análisis):
 
@@ -269,10 +291,12 @@ Cada pregunta recupera el documento semánticamente correcto, no por coincidenci
 ## 10. Referencias
 
 - Arges, K. et al. (2020). The Project Baseline Health Study. *npj Digital Medicine*, 3, 84. DOI 10.1038/s41746-020-0290-y.
+- Bourdieu, P. (1979). *La Distinction: Critique sociale du jugement*. Éditions de Minuit. (Habitus y capital cultural.)
 - Cavoukian, A. (2009, rev. 2011). *Privacy by Design: The 7 Foundational Principles*. IPC Ontario.
 - Christakopoulou, K., Mourad, S. y Matarić, M. (2024). *Agents Thinking Fast and Slow: A Talker-Reasoner Architecture*. Google DeepMind. arXiv:2410.08328.
 - Doncaster, P. (2014). *The UX Five-Second Rules*. Morgan Kaufmann. ISBN 978-0-12-800534-7.
 - Hick, W. E. (1952). On the Rate of Gain of Information. *Quarterly Journal of Experimental Psychology*, 4(1), 11-26.
+- Granovetter, M. (1973). The strength of weak ties. *American Journal of Sociology*, 78(6), 1360-1380. (Dimensión relacional, aún no operacionalizada.)
 - Hyman, R. (1953). Stimulus information as a determinant of reaction time. *Journal of Experimental Psychology*, 45(3), 188-196.
 - Kahneman, D. (2011). *Thinking, Fast and Slow*. Farrar, Straus and Giroux.
 - Li, J. (2024). How Far Can We Go with Synthetic User Experience Research? *ACM Interactions*, XXXI.3. DOI 10.1145/3653682.
@@ -280,6 +304,7 @@ Cada pregunta recupera el documento semánticamente correcto, no por coincidenci
 - Michie, S., van Stralen, M. M. y West, R. (2011). The behaviour change wheel. *Implementation Science*, 6, art. 42. DOI 10.1186/1748-5908-6-42.
 - Nielsen, J. (1994). *10 Usability Heuristics for User Interface Design*. Nielsen Norman Group.
 - Sharma, M. et al. (2023). *Towards Understanding Sycophancy in Language Models*. arXiv:2310.13548 (Anthropic).
+- Simon, H. A. (1955). A behavioral model of rational choice. *Quarterly Journal of Economics*, 69(1), 99-118. (Racionalidad limitada.)
 - Stanovich, K. E. y West, R. F. (2000). Individual differences in reasoning. *Behavioral and Brain Sciences*, 23(5), 645-726.
 - User Interviews (2023). *AI in UX Research Report 2023* (N=1.093).
 - Vezhnevets, A. S. et al. (2023). *Generative agent-based modeling... using Concordia*. arXiv:2312.03664 (Google DeepMind).

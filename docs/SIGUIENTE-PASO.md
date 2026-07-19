@@ -1,9 +1,9 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-07-19 tras v0.63.4 (RAG de Cerebro, hardening v0.62.0, dossier de perfiles, saneado del doc fundacional y pasada de coherencia de toda la carpeta docs/).
+> Última actualización: 2026-07-19 tras v0.63.5 (RAG de Cerebro, hardening v0.62.0, dossier de perfiles, saneado del doc fundacional, pasada de coherencia de docs/ y lente de fricción simbólica en el Reasoner).
 
-## Estado actual (v0.63.4 desplegada)
+## Estado actual (v0.63.5 desplegada)
 
 - **RAG de Cerebro (v0.63.0)**: los documentos de marca no sensibles se trocean, se vectorizan (pgvector, `openai/text-embedding-3-small`, 1536 dims, vía AI Gateway) y se recuperan por similitud en lugar del volcado íntegro de 30.000 caracteres; GEO recupera por segmento y Momentum por trigger, ambos con fallback al modo legado. `lib/rag.ts`, tabla `brand_document_chunks` (RLS + índice HNSW, función `match_brand_chunks` que excluye `sensitive` también en SQL), migración **0029**. `buildBrandContext` queda como fallback legado. Detalle en `docs/ROADMAP.md → v0.63.0` y `docs/VERTEX-AI-VALORACION.md`.
 - **Hardening integral (v0.62.0)**: guardarraíles anti prompt injection (`lib/guardrails.ts`, 8 superficies mapeadas; la más expuesta, las respuestas de motores GEO con búsqueda web); **RLS** activado en `app_settings`, `brands` y `brand_documents` (migración **0027**, advisory crítico de Supabase); **crons** de operación en `vercel.json` (keep-alive del Supabase Free y reaper anti-zombi, ambos con `Bearer CRON_SECRET` fail-closed, `/api/cron/` exento de cookie en `proxy.ts`); `upsertMetric` atómico (migración **0028**); contraseña de «Conceptos pendientes» de `/gravity` fuera del bundle (`POST /api/gravity/unlock`, `timingSafeEqual`, env `GRAVITY_PASSWORD`).

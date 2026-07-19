@@ -63,8 +63,31 @@ export const ReasonerPlanSchema = z.object({
         ),
     })
     .describe("Intent Momentum del usuario en este turno (Gravity Model)."),
+  social_friction: z
+    .object({
+      intensity: z
+        .number()
+        .min(0)
+        .max(1)
+        .describe(
+          "Fricción simbólica o de clase percibida en este turno: 0 = el perfil se siente legitimado y cómodo con el registro de la interacción; 1 = disonancia de clase, exclusión cultural o pérdida de legitimidad fuerte. Es un juicio declarativo, no una medida validada.",
+        ),
+      trigger: z
+        .string()
+        .describe(
+          "Qué la provoca, o 'ninguna'. Ej.: jerga excluyente, paternalismo de marca, asimetría al pedir datos personales sin dar valor a cambio, sensación de ser tratado como un 'lead' genérico y no como alguien cualificado.",
+        ),
+      habitus_note: z
+        .string()
+        .describe(
+          "Lectura en clave de habitus y capital cultural (Bourdieu): cómo el origen social y los esquemas de percepción del perfil reaccionan al registro de la interacción. 1 frase. Vacío si no aplica.",
+        ),
+    })
+    .describe(
+      "Lente sociológica del Sistema 2: fricción simbólica más allá de las barreras funcionales COM-B. Juicio declarativo del LLM, sin validación externa.",
+    ),
   plan: z.string().describe(
-    "Pauta concreta para el Talker: cómo debe responder en voz del perfil. 1-2 frases. No incluir el texto literal.",
+    "Pauta concreta para el Talker: cómo debe responder en voz del perfil. 1-2 frases. No incluir el texto literal. Si social_friction es alta, refléjala aquí para que el Talker la module en la voz del perfil.",
   ),
 });
 
@@ -136,6 +159,7 @@ function buildReasonerSystem(profile: Profile): string {
     "- 'effort' calibrado contra la fricción del último mensaje (0 = sin fricción, 1 = abandonaría ya).",
     "- Si el usuario no entiende algo, refléjalo en 'barriers_detected' citando 'capability'.",
     "- Si el usuario está distraído o cansado según su perfil, refléjalo en 'state'.",
+    "- 'social_friction': opera además como sociólogo. Más allá de las barreras funcionales COM-B, evalúa si el registro de la interacción (el tono, la jerga, las peticiones de datos, el trato de la marca) genera disonancia de clase, exclusión cultural o pérdida de legitimidad, leyendo el habitus y el capital cultural del perfil (Bourdieu). Ej.: pedir el teléfono a cambio de un PDF sin dar el precio se lee como táctica extractiva que un perfil sofisticado percibe como un insulto a su análisis previo; la jerga médica sin explicar excluye a un perfil de baja alfabetización. Si no hay fricción simbólica, intensity 0 y trigger 'ninguna'. NO la fuerces: la mayoría de turnos neutros no la tienen.",
     "- 'plan' es instrucción interna, NUNCA texto literal a decir.",
   ].join("\n");
 }
