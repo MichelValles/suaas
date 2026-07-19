@@ -710,6 +710,37 @@ textarea.backstory-input:focus-visible {
   gap: clamp(32px, 4vw, 56px);
 }
 
+/* Entrada orquestada (Fase 4, v0.64.6): los bloques de contenido de cada
+   página aparecen con un fundido + subida corta, escalonados. Sólo `from`
+   con fill-mode backwards: durante el delay se mantiene invisible y al
+   acabar vuelve al estado base (sin transform residual que cree containing
+   block para hijos fixed). El bloque global de prefers-reduced-motion ya lo
+   neutraliza. Al navegar (App Router) el contenido se remonta y reanima. */
+@keyframes appEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+.app-shell-main > * {
+  animation: appEnter var(--dur-med) var(--ease-out) backwards;
+}
+.app-shell-main > *:nth-child(2) {
+  animation-delay: 60ms;
+}
+.app-shell-main > *:nth-child(3) {
+  animation-delay: 120ms;
+}
+.app-shell-main > *:nth-child(4) {
+  animation-delay: 180ms;
+}
+.app-shell-main > *:nth-child(5) {
+  animation-delay: 240ms;
+}
+.app-shell-main > *:nth-child(n + 6) {
+  animation-delay: 300ms;
+}
+
 .app-shell-footer {
   grid-area: footer;
   padding: 14px clamp(24px, 4vw, 48px);
