@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.64.8 · Cierre del rollout: retirada de /diseno-preview
+
+- [x] **v0.64.8 · Preview de diseño eliminado**: `app/diseno-preview/page.tsx` (la reconstrucción de referencia del rediseño «oscuro editorial», ~18 KB, que sirvió para validar la dirección antes de aplicarla) se retira ahora que las 4 fases están en producción. No la enlazaba nada en el código (solo se citaba en docs, ya actualizadas). Con esto el **rollout del rediseño queda cerrado**: identidad tipográfica (Hanken sin serif ni itálica), color (marfil sobre negro cálido, acento #F9CB0D), masthead sin eyebrows, chat estilo WhatsApp, cards refinadas, entrada orquestada y el fix del scroll horizontal, todo en producción.
+
 ## v0.64.7 · Fix del scroll horizontal por el tooltip de COM-B
 
 - [x] **v0.64.7 · Overflow del `.tooltip-panel` corregido**: el panel de `InfoTooltip` estaba `visibility: hidden` pero seguía ocupando layout; el de la columna MOTIVACIÓN de COM-B, centrado junto al borde derecho, desbordaba el body y provocaba scroll horizontal (`scrollWidth` 1834 > `clientWidth` 1732), violando la regla del DS «el body nunca scrollea horizontal». Fix: el panel pasa a `display: none` cuando está oculto (fuera de layout, cero contribución al scroll) y a `display: block` en `:hover`/`:focus-within`; el fundido se conserva en navegadores modernos con `@starting-style` + `transition-behavior: allow-discrete` (degrada a instantáneo donde no haya soporte). Además `max-width: min(320px, calc(100vw - 24px))` + `white-space: normal` acotan el ancho, con lo que ni mostrándose junto al borde desborda. Verificado en producción: `scrollWidth == clientWidth` (sin scroll horizontal), paneles ocultos en `display:none`, y la regla `:hover → display:block` más `@starting-style` parsean correctamente. Cierra la deuda anotada en v0.64.4.
