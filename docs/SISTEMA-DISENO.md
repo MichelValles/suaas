@@ -34,14 +34,17 @@ Por qué: SUAAS no es un deck editorial sino una herramienta de producto. El DS 
 ### Tipografía
 
 ```css
---font-sans     /* Nunito Sans */
---font-display  /* DM Serif Text */
---font-mono     /* alias de Nunito Sans con tabular-nums */
+--font-sans     /* Hanken Grotesk */
+--font-display  /* Hanken Grotesk (misma familia; se diferencia por peso y
+                   tracking, NO por serifa) */
+--font-mono     /* alias de Hanken Grotesk con tabular-nums */
 
 --fs-eyebrow / --ls-eyebrow
 --fs-caption / --fs-body / --fs-body-lg
 --fs-h3 / --fs-h2 / --fs-h1 / --fs-display
 ```
+
+**Refresh de identidad (v0.64.0, «oscuro editorial»)**: se jubila el par DM Serif Text + Nunito Sans y toda la app pasa a **una única grotesca, Hanken Grotesk**. Los titulares (`.h1`/`.h2`/`.display`) ya no llevan serifa: se diferencian por **peso (700) y tracking negativo**, no por familia. El fallback del `--font-display` es sans (antes era `Times New Roman`, la fuga que hacía los títulos serif cuando la fuente no cargaba). El acento se fija en el amarillo de marca de Flat 101, `#F9CB0D`. La cursiva editorial (backstory, citas) sigue viniendo de `.backstory-box p` / `textarea.backstory-input`, ahora en Hanken itálica. Dirección validada en preview: negro/amarillo coherente con flat101.es, aire generoso, acento con cuentagotas, chat estilo WhatsApp. Fases siguientes: superficies cálidas, retirada de eyebrows, composición editorial por pantalla y chat WhatsApp en el panel real.
 
 ### Espaciado, radios, sombras
 

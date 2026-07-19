@@ -1,19 +1,13 @@
 import type { Metadata } from "next";
-import { DM_Serif_Text, Nunito_Sans } from "next/font/google";
+import { Hanken_Grotesk } from "next/font/google";
 import { ConsoleBanner } from "@/components/console-banner";
 import "./globals.css";
 
-const nunito = Nunito_Sans({
-  variable: "--font-nunito",
+// Familia única: grotesca refinada (registro editorial oscuro, sin serif).
+const hanken = Hanken_Grotesk({
+  variable: "--font-hanken",
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700", "800"],
-  display: "swap",
-});
-
-const dmSerif = DM_Serif_Text({
-  variable: "--font-dm-serif",
-  subsets: ["latin"],
-  weight: ["400"],
   style: ["normal", "italic"],
   display: "swap",
 });
@@ -39,7 +33,7 @@ export default function RootLayout({
   return (
     <html
       lang="es"
-      className={`${nunito.variable} ${dmSerif.variable}`}
+      className={hanken.variable}
       style={{ height: "100%" }}
       suppressHydrationWarning
     >
