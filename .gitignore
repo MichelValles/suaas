@@ -45,3 +45,6 @@ Thumbs.db
 .vercel
 .env*.local
 .env*
+
+# Artefactos generados por los scripts de prueba
+scripts/.out-*
