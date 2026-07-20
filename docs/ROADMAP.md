@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.65.1 · Bloques planos en la home (fuera feature-card)
+
+- [x] **v0.65.1 · Fuera las feature-card**: a petición, los módulos de la home dejan de ser tarjetas con borde, fondo, elevación y jerarquía destacada; pasan a **bloques planos, todos al mismo nivel**, separados por una fina línea superior (clase `.module-link`), con el acento sólo en el hover (línea superior + icono). Se retira la variante «destacada» (Perfiles y GEO Tester ya no ocupan fila completa) y la clase `.feature-card` de `globals.css` (sólo la usaba la home). El icono sigue en línea con el título.
+
 ## v0.65.0 · Selector de modelo del chat en /tokens
 
 - [x] **v0.65.0 · Modelo del chat elegible por empresa**: nueva sección «Modelo del chat» en `/tokens`, encima de «Modelos del GEO Tester», con selector **por empresa y modelo** para el **Talker** y el **Reasoner** del chat 1:1. `lib/chat-models.ts` nuevo (catálogo Anthropic + OpenAI; `getChatModels()` lee `app_settings` clave `chat_models` con fallback a `SUAAS_DEFAULT_MODEL`/`SUAAS_REASONER_MODEL`, validado contra catálogo); server action `saveChatModelsAction`; UI `app/tokens/chat-models.tsx` (mismo patrón que el selector GEO: catálogo como prop, import de tipos, `<optgroup>` por empresa). `reason()`/`talkStream()` (`lib/agents.ts`) aceptan el modelo como parámetro y `/api/chat` resuelve `getChatModels()` en cada turno y lo pasa (usage y meta registran el modelo real). **Alcance**: gobierna el chat 1:1; las tandas por lotes (Claridad 5s, Copy, Pricing, Embudos, Campañas, Momentum) siguen con el modelo por defecto del despliegue (aclarado en la propia UI). Sin migración nueva: reutiliza `app_settings` (0023). Antes el modelo estaba fijo en `anthropic/claude-sonnet-4.6` (Talker) y `anthropic/claude-opus-4.7` (Reasoner).

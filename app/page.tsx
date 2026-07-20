@@ -21,7 +21,6 @@ const CONSTRUCTION_MODULES: ModuleItem[] = [
     label: "Perfiles",
     body: "Demografía, Big Five, COM-B y backstory. Cada perfil tiene chat propio con arquitectura Talker · Reasoner y emite el vector Intent Momentum en cada turno.",
     cta: "Construir cohorte",
-    featured: true,
   },
   {
     href: "/momentum",
@@ -54,7 +53,6 @@ const ACCELERATION_MODULES: ModuleItem[] = [
     label: "GEO Tester",
     body: "La query de cada segmento JTBD lanzada contra Claude, ChatGPT y Perplexity reales, con búsqueda web y citas. Mide visibility_score, brand_position, recommendation_tone y missing_attributes por motor.",
     cta: "Auditar visibilidad",
-    featured: true,
   },
   {
     href: "/campaigns",
@@ -97,8 +95,6 @@ type ModuleItem = {
   label: string;
   body: string;
   cta: string;
-  /** Card destacada, ancha, al frente de su plano (rompe la rejilla uniforme). */
-  featured?: boolean;
   /** Solo visible con el modo beta activo (módulo aún sin desarrollar). */
   beta?: boolean;
 };
@@ -756,77 +752,10 @@ function PlaneSection({
 }
 
 function ModuleCard({ item }: { item: ModuleItem }) {
-  // Card destacada: ancha (ocupa toda la fila), horizontal, con más peso
-  // tipográfico. Rompe la rejilla uniforme de icono+título+texto.
-  if (item.featured) {
-    return (
-      <Link
-        href={item.href}
-        className="feature-card"
-        style={{
-          gridColumn: "1 / -1",
-          flexDirection: "row",
-          alignItems: "center",
-          gap: "clamp(20px, 4vw, 44px)",
-          flexWrap: "wrap",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: 12,
-            flex: "1 1 320px",
-            minWidth: 0,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <item.icon size={26} />
-            <h3
-              style={{
-                fontFamily: "var(--font-display)",
-                fontWeight: 700,
-                fontSize: "clamp(24px, 2.6vw, 30px)",
-                letterSpacing: "-0.02em",
-                lineHeight: 1.05,
-                color: "var(--text-strong)",
-                margin: 0,
-              }}
-            >
-              {item.label}
-            </h3>
-          </div>
-          <p
-            style={{
-              color: "rgba(var(--fg),0.74)",
-              fontSize: 14.5,
-              lineHeight: 1.55,
-              margin: 0,
-              maxWidth: 620,
-            }}
-          >
-            {item.body}
-          </p>
-        </div>
-        <span
-          className="mono"
-          style={{
-            fontSize: 11,
-            letterSpacing: "0.18em",
-            textTransform: "uppercase",
-            color: "var(--accent-text)",
-            flexShrink: 0,
-          }}
-        >
-          {item.cta} →
-        </span>
-      </Link>
-    );
-  }
-
+  // Bloque plano, sin tarjeta: todos los módulos al mismo nivel, separados
+  // por una fina línea superior. Icono siempre en línea con el título.
   return (
-    <Link href={item.href} className="feature-card">
-      {/* Icono siempre en línea con el título, nunca suelto encima. */}
+    <Link href={item.href} className="module-link">
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <item.icon size={20} />
         <h3

@@ -445,28 +445,24 @@ html[data-theme="light"] .btn-pill:not(.solid):hover {
    Tarjeta clicable con icono + título + body + CTA. Altura uniforme
    en grid (height: 100%) y hover-lift sobre la accent.
    ============================================================ */
-.feature-card {
+/* Bloque de módulo plano (home): sin tarjeta ni elevación, todos al mismo
+   nivel, delimitados por una fina línea superior. El acento aparece solo en
+   el hover. */
+.module-link {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 28px 26px 24px;
-  border: 1px solid rgba(var(--fg), 0.12);
-  border-radius: var(--radius-lg);
-  background: rgba(var(--fg), 0.025);
+  gap: 12px;
+  padding-top: 22px;
+  border-top: 1px solid rgba(var(--fg), 0.14);
   height: 100%;
-  transition:
-    border-color var(--dur-short) var(--ease-out),
-    transform var(--dur-short) var(--ease-out),
-    box-shadow var(--dur-short) var(--ease-out),
-    background var(--dur-short) var(--ease-out);
+  text-decoration: none;
+  color: inherit;
+  transition: border-color var(--dur-short) var(--ease-out);
 }
-.feature-card:hover {
-  border-color: var(--accent-500);
-  background: rgba(249, 203, 13, 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 12px 30px -14px rgba(0, 0, 0, 0.5);
+.module-link:hover {
+  border-top-color: var(--accent-500);
 }
-.feature-card:hover svg {
+.module-link:hover svg {
   color: var(--accent-500);
 }
 
