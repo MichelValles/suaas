@@ -68,3 +68,16 @@ export async function getChatModels(): Promise<ChatModels> {
     reasoner: pick(stored?.reasoner, base.reasoner),
   };
 }
+
+export const RUNS_MODEL_SETTING_KEY = "runs_model";
+
+/**
+ * Modelo de las tandas por lotes (Claridad 5s, Copy, Pricing, Embudos,
+ * Campañas, Momentum, semilla de perfiles, batch-intent y la síntesis del
+ * análisis GEO). Un único modelo para todas; validado contra el catálogo,
+ * con fallback al modelo por defecto del despliegue.
+ */
+export async function getRunsModel(): Promise<string> {
+  const stored = await getSetting<string>(RUNS_MODEL_SETTING_KEY, "");
+  return stored && CHAT_MODEL_IDS.includes(stored) ? stored : DEFAULT_MODEL;
+}

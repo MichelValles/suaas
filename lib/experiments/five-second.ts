@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
+import { getRunsModel } from "@/lib/chat-models";
 import {
   IMAGE_TEXT_GUARD,
   UNTRUSTED_LIMITS,
@@ -105,6 +106,7 @@ export type FiveSecondSummary = {
 export async function probeProfile(
   profile: Profile,
   target: Target,
+  model: string = DEFAULT_MODEL,
 ): Promise<{
   output: ProbeOutput;
   latencyMs: number;
@@ -113,7 +115,7 @@ export async function probeProfile(
   const startedAt = Date.now();
   const image = await resolveImageForApi(target.payload.image_url);
   const result = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: ProbeOutputSchema,
     system: buildProbeSystem(profile),
     messages: [
@@ -160,10 +162,11 @@ function buildProbeSystem(profile: Profile): string {
 export async function judgeComprehension(
   mainPromise: string,
   recall: string,
+  model: string = DEFAULT_MODEL,
 ): Promise<{ output: JudgeOutput; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const result = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: JudgeOutputSchema,
     system: [
       "Eres un juez calibrado de tests de claridad de 5 segundos.",
@@ -220,6 +223,8 @@ export async function runFiveSecondTest(
     throw new Error("El target no es de tipo 5s_test.");
   }
 
+  const runsModel = await getRunsModel();
+
   const profiles = await loadRunProfiles(input.profileIds);
 
   // Un run por experimento. profile_id = primer perfil por convención (la
@@ -238,7 +243,7 @@ export async function runFiveSecondTest(
     const responses: FiveSecondResponse[] = [];
     for (const chunk of chunks(profiles, 5)) {
       const results = await Promise.all(
-        chunk.map((profile) => probeOne(run.id, profile, target)),
+        chunk.map((profile) => probeOne(run.id, profile, target, runsModel)),
       );
       responses.push(...results);
     }
@@ -278,14 +283,15 @@ async function probeOne(
   runId: string,
   profile: Profile,
   target: Target,
+  model: string = DEFAULT_MODEL,
 ): Promise<FiveSecondResponse> {
   let probed;
   try {
-    probed = await probeProfile(profile, target);
+    probed = await probeProfile(profile, target, model);
     await recordUsage({
       runId,
       scope: "probe_5s",
-      model: DEFAULT_MODEL,
+      model,
       usage: probed.usage,
       meta: { latency_ms: probed.latencyMs },
     });
@@ -315,13 +321,14 @@ async function probeOne(
     const judged = await judgeComprehension(
       target.payload.main_promise,
       probed.output.recall,
+      model,
     );
     comprehension = judged.output;
     judgeLatency = judged.latencyMs;
     await recordUsage({
       runId,
       scope: "judge_5s",
-      model: DEFAULT_MODEL,
+      model,
       usage: judged.usage,
       meta: { latency_ms: judged.latencyMs },
     });
@@ -340,8 +347,8 @@ async function probeOne(
     barriers_detected: probed.output.barriers_detected,
     behavior_class: probed.output.behavior_class,
     meta: {
-      model_probe: DEFAULT_MODEL,
-      model_judge: DEFAULT_MODEL,
+      model_probe: model,
+      model_judge: model,
       latency_ms_probe: probed.latencyMs,
       latency_ms_judge: judgeLatency,
       judge_reasoning: comprehension?.reasoning ?? null,

@@ -10,6 +10,7 @@ import {
 import {
   CHAT_MODELS_SETTING_KEY,
   CHAT_MODEL_IDS,
+  RUNS_MODEL_SETTING_KEY,
   type ChatModels,
 } from "@/lib/chat-models";
 import { setSetting } from "@/lib/settings";
@@ -83,6 +84,38 @@ export async function saveChatModelsAction(
       return { ok: false, error: err.message };
     }
     console.error("[saveChatModels]", (err as Error).message);
+    return { ok: false, error: "No se pudo guardar la configuración." };
+  }
+
+  revalidatePath("/tokens");
+  return { ok: true };
+}
+
+export type RunsModelFormState = {
+  ok: boolean;
+  error?: string;
+};
+
+export async function saveRunsModelAction(
+  _prev: RunsModelFormState,
+  formData: FormData,
+): Promise<RunsModelFormState> {
+  if (!isSupabaseConfigured()) {
+    return { ok: false, error: "Supabase no configurado." };
+  }
+
+  const model = formData.get("model_runs");
+  if (typeof model !== "string" || !CHAT_MODEL_IDS.includes(model)) {
+    return { ok: false, error: "Modelo de las runs no válido." };
+  }
+
+  try {
+    await setSetting(RUNS_MODEL_SETTING_KEY, model);
+  } catch (err) {
+    if (err instanceof MigrationPendingError) {
+      return { ok: false, error: err.message };
+    }
+    console.error("[saveRunsModel]", (err as Error).message);
     return { ok: false, error: "No se pudo guardar la configuración." };
   }
 

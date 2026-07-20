@@ -16,6 +16,7 @@ import {
   getCampaign,
   getCampaignWithTrashed,
 } from "@/lib/campaigns";
+import { getRunsModel } from "@/lib/chat-models";
 import { DEFAULT_MODEL } from "@/lib/gateway";
 import {
   IMAGE_TEXT_GUARD,
@@ -1130,6 +1131,7 @@ async function probeCampaignSnippet(
   query: string,
   imageCache: ImageCache,
   shown: ShownCombination | null,
+  model: string = DEFAULT_MODEL,
 ): Promise<{ output: SnippetEval; latencyMs: number; usage: unknown; model: string }> {
   const startedAt = Date.now();
 
@@ -1186,7 +1188,6 @@ async function probeCampaignSnippet(
   // caso documentado en five-second) y en texto puro su diferencial de calidad
   // no justifica el precio (5$/25$ vs 3$/15$ por MTok): el incidente de la
   // cuota agotada de v0.47 lo pagó. REASONER_MODEL queda fuera del runner.
-  const model = DEFAULT_MODEL;
   const result = await generateObject({
     model,
     schema: SnippetEvalSchema,
@@ -1233,6 +1234,7 @@ async function judgeLandingMatch(
   query: string,
   snippet: SnippetEval,
   imageCache: ImageCache,
+  model: string = DEFAULT_MODEL,
 ): Promise<{ output: LandingMatch; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const image = await resolveImageCached(campaign.landing_image_url, imageCache);
@@ -1250,7 +1252,7 @@ async function judgeLandingMatch(
   // Siempre multimodal (lleva el screenshot de la landing): DEFAULT_MODEL,
   // como todo el runner (ver probeCampaignSnippet).
   const result = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: LandingMatchSchema,
     system: [
       buildSystemPrompt(profile),
@@ -1300,10 +1302,11 @@ async function judgeAdComprehension(
   intendedMessage: string,
   perceivedOffer: string,
   brief: string | null,
+  model: string = DEFAULT_MODEL,
 ): Promise<{ output: AdJudge; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const result = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: AdJudgeSchema,
     system: [
       "Eres un juez calibrado de tests de comprensión de anuncios.",
@@ -1341,6 +1344,7 @@ async function proposeIdealVersion(
   channel: Channel,
   query: string,
   snippet: SnippetEval,
+  model: string = DEFAULT_MODEL,
 ): Promise<{ output: IdealVersion; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const isTikTok = isTikTokStrategy(campaign.strategy);
@@ -1361,7 +1365,7 @@ async function proposeIdealVersion(
       ? `Tu búsqueda fue: «${query}».`
       : `Tu interés / contexto era: «${query}».`;
   const result = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: IdealVersionSchema,
     system: [
       buildSystemPrompt(profile),
@@ -1532,7 +1536,10 @@ export async function prepareCampaignResume(
  * sobre lo persistido. Con deadline interno: lo que no quepa queda saltado
  * y puede retomarse con prepareCampaignResume.
  */
-export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<void> {
+export async function executeCampaignRun(
+  prep: PreparedCampaignRun,
+  model: string = DEFAULT_MODEL,
+): Promise<void> {
   const { runId, campaign, profiles, queries } = prep;
   const startedAt = Date.now();
   const supa = getServerClient();
@@ -1597,10 +1604,10 @@ export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<voi
         }
         const combo = combos[i];
         try {
-          await processCombo(runId, campaign, combo, imageCache);
+          await processCombo(runId, campaign, combo, imageCache, model);
         } catch {
           try {
-            await processCombo(runId, campaign, combo, imageCache);
+            await processCombo(runId, campaign, combo, imageCache, model);
           } catch (err) {
             failedCount += 1;
             lastComboError = (err as Error).message;
@@ -1730,7 +1737,7 @@ export async function executeCampaignRun(prep: PreparedCampaignRun): Promise<voi
     // Síntesis «Qué cambiar»: una llamada extra, tolerante a fallos.
     if (responses.length > 0) {
       try {
-        await synthesizeRecommendations(runId, campaign, summary, responses);
+        await synthesizeRecommendations(runId, campaign, summary, responses, model);
       } catch (err) {
         // La fila failed (si el fallo fue del LLM) ya la registró la propia
         // síntesis; aquí solo se traza para no duplicar contabilidad cuando
@@ -1758,6 +1765,7 @@ async function synthesizeRecommendations(
   campaign: Campaign,
   summary: CampaignSummary,
   responses: CampaignResponse[],
+  model: string = DEFAULT_MODEL,
 ): Promise<void> {
   const topIdeals = [...responses]
     .sort((a, b) => b.intent_to_click - a.intent_to_click)
@@ -1780,7 +1788,7 @@ async function synthesizeRecommendations(
   const metaSpec = metaSpecOf(campaign);
   const tiktokSpec = tiktokSpecOf(campaign);
   const result = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: RecommendationsSchema,
     system: [
       "Eres un consultor senior de paid media y CRO. Resumes un test de anuncio con perfiles calibrados en recomendaciones accionables para el equipo de marketing.",
@@ -1833,7 +1841,7 @@ async function synthesizeRecommendations(
     await recordUsage({
       runId,
       scope: "campaign_synthesis",
-      model: DEFAULT_MODEL,
+      model,
       usage: usageFromError(err),
       meta: { failed: true, error: (err as Error).message.slice(0, 300) },
     }).catch(() => {});
@@ -1842,7 +1850,7 @@ async function synthesizeRecommendations(
   await recordUsage({
     runId,
     scope: "campaign_synthesis",
-    model: DEFAULT_MODEL,
+    model,
     usage: result.usage ?? null,
     meta: { latency_ms: Date.now() - startedAt },
   }).catch(() => {});
@@ -1883,7 +1891,8 @@ export async function runCampaignTest(
   input: RunCampaignInput,
 ): Promise<RunCampaignOutput> {
   const prep = await prepareCampaignRun(input);
-  await executeCampaignRun(prep);
+  const runsModel = await getRunsModel();
+  await executeCampaignRun(prep, runsModel);
   const responses = await listCampaignResponses(prep.runId);
   return {
     runId: prep.runId,
@@ -1908,6 +1917,7 @@ async function processCombo(
   campaign: Campaign,
   { profile, channel, query }: Combo,
   imageCache: ImageCache,
+  model: string = DEFAULT_MODEL,
 ): Promise<void> {
   const supa = getServerClient();
   // Search en Google: el persona ve UNA combinación RSA muestreada (3
@@ -1934,6 +1944,7 @@ async function processCombo(
       query,
       imageCache,
       shown,
+      model,
     );
   } catch (err) {
     // La llamada fallida también se factura: queda en gateway_usage con
@@ -1941,7 +1952,7 @@ async function processCombo(
     await recordUsage({
       runId,
       scope: "campaign_probe",
-      model: DEFAULT_MODEL,
+      model,
       usage: usageFromError(err),
       meta: {
         failed: true,
@@ -1974,6 +1985,7 @@ async function processCombo(
         query,
         snippet.output,
         imageCache,
+        model,
       );
       landingEvaluated = true;
       landingMatch = landing.output.landing_match;
@@ -1981,7 +1993,7 @@ async function processCombo(
       await recordUsage({
         runId,
         scope: "campaign_landing",
-        model: DEFAULT_MODEL,
+        model,
         usage: landing.usage,
         meta: { latency_ms: landing.latencyMs, query, channel, profile_id: profile.id },
       }).catch(() => {});
@@ -1992,7 +2004,7 @@ async function processCombo(
       await recordUsage({
         runId,
         scope: "campaign_landing",
-        model: DEFAULT_MODEL,
+        model,
         usage: usageFromError(err),
         meta: {
           failed: true,
@@ -2019,13 +2031,14 @@ async function processCombo(
         campaign.intended_message,
         snippet.output.perceived_offer,
         campaign.brief,
+        model,
       );
       comprehensionRate = judge.output.comprehension;
       judgeReasoning = judge.output.reasoning;
       await recordUsage({
         runId,
         scope: "campaign_judge",
-        model: DEFAULT_MODEL,
+        model,
         usage: judge.usage,
         meta: { latency_ms: judge.latencyMs, query, channel, profile_id: profile.id },
       }).catch(() => {});
@@ -2033,7 +2046,7 @@ async function processCombo(
       await recordUsage({
         runId,
         scope: "campaign_judge",
-        model: DEFAULT_MODEL,
+        model,
         usage: usageFromError(err),
         meta: {
           failed: true,
@@ -2058,12 +2071,13 @@ async function processCombo(
       channel,
       query,
       snippet.output,
+      model,
     );
   } catch (err) {
     await recordUsage({
       runId,
       scope: "campaign_ideal",
-      model: DEFAULT_MODEL,
+      model,
       usage: usageFromError(err),
       meta: {
         failed: true,
@@ -2078,15 +2092,15 @@ async function processCombo(
   await recordUsage({
     runId,
     scope: "campaign_ideal",
-    model: DEFAULT_MODEL,
+    model,
     usage: ideal.usage,
     meta: { latency_ms: ideal.latencyMs, query, channel, profile_id: profile.id },
   }).catch(() => {});
 
   const meta = {
     model_snippet: snippet.model,
-    model_landing: DEFAULT_MODEL,
-    model_ideal: DEFAULT_MODEL,
+    model_landing: model,
+    model_ideal: model,
     latency_ms_snippet: snippet.latencyMs,
     latency_ms_ideal: ideal.latencyMs,
     reasoning: snippet.output.reasoning,

@@ -1,20 +1,25 @@
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { CHAT_MODEL_CATALOG, getChatModels } from "@/lib/chat-models";
+import {
+  CHAT_MODEL_CATALOG,
+  getChatModels,
+  getRunsModel,
+} from "@/lib/chat-models";
 import { GEO_ENGINE_CATALOG, getGeoEngineModels } from "@/lib/geo-engines";
 import { settingsTableReady } from "@/lib/settings";
 import { getGatewayCredits, getUsageSummary } from "@/lib/usage";
-import { ChatModelSettings } from "./chat-models";
+import { ChatModelSettings, RunsModelSettings } from "./chat-models";
 import { GeoModelSettings } from "./geo-models";
 
 export const dynamic = "force-dynamic";
 
 export default async function TokensPage() {
-  const [credits, summary, geoModels, chatModels, settingsReady] =
+  const [credits, summary, geoModels, chatModels, runsModel, settingsReady] =
     await Promise.all([
       getGatewayCredits(),
       getUsageSummary(),
       getGeoEngineModels(),
       getChatModels(),
+      getRunsModel(),
       settingsTableReady(),
     ]);
 
@@ -116,6 +121,16 @@ export default async function TokensPage() {
           <ChatModelSettings
             catalog={CHAT_MODEL_CATALOG}
             current={chatModels}
+            migrationPending={!settingsReady}
+          />
+        </section>
+
+        {/* Modelo de las tandas por lotes */}
+        <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionLabel>Modelo de las runs</SectionLabel>
+          <RunsModelSettings
+            catalog={CHAT_MODEL_CATALOG}
+            current={runsModel}
             migrationPending={!settingsReady}
           />
         </section>

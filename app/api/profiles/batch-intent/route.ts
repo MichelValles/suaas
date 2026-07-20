@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { generateObject } from "ai";
 import { z } from "zod";
 import { budgetGate } from "@/lib/budget";
+import { getRunsModel } from "@/lib/chat-models";
 import { DEFAULT_MODEL } from "@/lib/gateway";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
@@ -18,7 +19,7 @@ const IntentSchema = z.object({
     ),
 });
 
-async function generateIntentForProfile(profile: Profile): Promise<{ intent: string; usage: unknown }> {
+async function generateIntentForProfile(profile: Profile, model: string = DEFAULT_MODEL): Promise<{ intent: string; usage: unknown }> {
   const d = profile.demographics;
   const b = profile.big_five;
   const c = profile.com_b_barriers;
@@ -37,7 +38,7 @@ async function generateIntentForProfile(profile: Profile): Promise<{ intent: str
   ].filter(Boolean);
 
   const res = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: IntentSchema,
     system: [
       "Eres un experto en Jobs To Be Done (JTBD).",
@@ -87,6 +88,8 @@ export async function POST(req: Request) {
     error?: string;
   }[] = [];
 
+  const runsModel = await getRunsModel();
+
   // Chunks de 5 en paralelo (mismo patrón que los runners), preservando el
   // orden de results y la semántica skipped/generated/error.
   const CHUNK = 5;
@@ -98,12 +101,12 @@ export async function POST(req: Request) {
           return { id: profile.id, name: profile.name, intent: profile.intent_context, status: "skipped" as const };
         }
         try {
-          const { intent, usage } = await generateIntentForProfile(profile);
+          const { intent, usage } = await generateIntentForProfile(profile, runsModel);
           // Era el único call site del gateway sin recordUsage: su gasto no
           // aparecía en /tokens ni contaba para el presupuesto diario.
           await recordUsage({
             scope: "batch_intent",
-            model: DEFAULT_MODEL,
+            model: runsModel,
             usage,
             meta: { profile_id: profile.id, forced: force },
           });

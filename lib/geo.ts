@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { buildBrandContext, getBrandWithDocuments } from "@/lib/cerebro";
+import { getRunsModel } from "@/lib/chat-models";
 import { DEFAULT_MODEL } from "@/lib/gateway";
 import { UNTRUSTED_LIMITS, wrapUntrusted } from "@/lib/guardrails";
 import { buildBrandContextRag } from "@/lib/rag";
@@ -151,6 +152,7 @@ async function analyzeEngineResponse(
   brand_description: string,
   segment: SegmentInput,
   probe: EngineProbe,
+  model: string = DEFAULT_MODEL,
 ): Promise<{ metrics: EngineMetrics; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
 
@@ -198,7 +200,7 @@ async function analyzeEngineResponse(
   ].join("\n");
 
   const res = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: EngineMetricsSchema,
     system,
     prompt,
@@ -222,6 +224,7 @@ async function runEngineForSegment(
   brand_name: string,
   brand_description: string,
   segment: SegmentInput,
+  analysisModel: string = DEFAULT_MODEL,
 ): Promise<EngineResult> {
   let probe: EngineProbe;
   try {
@@ -255,10 +258,11 @@ async function runEngineForSegment(
       brand_description,
       segment,
       probe,
+      analysisModel,
     );
     await recordUsage({
       scope: "geo_analysis",
-      model: DEFAULT_MODEL,
+      model: analysisModel,
       usage,
       meta: {
         geo_analysis_id: geoId,
@@ -382,6 +386,7 @@ export async function runGeoAnalysis(id: string): Promise<GeoAnalysis> {
     .eq("id", id);
 
   try {
+    const runsModel = await getRunsModel();
     const models = await getGeoEngineModels();
 
     // Modo legado como red de seguridad del RAG: si la marca viene de
@@ -431,6 +436,7 @@ export async function runGeoAnalysis(id: string): Promise<GeoAnalysis> {
                 analysis.brand_name,
                 description,
                 segment,
+                runsModel,
               ),
             ),
           );

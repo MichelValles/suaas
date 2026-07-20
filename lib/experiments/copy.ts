@@ -6,6 +6,7 @@ import {
   getCopyDeck,
 } from "@/lib/copy";
 import { DEFAULT_MODEL } from "@/lib/gateway";
+import { getRunsModel } from "@/lib/chat-models";
 import { buildSystemPrompt } from "@/lib/prompts";
 import { type Profile } from "@/lib/profiles";
 import { chunks, loadRunProfiles } from "@/lib/experiments/shared";
@@ -56,10 +57,11 @@ async function reactToBlock(
   profile: Profile,
   deck: CopyDeckWithBlocks,
   block: CopyBlock,
+  model: string = DEFAULT_MODEL,
 ): Promise<{ output: CopyReaction; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const result = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: CopyReactionSchema,
     system: [
       buildSystemPrompt(profile),
@@ -98,6 +100,8 @@ export async function runCopyTest(input: RunCopyInput): Promise<RunCopyOutput> {
 
   const profiles = await loadRunProfiles(input.profileIds);
 
+  const runsModel = await getRunsModel();
+
   const run = await createRun({
     profile_id: profiles[0].id,
     kind: "copy_resonance",
@@ -115,11 +119,11 @@ export async function runCopyTest(input: RunCopyInput): Promise<RunCopyOutput> {
         chunk.map(async (profile) => {
           const perBlock: CopyResponse[] = [];
           for (const block of deck.blocks) {
-            const reacted = await reactToBlock(profile, deck, block);
+            const reacted = await reactToBlock(profile, deck, block, runsModel);
             await recordUsage({
               runId: run.id,
               scope: "copy_resonance",
-              model: DEFAULT_MODEL,
+              model: runsModel,
               usage: reacted.usage,
               meta: { latency_ms: reacted.latencyMs, block: block.position },
             }).catch(() => {});
@@ -143,7 +147,7 @@ export async function runCopyTest(input: RunCopyInput): Promise<RunCopyOutput> {
                 persuasion: reacted.output.persuasion,
                 would_click: reacted.output.would_click,
                 critique: reacted.output.critique,
-                meta: { model: DEFAULT_MODEL, latency_ms: reacted.latencyMs },
+                meta: { model: runsModel, latency_ms: reacted.latencyMs },
               },
               { onConflict: "run_id,profile_id,block_id" },
             );

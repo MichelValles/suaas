@@ -1,6 +1,6 @@
 import { generateObject } from "ai";
 import { z } from "zod";
-import { DEFAULT_MODEL } from "@/lib/gateway";
+import { getRunsModel } from "@/lib/chat-models";
 import { recordUsage } from "@/lib/usage";
 
 /**
@@ -226,8 +226,10 @@ export async function generateSeedPlan(
     kinds.map((k) => [k, PLAN_SCHEMAS[k]]),
   ) as Record<string, z.ZodTypeAny>;
 
+  const runsModel = await getRunsModel();
+
   const res = await generateObject({
-    model: DEFAULT_MODEL,
+    model: runsModel,
     schema: z.object(shape),
     system: SYSTEM,
     prompt: [
@@ -240,7 +242,7 @@ export async function generateSeedPlan(
 
   await recordUsage({
     scope: "seed_brief",
-    model: DEFAULT_MODEL,
+    model: runsModel,
     usage: res.usage ?? null,
     meta: { kinds, brief_length: brief.length },
   });

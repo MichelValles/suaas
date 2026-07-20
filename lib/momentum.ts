@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
+import { getRunsModel } from "@/lib/chat-models";
 import {
   getServerClient,
   isMissingColumnError,
@@ -111,6 +112,7 @@ export async function analyzeProfileMomentum(
   // Contexto de marca ya resuelto por el runner (RAG o texto del challenge):
   // esta función no decide de dónde sale, solo lo inyecta si existe.
   brandContext: string | null,
+  model: string = DEFAULT_MODEL,
 ): Promise<{ result: ProfileMomentumResult; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
 
@@ -151,7 +153,7 @@ export async function analyzeProfileMomentum(
   const prompt = promptLines.join("\n");
 
   const res = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: MomentumOutputSchema,
     system,
     prompt,
@@ -277,6 +279,8 @@ export async function runMomentumChallenge(
   if (challenge.profile_ids.length > 20)
     throw new Error("Máximo 20 perfiles por Trigger.");
 
+  const runsModel = await getRunsModel();
+
   await supa
     .from("momentum_challenges")
     .update({ status: "running", updated_at: new Date().toISOString() })
@@ -306,10 +310,11 @@ export async function runMomentumChallenge(
             challenge,
             profile,
             brandContext,
+            runsModel,
           );
           await recordUsage({
             scope: "momentum_probe",
-            model: DEFAULT_MODEL,
+            model: runsModel,
             usage,
             meta: { challenge_id: id, profile_id: profile.id, latency_ms: latencyMs },
           });

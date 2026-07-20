@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
+import { getRunsModel } from "@/lib/chat-models";
 import {
   type PricingOfferWithPrices,
   type PricingPrice,
@@ -57,13 +58,14 @@ async function reactToPrice(
   profile: Profile,
   offer: PricingOfferWithPrices,
   price: PricingPrice,
+  model: string = DEFAULT_MODEL,
 ): Promise<{ output: PricingReaction; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
   const anchor = offer.anchor_price
     ? `El precio actual de referencia es ${offer.anchor_price} ${offer.currency}.`
     : "";
   const result = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: PricingReactionSchema,
     system: [
       buildSystemPrompt(profile),
@@ -101,6 +103,8 @@ export async function runPricingTest(
   if (offer.prices.length < 2)
     throw new Error("La oferta necesita al menos 2 precios.");
 
+  const runsModel = await getRunsModel();
+
   const profiles = await loadRunProfiles(input.profileIds);
 
   const run = await createRun({
@@ -119,11 +123,11 @@ export async function runPricingTest(
         chunk.map(async (profile) => {
           const perPrice: PricingResponse[] = [];
           for (const price of offer.prices) {
-            const reacted = await reactToPrice(profile, offer, price);
+            const reacted = await reactToPrice(profile, offer, price, runsModel);
             await recordUsage({
               runId: run.id,
               scope: "pricing_react",
-              model: DEFAULT_MODEL,
+              model: runsModel,
               usage: reacted.usage,
               meta: { latency_ms: reacted.latencyMs, price: price.price },
             }).catch(() => {});
@@ -145,7 +149,7 @@ export async function runPricingTest(
                 willingness_to_pay: reacted.output.willingness_to_pay,
                 perceived_value: reacted.output.perceived_value,
                 critique: reacted.output.critique,
-                meta: { model: DEFAULT_MODEL, latency_ms: reacted.latencyMs },
+                meta: { model: runsModel, latency_ms: reacted.latencyMs },
               },
               { onConflict: "run_id,profile_id,price_id" },
             );

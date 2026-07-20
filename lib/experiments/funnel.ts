@@ -1,6 +1,7 @@
 import { generateObject } from "ai";
 import { z } from "zod";
 import { DEFAULT_MODEL } from "@/lib/gateway";
+import { getRunsModel } from "@/lib/chat-models";
 import { IMAGE_TEXT_GUARD } from "@/lib/guardrails";
 import { resolveImageForApi } from "@/lib/image-source";
 import { buildSystemPrompt } from "@/lib/prompts";
@@ -104,6 +105,7 @@ export async function probeFunnelStep(
   funnel: FunnelWithSteps,
   step: FunnelStep,
   prevResponses: FunnelStepResponse[],
+  model: string = DEFAULT_MODEL,
 ): Promise<{ output: StepReasoning; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
 
@@ -120,7 +122,7 @@ export async function probeFunnelStep(
 
   const image = await resolveImageForApi(step.payload.image_url);
   const result = await generateObject({
-    model: DEFAULT_MODEL,
+    model,
     schema: StepReasoningSchema,
     system: buildFunnelSystem(profile, funnel, step),
     messages: [
@@ -204,6 +206,8 @@ export async function runFunnelTest(
 
   const profiles = await loadRunProfiles(input.profileIds);
 
+  const runsModel = await getRunsModel();
+
   const run = await createRun({
     profile_id: profiles[0].id,
     funnel_id: funnel.id,
@@ -219,7 +223,7 @@ export async function runFunnelTest(
     const allResponses: FunnelStepResponse[] = [];
     for (const chunk of chunks(profiles, 5)) {
       const results = await Promise.all(
-        chunk.map((profile) => simulateOneProfile(run.id, profile, funnel)),
+        chunk.map((profile) => simulateOneProfile(run.id, profile, funnel, runsModel)),
       );
       for (const arr of results) allResponses.push(...arr);
     }
@@ -263,16 +267,17 @@ async function simulateOneProfile(
   runId: string,
   profile: Profile,
   funnel: FunnelWithSteps,
+  model: string = DEFAULT_MODEL,
 ): Promise<FunnelStepResponse[]> {
   const responses: FunnelStepResponse[] = [];
   for (const step of funnel.steps) {
     let probed;
     try {
-      probed = await probeFunnelStep(profile, funnel, step, responses);
+      probed = await probeFunnelStep(profile, funnel, step, responses, model);
       await recordUsage({
         runId,
         scope: "probe_funnel",
-        model: DEFAULT_MODEL,
+        model,
         usage: probed.usage,
         meta: { latency_ms: probed.latencyMs, step: step.position },
       });
@@ -315,7 +320,7 @@ async function simulateOneProfile(
         would_continue: row.would_continue,
         reasoning: row.reasoning,
         meta: {
-          model: DEFAULT_MODEL,
+          model,
           latency_ms: probed.latencyMs,
         },
       },
