@@ -1,10 +1,10 @@
 # Gravity Model: base teórica
 
-> **Fuente**: presentación estratégica de Flat 101 (deck «Suas», caso de aplicación: captación de no clientes en banca, ejemplo BBVA) más la síntesis operativa de SUAAS. Este documento es la referencia teórica del marco; la base de los agentes que lo ejecutan está en [`CONOCIMIENTO-USUARIOS-SINTETICOS.md`](./CONOCIMIENTO-USUARIOS-SINTETICOS.md) y la anatomía completa del motor de perfiles (con su fundamento académico y sus límites) en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md). El mapa teoría → módulos vive en la sección 8.
+> **Fuente**: presentación estratégica de Flat 101 (deck «Suas», caso de aplicación: captación de no clientes en banca, ejemplo BBVA) más la síntesis operativa de Gravity. Este documento es la referencia teórica del marco; la base de los agentes que lo ejecutan está en [`CONOCIMIENTO-USUARIOS-SINTETICOS.md`](./CONOCIMIENTO-USUARIOS-SINTETICOS.md) y la anatomía completa del motor de perfiles (con su fundamento académico y sus límites) en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md). El mapa teoría → módulos vive en la sección 8.
 >
 > **Relación entre los documentos**: los perfiles calibrados (en la literatura, «usuarios sintéticos») son el *motor* (cómo se simula). El Gravity Model es el *marco estratégico* (qué se simula, por qué y en qué plano de la relación marca-usuario actúa cada simulación).
 >
-> **Nomenclatura de marca**: el producto interno es **SUAAS**; **Gravity** es la marca de la superficie comercial (la página `/gravity` se autodescribe como «Marco estratégico de referencia de Gravity», la landing `/propuesta` y todo el onboard público usan «Gravity»). En este documento, «Gravity Model» nombra el marco teórico y «SUAAS» la plataforma que lo implementa.
+> **Nomenclatura**: el producto se llama **Gravity**. La superficie comercial (página `/gravity`, landing `/propuesta`, onboard público) y la plataforma comparten nombre; **Gravity Model** nombra el marco teórico que la plataforma implementa.
 
 ---
 
@@ -17,9 +17,9 @@ Todo el modelo se apoya en una sola afirmación, y conviene leerla como tesis re
 De esta tesis se derivan las dos consecuencias que estructuran el resto del documento:
 
 1. **La decisión es preexistente.** Cuando el usuario hace clic, llega con una intención que ya tiene intensidad, dirección y velocidad (el [Intent Momentum](#2-intent-momentum-la-intención-como-vector)). Esa intención se formó en la respuesta de una IA, en un anuncio, en una conversación, en una comparación que la marca no controla. La web intercepta un vector que ya estaba en movimiento.
-2. **El trabajo estratégico se desplaza aguas arriba.** Si la decisión se forma fuera, el lugar donde se gana o se pierde la marca también está fuera. Con técnicas modernas (los módulos de SUAAS) se puede **influir en la órbita del usuario antes del clic**: medir su momentum antes de que la marca entre en su radar, ver cómo lo interpretan los buscadores de IA, qué anuncio o qué copy lo atrae, y corregirlo todo **antes** de gastar el tráfico real.
+2. **El trabajo estratégico se desplaza aguas arriba.** Si la decisión se forma fuera, el lugar donde se gana o se pierde la marca también está fuera. Con técnicas modernas (los módulos de Gravity) se puede **influir en la órbita del usuario antes del clic**: medir su momentum antes de que la marca entre en su radar, ver cómo lo interpretan los buscadores de IA, qué anuncio o qué copy lo atrae, y corregirlo todo **antes** de gastar el tráfico real.
 
-El modelo gravitacional es exactamente la herramienta para razonar sobre ese «fuera». Dos de sus tres planos (Construction y Acceleration) operan **antes del clic**; sólo el tercero (Value) ocurre en y después de la web. Es decir: **dos tercios del modelo, y de la plataforma, trabajan sobre la decisión que se toma antes de que el usuario llegue.** Esa es la columna vertebral de SUAAS y el hilo que recorre cada sección de aquí en adelante.
+El modelo gravitacional es exactamente la herramienta para razonar sobre ese «fuera». Dos de sus tres planos (Construction y Acceleration) operan **antes del clic**; sólo el tercero (Value) ocurre en y después de la web. Es decir: **dos tercios del modelo, y de la plataforma, trabajan sobre la decisión que se toma antes de que el usuario llegue.** Esa es la columna vertebral de Gravity y el hilo que recorre cada sección de aquí en adelante.
 
 ## 1. El cambio de escenario: de la búsqueda a la respuesta
 
@@ -29,7 +29,7 @@ El punto de partida del modelo es un cambio de paradigma en la adquisición digi
 - La IA reduce opciones, sintetiza comparativas y **condiciona la elección antes del clic**.
 - Durante años se compitió por **ser los primeros** (indexación, ranking). Hoy se compite por **ser interpretados, comprendidos y recomendados** por sistemas que ya no muestran resultados sino que construyen respuestas a partir de la información que obtienen de todos los canales.
 
-Esto obliga a unificar la estrategia digital bajo una nueva lógica: no solo atraer tráfico, sino **influir en cómo la IA interpreta y recomienda la marca** en el instante previo al clic. Es el fundamento del módulo GEO de SUAAS.
+Esto obliga a unificar la estrategia digital bajo una nueva lógica: no solo atraer tráfico, sino **influir en cómo la IA interpreta y recomienda la marca** en el instante previo al clic. Es el fundamento del módulo GEO de Gravity.
 
 ## 2. Intent Momentum: la intención como vector
 
@@ -39,7 +39,7 @@ La tesis central del modelo:
 
 Las tres dimensiones del vector:
 
-| Dimensión | Qué mide | Valores en SUAAS |
+| Dimensión | Qué mide | Valores en Gravity |
 |---|---|---|
 | **Intensidad** | Cuánta motivación hay para actuar ahora. 0 = sin intención de avanzar, 1 = acción inminente. | `intensity` numérico 0..1 |
 | **Dirección** | Hacia dónde se mueve la intención respecto a la acción objetivo. | `approaching` (se acerca), `stable` (consciente pero sin moverse), `drifting` (se aleja, lo pospone o desconecta) |
@@ -109,11 +109,11 @@ El lenguaje formal del segmento de intención es el **Job To Be Done**:
 - «Cuando viajo al extranjero, quiero cambiar divisa sin comisiones para no perder dinero.»
 - «Cuando tengo un gasto inesperado, quiero aplazarlo sin llamar a nadie, en dos minutos.»
 
-**Cada situación y motivación define un segmento. Cada segmento define un onboarding.** En SUAAS este formato es exactamente el campo `intent_context` de los perfiles.
+**Cada situación y motivación define un segmento. Cada segmento define un onboarding.** En Gravity este formato es exactamente el campo `intent_context` de los perfiles.
 
 ### 4.3 Perfiles comportamentales e instancias
 
-> Nota terminológica: el deck original habla de «agentes sintéticos». En SUAAS ese concepto se nombra **perfil comportamental** (y su realización operativa es el **perfil calibrado**); «usuarios sintéticos» queda reservado a la base teórica. Esta sección conserva la idea del deck con el vocabulario del producto.
+> Nota terminológica: el deck original habla de «agentes sintéticos». En Gravity ese concepto se nombra **perfil comportamental** (y su realización operativa es el **perfil calibrado**); «usuarios sintéticos» queda reservado a la base teórica. Esta sección conserva la idea del deck con el vocabulario del producto.
 
 El perfil comportamental es el cerebro de la hipersegmentación:
 
@@ -138,7 +138,7 @@ El deck llama a este enfoque **certeza predictiva**: simular antes de lanzar par
 
 > «No lanzamos el onboarding para descubrir dónde falla. Lo lanzamos ya sabiendo dónde falla y habiéndolo corregido.»
 
-La certeza predictiva solo es creíble si la simulación está protegida contra sus propios sesgos. SUAAS implementa cuatro controles experimentales que sostienen esa credibilidad (detalle y fundamento en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md), sección 4.3):
+La certeza predictiva solo es creíble si la simulación está protegida contra sus propios sesgos. Gravity implementa cuatro controles experimentales que sostienen esa credibilidad (detalle y fundamento en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md), sección 4.3):
 
 1. **Cegado del brief**: el brief del anunciante nunca se inyecta al perfil que evalúa; solo lo ve un juez neutral sin persona. Evita la cámara de eco (el riesgo 1 de la base teórica).
 2. **Rúbricas por bandas** en todos los scores 0..1, con instrucción de usar el rango completo: evitan la tendencia central del evaluador.
@@ -155,7 +155,7 @@ El análisis se hace en dos pasos: (1) a nivel visual y psicológico (esfuerzo c
 | **Fuga** | El coste percibido supera el beneficio esperado: umbral de abandono cruzado. |
 | **Repesca** | El usuario abandonó pero la intención sigue viva: **ventana de recuperación**. |
 
-Esta taxonomía es el origen directo del campo `behavior_class` (`optima` / `fuga` / `repesca`) del test de claridad 5s de SUAAS.
+Esta taxonomía es el origen directo del campo `behavior_class` (`optima` / `fuga` / `repesca`) del test de claridad 5s de Gravity.
 
 El resultado de cruzar todos los agentes no es una opinión sobre qué mejorar: es un **mapa de dónde falla cada instancia, por qué falla y qué cambio concreto lo resuelve**. Los puntos que fallan en todas las instancias son los de mayor severidad y los primeros a tocar: un mapa de fricción **priorizado por impacto**, con hipótesis de mejora específicas por instancia.
 
@@ -163,7 +163,7 @@ La hipersegmentación es «la gravedad de la estrategia»: aporta un propósito 
 
 ### 4.6 Cerebro: el contexto gravitacional de la marca
 
-El Construction Plane no solo construye la **masa** que orbita (el perfil): también necesita la **identidad de la marca** que ejerce la atracción. En SUAAS esa capa es **Cerebro**, la base de conocimiento de marca reutilizable.
+El Construction Plane no solo construye la **masa** que orbita (el perfil): también necesita la **identidad de la marca** que ejerce la atracción. En Gravity esa capa es **Cerebro**, la base de conocimiento de marca reutilizable.
 
 Cada marca guarda documentos (`brief`, `tono`, `producto`, `analytics`, `voc`, `informe`, `nota`) y un selector vuelca ese contexto en los campos «describe la marca» del resto de módulos. Es el **centro de masa informacional**: garantiza que la marca aparezca de forma coherente en todos los planos donde se calibra y se simula la atracción (GEO, Campañas, Claridad 5s, Copy). Sin Cerebro, cada módulo partiría de una marca distinta; con él, todos simulan la misma identidad.
 
@@ -195,7 +195,7 @@ Cómo construyen hoy las respuestas los buscadores y modelos de lenguaje (los 4 
 3. **Cruce y validación del relato**: las respuestas se construyen a partir de patrones comunes detectados entre múltiples fuentes, no de una única publicación.
 4. **Generación de una narrativa sintetizada**: el modelo resume qué papel juega la marca en ese contexto y cómo debe interpretarse en relación con la consulta.
 
-Implicación: la marca ya no se evalúa solo por sus activos, sino por **cómo aparece citada, en qué contextos se la menciona y con qué rol se la asocia cuando no controla el discurso**. Es la prueba más literal de la tesis: **el campo de batalla no es la web de la marca, es la respuesta sintetizada que el buscador de IA da antes de cualquier clic.** El módulo GEO de SUAAS simula exactamente este proceso por segmento de intención.
+Implicación: la marca ya no se evalúa solo por sus activos, sino por **cómo aparece citada, en qué contextos se la menciona y con qué rol se la asocia cuando no controla el discurso**. Es la prueba más literal de la tesis: **el campo de batalla no es la web de la marca, es la respuesta sintetizada que el buscador de IA da antes de cualquier clic.** El módulo GEO de Gravity simula exactamente este proceso por segmento de intención.
 
 ## 6. Value Plane: onboarding agéntico y propiedad psicológica
 
@@ -238,7 +238,7 @@ Dos módulos merecen leerse no solo como funcionalidad, sino como la **demostrac
 
 Entre los dos cubren los dos planos pre-clic: Momentum mide el momentum **antes** de que la marca exista para el usuario; GEO mide qué hace la marca con ese momentum **en el primer punto de contacto, que ya no es la web**.
 
-## 8. Mapa teoría → implementación en SUAAS
+## 8. Mapa teoría → implementación en Gravity
 
 > **Verificado contra el código a v0.63.3 (2026-07-19).** Este mapa caduca con cada cambio funcional: al tocar un módulo listado aquí, actualizar su fila en la misma sesión (regla 1 de `CLAUDE.md`). Las citas van por archivo y migración concreta, no por rangos.
 
@@ -308,7 +308,7 @@ En embudos, copy y pricing la taxonomía no existe (el embudo colapsa fuga y rep
 Huecos identificados (insumo para el roadmap), reverificados contra v0.63.3. Esta lista está duplicada con redacción propia en el componente `ConceptosPendientes` de la página `/gravity` (`app/gravity/conceptos-pendientes.tsx`): este documento es la fuente de verdad; al cambiar la lista, sincronizar el componente en la misma sesión.
 
 - **Value Plane completo**: no hay simulación post-alta (descubrimiento, adopción, pertenencia, hábito recurrente, churn). Es el plano con menos cobertura: la plataforma es hoy fuerte en pre-clic (Construction + Acceleration) y débil en post-clic (Value).
-- **Instancias** como entidad: SUAAS tiene perfiles individuales, pero no el par «perfil comportamental → N instancias» (mismo comportamiento, orígenes y aha moments distintos).
+- **Instancias** como entidad: Gravity tiene perfiles individuales, pero no el par «perfil comportamental → N instancias» (mismo comportamiento, orígenes y aha moments distintos).
 - **Gravedad agregada**: no existe una métrica que sume el momentum de las interacciones de una cohorte en una «fuerza gravitacional» de la marca, ni vista que cruce el momentum entre módulos.
 - **Mapa de fricción priorizado por impacto** cruzando todas las instancias (sección 4.5): los embudos ya rankean fricciones por frecuencia entre perfiles (`top_friction`), pero falta la dimensión «instancia» como entidad y la regla de severidad «lo que falla en todas las instancias se toca primero».
 - **Aha moment por instancia** (6.2): no se modela ni detecta el momento de propiedad psicológica.
@@ -318,13 +318,13 @@ Huecos identificados (insumo para el roadmap), reverificados contra v0.63.3. Est
 
 ## 9. Síntesis: el trabajo se desplaza a la órbita
 
-Si la decisión se toma antes de llegar a la web, entonces la pregunta estratégica deja de ser «cómo convierto el tráfico que llega» y pasa a ser «cómo influyo en la órbita del usuario antes de que llegue». El Gravity Model es el marco para esa pregunta y SUAAS es el instrumento:
+Si la decisión se toma antes de llegar a la web, entonces la pregunta estratégica deja de ser «cómo convierto el tráfico que llega» y pasa a ser «cómo influyo en la órbita del usuario antes de que llegue». El Gravity Model es el marco para esa pregunta y Gravity es el instrumento:
 
 - **Construction** mide y construye la intención antes de que la marca exista para el usuario (Perfiles, Momentum, Claridad 5s, Embudos, con Cerebro como contexto de marca).
 - **Acceleration** modula esa intención en el primer punto de contacto, que ya no es la web sino la respuesta de la IA o el anuncio (GEO, Campañas).
 - **Value** valida y blinda, dentro de la web, una decisión que llegó hecha (pendiente de construir).
 
-Dos tercios del modelo, y casi toda la plataforma, trabajan **antes del clic**. Esa es la apuesta de SUAAS: no esperar al usuario en la web, sino **atraerlo a la marca mientras todavía está decidiendo, fuera**.
+Dos tercios del modelo, y casi toda la plataforma, trabajan **antes del clic**. Esa es la apuesta de Gravity: no esperar al usuario en la web, sino **atraerlo a la marca mientras todavía está decidiendo, fuera**.
 
 ## 10. Glosario
 
@@ -341,8 +341,8 @@ Dos tercios del modelo, y casi toda la plataforma, trabajan **antes del clic**. 
 | **Conducta óptima / fuga / repesca** | Clasificación del comportamiento ante la acción principal de un flujo: completa sin fricción / abandona por coste percibido / abandona con intención viva. |
 | **Aha moment / propiedad psicológica** | Momento en que el usuario integra el producto en su identidad; su expectativa es pre-clic, su validación post-clic; específico por instancia, detectable y acelerable. |
 | **GEO** | Generative Engine Optimization: influir en cómo los motores de respuesta IA interpretan, citan y recomiendan la marca antes del clic. |
-| **Cerebro** | Base de conocimiento de marca de SUAAS; contexto gravitacional reutilizable que se inyecta en los módulos. Documentos privados (ZDR) que no salen al gateway. |
-| **Trigger (SUAAS)** | Escenario de activación JTBD sobre el que se simula el momentum de los perfiles antes de cualquier touchpoint de marca. |
-| **Perfil calibrado** | Término de producto: la realización operativa del perfil comportamental en SUAAS (registro estructurado + agente LLM). En el onboard público se llama «gemelo digital» cuando lo protagoniza una persona real. |
+| **Cerebro** | Base de conocimiento de marca de Gravity; contexto gravitacional reutilizable que se inyecta en los módulos. Documentos privados (ZDR) que no salen al gateway. |
+| **Trigger** | Escenario de activación JTBD sobre el que se simula el momentum de los perfiles antes de cualquier touchpoint de marca. |
+| **Perfil calibrado** | Término de producto: la realización operativa del perfil comportamental en Gravity (registro estructurado + agente LLM). En el onboard público se llama «gemelo digital» cuando lo protagoniza una persona real. |
 | **Medición declarativa simulada** | Naturaleza de todas las métricas del vector y de los scores: valores que el LLM declara guiado por esquemas y rúbricas, no calculados por un modelo formal. Sin fórmula, sin muestreo, sin validación contra conducta humana real. |
-| **SUAAS / Gravity** | SUAAS es el producto interno; Gravity, la marca de la superficie comercial (página `/gravity`, landing `/propuesta`, onboard). El marco teórico se llama Gravity Model en ambos contextos. |
+| **Gravity** | El producto: la superficie comercial (página `/gravity`, landing `/propuesta`, onboard) y la plataforma comparten nombre. El marco teórico es el **Gravity Model**. |

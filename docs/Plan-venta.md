@@ -1,6 +1,6 @@
-# Plan de venta · Instancias de SUAAS para clientes
+# Plan de venta · Instancias de Gravity para clientes
 
-> Análisis de viabilidad, costes y operación para ofrecer SUAAS a clientes como instancias dedicadas.
+> Análisis de viabilidad, costes y operación para ofrecer Gravity a clientes como instancias dedicadas.
 > Precios de infraestructura verificados contra las tarifas vigentes de Supabase y Vercel el 2026-06-11.
 > Consumo LLM modelado con las medias reales de `gateway_usage` y las fórmulas por runner de `lib/estimate.ts` (v0.50.0).
 
@@ -8,10 +8,10 @@
 
 Dos caminos posibles:
 
-- **A) Una instancia por cliente (replicar SUAAS)**: un proyecto de Vercel + un proyecto de Supabase + una API key del AI Gateway por cliente, todos desplegando desde el mismo repo.
+- **A) Una instancia por cliente (replicar Gravity)**: un proyecto de Vercel + un proyecto de Supabase + una API key del AI Gateway por cliente, todos desplegando desde el mismo repo.
 - **B) Multi-tenant real (una sola instancia)**: cuentas de usuario, columna `org_id` en todas las tablas, RLS por organización, presupuestos y planes por tenant en base de datos.
 
-**Decisión recomendada: empezar por A.** SUAAS es single-tenant hasta la médula (contraseña global, un Supabase con service role, RLS deny-all que el server salta, ninguna tabla con concepto de organización). La opción B es un cambio estructural (versión 1.0.0): migración con `org_id` en ~12 tablas, reescritura de todos los CRUD de `lib/`, Supabase Auth, proxy y gates de presupuesto por tenant. Solo compensa con más de 5-8 clientes o si se quiere alta self-service.
+**Decisión recomendada: empezar por A.** Gravity es single-tenant hasta la médula (contraseña global, un Supabase con service role, RLS deny-all que el server salta, ninguna tabla con concepto de organización). La opción B es un cambio estructural (versión 1.0.0): migración con `org_id` en ~12 tablas, reescritura de todos los CRUD de `lib/`, Supabase Auth, proxy y gates de presupuesto por tenant. Solo compensa con más de 5-8 clientes o si se quiere alta self-service.
 
 La opción A es casi cero código y da lo que más importa con clientes: **aislamiento total de datos** (cada cliente su Supabase), **techo de gasto por cliente** (budget de su API key) y off-boarding trivial (borrar el proyecto). Encaja con la infraestructura ya construida: el budget por API key con refresh mensual ES el límite de plan, el dashboard del AI Gateway da el gasto por key (= por cliente) sin instrumentar nada, y la página `/tokens` más los costes en los botones (v0.50.0) enseñan a cada cliente lo que consume.
 
@@ -110,7 +110,7 @@ El coste marginal de una instancia es de ~12-42 €/mes (infra + API del cliente
 
 - Un test de UX/CRO moderado real cuesta **4.000-10.000 €** y un estudio completo **3.000-25.000 €** (agencia: 15.000-75.000 €+).
 - Cada participante real cuesta **100-500 €** «fully loaded» (incentivo + reclutamiento + tiempo de researcher), y reclutar se lleva **2-4 semanas** mientras las decisiones de diseño avanzan sin evidencia.
-- SUAAS ataca exactamente esos tres costes: elimina el incentivo, el fee de reclutamiento y las semanas de espera, dejando el coste marginal en tokens.
+- Gravity ataca exactamente esos tres costes: elimina el incentivo, el fee de reclutamiento y las semanas de espera, dejando el coste marginal en tokens.
 
 El error a evitar es anclar al techo de «software puro» de una PYME española (100-1.000 €/mes). El ancla correcta es el **presupuesto de servicio de marketing/CRO** (1.500-5.000 €/mes), que es 3-5x mayor. Flat101 vende esto como agencia de CRO a clientes que YA pagan por research y optimización, no como «otra herramienta SaaS».
 
@@ -121,7 +121,7 @@ El error a evitar es anclar al techo de «software puro» de una PYME española 
 - **Testing UX/CRO tradicional**: UserTesting 12.000-100.000 $+/año, Maze 99 $/mes a 72.000 $/año, Lyssna 165 $/mes.
 - **Servicios de CRO**: 1.500-31.000 $/mes; gasto medio en herramientas de CRO ~2.000 $/mes.
 
-SUAAS se posiciona **muy por encima del software-ceiling y muy por debajo del enterprise**: el hueco mid-market self-serve para PYME y agencias, donde casi nadie ataca UX/CRO directamente (el competidor más alineado es Uxia, con free + custom).
+Gravity se posiciona **muy por encima del software-ceiling y muy por debajo del enterprise**: el hueco mid-market self-serve para PYME y agencias, donde casi nadie ataca UX/CRO directamente (el competidor más alineado es Uxia, con free + custom).
 
 ### Estructura: setup + suscripción recurrente + oferta «land»
 
@@ -154,7 +154,7 @@ El tier **Pro es el objetivo**: está dentro del presupuesto de servicio de una 
 
 ### Honestidad metodológica (protege la reputación de Flat101)
 
-El patrón 2026 es **sintético para el 80 % inicial** (iteración rápida, message testing, descartar conceptos, generar hipótesis) y reservar el research humano caro para el **20 % final** (decisión go/no-go, insight emocional, edge cases). Vender SUAAS como complemento que acelera y abarata el grueso del research, no como sustituto total, es lo que hacen los players serios (Synthetic Users, Outset) y lo que sostiene la credibilidad de una agencia de CRO. La base teórica de fidelidad está en `CONOCIMIENTO-USUARIOS-SINTETICOS.md`.
+El patrón 2026 es **sintético para el 80 % inicial** (iteración rápida, message testing, descartar conceptos, generar hipótesis) y reservar el research humano caro para el **20 % final** (decisión go/no-go, insight emocional, edge cases). Vender Gravity como complemento que acelera y abarata el grueso del research, no como sustituto total, es lo que hacen los players serios (Synthetic Users, Outset) y lo que sostiene la credibilidad de una agencia de CRO. La base teórica de fidelidad está en `CONOCIMIENTO-USUARIOS-SINTETICOS.md`.
 
 ### Por qué funciona el margen
 

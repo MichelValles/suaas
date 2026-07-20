@@ -1,6 +1,6 @@
 # Sistema de diseño
 
-SUAAS adopta el design system de **sd.michelvalles.com** con una variante crítica respecto a `flat101business` (adams/uoc): **no usa Tailwind**.
+Gravity adopta el design system de **sd.michelvalles.com** con una variante crítica respecto a `flat101business` (adams/uoc): **no usa Tailwind**.
 
 ## Regla núcleo: no Tailwind
 
@@ -12,7 +12,7 @@ SUAAS adopta el design system de **sd.michelvalles.com** con una variante críti
 - ✅ Sí clases semánticas del DS (`.eyebrow`, `.h1`, `.btn-pill`...).
 - ✅ Sí CSS inline (`style={{...}}`) o reglas CSS estándar para layout.
 
-Por qué: SUAAS no es un deck editorial sino una herramienta de producto. El DS de sd.michelvalles.com está pensado como token system, no como Tailwind. Usándolo desnudo evitamos arrastrar dependencias y mantenemos la superficie de estilo legible.
+Por qué: Gravity no es un deck editorial sino una herramienta de producto. El DS de sd.michelvalles.com está pensado como token system, no como Tailwind. Usándolo desnudo evitamos arrastrar dependencias y mantenemos la superficie de estilo legible.
 
 ## Tokens disponibles
 
@@ -220,7 +220,7 @@ Si se reusa para otra pantalla, factorizar a un componente `<HudFrame>` en `comp
 
 ## Layout: app shell con sidebar (v0.6.0+)
 
-Desde v0.6.0 SUAAS usa un app shell tipo software, no web. `AppShell` aplica un grid:
+Desde v0.6.0 Gravity usa un app shell tipo software, no web. `AppShell` aplica un grid:
 
 ```
 ┌─────────┬───────────────────────┐

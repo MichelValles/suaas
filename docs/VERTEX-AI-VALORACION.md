@@ -1,10 +1,10 @@
-# Valoración · Google Vertex AI para SUAAS
+# Valoración · Google Vertex AI para Gravity
 
 **Fecha**: 5 de julio de 2026. **Método**: investigación multiagente (3 lectores del repo, 6 investigadores web, 10 verificadores adversariales sobre los claims decisivos: 8 confirmados, 2 matizados con la corrección incorporada). Fuentes oficiales de Google Cloud y Vercel de 2025-2026.
 
 **Nota de contexto**: en abril de 2026 Google renombró Vertex AI como «Gemini Enterprise Agent Platform». Es un rebranding confirmado, no una deprecación: Model Garden pervive como catálogo y los endpoints (`aiplatform.googleapis.com`) no cambian. Aquí se usa «Vertex» por brevedad.
 
-## 1. Qué aportaría cada pieza al caso SUAAS
+## 1. Qué aportaría cada pieza al caso Gravity
 
 ### Model Garden: poco
 
@@ -12,7 +12,7 @@ Catálogo de más de 200 modelos con dos modos: MaaS por token (Gemini, Claude, 
 
 ### RAG Engine / Vertex AI Search: el hueco es real, la pieza encaja mal
 
-SUAAS no tiene RAG: `buildBrandContext` (`lib/cerebro.ts`) trunca a ciegas a 30.000 caracteres un corpus creciente (brand_documents, transcripciones, respuestas cualitativas, backstories). **[Actualización (jul-2026): implementado en v0.63.0 (`lib/rag.ts`, migración 0029, tabla `brand_document_chunks`); `buildBrandContext` queda como fallback legado.]** Pero RAG Engine encaja mal:
+Gravity no tiene RAG: `buildBrandContext` (`lib/cerebro.ts`) trunca a ciegas a 30.000 caracteres un corpus creciente (brand_documents, transcripciones, respuestas cualitativas, backstories). **[Actualización (jul-2026): implementado en v0.63.0 (`lib/rag.ts`, migración 0029, tabla `brand_document_chunks`); `buildBrandContext` queda como fallback legado.]** Pero RAG Engine encaja mal:
 
 - GA desde diciembre de 2024, en 2026 solo en 4 regiones (us-central1 y us-east4 con allowlist, europe-west3 y europe-west4).
 - No soporta pgvector ni AlloyDB como backend.
@@ -33,7 +33,7 @@ GA. Métricas model-based (groundedness pointwise y pairwise, instruction follow
 
 ### Agent Engine: no
 
-Runtime gestionado GA desde marzo de 2025; Sessions y Memory Bank GA desde diciembre de 2025 (facturando desde el 28 de enero de 2026); Code Execution y la observabilidad de consola siguen en Preview. El despliegue gestionado del ADK cubre Python y Go; el Talker-Reasoner de SUAAS (`lib/agents.ts`) es TypeScript sobre AI SDK. La invocación externa exige OAuth2/IAM sin API keys. Sesiones, memoria y trazas ya las cubren Supabase y Vercel: migrar sería reescribir la capa de agentes entera sin beneficio neto.
+Runtime gestionado GA desde marzo de 2025; Sessions y Memory Bank GA desde diciembre de 2025 (facturando desde el 28 de enero de 2026); Code Execution y la observabilidad de consola siguen en Preview. El despliegue gestionado del ADK cubre Python y Go; el Talker-Reasoner de Gravity (`lib/agents.ts`) es TypeScript sobre AI SDK. La invocación externa exige OAuth2/IAM sin API keys. Sesiones, memoria y trazas ya las cubren Supabase y Vercel: migrar sería reescribir la capa de agentes entera sin beneficio neto.
 
 ## 2. Tres arquitecturas candidatas
 

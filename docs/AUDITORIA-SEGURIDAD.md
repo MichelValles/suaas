@@ -242,7 +242,7 @@ Sigue aplicando a todas las Server Actions, incluidas las nuevas de GEO/Momentum
 **Archivo:** `lib/supabase.ts`, `.env.example`
 
 **Descripción:**  
-`NEXT_PUBLIC_SUPABASE_ANON_KEY` lleva el prefijo `NEXT_PUBLIC_`, lo que hace que Next.js la inyecte en el bundle JavaScript público descargado por cualquier visitante. Supabase por defecto concede a la clave anónima (`anon role`) acceso de lectura y escritura a todas las tablas del esquema `public` cuando RLS (Row Level Security) no está activo. SUAAS no activa RLS en ninguna tabla (decisión explícita en los comentarios de `0001_initial.sql`).
+`NEXT_PUBLIC_SUPABASE_ANON_KEY` lleva el prefijo `NEXT_PUBLIC_`, lo que hace que Next.js la inyecte en el bundle JavaScript público descargado por cualquier visitante. Supabase por defecto concede a la clave anónima (`anon role`) acceso de lectura y escritura a todas las tablas del esquema `public` cuando RLS (Row Level Security) no está activo. Gravity no activa RLS en ninguna tabla (decisión explícita en los comentarios de `0001_initial.sql`).
 
 **Vector de ataque:**  
 1. Visitante descarga el bundle del navegador de `suaas.flat101.business`.
@@ -357,7 +357,7 @@ El tope global de 50/día también es por instancia: si hay 5 instancias, el con
 
 ---
 
-### VULN-07 · MEDIA · `/api/qr` genera QR con contenido arbitrario bajo dominio SUAAS
+### VULN-07 · MEDIA · `/api/qr` genera QR con contenido arbitrario bajo dominio Gravity
 
 **Archivo:** `app/api/qr/route.ts`
 

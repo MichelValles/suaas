@@ -1,6 +1,6 @@
 # Perfiles calibrados: anatomía, fundamentos y límites del motor
 
-> **Propósito**: este documento explica el sistema de perfiles de SUAAS con el rigor necesario para sostener una conversación con una persona experta en Behavioural Economics y sociología. Para cada componente responde tres preguntas: qué hay exactamente en el código, qué constructo académico encarna (con autores y obras canónicas) y dónde la operacionalización se queda corta frente al constructo. La honestidad sobre los límites es deliberada: es la parte que una revisora académica va a auditar primero.
+> **Propósito**: este documento explica el sistema de perfiles de Gravity con el rigor necesario para sostener una conversación con una persona experta en Behavioural Economics y sociología. Para cada componente responde tres preguntas: qué hay exactamente en el código, qué constructo académico encarna (con autores y obras canónicas) y dónde la operacionalización se queda corta frente al constructo. La honestidad sobre los límites es deliberada: es la parte que una revisora académica va a auditar primero.
 >
 > **Relación con los demás documentos**: el marco estratégico (por qué se simula y en qué plano) está en [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md). La base teórica fundacional del motor está en [`CONOCIMIENTO-USUARIOS-SINTETICOS.md`](./CONOCIMIENTO-USUARIOS-SINTETICOS.md). Los dos sets de perfiles construidos con investigación real están en [`IVI-PUBLICO-OBJETIVO.md`](./IVI-PUBLICO-OBJETIVO.md) y [`ADESLAS-DENTAL-PUBLICO-OBJETIVO.md`](./ADESLAS-DENTAL-PUBLICO-OBJETIVO.md).
 >

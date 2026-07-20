@@ -1,10 +1,10 @@
 # Valoración de orquestación de agentes: ¿n8n? (jul-2026)
 
-> Investigación verificada (código, docs oficiales de Vercel y precios de n8n a julio de 2026) para decidir si SUAAS debe adoptar n8n como orquestador de sus agentes. **Conclusión: no, todavía no.** La combinación correcta hoy es Vercel Cron (ya disponible, gratis en Hobby) para lo periódico y Vercel Workflow DevKit (GA, incluido en Hobby) para la durabilidad de los runners, cuando toque. Documento hermano de [`VERTEX-AI-VALORACION.md`](./VERTEX-AI-VALORACION.md), que llegó a la misma filosofía: mínima dispersión de plataformas.
+> Investigación verificada (código, docs oficiales de Vercel y precios de n8n a julio de 2026) para decidir si Gravity debe adoptar n8n como orquestador de sus agentes. **Conclusión: no, todavía no.** La combinación correcta hoy es Vercel Cron (ya disponible, gratis en Hobby) para lo periódico y Vercel Workflow DevKit (GA, incluido en Hobby) para la durabilidad de los runners, cuando toque. Documento hermano de [`VERTEX-AI-VALORACION.md`](./VERTEX-AI-VALORACION.md), que llegó a la misma filosofía: mínima dispersión de plataformas.
 
 ## 1. El problema real que habría que resolver
 
-Los tres problemas operativos de SUAAS no son de «orquestación visual», son de durabilidad y programación temporal:
+Los tres problemas operativos de Gravity no son de «orquestación visual», son de durabilidad y programación temporal:
 
 | Problema | Estado |
 |---|---|
@@ -21,7 +21,7 @@ Los tres problemas operativos de SUAAS no son de «orquestación visual», son d
 - **Duplicación de secretos (decisivo)**: para orquestar algo útil necesitaría la service role key de Supabase o la llave del AI Gateway en su credential store: un segundo sistema con llaves maestras, justo cuando la auditoría va en la dirección contraria (RLS, secretos fuera del bundle).
 - **La fricción estructural**: la lógica de agentes vive en TypeScript (AI SDK 6 + zod 4 + streaming NDJSON + control de presupuesto + resume). n8n solo podría (a) reimplementarla en nodos (sus nodos AI van sobre LangChain, no el AI SDK; el Code node de Cloud no permite imports npm): duplicación que diverge, descartado; o (b) llamar por HTTP a los endpoints actuales: entonces **solo orquesta, no ejecuta**, el cómputo sigue dentro de la Vercel Function con su `maxDuration 300`, y **no arregla B-01/B-03**. Solo añadiría un cron externo con reintentos, que Vercel Cron da gratis.
 
-**Veredicto**: no como orquestador de los agentes. **Escenario futuro en el que sí**: integraciones no-code con los sistemas del cliente (empujar resultados GEO a su Slack/Sheets/HubSpot, disparar análisis desde un formulario externo). En ese caso n8n sería **consumidor de la API de SUAAS vía webhooks** con una API key de scope limitado, nunca dueño de los runners ni portador de la service role.
+**Veredicto**: no como orquestador de los agentes. **Escenario futuro en el que sí**: integraciones no-code con los sistemas del cliente (empujar resultados GEO a su Slack/Sheets/HubSpot, disparar análisis desde un formulario externo). En ese caso n8n sería **consumidor de la API de Gravity vía webhooks** con una API key de scope limitado, nunca dueño de los runners ni portador de la service role.
 
 ## 3. Alternativas nativas (verificadas)
 

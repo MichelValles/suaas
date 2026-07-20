@@ -1,10 +1,10 @@
-# Documentación · SUAAS
+# Documentación · Gravity
 
 Índice de la documentación. Empieza por `PROYECTO.md`.
 
 | Archivo | Qué contiene |
 |---|---|
-| [`PROYECTO.md`](./PROYECTO.md) | Qué es SUAAS, stack, estructura de carpetas, auth, modelo de datos. |
+| [`PROYECTO.md`](./PROYECTO.md) | Qué es Gravity, stack, estructura de carpetas, auth, modelo de datos. |
 | [`SISTEMA-DISENO.md`](./SISTEMA-DISENO.md) | Tokens del DS, clases semánticas, antipatrones, regla "no Tailwind". |
 | [`DESARROLLO.md`](./DESARROLLO.md) | Comandos, env vars, deploy a Vercel, subdominio, troubleshooting. |
 | [`ROADMAP.md`](./ROADMAP.md) | Estado actual, próximos hitos, decisiones abiertas. |

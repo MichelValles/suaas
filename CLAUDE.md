@@ -1,8 +1,8 @@
 @AGENTS.md
 
-# Reglas operativas del proyecto SUAAS
+# Reglas operativas del proyecto Gravity
 
-SUAAS es una plataforma para hacer **test de UX/CRO con perfiles calibrados**, expuesta en `suaas.flat101.business`. Stack: Next.js 16 (App Router) + Supabase + Vercel AI Gateway. Sin Tailwind, sólo tokens del design system de sd.michelvalles.com.
+Gravity es una plataforma para hacer **test de UX/CRO con perfiles calibrados**, expuesta en `suaas.flat101.business`. Stack: Next.js 16 (App Router) + Supabase + Vercel AI Gateway. Sin Tailwind, sólo tokens del design system de sd.michelvalles.com.
 
 ## 1. Documentación viva en `docs/`
 
@@ -45,7 +45,7 @@ Aplica a cualquier texto visible: copy, intros, body, labels, alt, metadatos, me
 
 ### Otras reglas de copy
 
-- El término de producto es **«perfiles calibrados»** (en el onboard, «gemelo digital»). No usar «usuarios sintéticos» en texto visible ni en prompts; queda reservado a la base teórica (`docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md`) y a los registros históricos. SUAAS es marca pura, sin expansión del acrónimo.
+- El término de producto es **«perfiles calibrados»** (en el onboard, «gemelo digital»). No usar «usuarios sintéticos» en texto visible ni en prompts; queda reservado a la base teórica (`docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md`) y a los registros históricos. El producto se llama **Gravity** (la plataforma interna y la superficie comercial comparten nombre).
 - Castellano con acentos completos. Nunca sustituir diacríticos por ASCII.
 - Comillas tipográficas «…» o "…" en lugar de "…" cuando rodean texto destacado.
 - Números: separador de miles con punto (formato español).

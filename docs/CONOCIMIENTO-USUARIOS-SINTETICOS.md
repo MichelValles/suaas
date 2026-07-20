@@ -1,6 +1,6 @@
 # Base de conocimiento del motor: usuarios sintéticos, perfiles calibrados y su validación
 
-> **Qué es este documento.** La base teórica y empírica del motor de SUAAS: qué son los usuarios sintéticos, por qué se construyen como se construyen, con qué fuentes académicas se sostiene cada decisión, cómo un perfil produce una respuesta concreta (trazabilidad atributo → razonamiento → respuesta, con transcripciones reales) y qué defensas de seguridad tiene el sistema, probadas en vivo.
+> **Qué es este documento.** La base teórica y empírica del motor de Gravity: qué son los usuarios sintéticos, por qué se construyen como se construyen, con qué fuentes académicas se sostiene cada decisión, cómo un perfil produce una respuesta concreta (trazabilidad atributo → razonamiento → respuesta, con transcripciones reales) y qué defensas de seguridad tiene el sistema, probadas en vivo.
 >
 > **Estado de las fuentes.** Última revisión de fuentes: v0.63.2 (19-jul-2026). En la revisión anterior las cifras y citas de este documento no tenían referencia recuperada. Ahora **todas están rastreadas a su fuente primaria y verificadas**, y donde la atribución original era incorrecta se corrige de forma explícita. Las pruebas de perfil, guardarraíles, anti prompt injection y RAG se ejecutaron contra el sistema real en producción; sus resultados están incluidos literalmente.
 >
@@ -37,7 +37,7 @@ La motivación no es solo de coste. La adopción de IA en el sector ya es mayori
 
 Para que la simulación tenga valor, la arquitectura del agente se sostiene sobre tres ejes:
 
-- **Calibración del perfil (VoC):** superar la IA genérica alimentando al modelo con datos reales de la «Voz del Cliente»: transcripciones, reseñas, investigación de mercado. *(Nota honesta sobre SUAAS: los sets calibrados IVI y Adeslas se construyeron con investigación secundaria verificada, no con VoC primaria; la diferencia se detalla en la sección 7 y en `PERFILES-CALIBRADOS.md` §8.5.)*
+- **Calibración del perfil (VoC):** superar la IA genérica alimentando al modelo con datos reales de la «Voz del Cliente»: transcripciones, reseñas, investigación de mercado. *(Nota honesta sobre Gravity: los sets calibrados IVI y Adeslas se construyeron con investigación secundaria verificada, no con VoC primaria; la diferencia se detalla en la sección 7 y en `PERFILES-CALIBRADOS.md` §8.5.)*
 - **Detección de fricción:** identificación de obstáculos mediante el esfuerzo percibido por la IA, como proxy predictivo de abandono en embudos.
 - **Validación de heurísticas:** evaluación basada en psicología cognitiva, como la **Ley de Hick** sobre la carga de decisión [Hick 1952; Hyman 1953] y las **10 heurísticas de usabilidad de Nielsen** [Nielsen 1994].
 
@@ -106,26 +106,26 @@ Para mitigar los sesgos del LLM, el usuario se crea en dos etapas que priorizan 
 | **Trasfondo (backstory)** | Narrativa que conecta metas y miedos. |
 | **Intención (JTBD)** | «Cuando [situación], quiero [motivación] para poder [resultado]». |
 
-En SUAAS estos componentes son literalmente los campos del perfil (`demographics`, `big_five`, `com_b_barriers`, `backstory`, `intent_context`). El detalle de cada uno, sus vías de creación y su fundamento académico están en `PERFILES-CALIBRADOS.md`.
+En Gravity estos componentes son literalmente los campos del perfil (`demographics`, `big_five`, `com_b_barriers`, `backstory`, `intent_context`). El detalle de cada uno, sus vías de creación y su fundamento académico están en `PERFILES-CALIBRADOS.md`.
 
 ---
 
 ## 4. Arquitectura de simulación: Talker-Reasoner
 
-La simulación avanzada se apoya en agentes con memoria y razonamiento (GABM; la referencia de código abierto es Concordia [Vezhnevets et al. 2023]). SUAAS implementa la arquitectura **Talker-Reasoner** [Christakopoulou et al. 2024], inspirada en el procesamiento dual de Kahneman:
+La simulación avanzada se apoya en agentes con memoria y razonamiento (GABM; la referencia de código abierto es Concordia [Vezhnevets et al. 2023]). Gravity implementa la arquitectura **Talker-Reasoner** [Christakopoulou et al. 2024], inspirada en el procesamiento dual de Kahneman:
 
-- **Reasoner (Sistema 2):** analítico y lento. Modela el estado interno del usuario, detecta barreras, evalúa la fricción simbólica del turno (ver §5.6) y planifica la acción. En SUAAS es Opus, produce un plan estructurado por turno.
-- **Talker (Sistema 1):** fluido e intuitivo. Genera el diálogo final siguiendo las directrices del Reasoner. En SUAAS es Sonnet, emite en streaming.
+- **Reasoner (Sistema 2):** analítico y lento. Modela el estado interno del usuario, detecta barreras, evalúa la fricción simbólica del turno (ver §5.6) y planifica la acción. En Gravity es Opus, produce un plan estructurado por turno.
+- **Talker (Sistema 1):** fluido e intuitivo. Genera el diálogo final siguiendo las directrices del Reasoner. En Gravity es Sonnet, emite en streaming.
 
 Esta separación permite el **logging de Chain-of-Thought**: trazabilidad total sobre *por qué* el agente decidió lo que decidió. Es exactamente lo que se demuestra en la sección siguiente.
 
-*Alcance real (honesto):* en SUAAS la arquitectura dual existe **solo en el chat 1:1**; los experimentos por lotes (claridad 5s, copy, pricing, embudos, campañas) usan una sola pasada. Detalle en `PERFILES-CALIBRADOS.md` §4.2.
+*Alcance real (honesto):* en Gravity la arquitectura dual existe **solo en el chat 1:1**; los experimentos por lotes (claridad 5s, copy, pricing, embudos, campañas) usan una sola pasada. Detalle en `PERFILES-CALIBRADOS.md` §4.2.
 
 ---
 
 ## 5. Anatomía de un perfil y trazabilidad: por qué responde lo que responde
 
-Esta es la parte central. Se toma un perfil real de SUAAS, se muestran sus atributos, y se traza cómo cada atributo produce el plan del Reasoner y la respuesta del Talker. La prueba se ejecutó contra el gateway real el 19-jul-2026 con las funciones de producción `reason()` y `talkStream()` (`lib/agents.ts`); para reproducirla basta con abrir el chat del perfil Lucía Sáez y expandir el «Razonamiento» de cada turno.
+Esta es la parte central. Se toma un perfil real de Gravity, se muestran sus atributos, y se traza cómo cada atributo produce el plan del Reasoner y la respuesta del Talker. La prueba se ejecutó contra el gateway real el 19-jul-2026 con las funciones de producción `reason()` y `talkStream()` (`lib/agents.ts`); para reproducirla basta con abrir el chat del perfil Lucía Sáez y expandir el «Razonamiento» de cada turno.
 
 ### 5.1 El perfil: Lucía Sáez
 
@@ -217,7 +217,7 @@ El hallazgo es **más fino que la hipótesis ingenua «capital cultural bajo = d
 
 ## 6. Aplicaciones en el ciclo de optimización
 
-| Fase | Uso del usuario sintético | Métrica asociada | Módulo SUAAS |
+| Fase | Uso del usuario sintético | Métrica asociada | Módulo Gravity |
 | :--- | :--- | :--- | :--- |
 | Auditoría de landing | Test de claridad de 5 segundos | Tasa de comprensión (juez neutral) | Claridad 5s |
 | Pre-test de copy | Resonancia cognitiva por bloque | Persuasión, would_click | Copy |
@@ -237,7 +237,7 @@ La validez de los usuarios sintéticos grounded se probó en salud de alta compl
 - **7.2 Recuperación de barreras:** «We obtained **71.4% mean recall** and **72.5% mean precision** for the barriers», usando fuzzy-matching por un LLM (Gemini 1.5 Pro) para capturar paráfrasis. *(El documento anterior omitía la precisión del 72,5% y presentaba el fuzzy-matching como algoritmo clásico; en realidad lo hace un LLM.)*
 - **7.3 Superioridad del perfil grounded:** en evaluaciones ciegas por expertos humanos, «the evaluators **overwhelmingly favored** our full synthetic users over the baseline» (solo demografía, sin condiciones ni rasgos), con diferencia altamente significativa (**p = 3,7 × 10⁻¹²**). En sueño: 5 evaluadores supervisados por un psicólogo clínico, acuerdo unánime en el 64% de casos.
 
-**Matiz de honestidad para SUAAS.** El pilar 1 (calibración VoC) exige VoC primaria (transcripciones, reseñas). Los sets IVI (15 perfiles) y Adeslas (3) se calibraron con **investigación secundaria de mercado verificada adversarialmente** (registros sectoriales SEF, INE, OCU, comparadores), no con VoC de clientes reales. Es un grounding serio pero de otra especie: conocimiento de mercado, no evidencia conductual de primera mano. La validación final con humanos sigue siendo el gold standard irrenunciable.
+**Matiz de honestidad para Gravity.** El pilar 1 (calibración VoC) exige VoC primaria (transcripciones, reseñas). Los sets IVI (15 perfiles) y Adeslas (3) se calibraron con **investigación secundaria de mercado verificada adversarialmente** (registros sectoriales SEF, INE, OCU, comparadores), no con VoC de clientes reales. Es un grounding serio pero de otra especie: conocimiento de mercado, no evidencia conductual de primera mano. La validación final con humanos sigue siendo el gold standard irrenunciable.
 
 ---
 
@@ -256,7 +256,7 @@ Para evitar el agente «demasiado cooperativo» (sicofancia [Sharma et al. 2023]
 
 ### 8.3 Guardarraíles y anti prompt injection (probados en vivo)
 
-SUAAS inyecta texto de terceros (documentos de marca, respuestas de motores con búsqueda web, copy del anunciante, backstories importados) en prompts de LLM. Desde v0.62.0, el módulo `lib/guardrails.ts` delimita ese contenido con un vallado inerte, instruye al modelo a tratarlo como datos y neutraliza cualquier intento de cerrar el vallado (no usa blacklists semánticas, que son teatro). Se probó con un documento de marca envenenado el 19-jul-2026, ejercitando `buildBrandContext` (`lib/cerebro.ts`) y `analyzeProfileMomentum` (`lib/momentum.ts`) contra el gateway real con el payload que se transcribe abajo.
+Gravity inyecta texto de terceros (documentos de marca, respuestas de motores con búsqueda web, copy del anunciante, backstories importados) en prompts de LLM. Desde v0.62.0, el módulo `lib/guardrails.ts` delimita ese contenido con un vallado inerte, instruye al modelo a tratarlo como datos y neutraliza cualquier intento de cerrar el vallado (no usa blacklists semánticas, que son teatro). Se probó con un documento de marca envenenado el 19-jul-2026, ejercitando `buildBrandContext` (`lib/cerebro.ts`) y `analyzeProfileMomentum` (`lib/momentum.ts`) contra el gateway real con el payload que se transcribe abajo.
 
 Más allá de la seguridad informática, estos guardarraíles cumplen una **función metodológica: garantizan la validez ecológica del experimento**. Al aislar al perfil de instrucciones externas, aseguran que sus reacciones provengan de sus atributos sociológicos y no de un texto de terceros que le secuestre el rol; mantienen el entorno experimental estéril, que es la condición para que la medición signifique algo.
 

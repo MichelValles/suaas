@@ -4,7 +4,7 @@
 
 ## Qué es
 
-**SUAAS** (marca pura, sin expansión del acrónimo) es una plataforma interna de Flat 101 para hacer test de **UX, CRO y publicidad** con **perfiles calibrados**. Permite descartar variantes de bajo rendimiento antes de comprometer tráfico real, simular elasticidad de precios, validar copy bajo intenciones de búsqueda específicas y comparar creatividades publicitarias sin coste de reclutamiento.
+**Gravity** es una plataforma interna de Flat 101 para hacer test de **UX, CRO y publicidad** con **perfiles calibrados**. Permite descartar variantes de bajo rendimiento antes de comprometer tráfico real, simular elasticidad de precios, validar copy bajo intenciones de búsqueda específicas y comparar creatividades publicitarias sin coste de reclutamiento.
 
 - **Dominio**: `suaas.flat101.business`.
 - **Hosting**: Vercel (proyecto independiente, no comparte deploy con `flat101business`).
@@ -235,7 +235,7 @@ lib/
 components/
   app-shell.tsx                         AppShell (sidebar + main + footer badges) + PageHeading (variants inline|panel)
   sidebar.tsx                           Sidebar lateral (240px desktop, drawer móvil) con grupos Producto / Sistema
-  console-banner.tsx                    Imprime "SUAAS · FLAT 101 vX.Y.Z" en la consola del navegador
+  console-banner.tsx                    Imprime "Gravity · FLAT 101 vX.Y.Z" en la consola del navegador
   info-tooltip.tsx                      Tooltip CSS-only (hover/focus)
   result-bar.tsx                        Barra de progreso 0..1 con label + porcentaje + hint
   migration-needed.tsx                  Aviso estándar "aplica esta migración" cuando isMissingTableError
@@ -292,7 +292,7 @@ tsconfig.json
 package.json                            version manual sync con lib/version.ts
 .env.example
 AGENTS.md                               Reglas operativas para el LLM agente
-CLAUDE.md                               @AGENTS.md + reglas de SUAAS
+CLAUDE.md                               @AGENTS.md + reglas de Gravity
 docs/                                   Esta documentación
 ```
 
