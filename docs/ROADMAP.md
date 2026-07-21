@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.66.4 · CHANGELOG del proyecto
+
+- [x] **v0.66.4 · `CHANGELOG.md`**: se crea un CHANGELOG en la raíz (formato Keep a Changelog: Added / Changed / Fixed / Removed) con el bloque de la sesión del 20-21 jul (rediseño «oscuro editorial» en 4 fases, selección de modelo por empresa en `/tokens` para chat/runs/GEO y sus estimaciones, y renombrado de marca a Gravity). El detalle técnico versionado sigue viviendo en `ROADMAP.md`; el CHANGELOG es el resumen legible por release, apuntando al roadmap para el histórico completo.
+
 ## v0.66.3 · Breakpoint intermedio del hero (~1120px)
 
 - [x] **v0.66.3 · Hero de la home responsive en el rango tablet**: entre el colapso del sidebar (880px) y ~1120px, el hero a dos columnas (texto + firma orbital) se apretaba (título partido en varias líneas, orbital comprimido). El hero pasa de estilos inline a clases (`.home-hero`, `.home-hero-text`, `.home-hero-title`, `.home-hero-visual`) y un `@media (max-width: 1120px)` lo **apila**: texto arriba a todo el ancho, orbital centrado debajo, y el título baja de `clamp(40-72px)` a `clamp(36-54px)`. Cierra el último cabo de la revisión de la home.
