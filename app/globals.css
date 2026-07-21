@@ -894,6 +894,17 @@ html[data-theme="light"] .sidebar-logo {
   padding-top: 14px;
   border-top: 1px solid rgba(var(--fg), 0.08);
 }
+/* Etiqueta de plano junto al divisor: discreta (pequeña, tenue, sans), no el
+   bloque mono en mayúsculas de antes. Marca el plano sin registro dashboard. */
+.sidebar-group-label {
+  padding: 0 8px;
+  margin-bottom: 2px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(var(--fg), 0.4);
+}
 
 .sidebar-link {
   display: flex;

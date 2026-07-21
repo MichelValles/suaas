@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.66.9 · Etiquetas de plano (discretas) junto a los dividers del sidebar
+
+- [x] **v0.66.9 · Dividers de los planos**: se reintroduce el nombre del plano junto a cada divisor del sidebar (Construction, Acceleration, Value, Knowledge Tools, Sistema), pero **discreto** (`.sidebar-group-label`: 9px, sans, peso 600, tenue `rgba(--fg,0.4)`, tracked), no el bloque mono en mayúsculas de antes. Marca el plano sin recuperar el registro «dashboard» que se retiró en v0.66.8.
+
 ## v0.66.8 · Sidebar rediseñado (inspiración BBVA, estilo Gravity)
 
 - [x] **v0.66.8 · Sidebar más limpio**: se retiran los labels de sección en mayúsculas (`CONSTRUCTION`, `ACCELERATION`, `VALUE`, `KNOWLEDGE TOOLS`, `SISTEMA`) que arrastraban el registro «dashboard de IA»; los grupos pasan a separarse por **líneas finas** (`.sidebar-group` con divisor superior entre grupos) y más aire. Los ítems dejan la fuente mono por Hanken sans (14px, peso 500) y el icono va en un **contenedor circular**; el ítem activo **rellena ese círculo de acento con el icono oscuro** (como el activo del sidebar de BBVA), sin fondo de fila. Layout inspirado en BBVA pero con la paleta oscura de Gravity (Hanken, acento #F9CB0D, superficies cálidas). Se conservan el logo, el toggle de tema al pie y el comportamiento móvil (hamburguesa + overlay).

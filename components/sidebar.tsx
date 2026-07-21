@@ -136,7 +136,7 @@ export function Sidebar() {
         </div>
 
         <nav className="sidebar-nav">
-          <NavGroup>
+          <NavGroup label="Construction">
             {visible(CONSTRUCTION_ITEMS).map((item) => (
               <NavLink
                 key={item.href}
@@ -148,7 +148,7 @@ export function Sidebar() {
             ))}
           </NavGroup>
 
-          <NavGroup>
+          <NavGroup label="Acceleration">
             {ACCELERATION_ITEMS.map((item) => (
               <NavLink
                 key={item.href}
@@ -160,11 +160,11 @@ export function Sidebar() {
             ))}
           </NavGroup>
 
-          <NavGroup>
+          <NavGroup label="Value">
             <NavLinkDisabled label="Work in progress" Icon={Clock} />
           </NavGroup>
 
-          <NavGroup>
+          <NavGroup label="Knowledge Tools">
             {visible(KNOWLEDGE_ITEMS).map((item) => (
               <NavLink
                 key={item.href}
@@ -176,7 +176,7 @@ export function Sidebar() {
             ))}
           </NavGroup>
 
-          <NavGroup>
+          <NavGroup label="Sistema">
             {visible(SYSTEM_ITEMS).map((item) => (
               <NavLink
                 key={item.href}
@@ -203,8 +203,19 @@ export function Sidebar() {
   );
 }
 
-function NavGroup({ children }: { children: React.ReactNode }) {
-  return <div className="sidebar-group">{children}</div>;
+function NavGroup({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="sidebar-group">
+      <span className="sidebar-group-label">{label}</span>
+      {children}
+    </div>
+  );
 }
 
 function NavLink({
