@@ -1,9 +1,11 @@
+import { getChatModels, getRunsModel } from "@/lib/chat-models";
 import {
   ESTIMATE_KINDS,
   type EstimateKind,
   estimateAction,
   partsForKind,
 } from "@/lib/estimate";
+import { getGeoEngineModels } from "@/lib/geo-engines";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
 export const runtime = "nodejs";
@@ -51,8 +53,23 @@ export async function GET(req: Request) {
     );
   }
 
+  // Modelos elegidos en /tokens, para que el coste proyecte con el modelo
+  // que cada flujo usará de verdad.
+  const [runsModel, chatModels, geoModels] = await Promise.all([
+    getRunsModel(),
+    getChatModels(),
+    getGeoEngineModels(),
+  ]);
+
   const estimate = await estimateAction(
-    partsForKind(kind, { profiles, perProfile, judge }),
+    partsForKind(kind, {
+      profiles,
+      perProfile,
+      judge,
+      runsModel,
+      chatModels,
+      geoModels,
+    }),
   );
   return Response.json({ ok: true, ...estimate });
 }

@@ -7,6 +7,7 @@ import {
   estimateManyUsd,
   partsForKind,
 } from "@/lib/estimate";
+import { getRunsModel } from "@/lib/chat-models";
 import { isGatewayConfigured } from "@/lib/gateway";
 import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -44,17 +45,20 @@ const SEED_KIND_OPTS: Record<
  */
 async function computeSeedCosts(): Promise<Partial<Record<Kind, KindCost>> | null> {
   try {
+    const runsModel = await getRunsModel();
     const groups: Record<string, EstimatePart[]> = {};
     for (const [k, o] of Object.entries(SEED_KIND_OPTS)) {
       groups[`${k}:1`] = partsForKind(o.kind, {
         profiles: 1,
         perProfile: o.perProfile,
         judge: o.judge,
+        runsModel,
       });
       groups[`${k}:2`] = partsForKind(o.kind, {
         profiles: 2,
         perProfile: o.perProfile,
         judge: o.judge,
+        runsModel,
       });
     }
     const usd = await estimateManyUsd(groups);

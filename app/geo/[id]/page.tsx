@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { BrandContextBox } from "@/components/brand-context-box";
+import { getRunsModel } from "@/lib/chat-models";
 import { estimateAction, partsForKind } from "@/lib/estimate";
 import { getGeoAnalysis, type GeoAnalysis, type SegmentInput, type SegmentResult } from "@/lib/geo";
 import { GEO_ENGINE_IDS, GEO_ENGINE_LABEL, getGeoEngineModels } from "@/lib/geo-engines";
@@ -68,11 +69,15 @@ export default async function GeoDetailPage({
   // sonda (tokens), más la cuota de búsqueda (~0,01 $/sonda, fuera de tokens).
   const runEstimate = canRun
     ? await (async () => {
-        const geoModels = await getGeoEngineModels();
+        const [geoModels, runsModel] = await Promise.all([
+          getGeoEngineModels(),
+          getRunsModel(),
+        ]);
         const est = await estimateAction(
           partsForKind("geo", {
             perProfile: analysis.segments.length,
             geoModels,
+            runsModel,
           }),
         );
         return {

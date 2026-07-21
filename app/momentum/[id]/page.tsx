@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { BrandContextBox } from "@/components/brand-context-box";
+import { getRunsModel } from "@/lib/chat-models";
 import { estimateAction, partsForKind } from "@/lib/estimate";
 import {
   getMomentumChallenge,
@@ -63,9 +64,15 @@ export default async function MomentumDetailPage({
     !trashed && (challenge.status === "pending" || challenge.status === "error");
   // Coste estimado del análisis (1 llamada por perfil asignado), para el botón.
   const runEstimate = canRun
-    ? await estimateAction(
-        partsForKind("momentum", { profiles: challenge.profile_ids.length }),
-      ).catch(() => null)
+    ? await (async () => {
+        const runsModel = await getRunsModel();
+        return estimateAction(
+          partsForKind("momentum", {
+            profiles: challenge.profile_ids.length,
+            runsModel,
+          }),
+        );
+      })().catch(() => null)
     : null;
 
   return (

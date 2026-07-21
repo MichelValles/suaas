@@ -168,43 +168,50 @@ export function partsForKind(
     judge?: boolean;
     /** GEO: modelos vigentes por motor (de /tokens). Sin ellos, defaults. */
     geoModels?: Record<string, string>;
+    /** Modelo elegido para las tandas por lotes (/tokens). Sin él, el default. */
+    runsModel?: string;
+    /** Modelos elegidos para el chat (/tokens). Sin ellos, los defaults. */
+    chatModels?: { talker: string; reasoner: string };
   } = {},
 ): EstimatePart[] {
   const n = Math.max(1, opts.profiles ?? 1);
   const k = Math.max(1, opts.perProfile ?? 1);
+  // El coste se proyecta con el modelo que realmente usará cada flujo (elegido
+  // en /tokens): las runs por lotes con runsModel, el chat con chatModels.
+  const runsModel = opts.runsModel ?? DEFAULT_MODEL;
   switch (kind) {
     case "five_second":
       return [
-        { scope: "probe_5s", model: DEFAULT_MODEL, count: n },
-        { scope: "judge_5s", model: DEFAULT_MODEL, count: n },
+        { scope: "probe_5s", model: runsModel, count: n },
+        { scope: "judge_5s", model: runsModel, count: n },
       ];
     case "ab":
       return [
-        { scope: "probe_5s", model: DEFAULT_MODEL, count: 2 * n },
-        { scope: "judge_5s", model: DEFAULT_MODEL, count: 2 * n },
+        { scope: "probe_5s", model: runsModel, count: 2 * n },
+        { scope: "judge_5s", model: runsModel, count: 2 * n },
       ];
     case "copy":
-      return [{ scope: "copy_resonance", model: DEFAULT_MODEL, count: n * k }];
+      return [{ scope: "copy_resonance", model: runsModel, count: n * k }];
     case "pricing":
-      return [{ scope: "pricing_react", model: DEFAULT_MODEL, count: n * k }];
+      return [{ scope: "pricing_react", model: runsModel, count: n * k }];
     case "funnel":
-      return [{ scope: "probe_funnel", model: DEFAULT_MODEL, count: n * k }];
+      return [{ scope: "probe_funnel", model: runsModel, count: n * k }];
     case "campaign": {
       const combos = n * k;
       const parts: EstimatePart[] = [
-        { scope: "campaign_probe", model: DEFAULT_MODEL, count: combos },
+        { scope: "campaign_probe", model: runsModel, count: combos },
         {
           scope: "campaign_landing",
-          model: DEFAULT_MODEL,
+          model: runsModel,
           count: LANDING_SHARE * combos,
         },
-        { scope: "campaign_ideal", model: DEFAULT_MODEL, count: combos },
-        { scope: "campaign_synthesis", model: DEFAULT_MODEL, count: 1 },
+        { scope: "campaign_ideal", model: runsModel, count: combos },
+        { scope: "campaign_synthesis", model: runsModel, count: 1 },
       ];
       if (opts.judge) {
         parts.push({
           scope: "campaign_judge",
-          model: DEFAULT_MODEL,
+          model: runsModel,
           count: combos,
         });
       }
@@ -218,18 +225,26 @@ export function partsForKind(
       const probeParts: EstimatePart[] =
         geoModels.length > 0
           ? geoModels.map((model) => ({ scope: "geo_probe", model, count: k }))
-          : [{ scope: "geo_probe", model: DEFAULT_MODEL, count: 3 * k }];
+          : [{ scope: "geo_probe", model: runsModel, count: 3 * k }];
       return [
         ...probeParts,
-        { scope: "geo_analysis", model: DEFAULT_MODEL, count: 3 * k },
+        { scope: "geo_analysis", model: runsModel, count: 3 * k },
       ];
     }
     case "momentum":
-      return [{ scope: "momentum_probe", model: DEFAULT_MODEL, count: n }];
+      return [{ scope: "momentum_probe", model: runsModel, count: n }];
     case "chat_turn":
       return [
-        { scope: "reasoner_chat", model: REASONER_MODEL, count: 1 },
-        { scope: "talker_chat", model: DEFAULT_MODEL, count: 1 },
+        {
+          scope: "reasoner_chat",
+          model: opts.chatModels?.reasoner ?? REASONER_MODEL,
+          count: 1,
+        },
+        {
+          scope: "talker_chat",
+          model: opts.chatModels?.talker ?? DEFAULT_MODEL,
+          count: 1,
+        },
       ];
     case "seed_profiles":
       // Scope propio desde v0.61.x. Sin histórico aún, el estimador cae al

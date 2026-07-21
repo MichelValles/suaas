@@ -5,6 +5,7 @@ import { InfoTooltip } from "@/components/info-tooltip";
 import { BIG_FIVE_INTRO, BIG_FIVE_TRAITS } from "@/lib/big-five";
 import { COM_B_BARRIERS, COM_B_INTRO } from "@/lib/com-b";
 import { AVATAR_EST_USD } from "@/lib/avatar";
+import { getChatModels } from "@/lib/chat-models";
 import { estimateAction, partsForKind } from "@/lib/estimate";
 import { getProfile } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -35,10 +36,11 @@ export default async function ProfileDetailPage({
   const profile = await getProfile(id);
   if (!profile) notFound();
 
-  // Coste estimado por turno de chat (reasoner Opus + talker Sonnet).
-  const chatEstimate = await estimateAction(partsForKind("chat_turn")).catch(
-    () => null,
-  );
+  // Coste estimado por turno de chat, con los modelos elegidos en /tokens.
+  const chatModels = await getChatModels();
+  const chatEstimate = await estimateAction(
+    partsForKind("chat_turn", { chatModels }),
+  ).catch(() => null);
 
   const b = profile.big_five;
 
