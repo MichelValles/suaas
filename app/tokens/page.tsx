@@ -7,7 +7,11 @@ import {
 import { GEO_ENGINE_CATALOG, getGeoEngineModels } from "@/lib/geo-engines";
 import { settingsTableReady } from "@/lib/settings";
 import { getGatewayCredits, getUsageSummary } from "@/lib/usage";
-import { ChatModelSettings, RunsModelSettings } from "./chat-models";
+import {
+  ChatModelSettings,
+  RunsModelCostTable,
+  RunsModelSettings,
+} from "./chat-models";
 import { GeoModelSettings } from "./geo-models";
 
 export const dynamic = "force-dynamic";
@@ -125,14 +129,32 @@ export default async function TokensPage() {
           />
         </section>
 
-        {/* Modelo de las tandas por lotes */}
+        {/* Modelo de las tandas por lotes: selector a la izquierda, tabla de
+            tarifas por modelo a la derecha (en paralelo). */}
         <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <SectionLabel>Modelo de las runs</SectionLabel>
-          <RunsModelSettings
-            catalog={CHAT_MODEL_CATALOG}
-            current={runsModel}
-            migrationPending={!settingsReady}
-          />
+          <div
+            style={{
+              display: "flex",
+              gap: 16,
+              flexWrap: "wrap",
+              alignItems: "stretch",
+            }}
+          >
+            <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+              <RunsModelSettings
+                catalog={CHAT_MODEL_CATALOG}
+                current={runsModel}
+                migrationPending={!settingsReady}
+              />
+            </div>
+            <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+              <RunsModelCostTable
+                catalog={CHAT_MODEL_CATALOG}
+                current={runsModel}
+              />
+            </div>
+          </div>
         </section>
 
         {/* Modelos por motor del GEO Tester */}

@@ -1,8 +1,9 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { Fragment, useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { ChatModels, ChatProviderGroup } from "@/lib/chat-models";
+import { priceForModel } from "@/lib/model-pricing";
 import {
   type ChatModelsFormState,
   type RunsModelFormState,
@@ -185,6 +186,140 @@ export function RunsModelSettings({
   );
 }
 
+/**
+ * Tabla de tarifas por modelo, en paralelo al selector de las runs: precio de
+ * entrada/salida por millón de tokens, con la fila del modelo vigente
+ * resaltada. Ayuda a decidir sin salir de /tokens.
+ */
+export function RunsModelCostTable({
+  catalog,
+  current,
+}: {
+  catalog: ChatProviderGroup[];
+  current: string;
+}) {
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(var(--fg),0.12)",
+        borderRadius: "var(--radius-md)",
+        background: "rgba(var(--fg),0.025)",
+        padding: 24,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}
+    >
+      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "rgba(var(--fg),0.72)" }}>
+        Tarifa por millón de tokens (entrada / salida). El gateway cobra el
+        precio del proveedor sin markup; el coste real de una run depende de los
+        tokens de cada llamada.
+      </p>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr>
+              <CostTh align="left">Modelo</CostTh>
+              <CostTh align="right">Entrada</CostTh>
+              <CostTh align="right">Salida</CostTh>
+            </tr>
+          </thead>
+          <tbody>
+            {catalog.map((group) => (
+              <Fragment key={group.provider}>
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="mono"
+                    style={{
+                      padding: "12px 8px 4px",
+                      fontSize: 9,
+                      letterSpacing: "0.2em",
+                      textTransform: "uppercase",
+                      color: "var(--accent-text)",
+                    }}
+                  >
+                    {group.provider}
+                  </td>
+                </tr>
+                {group.models.map((m) => {
+                  const p = priceForModel(m.id);
+                  const selected = m.id === current;
+                  return (
+                    <tr
+                      key={m.id}
+                      style={{
+                        borderTop: "1px solid rgba(var(--fg),0.06)",
+                        background: selected ? "rgba(249,203,13,0.08)" : "transparent",
+                      }}
+                    >
+                      <td style={{ padding: "8px", color: "var(--text-strong)" }}>
+                        {m.label.split(" · ")[0]}
+                        {selected && (
+                          <span
+                            className="mono"
+                            style={{
+                              marginLeft: 8,
+                              fontSize: 9,
+                              letterSpacing: "0.14em",
+                              textTransform: "uppercase",
+                              color: "var(--accent-text)",
+                            }}
+                          >
+                            · actual
+                          </span>
+                        )}
+                      </td>
+                      <td
+                        className="mono"
+                        style={{ padding: "8px", textAlign: "right", color: "rgba(var(--fg),0.85)" }}
+                      >
+                        {p ? `${p.inputPerMtok.toLocaleString("es-ES")} $` : "·"}
+                      </td>
+                      <td
+                        className="mono"
+                        style={{ padding: "8px", textAlign: "right", color: "rgba(var(--fg),0.85)" }}
+                      >
+                        {p ? `${p.outputPerMtok.toLocaleString("es-ES")} $` : "·"}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </Fragment>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function CostTh({
+  align,
+  children,
+}: {
+  align: "left" | "right";
+  children: React.ReactNode;
+}) {
+  return (
+    <th
+      className="mono"
+      style={{
+        padding: "0 8px 8px",
+        textAlign: align,
+        fontSize: 9,
+        letterSpacing: "0.2em",
+        textTransform: "uppercase",
+        fontWeight: 400,
+        color: "rgba(var(--fg),0.5)",
+      }}
+    >
+      {children}
+    </th>
+  );
+}
+
 function RoleSelect({
   name,
   label,
@@ -220,7 +355,7 @@ function RoleSelect({
         value={current}
         onChange={(e) => setCurrent(e.target.value)}
         style={{
-          background: "rgba(var(--fg),0.03)",
+          background: "var(--surface-panel)",
           border: "1px solid rgba(var(--fg),0.12)",
           borderRadius: "var(--radius-sm)",
           padding: "10px 12px",
@@ -232,9 +367,17 @@ function RoleSelect({
         }}
       >
         {catalog.map((group) => (
-          <optgroup key={group.provider} label={group.provider}>
+          <optgroup
+            key={group.provider}
+            label={group.provider}
+            style={{ background: "var(--surface-panel)", color: "var(--text-strong)" }}
+          >
             {group.models.map((m) => (
-              <option key={m.id} value={m.id}>
+              <option
+                key={m.id}
+                value={m.id}
+                style={{ background: "var(--surface-panel)", color: "var(--text-strong)" }}
+              >
                 {m.label}
               </option>
             ))}

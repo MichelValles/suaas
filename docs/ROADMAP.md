@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.66.5 · Desplegables legibles de /tokens + tabla de costes por modelo
+
+- [x] **v0.66.5 · Fix del desplegable y tabla de tarifas**: (1) los `<select>` de modelo de `/tokens` mostraban el `<optgroup>` (p. ej. «Anthropic») en **blanco sobre blanco**: el fondo del control era casi transparente (`rgba(var(--fg),0.03)`) y el popup nativo caía al blanco del sistema. Se da fondo opaco `--surface-panel` al `<select>` y color/fondo explícitos a `<optgroup>` y `<option>` (arregla chat, runs y, por el mismo componente, cualquier selector de modelo). (2) La sección «Modelo de las runs» pasa a **dos columnas**: el selector a la izquierda y una **tabla de tarifas por modelo** a la derecha (entrada / salida $ por MTok, con la fila del modelo vigente resaltada), en paralelo; apila en pantallas estrechas. Nuevo componente `RunsModelCostTable` que usa `priceForModel` de `model-pricing.ts`.
+
 ## v0.66.4 · CHANGELOG del proyecto
 
 - [x] **v0.66.4 · `CHANGELOG.md`**: se crea un CHANGELOG en la raíz (formato Keep a Changelog: Added / Changed / Fixed / Removed) con el bloque de la sesión del 20-21 jul (rediseño «oscuro editorial» en 4 fases, selección de modelo por empresa en `/tokens` para chat/runs/GEO y sus estimaciones, y renombrado de marca a Gravity). El detalle técnico versionado sigue viviendo en `ROADMAP.md`; el CHANGELOG es el resumen legible por release, apuntando al roadmap para el histórico completo.
