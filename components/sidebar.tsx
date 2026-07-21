@@ -136,7 +136,7 @@ export function Sidebar() {
         </div>
 
         <nav className="sidebar-nav">
-          <NavGroup label="Construction">
+          <NavGroup>
             {visible(CONSTRUCTION_ITEMS).map((item) => (
               <NavLink
                 key={item.href}
@@ -148,7 +148,7 @@ export function Sidebar() {
             ))}
           </NavGroup>
 
-          <NavGroup label="Acceleration">
+          <NavGroup>
             {ACCELERATION_ITEMS.map((item) => (
               <NavLink
                 key={item.href}
@@ -160,11 +160,11 @@ export function Sidebar() {
             ))}
           </NavGroup>
 
-          <NavGroup label="Value">
+          <NavGroup>
             <NavLinkDisabled label="Work in progress" Icon={Clock} />
           </NavGroup>
 
-          <NavGroup label="Knowledge Tools">
+          <NavGroup>
             {visible(KNOWLEDGE_ITEMS).map((item) => (
               <NavLink
                 key={item.href}
@@ -176,7 +176,7 @@ export function Sidebar() {
             ))}
           </NavGroup>
 
-          <NavGroup label="Sistema">
+          <NavGroup>
             {visible(SYSTEM_ITEMS).map((item) => (
               <NavLink
                 key={item.href}
@@ -203,32 +203,8 @@ export function Sidebar() {
   );
 }
 
-function NavGroup({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <span
-        className="mono"
-        style={{
-          padding: "0 12px",
-          fontSize: 11,
-          letterSpacing: "0.22em",
-          textTransform: "uppercase",
-          color: "rgba(var(--fg),0.55)",
-        }}
-      >
-        {label}
-      </span>
-      <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-        {children}
-      </div>
-    </div>
-  );
+function NavGroup({ children }: { children: React.ReactNode }) {
+  return <div className="sidebar-group">{children}</div>;
 }
 
 function NavLink({
@@ -245,10 +221,12 @@ function NavLink({
   return (
     <Link
       href={href}
-      className="sidebar-link mono"
+      className="sidebar-link"
       data-active={active ? "true" : "false"}
     >
-      <Icon size={16} />
+      <span className="sidebar-icon">
+        <Icon size={18} />
+      </span>
       <span>{label}</span>
     </Link>
   );
@@ -263,11 +241,13 @@ function NavLinkDisabled({
 }) {
   return (
     <div
-      className="sidebar-link mono"
+      className="sidebar-link"
       aria-disabled="true"
-      style={{ opacity: 0.3, cursor: "default", pointerEvents: "none" }}
+      style={{ opacity: 0.35, cursor: "default", pointerEvents: "none" }}
     >
-      <Icon size={16} />
+      <span className="sidebar-icon">
+        <Icon size={18} />
+      </span>
       <span>{label}</span>
     </div>
   );

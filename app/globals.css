@@ -879,33 +879,63 @@ html[data-theme="light"] .sidebar-logo {
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  gap: 20px;
   padding: 0 8px;
+}
+
+/* Grupos separados por una línea fina en lugar de labels de sección en
+   mayúsculas (inspiración BBVA): más limpio y menos «dashboard». */
+.sidebar-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sidebar-group + .sidebar-group {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(var(--fg), 0.08);
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: 14px;
+  padding: 6px 8px;
   border-radius: var(--radius-sm);
-  font-size: 12px;
-  letter-spacing: 0.06em;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: rgba(var(--fg), 0.75);
+  transition: color var(--dur-short) var(--ease-out);
+}
+/* Icono en su propio contenedor circular; en el ítem activo el círculo se
+   rellena de acento con el icono oscuro (como el activo de BBVA). */
+.sidebar-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   color: rgba(var(--fg), 0.7);
   transition:
     background var(--dur-short) var(--ease-out),
     color var(--dur-short) var(--ease-out);
 }
 .sidebar-link:hover {
-  background: rgba(var(--fg), 0.05);
+  color: var(--text-strong);
+}
+.sidebar-link:hover .sidebar-icon {
+  background: rgba(var(--fg), 0.06);
   color: var(--text-strong);
 }
 .sidebar-link[data-active="true"] {
-  background: rgba(250, 204, 13, 0.12);
-  color: var(--accent-text);
+  color: var(--text-strong);
+  font-weight: 700;
 }
-.sidebar-link[data-active="true"] svg {
-  color: var(--accent-text);
+.sidebar-link[data-active="true"] .sidebar-icon {
+  background: var(--accent-500);
+  color: var(--ink-900);
 }
 
 .sidebar-burger {

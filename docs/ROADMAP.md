@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.66.8 · Sidebar rediseñado (inspiración BBVA, estilo Gravity)
+
+- [x] **v0.66.8 · Sidebar más limpio**: se retiran los labels de sección en mayúsculas (`CONSTRUCTION`, `ACCELERATION`, `VALUE`, `KNOWLEDGE TOOLS`, `SISTEMA`) que arrastraban el registro «dashboard de IA»; los grupos pasan a separarse por **líneas finas** (`.sidebar-group` con divisor superior entre grupos) y más aire. Los ítems dejan la fuente mono por Hanken sans (14px, peso 500) y el icono va en un **contenedor circular**; el ítem activo **rellena ese círculo de acento con el icono oscuro** (como el activo del sidebar de BBVA), sin fondo de fila. Layout inspirado en BBVA pero con la paleta oscura de Gravity (Hanken, acento #F9CB0D, superficies cálidas). Se conservan el logo, el toggle de tema al pie y el comportamiento móvil (hamburguesa + overlay).
+
 ## v0.66.7 · CHANGELOG actualizado (v0.66.5-6)
 
 - [x] **v0.66.7 · CHANGELOG al día**: añadida al `CHANGELOG.md` la sección `[0.66.6]` con los refinamientos de `/tokens` de esta tanda (tabla de tarifas por modelo, coste estimado por número de usuarios y el fix del desplegable blanco sobre blanco).
