@@ -2,6 +2,20 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.66.8 → 0.67.0] · 2026-07-22
+
+Rediseño del sidebar: menos «dashboard de IA», inspiración en el patrón de BBVA, y modo contraído.
+
+### Added
+
+- **Modo contraído del sidebar**: botón «Contraer» al pie que reduce la navegación a un **rail de solo iconos** (72px, iconos centrados) y **persiste** entre sesiones (`gravity-sidebar-collapsed`). Al pasar el ratón, el rail **se despliega como overlay** (labels, planos y conmutador de tema) sin empujar el contenido. Solo en desktop; en móvil sigue siendo un drawer (`v0.67.0`).
+- **Bordes redondeados** a la derecha del sidebar (arriba y abajo): el panel «flota» sobre el lienzo de la app (`v0.67.0`).
+
+### Changed
+
+- **Sidebar rediseñado** con inspiración en el patrón de BBVA pero con la paleta Gravity: fuera los labels de sección en mayúsculas mono, grupos separados por **líneas finas**, labels en Hanken sans, y **estado activo con el icono en un círculo relleno de acento** (`v0.66.8`).
+- **Etiquetas de plano** (Construction, Acceleration, Value, Knowledge Tools, Sistema) reintroducidas junto a cada divisor, pero **discretas** (9px, sans, tenues): marcan el plano sin recuperar el registro «dashboard» (`v0.66.9`).
+
 ## [0.66.6] · 2026-07-21
 
 Refinamientos de `/tokens` sobre la selección de modelo.

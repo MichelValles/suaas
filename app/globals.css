@@ -770,6 +770,7 @@ textarea.backstory-input:focus-visible {
   grid-template-areas:
     "sidebar main"
     "sidebar footer";
+  transition: grid-template-columns var(--dur-short) var(--ease-out);
 }
 
 .app-shell-main {
@@ -834,6 +835,9 @@ textarea.backstory-input:focus-visible {
   grid-area: sidebar;
   background: var(--surface-panel);
   border-right: 1px solid rgba(var(--fg), 0.06);
+  /* Esquinas redondeadas a la derecha (arriba y abajo): el panel «flota»
+     sobre el lienzo de la app. */
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
   display: flex;
   flex-direction: column;
   gap: 24px;
@@ -843,6 +847,9 @@ textarea.backstory-input:focus-visible {
   align-self: start;
   height: 100vh;
   overflow-y: auto;
+  transition:
+    width var(--dur-short) var(--ease-out),
+    box-shadow var(--dur-short) var(--ease-out);
 }
 
 .sidebar-head {
@@ -947,6 +954,68 @@ html[data-theme="light"] .sidebar-logo {
 .sidebar-link[data-active="true"] .sidebar-icon {
   background: var(--accent-500);
   color: var(--ink-900);
+}
+
+/* Pie del sidebar: botón de contraer + conmutador de tema, apilados. */
+.sidebar-foot {
+  margin-top: auto;
+  padding: 12px 8px 0;
+  border-top: 1px solid rgba(var(--fg), 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidebar-collapse-btn {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+}
+
+/* ---- Modo contraído (solo desktop) --------------------------------------
+   Rail de solo iconos; al hacer hover se despliega como overlay mostrando
+   los labels. El botón «Contraer» del pie lo alterna y se persiste en
+   localStorage. En móvil (<=880px) el sidebar es un drawer y se ignora. */
+@media (min-width: 881px) {
+  .app-shell:has(.sidebar[data-collapsed="true"]) {
+    grid-template-columns: 72px 1fr;
+  }
+  .sidebar[data-collapsed="true"] {
+    width: 72px;
+    overflow-x: hidden;
+    z-index: 30;
+  }
+  .sidebar[data-collapsed="true"]:hover {
+    width: 248px;
+    box-shadow: 14px 0 40px -12px rgba(0, 0, 0, 0.5);
+  }
+  /* Icono centrado en el rail; se mantiene fijo al desplegarse (sin salto). */
+  .sidebar[data-collapsed="true"] .sidebar-link {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+  /* Texto oculto mientras está contraído; reaparece al desplegar. */
+  .sidebar[data-collapsed="true"] .sidebar-link > span:not(.sidebar-icon),
+  .sidebar[data-collapsed="true"] .sidebar-group-label,
+  .sidebar[data-collapsed="true"] .sidebar-head a,
+  .sidebar[data-collapsed="true"] .theme-switch {
+    opacity: 0;
+    transition: opacity var(--dur-micro) var(--ease-out);
+  }
+  .sidebar[data-collapsed="true"] .theme-switch {
+    pointer-events: none;
+  }
+  .sidebar[data-collapsed="true"]:hover .sidebar-link > span:not(.sidebar-icon),
+  .sidebar[data-collapsed="true"]:hover .sidebar-group-label,
+  .sidebar[data-collapsed="true"]:hover .sidebar-head a,
+  .sidebar[data-collapsed="true"]:hover .theme-switch {
+    opacity: 1;
+  }
+  .sidebar[data-collapsed="true"]:hover .theme-switch {
+    pointer-events: auto;
+  }
 }
 
 .sidebar-burger {

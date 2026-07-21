@@ -8,6 +8,8 @@ import {
   Activity,
   Bot,
   BrainCircuit,
+  ChevronsLeft,
+  ChevronsRight,
   Coins,
   Filter,
   Layers,
@@ -66,12 +68,29 @@ const SYSTEM_ITEMS: NavItem[] = [
 export function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [beta] = useBetaMode();
   const visible = (items: NavItem[]) => items.filter((i) => !i.beta || beta);
 
   useEffect(() => {
     setOpen(false);
   }, [pathname]);
+
+  useEffect(() => {
+    setCollapsed(localStorage.getItem("gravity-sidebar-collapsed") === "1");
+  }, []);
+
+  function toggleCollapsed() {
+    setCollapsed((c) => {
+      const next = !c;
+      try {
+        localStorage.setItem("gravity-sidebar-collapsed", next ? "1" : "0");
+      } catch {
+        /* almacenamiento bloqueado */
+      }
+      return next;
+    });
+  }
 
   return (
     <>
@@ -96,6 +115,7 @@ export function Sidebar() {
       <aside
         className="sidebar"
         data-state={open ? "open" : "closed"}
+        data-collapsed={collapsed ? "true" : "false"}
         aria-label="Navegación principal"
       >
         <div className="sidebar-head">
@@ -189,13 +209,23 @@ export function Sidebar() {
           </NavGroup>
         </nav>
 
-        <div
-          style={{
-            marginTop: "auto",
-            padding: "12px 8px 0",
-            borderTop: "1px solid rgba(var(--fg), 0.06)",
-          }}
-        >
+        <div className="sidebar-foot">
+          <button
+            type="button"
+            className="sidebar-link sidebar-collapse-btn"
+            onClick={toggleCollapsed}
+            aria-label={collapsed ? "Expandir menú" : "Contraer menú"}
+            title={collapsed ? "Expandir" : "Contraer"}
+          >
+            <span className="sidebar-icon">
+              {collapsed ? (
+                <ChevronsRight size={18} />
+              ) : (
+                <ChevronsLeft size={18} />
+              )}
+            </span>
+            <span>{collapsed ? "Expandir" : "Contraer"}</span>
+          </button>
           <ThemeSwitch />
         </div>
       </aside>

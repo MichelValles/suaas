@@ -182,6 +182,11 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.67.0 · Sidebar: bordes redondeados + modo contraído (rail de iconos)
+
+- [x] **v0.67.0 · Bordes redondeados a la derecha** del sidebar (arriba y abajo, `border-radius: 0 var(--radius-lg) var(--radius-lg) 0` en `.sidebar`): el panel «flota» sobre el lienzo.
+- [x] **v0.67.0 · Modo contraído** (`components/sidebar.tsx`, estado `collapsed` persistido en `localStorage` como `gravity-sidebar-collapsed`; botón «Contraer»/«Expandir» al pie con `ChevronsLeft`/`ChevronsRight`). Aplica `data-collapsed` en el `<aside>`; el grid encoge a `72px 1fr` vía `.app-shell:has(.sidebar[data-collapsed="true"])`. Rail de solo iconos (centrados, `padding-left:12px`); al hover el aside crece a `248px` como overlay (`z-index:30` + sombra), revelando labels, planos y tema por opacidad, sin empujar el contenido. Solo desktop (`@media min-width:881px`); en móvil (`<=880px`) sigue siendo drawer. Transición de `grid-template-columns` para el toggle.
+
 ## v0.66.9 · Etiquetas de plano (discretas) junto a los dividers del sidebar
 
 - [x] **v0.66.9 · Dividers de los planos**: se reintroduce el nombre del plano junto a cada divisor del sidebar (Construction, Acceleration, Value, Knowledge Tools, Sistema), pero **discreto** (`.sidebar-group-label`: 9px, sans, peso 600, tenue `rgba(--fg,0.4)`, tracked), no el bloque mono en mayúsculas de antes. Marca el plano sin recuperar el registro «dashboard» que se retiró en v0.66.8.
