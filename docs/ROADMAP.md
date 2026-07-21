@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.66.6 · Coste estimado por número de usuarios en la sección de runs
+
+- [x] **v0.66.6 · Tabla de coste por cohorte**: junto a la tabla de tarifas de las runs (`/tokens`) se añade una tercera columna con el **coste estimado de una run según el número de usuarios** (10 / 25 / 50 / 100), con el modelo actual. Usa el estimador real (`estimateManyUsd` + `partsForKind`, una sola carga de medias de `gateway_usage`) con referencia de 1 sonda por usuario (kind `momentum`); reacciona al modelo elegido (aprovecha el cableado de v0.66.2). Nuevo componente `RunsCostByUsers`. La sección de runs queda en tres columnas (selector · tarifas por modelo · coste por usuarios), que apilan en pantallas estrechas.
+
 ## v0.66.5 · Desplegables legibles de /tokens + tabla de costes por modelo
 
 - [x] **v0.66.5 · Fix del desplegable y tabla de tarifas**: (1) los `<select>` de modelo de `/tokens` mostraban el `<optgroup>` (p. ej. «Anthropic») en **blanco sobre blanco**: el fondo del control era casi transparente (`rgba(var(--fg),0.03)`) y el popup nativo caía al blanco del sistema. Se da fondo opaco `--surface-panel` al `<select>` y color/fondo explícitos a `<optgroup>` y `<option>` (arregla chat, runs y, por el mismo componente, cualquier selector de modelo). (2) La sección «Modelo de las runs» pasa a **dos columnas**: el selector a la izquierda y una **tabla de tarifas por modelo** a la derecha (entrada / salida $ por MTok, con la fila del modelo vigente resaltada), en paralelo; apila en pantallas estrechas. Nuevo componente `RunsModelCostTable` que usa `priceForModel` de `model-pricing.ts`.

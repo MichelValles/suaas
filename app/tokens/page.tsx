@@ -4,6 +4,7 @@ import {
   getChatModels,
   getRunsModel,
 } from "@/lib/chat-models";
+import { estimateManyUsd, partsForKind } from "@/lib/estimate";
 import { GEO_ENGINE_CATALOG, getGeoEngineModels } from "@/lib/geo-engines";
 import { settingsTableReady } from "@/lib/settings";
 import { getGatewayCredits, getUsageSummary } from "@/lib/usage";
@@ -26,6 +27,18 @@ export default async function TokensPage() {
       getRunsModel(),
       settingsTableReady(),
     ]);
+
+  // Coste estimado de una run por tamaño de cohorte, con el modelo elegido.
+  // Referencia: 1 sonda por usuario (kind momentum); una sola carga de medias.
+  const RUNS_COHORTS = [10, 25, 50, 100];
+  const runsCostByUsers = await estimateManyUsd(
+    Object.fromEntries(
+      RUNS_COHORTS.map((n) => [
+        String(n),
+        partsForKind("momentum", { profiles: n, runsModel }),
+      ]),
+    ),
+  );
 
   const balanceStr =
     credits.ok && credits.balance !== null
@@ -141,17 +154,23 @@ export default async function TokensPage() {
               alignItems: "stretch",
             }}
           >
-            <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+            <div style={{ flex: "1 1 260px", minWidth: 0 }}>
               <RunsModelSettings
                 catalog={CHAT_MODEL_CATALOG}
                 current={runsModel}
                 migrationPending={!settingsReady}
               />
             </div>
-            <div style={{ flex: "1 1 320px", minWidth: 0 }}>
+            <div style={{ flex: "1 1 260px", minWidth: 0 }}>
               <RunsModelCostTable
                 catalog={CHAT_MODEL_CATALOG}
                 current={runsModel}
+              />
+            </div>
+            <div style={{ flex: "1 1 220px", minWidth: 0 }}>
+              <RunsCostByUsers
+                cohorts={RUNS_COHORTS}
+                costByUsers={runsCostByUsers}
               />
             </div>
           </div>
@@ -343,6 +362,96 @@ function SmallStat({
       )}
     </div>
   );
+}
+
+function RunsCostByUsers({
+  cohorts,
+  costByUsers,
+}: {
+  cohorts: number[];
+  costByUsers: Record<string, number>;
+}) {
+  return (
+    <div
+      style={{
+        border: "1px solid rgba(var(--fg),0.12)",
+        borderRadius: "var(--radius-md)",
+        background: "rgba(var(--fg),0.025)",
+        padding: 24,
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        gap: 16,
+      }}
+    >
+      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.6, color: "rgba(var(--fg),0.72)" }}>
+        Coste estimado de una run según el número de usuarios, con el modelo
+        actual. Referencia: 1 sonda por usuario (como Momentum); los tests con
+        varias llamadas por perfil escalan a partir de aquí.
+      </p>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+          <thead>
+            <tr>
+              <th
+                className="mono"
+                style={{
+                  padding: "0 8px 8px",
+                  textAlign: "left",
+                  fontSize: 9,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  fontWeight: 400,
+                  color: "rgba(var(--fg),0.5)",
+                }}
+              >
+                Usuarios
+              </th>
+              <th
+                className="mono"
+                style={{
+                  padding: "0 8px 8px",
+                  textAlign: "right",
+                  fontSize: 9,
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  fontWeight: 400,
+                  color: "rgba(var(--fg),0.5)",
+                }}
+              >
+                Coste ~
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {cohorts.map((n) => (
+              <tr key={n} style={{ borderTop: "1px solid rgba(var(--fg),0.06)" }}>
+                <td className="mono" style={{ padding: "11px 8px", color: "var(--text-strong)" }}>
+                  {formatNumber(n)}
+                </td>
+                <td
+                  className="mono"
+                  style={{
+                    padding: "11px 8px",
+                    textAlign: "right",
+                    color: "var(--accent-text)",
+                    fontWeight: 700,
+                  }}
+                >
+                  {formatEstUsd(costByUsers[String(n)] ?? 0)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+function formatEstUsd(n: number): string {
+  if (n > 0 && n < 0.01) return "<$0.01";
+  return formatUsd(n);
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
