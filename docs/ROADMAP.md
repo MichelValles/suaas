@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.67.2 · Rail contraído sin salto de iconos al hover
+
+- [x] **v0.67.2 · Sin jitter al desplegar**: las etiquetas de plano reservan su alto también en el rail contraído (`opacity:0` en vez de `height:0`), de modo que al hacer hover los iconos no saltan verticalmente; solo se funden las etiquetas. El alto extra lo compensa el conmutador de tema oculto, así que el rail sigue sin scroll.
+
 ## v0.67.1 · Rail contraído sin scroll + marca «101»
 
 - [x] **v0.67.1 · Sidebar sin scroll vertical** (expandido y contraído): espaciado base compactado para que el sidebar entre en el viewport sin barra de scroll (gap `.sidebar` 24→14, padding 24→16, filas `.sidebar-link` 6→4, gap de grupo 4→2, dividers 14+14→8+8). En el rail contraído además se ocultan las etiquetas de plano (`height:0`, reaparecen al hover) y se retira el conmutador de tema (vuelve al desplegar).

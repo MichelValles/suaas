@@ -877,6 +877,10 @@ html[data-theme="light"] .sidebar-logo {
 }
 .sidebar-mark {
   display: none;
+  /* Misma altura que el logotipo (16px) para que la cabecera no cambie de
+     alto al alternar marca/logo y los iconos no salten. */
+  height: 16px;
+  width: auto;
   filter: brightness(0) invert(1);
 }
 html[data-theme="light"] .sidebar-mark {
@@ -1034,25 +1038,18 @@ html[data-theme="light"] .sidebar-mark {
   .sidebar[data-collapsed="true"]:hover .sidebar-link > span:not(.sidebar-icon) {
     opacity: 1;
   }
-  /* Conmutador de tema retirado del rail (ahorra alto); vuelve al desplegar. */
+  /* Conmutador de tema solo en el sidebar expandido: retirado del rail también
+     al hacer hover, para que el pie no cambie de alto y los iconos no salten. */
   .sidebar[data-collapsed="true"] .theme-switch {
     display: none;
   }
-  .sidebar[data-collapsed="true"]:hover .theme-switch {
-    display: flex;
-  }
-  /* Etiquetas de plano: sin altura en el rail (evita el scroll); reaparecen
-     al desplegar. */
+  /* Etiquetas de plano: se reserva su alto también en el rail (opacidad 0),
+     así los iconos NO saltan verticalmente al desplegar; solo se funden. */
   .sidebar[data-collapsed="true"] .sidebar-group-label {
-    height: 0;
-    margin: 0;
-    overflow: hidden;
     opacity: 0;
     transition: opacity var(--dur-micro) var(--ease-out);
   }
   .sidebar[data-collapsed="true"]:hover .sidebar-group-label {
-    height: auto;
-    margin-bottom: 2px;
     opacity: 1;
   }
 }
