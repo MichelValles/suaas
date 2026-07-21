@@ -2,6 +2,19 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.66.6] · 2026-07-21
+
+Refinamientos de `/tokens` sobre la selección de modelo.
+
+### Added
+
+- **Tabla de tarifas por modelo** junto al selector de las runs: precio de entrada / salida (`$` por millón de tokens) de cada modelo del catálogo, con la fila del modelo vigente resaltada (`v0.66.5`).
+- **Coste estimado por número de usuarios** por run (10 / 25 / 50 / 100), con el modelo elegido, en una tercera columna de la sección de runs. Usa el estimador real (medias de `gateway_usage`) y reacciona al modelo seleccionado (`v0.66.6`).
+
+### Fixed
+
+- Los `<select>` de modelo de `/tokens` mostraban el `<optgroup>` (p. ej. «Anthropic») en **blanco sobre blanco**: el fondo del control era casi transparente y el popup nativo caía al blanco del sistema. Ahora fondo opaco (`--surface-panel`) y color/fondo explícitos en `<select>`, `<optgroup>` y `<option>` (`v0.66.5`).
+
 ## [0.64.0 → 0.66.3] · 2026-07-20 / 21
 
 Rediseño «oscuro editorial» completo (4 fases), selección de modelo en todo lo que gasta tokens, y renombrado de marca a Gravity.

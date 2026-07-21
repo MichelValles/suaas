@@ -1,9 +1,9 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-07-21 tras v0.66.4 (CHANGELOG del proyecto; breakpoint ~1120px; estimaciones reflejan el modelo elegido; renombrado SUAAS → Gravity).
+> Última actualización: 2026-07-21 tras v0.66.7 (refinamientos de /tokens: tarifas por modelo, coste por usuarios, desplegables legibles; CHANGELOG al día).
 
-## Estado actual (v0.66.4 desplegada)
+## Estado actual (v0.66.7 desplegada)
 
 - **Revisión de la home cerrada**: el último cabo (breakpoint intermedio ~1024px) está hecho en v0.66.3 (el hero se apila entre 880 y 1120px). No quedan pendientes abiertos de esa revisión.
 
