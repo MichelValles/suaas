@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.66.3 · Breakpoint intermedio del hero (~1120px)
+
+- [x] **v0.66.3 · Hero de la home responsive en el rango tablet**: entre el colapso del sidebar (880px) y ~1120px, el hero a dos columnas (texto + firma orbital) se apretaba (título partido en varias líneas, orbital comprimido). El hero pasa de estilos inline a clases (`.home-hero`, `.home-hero-text`, `.home-hero-title`, `.home-hero-visual`) y un `@media (max-width: 1120px)` lo **apila**: texto arriba a todo el ancho, orbital centrado debajo, y el título baja de `clamp(40-72px)` a `clamp(36-54px)`. Cierra el último cabo de la revisión de la home.
+
 ## v0.66.2 · Las estimaciones de coste reflejan el modelo elegido
 
 - [x] **v0.66.2 · Cierre del hueco de estimaciones**: la previsión de coste previa a lanzar (`lib/estimate.ts`, el «coste estimado ~X$») ya no proyecta siempre con el modelo por defecto. `partsForKind` acepta `runsModel` y `chatModels` (como ya hacía con `geoModels`) y precia cada flujo con el modelo que de verdad usará: runs por lotes → `runsModel`, chat (Talker/Reasoner) → `chatModels`, síntesis del análisis GEO → `runsModel`. Los callers los resuelven y pasan: la ruta `/api/estimate/run` (paneles de lanzamiento de 5s, A/B, copy, pricing, embudos, campañas, momentum) y las páginas de momentum, seed-examples, chat de perfil y GEO. Elegir un modelo más caro o más barato en `/tokens` ahora se refleja en la cifra estimada, no solo en la run real. (El flujo `seed_profiles` se deja con el reasoner, que es lo que usa; y la sonda GEO por motor ya usaba sus modelos por motor.)

@@ -153,35 +153,9 @@ export default function HomePage() {
 
 function Hero() {
   return (
-    <section
-      style={{
-        display: "flex",
-        gap: "clamp(28px, 5vw, 72px)",
-        alignItems: "center",
-        flexWrap: "wrap",
-        paddingTop: "clamp(4px, 2vw, 20px)",
-      }}
-    >
-      <div
-        style={{
-          flex: "1 1 400px",
-          minWidth: 0,
-          display: "flex",
-          flexDirection: "column",
-          gap: 22,
-        }}
-      >
-        <h1
-          className="display"
-          style={{
-            color: "var(--text-strong)",
-            fontSize: "clamp(40px, 5.2vw, 72px)",
-            lineHeight: 1.0,
-            margin: 0,
-          }}
-        >
-          La intención tiene masa.
-        </h1>
+    <section className="home-hero">
+      <div className="home-hero-text">
+        <h1 className="home-hero-title">La intención tiene masa.</h1>
         <p
           className="body-lg"
           style={{
@@ -205,7 +179,7 @@ function Hero() {
         </div>
       </div>
 
-      <div style={{ flex: "0 0 auto", margin: "0 auto" }}>
+      <div className="home-hero-visual">
         <OrbitalDiagram size={320} />
       </div>
     </section>

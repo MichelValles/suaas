@@ -466,6 +466,58 @@ html[data-theme="light"] .btn-pill:not(.solid):hover {
   color: var(--accent-500);
 }
 
+/* Hero de la home: dos columnas (texto + firma orbital). Entre el colapso
+   del sidebar (880px) y ~1120px la versión a dos columnas se apretaba
+   (titular en varias líneas + orbital comprimido); a partir de 1120px hacia
+   abajo se apila: texto arriba, orbital centrado debajo, y el titular baja
+   un punto. */
+.home-hero {
+  display: flex;
+  gap: clamp(28px, 5vw, 72px);
+  align-items: center;
+  flex-wrap: wrap;
+  padding-top: clamp(4px, 2vw, 20px);
+}
+.home-hero-text {
+  flex: 1 1 400px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.home-hero-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  color: var(--text-strong);
+  font-size: clamp(40px, 5.2vw, 72px);
+  line-height: 1;
+  margin: 0;
+}
+.home-hero-visual {
+  flex: 0 0 auto;
+  margin: 0 auto;
+}
+@media (max-width: 1120px) {
+  .home-hero {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: clamp(24px, 4vw, 40px);
+  }
+  .home-hero-text {
+    flex: 1 1 auto;
+    width: 100%;
+  }
+  .home-hero-title {
+    font-size: clamp(36px, 6.5vw, 54px);
+  }
+  .home-hero-visual {
+    margin: 0;
+    align-self: center;
+    max-width: 100%;
+  }
+}
+
 /* ============================================================
    Entity card (listados de targets/funnels/ab/copy/pricing)
    Plantilla unificada con eyebrow + título display + descripción +

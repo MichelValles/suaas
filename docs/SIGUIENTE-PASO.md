@@ -1,9 +1,11 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-07-21 tras v0.66.2 (las estimaciones de coste reflejan el modelo elegido; renombrado SUAAS → Gravity en la doc; modelo elegible en chat, GEO y runs).
+> Última actualización: 2026-07-21 tras v0.66.3 (breakpoint intermedio ~1120px del hero; estimaciones reflejan el modelo elegido; renombrado SUAAS → Gravity).
 
-## Estado actual (v0.66.2 desplegada)
+## Estado actual (v0.66.3 desplegada)
+
+- **Revisión de la home cerrada**: el último cabo (breakpoint intermedio ~1024px) está hecho en v0.66.3 (el hero se apila entre 880 y 1120px). No quedan pendientes abiertos de esa revisión.
 
 - **Modelo elegible en todo lo que gasta tokens**: `/tokens` tiene tres selectores por empresa y modelo: «Modelo del chat» (Talker + Reasoner, `chat_models`, leído por `/api/chat`), «Modelo de las runs» (`runs_model`, leído por los 9 runners por lotes vía `getRunsModel()`) y «Modelos del GEO Tester» (por motor). Caveat: las estimaciones de coste (`estimate.ts`) siguen proyectando con el default; la run real usa el modelo elegido.
 - **Home**: bloques planos (`.module-link`, sin feature-card, todos al mismo nivel), hero a dos columnas con firma orbital, cards de datos, accesibilidad reforzada.
