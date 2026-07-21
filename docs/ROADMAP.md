@@ -182,6 +182,11 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.67.1 · Rail contraído sin scroll + marca «101»
+
+- [x] **v0.67.1 · Sidebar sin scroll vertical** (expandido y contraído): espaciado base compactado para que el sidebar entre en el viewport sin barra de scroll (gap `.sidebar` 24→14, padding 24→16, filas `.sidebar-link` 6→4, gap de grupo 4→2, dividers 14+14→8+8). En el rail contraído además se ocultan las etiquetas de plano (`height:0`, reaparecen al hover) y se retira el conmutador de tema (vuelve al desplegar).
+- [x] **v0.67.1 · Marca «101»**: `public/logos/flat101-mark.svg` recortado del logo (viewBox `98 0 44 40`, solo los paths de «1 0 1`), mostrado centrado en la cabecera del rail contraído (`.sidebar-mark`); el logotipo completo (`.sidebar-brand`) reaparece al desplegar. Mismo filtro de tema que `.sidebar-logo`.
+
 ## v0.67.0 · Sidebar: bordes redondeados + modo contraído (rail de iconos)
 
 - [x] **v0.67.0 · Bordes redondeados a la derecha** del sidebar (arriba y abajo, `border-radius: 0 var(--radius-lg) var(--radius-lg) 0` en `.sidebar`): el panel «flota» sobre el lienzo.

@@ -119,11 +119,7 @@ export function Sidebar() {
         aria-label="Navegación principal"
       >
         <div className="sidebar-head">
-          <Link
-            href="/"
-            aria-label="Inicio Gravity"
-            style={{ display: "inline-flex", alignItems: "center", gap: 12 }}
-          >
+          <Link href="/" aria-label="Inicio Gravity" className="sidebar-brand">
             <Image
               src="/logos/flat101.svg"
               alt="Flat 101"
@@ -145,6 +141,14 @@ export function Sidebar() {
               Gravity
             </span>
           </Link>
+          {/* Marca «101» recortada del logo: única visible en el rail contraído. */}
+          <Image
+            src="/logos/flat101-mark.svg"
+            alt="Gravity"
+            width={22}
+            height={20}
+            className="sidebar-mark"
+          />
           <button
             type="button"
             aria-label="Cerrar menú"

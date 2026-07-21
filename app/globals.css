@@ -840,8 +840,8 @@ textarea.backstory-input:focus-visible {
   border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 24px 0;
+  gap: 14px;
+  padding: 16px 0;
   position: sticky;
   top: 0;
   align-self: start;
@@ -866,6 +866,20 @@ textarea.backstory-input:focus-visible {
   filter: brightness(0) invert(1);
 }
 html[data-theme="light"] .sidebar-logo {
+  filter: none;
+}
+
+/* Logotipo completo (por defecto) y marca «101» (solo rail contraído). */
+.sidebar-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.sidebar-mark {
+  display: none;
+  filter: brightness(0) invert(1);
+}
+html[data-theme="light"] .sidebar-mark {
   filter: none;
 }
 
@@ -894,11 +908,11 @@ html[data-theme="light"] .sidebar-logo {
 .sidebar-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 .sidebar-group + .sidebar-group {
-  margin-top: 14px;
-  padding-top: 14px;
+  margin-top: 8px;
+  padding-top: 8px;
   border-top: 1px solid rgba(var(--fg), 0.08);
 }
 /* Etiqueta de plano junto al divisor: discreta (pequeña, tenue, sans), no el
@@ -917,7 +931,7 @@ html[data-theme="light"] .sidebar-logo {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 6px 8px;
+  padding: 4px 8px;
   border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;
@@ -977,7 +991,8 @@ html[data-theme="light"] .sidebar-logo {
 /* ---- Modo contraído (solo desktop) --------------------------------------
    Rail de solo iconos; al hacer hover se despliega como overlay mostrando
    los labels. El botón «Contraer» del pie lo alterna y se persiste en
-   localStorage. En móvil (<=880px) el sidebar es un drawer y se ignora. */
+   localStorage. Espaciado compacto para que el rail entre sin scroll. En
+   móvil (<=880px) el sidebar es un drawer y se ignora. */
 @media (min-width: 881px) {
   .app-shell:has(.sidebar[data-collapsed="true"]) {
     grid-template-columns: 72px 1fr;
@@ -996,25 +1011,49 @@ html[data-theme="light"] .sidebar-logo {
     padding-left: 12px;
     padding-right: 12px;
   }
-  /* Texto oculto mientras está contraído; reaparece al desplegar. */
-  .sidebar[data-collapsed="true"] .sidebar-link > span:not(.sidebar-icon),
-  .sidebar[data-collapsed="true"] .sidebar-group-label,
-  .sidebar[data-collapsed="true"] .sidebar-head a,
-  .sidebar[data-collapsed="true"] .theme-switch {
+  /* Cabecera: marca «101» centrada en el rail; el logotipo completo reaparece
+     al desplegar. */
+  .sidebar[data-collapsed="true"] .sidebar-brand {
+    display: none;
+  }
+  .sidebar[data-collapsed="true"] .sidebar-mark {
+    display: block;
+    margin: 0 auto;
+  }
+  .sidebar[data-collapsed="true"]:hover .sidebar-brand {
+    display: inline-flex;
+  }
+  .sidebar[data-collapsed="true"]:hover .sidebar-mark {
+    display: none;
+  }
+  /* Labels de nav ocultos al contraer (fundido); reaparecen al desplegar. */
+  .sidebar[data-collapsed="true"] .sidebar-link > span:not(.sidebar-icon) {
     opacity: 0;
     transition: opacity var(--dur-micro) var(--ease-out);
   }
-  .sidebar[data-collapsed="true"] .theme-switch {
-    pointer-events: none;
-  }
-  .sidebar[data-collapsed="true"]:hover .sidebar-link > span:not(.sidebar-icon),
-  .sidebar[data-collapsed="true"]:hover .sidebar-group-label,
-  .sidebar[data-collapsed="true"]:hover .sidebar-head a,
-  .sidebar[data-collapsed="true"]:hover .theme-switch {
+  .sidebar[data-collapsed="true"]:hover .sidebar-link > span:not(.sidebar-icon) {
     opacity: 1;
   }
+  /* Conmutador de tema retirado del rail (ahorra alto); vuelve al desplegar. */
+  .sidebar[data-collapsed="true"] .theme-switch {
+    display: none;
+  }
   .sidebar[data-collapsed="true"]:hover .theme-switch {
-    pointer-events: auto;
+    display: flex;
+  }
+  /* Etiquetas de plano: sin altura en el rail (evita el scroll); reaparecen
+     al desplegar. */
+  .sidebar[data-collapsed="true"] .sidebar-group-label {
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: opacity var(--dur-micro) var(--ease-out);
+  }
+  .sidebar[data-collapsed="true"]:hover .sidebar-group-label {
+    height: auto;
+    margin-bottom: 2px;
+    opacity: 1;
   }
 }
 

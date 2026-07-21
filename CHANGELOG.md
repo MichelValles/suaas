@@ -2,7 +2,7 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
-## [0.66.8 → 0.67.0] · 2026-07-22
+## [0.66.8 → 0.67.1] · 2026-07-22
 
 Rediseño del sidebar: menos «dashboard de IA», inspiración en el patrón de BBVA, y modo contraído.
 
@@ -10,6 +10,11 @@ Rediseño del sidebar: menos «dashboard de IA», inspiración en el patrón de 
 
 - **Modo contraído del sidebar**: botón «Contraer» al pie que reduce la navegación a un **rail de solo iconos** (72px, iconos centrados) y **persiste** entre sesiones (`gravity-sidebar-collapsed`). Al pasar el ratón, el rail **se despliega como overlay** (labels, planos y conmutador de tema) sin empujar el contenido. Solo en desktop; en móvil sigue siendo un drawer (`v0.67.0`).
 - **Bordes redondeados** a la derecha del sidebar (arriba y abajo): el panel «flota» sobre el lienzo de la app (`v0.67.0`).
+- **Marca «101»** recortada del logo, centrada en la cabecera del rail contraído (el logotipo completo reaparece al desplegar), en vez de perder la marca (`v0.67.1`).
+
+### Fixed
+
+- **Sidebar sin scroll vertical** en ambos estados: espaciado base compactado (gap, padding, filas, dividers y gaps de grupo) para que la navegación entre en el viewport sin barra de scroll; en el rail contraído se ocultan además las etiquetas de plano y el conmutador de tema para ganar alto (`v0.67.1`).
 
 ### Changed
 
