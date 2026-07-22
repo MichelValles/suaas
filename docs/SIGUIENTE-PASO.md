@@ -1,9 +1,23 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-07-21 tras v0.66.7 (refinamientos de /tokens: tarifas por modelo, coste por usuarios, desplegables legibles; CHANGELOG al día).
+> Última actualización: 2026-07-22 tras v0.72.3. Sesión larga: rediseño del sidebar, normalización de cards, perfiles con cliente de optimización, capa de observabilidad + evaluación de calidad de salidas (con persistencia) y cierre de las dos deudas de honestidad documentadas (pricing, momentum).
 
-## Estado actual (v0.66.7 desplegada)
+## Estado actual (v0.72.3 desplegada)
+
+Sesión 2026-07-22 (larga). Bloques principales, del más reciente al más antiguo:
+
+- **Momentum con persona completa (v0.72.3)**: `analyzeProfileMomentum` usa `buildSystemPrompt(profile)` (Big Five, COM-B, backstory, JTBD, negative prompts) en vez de la persona ad hoc reducida. Cierra la «brecha de fidelidad más grave» de `PERFILES-CALIBRADOS §5.6`. Verificado con un run real.
+- **Pricing: «WTP» → «Justo» (v0.72.2)**: el chip de `willingness_to_pay` se re-etiqueta (mide justicia de precio, no disposición a pagar); UI-only, sin tocar datos.
+- **Evaluación de calidad de salidas (v0.70-v0.72.1)**: `/evaluacion` corre un golden set (`lib/eval.ts`, 4 casos que estresan romper rol, respuesta genérica, complacencia, sonar a IA) contra un modelo objetivo, puntuado por un **juez de otra familia** (OpenAI por defecto, rompe la circularidad). Persistido en la tabla **`evals`** (migración **0031**, RLS): historial con detalle por caso (`/evaluacion/[id]`) y señal de regresión (delta vs. el eval anterior del mismo modelo). `POST /api/eval/run`. **Pendiente Fase 2**: llevar el juez a los esquemas de los tests por lotes.
+- **Observabilidad (v0.69, movida a /tokens en v0.71)**: inspector por llamada de `gateway_usage` (fecha, scope, modelo, tokens, **coste USD real** computado, latencia, ok/fallo), filtrable y paginado, como apartado dentro de `/tokens` (`usage-inspector.tsx` sobre `GET /api/usage/rows`). KPI de coste real acumulado. La ruta `/observabilidad` ya no existe.
+- **Perfiles: origen y cliente (v0.68)**: columna `profiles.optimized_for` (migración **0030**); icono de estrellas (optimizado para cliente) vs. formulario en la rejilla, con tooltip; selector en editor y ficha. Los 18 perfiles de IVI (15) y Adeslas (3, «SegurCaixa Adeslas Dental») quedan etiquetados.
+- **Doc `ARQUITECTURA-CONCEPTUAL.md` (v0.68.2)**: síntesis en 4 preguntas (arquitectura, cómputo, estado, diferencial vs CRM).
+- **Normalización de cards de módulo (v0.67.3)**: geo y momentum pasan al `EntityCard`/`EntityListView` compartido (antes custom); los 8 listados comparten diseño. Claridad mantiene la imagen del test.
+- **Rediseño del sidebar (v0.66.8-v0.67.2)**: inspiración BBVA con paleta Gravity (dividers de plano discretos, activo con círculo de acento), **modo contraído** (rail de iconos que se despliega al hover, con la marca «101»), bordes redondeados, sin scroll y sin salto de iconos.
+- **Migraciones aplicadas: 0001 a 0031** (0030 `profiles.optimized_for`, 0031 `evals`, vía MCP). Tracking en `suaas_migrations` y `/diag`.
+
+## Estado anterior (v0.66.7)
 
 - **Revisión de la home cerrada**: el último cabo (breakpoint intermedio ~1024px) está hecho en v0.66.3 (el hero se apila entre 880 y 1120px). No quedan pendientes abiertos de esa revisión.
 
