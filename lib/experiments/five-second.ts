@@ -493,18 +493,20 @@ async function runQualitySample(
   });
 }
 
-/** Describe al juez qué vio el perfil y qué debe valorar en su recuerdo. */
+/**
+ * Describe al juez qué vio el perfil y qué debe valorar. Clave: el juez de
+ * calidad mide FIDELIDAD de la simulación (voz, anclaje, no complacencia,
+ * naturalidad), NO si el perfil acertó el contenido (eso ya lo mide
+ * `comprehension_rate` con otro juez). Por eso NO se le pasa la promesa exacta
+ * de la pantalla: anclarlo a ella hacía que penalizara el recuerdo como si
+ * fuese un test de comprensión, mezclando ambas señales.
+ */
 function describeStimulus(target: Target): string {
-  const promise =
-    target.payload.kind === "5s_test" ? target.payload.main_promise : "";
   return [
-    "El perfil vio durante 5 segundos una pantalla (landing o anuncio) y luego se le ocultó.",
-    promise ? `La promesa principal declarada de esa pantalla era: «${promise}».` : "",
-    "Se le pidió que dijera, en su propia voz, qué recuerda y qué cree que le ofrece.",
-    "Valora si su recuerdo suena a ESTA persona (anclaje), si mantiene su escepticismo en vez de repetir el reclamo de marketing (no complacencia) y si es natural. La fidelidad de rol aquí es no sonar a IA ni a copy publicitario.",
-  ]
-    .filter(Boolean)
-    .join(" ");
+    `El perfil vio durante 5 segundos una pantalla comercial (landing o anuncio) sobre «${target.name}» y luego se le ocultó.`,
+    "Se le pidió que dijera, EN SU PROPIA VOZ, qué recuerda y qué cree que le ofrecen.",
+    "NO juzgues si acertó con el contenido (la comprensión se mide aparte). Juzga la FIDELIDAD de la simulación: ¿el registro, el tono y la reacción son los de ESTA persona en concreto (su nivel cultural, su escepticismo, sus barreras) o podría decirlo cualquiera?, ¿suena natural y no a IA ni a copy de marketing?, ¿mantiene su actitud (p. ej. escéptica) en vez de comprar el reclamo?",
+  ].join(" ");
 }
 
 /** Muestra uniformemente repartida a lo largo del array (cubre la distribución). */
