@@ -1223,8 +1223,8 @@ async function probeCampaignSnippet(
           ? "- Estás en un test de anuncio de social ads (TikTok). Primero interpreta, luego razona y solo al final puntúa."
           : "- Estás en un test de anuncio de Paid Search. Primero interpreta, luego razona y solo al final puntúa.",
       `- ${IMAGE_TEXT_GUARD}`,
-      "- 'perceived_offer': lo que crees que te ofrece el anuncio, en tu voz, 1 frase.",
-      "- 'reasoning': 1-2 frases tuyas pensando en voz alta ANTES de decidir: qué te llama, qué te frena.",
+      "- 'perceived_offer': lo que crees que te ofrece el anuncio, en tu voz, 1 frase, sin sonar a folleto.",
+      "- 'reasoning': 1-2 frases tuyas, una reacción espontánea al verlo (lo primero que se te pasa por la cabeza, dicho en alto). NO hagas un pro/contra ordenado ni suenes analítico: puede ser una duda suelta, un 'ya empezamos', un tirón o un 'esto no es para mí'. Habla, no analices.",
       "- 'barriers': fricciones concretas (jerga, promesa vaga, precio oculto, sector no encaja, etc.). Vacío si no las viste.",
       "- 'behavior_class': clasifica tu conducta. 'optima' = conecta con tu intención y harías click; 'fuga' = lo ignoras y sigues; 'repesca' = sin click ahora, pero la necesidad sigue viva y otro mensaje podría recuperarte.",
       "- Después puntúa usando TODO el rango 0..1. No te refugies en valores medios: si lo ignorarías, dilo con un score bajo; si te convence, dilo con uno alto.",

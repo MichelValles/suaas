@@ -2,6 +2,14 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.74.2] · 2026-07-22
+
+Refinamiento de fidelidad (2/5): reacción a campañas más espontánea.
+
+### Changed
+
+- **El razonamiento del perfil ante un anuncio suena espontáneo, no analítico**: la instrucción del probe pasa de «qué te llama, qué te frena» (que inducía un pro/contra ordenado y «robótico») a una reacción de primer impulso en su voz («una duda suelta, un ‘ya empezamos’, un tirón»). Efecto medido en producción (run real IVI): la naturalidad sube (~0,71 a ~0,79-0,88) y el fallo «robótico» del juez casi desaparece (4 de 5 sin fallo), manteniendo el anclaje alto (0,80-0,97). Ejemplos reales: «Ya empezamos: niña mona en el cine, música emocional… esto es puro impacto emocional»; «me detiene el pulgar un segundo».
+
 ## [0.74.1] · 2026-07-22
 
 Refinamiento de fidelidad (1/5): Recall del test de 5s.
