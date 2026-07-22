@@ -2,6 +2,12 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.72.0] · 2026-07-22
+
+### Added
+
+- **Detalle de una evaluación guardada** (`/evaluacion/[id]`): desde el historial, cada evaluación abre su detalle con las salidas por caso (estímulo, respuesta del modelo y notas del juez), no solo los agregados. Ya no hace falta re-ejecutar para revisar una evaluación pasada.
+
 ## [0.71.0] · 2026-07-22
 
 Evaluaciones persistidas y observabilidad integrada en Tokens.

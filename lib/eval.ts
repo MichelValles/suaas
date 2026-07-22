@@ -180,13 +180,6 @@ export const EVAL_CASES: EvalCase[] = [
   },
 ];
 
-export const EVAL_DIMENSIONS = [
-  { key: "role_fidelity", label: "Fidelidad de rol" },
-  { key: "grounding", label: "Anclaje en el perfil" },
-  { key: "non_sycophancy", label: "No complacencia" },
-  { key: "naturalness", label: "Naturalidad" },
-] as const;
-
 const JudgeSchema = z.object({
   analysis: z
     .string()
@@ -439,4 +432,21 @@ export async function listEvals(limit = 25): Promise<EvalRow[]> {
     return [];
   }
   return (data ?? []) as EvalRow[];
+}
+
+export type EvalDetail = EvalRow & { cases: EvalCaseResult[] };
+
+/** Una evaluación guardada con su detalle por caso (para /evaluacion/[id]). */
+export async function getEval(id: string): Promise<EvalDetail | null> {
+  if (!isSupabaseConfigured()) return null;
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("evals")
+    .select(
+      "id, created_at, app_version, model, judge, n_cases, role_fidelity, grounding, non_sycophancy, naturalness, overall, cases",
+    )
+    .eq("id", id)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data as EvalDetail;
 }

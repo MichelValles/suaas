@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { getRunsModel } from "@/lib/chat-models";
-import { EVAL_DIMENSIONS, listEvals, type EvalRow } from "@/lib/eval";
+import { listEvals, type EvalRow } from "@/lib/eval";
 import { EvaluacionClient } from "./evaluacion-client";
+import { EVAL_DIMENSIONS } from "./eval-views";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Gravity · Evaluación de calidad" };
@@ -88,8 +89,13 @@ function EvalHistory({ evals }: { evals: EvalRow[] }) {
             <tbody>
               {evals.map((e) => (
                 <tr key={e.id}>
-                  <Td mono color="rgba(var(--fg),0.6)">
-                    {fmtDate(e.created_at)}
+                  <Td mono>
+                    <Link
+                      href={`/evaluacion/${e.id}`}
+                      style={{ color: "var(--accent-text)", textDecoration: "underline" }}
+                    >
+                      {fmtDate(e.created_at)}
+                    </Link>
                   </Td>
                   <Td mono color="rgba(var(--fg),0.5)">
                     {e.app_version ?? "·"}

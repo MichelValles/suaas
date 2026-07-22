@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.72.0 · Detalle de un eval guardado
+
+- [x] **v0.72.0 · Ver el detalle de un eval del historial** (`/evaluacion/[id]`, `getEval` en `lib/eval.ts`): cada fila del historial enlaza a su detalle, que muestra el agregado + las salidas por caso guardadas (estímulo, respuesta del modelo, notas por dimensión, veredicto) leyendo la columna `cases` jsonb. Los componentes de presentación se extraen a `app/evaluacion/eval-views.tsx` (compartidos por la ejecución en vivo y el detalle). Completa el bucle de persistencia: ya no hace falta re-ejecutar para revisar una evaluación pasada.
+
 ## v0.71.0 · Evals persistidos + observabilidad dentro de /tokens
 
 - [x] **v0.71.0 · Historial de evaluaciones** (tabla `evals`, migración `0031`, con RLS): cada ejecución de eval se guarda (una fila por modelo) con `app_version`, modelo, juez, agregados por dimensión y el detalle por caso en jsonb (`saveEval`/`listEvals` en `lib/eval.ts`). `/evaluacion` muestra el historial (fecha, versión, modelo, juez, global + 4 dimensiones) y se refresca tras cada run (`router.refresh`). Permite comparar modelos y cazar regresiones entre versiones.
