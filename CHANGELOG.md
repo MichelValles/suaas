@@ -2,6 +2,12 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.77.1] · 2026-07-23
+
+### Fixed
+
+- **Los chips de fallo de los paneles de calidad ahora pintan su tinte y borde**: los chips de `failure_mode` (Claridad 5s, Campañas, Momentum e Intent) usaban `var(--warning-text)22`/`55`, el mismo bug de alfa-hex tras `var()` que descartaba la declaración, así que el chip salía sin fondo ni borde. Migrados a `color-mix(...)`. (Detectado a raíz de la revisión de la página de onboarding.)
+
 ## [0.77.0] · 2026-07-23
 
 Versión visual navegable del onboarding del sociólogo, bajo /gravity.

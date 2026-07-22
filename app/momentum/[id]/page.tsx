@@ -226,7 +226,7 @@ function QualityNote({ q }: { q: NonNullable<MomentumResultStored["quality"]> })
       {flagged && (
         <span
           className="mono"
-          style={{ alignSelf: "flex-start", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", padding: "3px 8px", borderRadius: "var(--radius-pill)", background: "var(--warning-text)22", color: "var(--warning-text)", border: "1px solid var(--warning-text)55" }}
+          style={{ alignSelf: "flex-start", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", padding: "3px 8px", borderRadius: "var(--radius-pill)", background: "color-mix(in srgb, var(--warning-text) 13%, transparent)", color: "var(--warning-text)", border: "1px solid color-mix(in srgb, var(--warning-text) 33%, transparent)" }}
         >
           {FAILURE_LABEL[q.failure_mode] ?? q.failure_mode}
         </span>

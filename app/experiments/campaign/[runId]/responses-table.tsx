@@ -404,9 +404,9 @@ function QualityBlock({ q }: { q: NonNullable<CampaignResponse["quality"]> }) {
             textTransform: "uppercase",
             padding: "3px 8px",
             borderRadius: "var(--radius-pill)",
-            background: "var(--warning-text)22",
+            background: "color-mix(in srgb, var(--warning-text) 13%, transparent)",
             color: "var(--warning-text)",
-            border: "1px solid var(--warning-text)55",
+            border: "1px solid color-mix(in srgb, var(--warning-text) 33%, transparent)",
           }}
         >
           {FAILURE_LABEL[q.failure_mode] ?? q.failure_mode}
