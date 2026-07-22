@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.67.3 · Normalización de las cards de módulo (geo y momentum al EntityCard compartido)
+
+- [x] **v0.67.3 · geo y momentum usan EntityCard**: `app/geo/geo-list.tsx` y `app/momentum/momentum-list.tsx` se reescriben como mapeadores finos que producen `EntityListItem[]` y renderizan `<EntityListView>`, en lugar de sus cards custom (`GeoCard` con `.surface-feature` siempre oscuro; `MomentumCard` en lista vertical). Ahora los 8 listados de módulo comparten la misma tarjeta (cabecera, título display, descripción clamp 2 líneas, pie de stats, hover-lift, theme-aware) y la misma toolbar de búsqueda + orden. Claridad ya usaba EntityCard con `media` (muestra la imagen del test de 5s). geo deja de tener fondo oscuro fijo (ahora sigue el tema) y momentum pasa de lista vertical a grid `auto-fill`.
+
 ## v0.67.2 · Rail contraído sin salto de iconos al hover
 
 - [x] **v0.67.2 · Sin jitter al desplegar**: las etiquetas de plano reservan su alto también en el rail contraído (`opacity:0` en vez de `height:0`), de modo que al hacer hover los iconos no saltan verticalmente; solo se funden las etiquetas. El alto extra lo compensa el conmutador de tema oculto, así que el rail sigue sin scroll.

@@ -109,7 +109,7 @@ Reglas:
 | `.btn-pill` | Pill outline con accent. Modificador `.solid` invierte. |
 | `.hl` | Highlight inline con fondo accent. |
 | `.feature-card` | Tarjeta clicable de módulo (icono + título + body + CTA). Altura uniforme `100%` para grids `auto-fit`. Hover-lift con borde accent. |
-| `.entity-card` | Plantilla de los listados de entidades testeables (targets, funnels, ab, copy, pricing, campaigns). Cabecera (eyebrow + trash overlay), body (título italic + descripción) y pie de stats (runs · perfiles · característica · fecha). Vive en `components/entity-card.tsx`. |
+| `.entity-card` | Plantilla de los listados de entidades testeables (targets, funnels, ab, copy, pricing, campaigns, geo, momentum). Cabecera (eyebrow de fecha o badges + trash overlay), body (título display + descripción) y pie de stats. Vive en `components/entity-card.tsx`. |
 | `.backstory-box` | Caja para mostrar el backstory de un perfil como cita en cursiva display. Glifo decorativo `"` en accent. Variante `.backstory-box--compact` para usos embebidos. |
 | `textarea.backstory-input` | Tratamiento cursiva display para el textarea de backstory en formularios. |
 | `.surface-feature` | Fondo `ink-900`, texto blanco, títulos accent. |
@@ -269,9 +269,9 @@ Desde v0.17.0, `PageHeading` acepta `descriptionVariant: "inline" | "panel"`. Cu
 
 ## Patrón: EntityCard + EntityListView
 
-Desde v0.15.0 los 5 listados (claridad, embudos, ab, copy, pricing) comparten:
+Desde v0.15.0 los listados de módulo (claridad, embudos, ab, copy, pricing, campañas y, desde v0.67.3, también geo y momentum) comparten:
 
-- `<EntityCard>` (`components/entity-card.tsx`): tarjeta con fecha arriba (eyebrow accent), título display italic, descripción clamp 2 líneas, stats al pie. Media opcional 16:9 (sólo claridad).
+- `<EntityCard>` (`components/entity-card.tsx`): tarjeta con fecha arriba (eyebrow accent) o badges de cabecera, título display, descripción clamp 2 líneas, stats al pie. Media opcional 16:9 (sólo claridad).
 - `<EntityListView>` (`components/entity-list.tsx`): wrapper con búsqueda (toolbar con padding generoso, ver v0.16.2) + sort (más reciente/antiguo/A-Z/Z-A/más runs/más perfiles) + grid `auto-fill` con `minmax(320, 1fr)` y gap 20.
 
 Cada listado mapea su entidad a `EntityListItem` (id, href, trash, title, description, createdAt, runs, users, stats, media?). El componente no conoce el modelo concreto.

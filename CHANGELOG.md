@@ -2,7 +2,15 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
-## [0.66.8 → 0.67.1] · 2026-07-22
+## [0.67.3] · 2026-07-22
+
+Normalización de las tarjetas de módulo.
+
+### Changed
+
+- **geo y momentum usan la tarjeta compartida** (`EntityCard`/`EntityListView`), como campañas, claridad, copy, pricing, embudos y A/B. Antes eran cards a medida: geo con fondo oscuro fijo (`.surface-feature`) y momentum en lista vertical. Ahora los 8 listados de módulo comparten diseño (cabecera, título, descripción, pie de stats, hover-lift, tema claro/oscuro) y toolbar de búsqueda + orden. Claridad mantiene la imagen del test de 5s en su tarjeta (`v0.67.3`).
+
+## [0.66.8 → 0.67.2] · 2026-07-22
 
 Rediseño del sidebar: menos «dashboard de IA», inspiración en el patrón de BBVA, y modo contraído.
 
@@ -15,6 +23,7 @@ Rediseño del sidebar: menos «dashboard de IA», inspiración en el patrón de 
 ### Fixed
 
 - **Sidebar sin scroll vertical** en ambos estados: espaciado base compactado (gap, padding, filas, dividers y gaps de grupo) para que la navegación entre en el viewport sin barra de scroll; en el rail contraído se ocultan además las etiquetas de plano y el conmutador de tema para ganar alto (`v0.67.1`).
+- **Sin salto de iconos al desplegar el rail**: al pasar el ratón los iconos ya no se movían. Las etiquetas de plano reservan su alto también contraídas (solo se funden), la marca «101» se iguala en altura al logotipo y el conmutador de tema no aparece en el hover, de modo que ni la cabecera ni el pie cambian de alto (`v0.67.2`).
 
 ### Changed
 
