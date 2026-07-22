@@ -7,6 +7,7 @@ Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo.
 ### Added
 
 - **Detalle de una evaluación guardada** (`/evaluacion/[id]`): desde el historial, cada evaluación abre su detalle con las salidas por caso (estímulo, respuesta del modelo y notas del juez), no solo los agregados. Ya no hace falta re-ejecutar para revisar una evaluación pasada.
+- **Señal de regresión** en el historial de evaluaciones: junto a la nota global, la variación en puntos respecto a la evaluación anterior del mismo modelo (verde sube, roja baja), para ver de un vistazo si un cambio de prompt o de versión mejora o empeora la calidad (`v0.72.1`).
 
 ## [0.71.0] · 2026-07-22
 

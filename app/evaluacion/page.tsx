@@ -49,6 +49,13 @@ function EvalHistory({ evals }: { evals: EvalRow[] }) {
       >
         Historial de evaluaciones
       </h2>
+      {evals.length > 0 && (
+        <p style={{ margin: 0, fontSize: 12, color: "rgba(var(--fg),0.45)", lineHeight: 1.5 }}>
+          La flecha junto a la nota global es la variación (en puntos) respecto a
+          la evaluación anterior del mismo modelo: verde si sube, roja si baja.
+          Sirve para cazar regresiones de prompt entre versiones.
+        </p>
+      )}
       {evals.length === 0 ? (
         <div
           style={{
@@ -87,7 +94,7 @@ function EvalHistory({ evals }: { evals: EvalRow[] }) {
               </tr>
             </thead>
             <tbody>
-              {evals.map((e) => (
+              {evals.map((e, i) => (
                 <tr key={e.id}>
                   <Td mono>
                     <Link
@@ -106,6 +113,7 @@ function EvalHistory({ evals }: { evals: EvalRow[] }) {
                   </Td>
                   <Td right mono color="var(--accent-500)">
                     {score100(e.overall)}
+                    <Delta value={deltaFor(evals, i)} />
                   </Td>
                   {EVAL_DIMENSIONS.map((d) => (
                     <Td key={d.key} right mono color="var(--text-strong)">
@@ -166,6 +174,36 @@ function Td({
     >
       {children}
     </td>
+  );
+}
+
+/** Variación (puntos, 0..100) de la nota global respecto al eval anterior del mismo modelo. */
+function deltaFor(evals: EvalRow[], i: number): number | null {
+  const e = evals[i];
+  if (e.overall == null) return null;
+  for (let j = i + 1; j < evals.length; j++) {
+    const prev = evals[j];
+    if (prev.model === e.model && prev.overall != null) {
+      return Math.round(e.overall * 100) - Math.round(prev.overall * 100);
+    }
+  }
+  return null;
+}
+
+function Delta({ value }: { value: number | null }) {
+  if (value == null || value === 0) return null;
+  const up = value > 0;
+  return (
+    <span
+      style={{
+        marginLeft: 6,
+        fontSize: 10,
+        color: up ? "var(--success-text)" : "var(--error-text)",
+      }}
+    >
+      {up ? "▲" : "▼"}
+      {Math.abs(value)}
+    </span>
   );
 }
 
