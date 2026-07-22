@@ -12,6 +12,7 @@ import {
   ChevronsRight,
   Coins,
   Filter,
+  Gauge,
   Layers,
   Megaphone,
   Menu,
@@ -60,6 +61,7 @@ const KNOWLEDGE_ITEMS: NavItem[] = [
 const SYSTEM_ITEMS: NavItem[] = [
   { href: "/diag", label: "Diagnóstico", icon: Activity, exact: false },
   { href: "/tokens", label: "Tokens", icon: Coins, exact: false },
+  { href: "/observabilidad", label: "Observabilidad", icon: Gauge, exact: false },
   { href: "/gravity", label: "Gravity Model", icon: Layers, exact: false },
   { href: "/trash", label: "Papelera", icon: Trash2, exact: false },
   { href: "/seed-examples", label: "Sembrar", icon: Sprout, exact: false, beta: true },

@@ -935,7 +935,7 @@ html[data-theme="light"] .sidebar-mark {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   border-radius: var(--radius-sm);
   font-size: 14px;
   font-weight: 500;

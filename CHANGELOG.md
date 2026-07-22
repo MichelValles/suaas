@@ -2,6 +2,14 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.69.0] · 2026-07-22
+
+Capa de observabilidad: inspector de llamadas al modelo.
+
+### Added
+
+- **Página `/observabilidad`**: inspector de las llamadas individuales al AI Gateway (antes solo había agregados en `/tokens`). Cada llamada con su fecha, scope, modelo, tokens, **coste real en USD**, latencia y estado (ok/fallo), filtrable por modelo/scope/solo-fallidas y paginado. El coste se calcula al vuelo (tokens × tarifa) y por primera vez es visible por llamada. Primer paso de una capa de observabilidad; la evaluación de calidad de las salidas y la comparación de modelos quedan como siguiente fase.
+
 ## [0.68.0] · 2026-07-22
 
 Perfiles: origen visible en la rejilla y cliente de optimización.

@@ -50,6 +50,8 @@ app/
     page.tsx                            Estado visual del esquema (audita tablas + columnas críticas de varias tablas, cada una con su migración asociada)
   tokens/
     page.tsx                            Créditos del AI Gateway + acumulado interno por modelo/scope + serie 7d
+  observabilidad/
+    page.tsx                            Inspector por llamada de gateway_usage (fecha, scope, modelo, tokens, coste USD real, latencia, ok/fallo); filtrable y paginado (listUsageRows en lib/usage.ts). v0.69
   trash/
     page.tsx                            Papelera: lista soft-deleted con acciones restore / hard delete
     trash-row.tsx                       Client: cada fila con sus botones de acción

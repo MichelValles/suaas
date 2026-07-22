@@ -1,4 +1,5 @@
 import { getServerClient, isSupabaseConfigured } from "@/lib/supabase";
+import { usdForTokens } from "@/lib/model-pricing";
 
 export type UsageScope =
   | "probe_5s"
@@ -348,6 +349,105 @@ export async function getUsageSummary(): Promise<UsageSummary> {
     last7d,
     lastUpdated: rows[0]?.created_at ?? null,
   };
+}
+
+// ============================================================
+// Inspector por llamada (página /observabilidad)
+// ============================================================
+
+/** Todos los scopes conocidos, para poblar el filtro del inspector. */
+export const USAGE_SCOPES: UsageScope[] = [
+  "probe_5s",
+  "judge_5s",
+  "probe_funnel",
+  "reasoner_chat",
+  "talker_chat",
+  "copy_resonance",
+  "pricing_react",
+  "campaign_probe",
+  "campaign_landing",
+  "campaign_ideal",
+  "campaign_judge",
+  "campaign_synthesis",
+  "onboard_synthesize",
+  "profile_avatar",
+  "geo_probe",
+  "geo_analysis",
+  "momentum_probe",
+  "seed_brief",
+  "seed_profile",
+  "batch_intent",
+  "rag_embed",
+];
+
+export type UsageRow = {
+  id: string;
+  createdAt: string;
+  runId: string | null;
+  scope: string;
+  model: string;
+  promptTokens: number | null;
+  completionTokens: number | null;
+  totalTokens: number | null;
+  /** Latencia de la llamada (ms) si la fila la guardó en meta. */
+  latencyMs: number | null;
+  failed: boolean;
+  /** Coste en USD computado al vuelo (tokens × tarifa del modelo). No se persiste. */
+  usd: number;
+};
+
+/**
+ * Lista las llamadas individuales de gateway_usage (el inspector que falta:
+ * /tokens solo da agregados). Filtrable por modelo, scope y solo-fallidas,
+ * paginado, con el coste en USD calculado desde model-pricing. El USD no vive
+ * en la tabla: se recalcula aquí desde tokens + modelo.
+ */
+export async function listUsageRows(opts: {
+  model?: string;
+  scope?: string;
+  failedOnly?: boolean;
+  limit: number;
+  offset: number;
+}): Promise<{ rows: UsageRow[]; total: number }> {
+  if (!isSupabaseConfigured()) return { rows: [], total: 0 };
+  const supa = getServerClient();
+  let q = supa
+    .from("gateway_usage")
+    .select(
+      "id, created_at, run_id, scope, model, prompt_tokens, completion_tokens, total_tokens, meta",
+      { count: "exact" },
+    )
+    .order("created_at", { ascending: false });
+  if (opts.model) q = q.eq("model", opts.model);
+  if (opts.scope) q = q.eq("scope", opts.scope);
+  if (opts.failedOnly) q = q.eq("meta->>failed", "true");
+  const { data, count, error } = await q.range(
+    opts.offset,
+    opts.offset + opts.limit - 1,
+  );
+  if (error) {
+    console.warn("[listUsageRows] select failed", error.message);
+    return { rows: [], total: 0 };
+  }
+  const rows: UsageRow[] = (data ?? []).map((r) => {
+    const meta = (r.meta as Record<string, unknown> | null) ?? {};
+    const prompt = r.prompt_tokens as number | null;
+    const completion = r.completion_tokens as number | null;
+    return {
+      id: r.id as string,
+      createdAt: r.created_at as string,
+      runId: (r.run_id as string | null) ?? null,
+      scope: r.scope as string,
+      model: r.model as string,
+      promptTokens: prompt,
+      completionTokens: completion,
+      totalTokens: r.total_tokens as number | null,
+      latencyMs: typeof meta.latency_ms === "number" ? meta.latency_ms : null,
+      failed: meta.failed === true,
+      usd: usdForTokens(r.model as string, prompt ?? 0, completion ?? 0),
+    };
+  });
+  return { rows, total: count ?? rows.length };
 }
 
 // ============================================================

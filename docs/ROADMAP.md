@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.69.0 · Observabilidad: inspector de llamadas al AI Gateway (MVP)
+
+- [x] **v0.69.0 · Inspector por llamada** (`/observabilidad`, `app/observabilidad/page.tsx` + `listUsageRows` en `lib/usage.ts`): lista las llamadas individuales de `gateway_usage` (hasta ahora `/tokens` solo daba agregados) con fecha, scope, modelo, tokens (prompt/compl/total), **coste real en USD** (computado al vuelo con `usdForTokens`, no persistido), latencia y estado ok/fallo. Filtrable por modelo, scope y solo-fallidas (por URL, server-rendered) y paginado (50/pág). KPIs de coste real acumulado, tokens, llamadas y última. Cierra el hueco «solo agregados, sin drill-down al detalle». Enlace en el sidebar (Sistema). **Pendiente (Fase 2)**: evaluación de calidad de las salidas y comparación de modelos/versiones (golden set + juez de otra familia), y persistir `est_usd` + `profile_id` en los scopes que faltan.
+
 ## v0.68.0 · Perfiles: origen (estrellas vs formulario) y cliente de optimización
 
 - [x] **v0.68.0 · Icono de origen en la rejilla de perfiles**: cada tarjeta muestra `Sparkles` (accent) si el perfil está modelado para un cliente, o `PenLine` (tenue) si es un perfil base del formulario; tooltip en hover con «Modelado para [cliente]» / «Creado desde formulario» (`components/profile-explorer.tsx` → `OriginBadge`, patrón `.tooltip-host`).
