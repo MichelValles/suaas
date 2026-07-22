@@ -2,6 +2,12 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.72.2] · 2026-07-22
+
+### Fixed
+
+- **Pricing: la métrica «WTP» se re-etiqueta a «Justo»** en la vista del run, con tooltip y leyenda que aclaran que mide cómo de justo percibe el perfil el precio (1 = justo, 0 = abuso), **no** la disposición a pagar. Corrige un nombre engañoso documentado en `PERFILES-CALIBRADOS.md §5.3`.
+
 ## [0.72.0] · 2026-07-22
 
 ### Added

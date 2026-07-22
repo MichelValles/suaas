@@ -173,6 +173,11 @@ export default async function PricingRunPage({
 
       <Section title="Detalle por precio">
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <p style={{ margin: 0, fontSize: 12, color: "rgba(var(--fg),0.5)", lineHeight: 1.5 }}>
+            «Buy» = compraría a ese precio. «Justo» = cómo de justo le parece el
+            precio al perfil (1 = justo, 0 = abuso), <strong>no</strong> disposición
+            a pagar. «Valor» = valor percibido.
+          </p>
           {sortedByPos.map((p) => (
             <details
               key={p.priceId}
@@ -208,9 +213,21 @@ export default async function PricingRunPage({
                     flexWrap: "wrap",
                   }}
                 >
-                  <Chip label="Buy" value={`${Math.round(p.would_buy_rate * 100)}%`} />
-                  <Chip label="WTP" value={`${Math.round(p.wtp_mean * 100)}%`} />
-                  <Chip label="Valor" value={`${Math.round(p.value_mean * 100)}%`} />
+                  <Chip
+                    label="Buy"
+                    value={`${Math.round(p.would_buy_rate * 100)}%`}
+                    title="Compraría a este precio"
+                  />
+                  <Chip
+                    label="Justo"
+                    value={`${Math.round(p.wtp_mean * 100)}%`}
+                    title="Percepción de precio justo (1 = totalmente justo, 0 = abuso). NO es disposición a pagar."
+                  />
+                  <Chip
+                    label="Valor"
+                    value={`${Math.round(p.value_mean * 100)}%`}
+                    title="Valor percibido a este precio"
+                  />
                 </span>
               </summary>
               <ul
@@ -322,10 +339,19 @@ function Section({
   );
 }
 
-function Chip({ label, value }: { label: string; value: string }) {
+function Chip({
+  label,
+  value,
+  title,
+}: {
+  label: string;
+  value: string;
+  title?: string;
+}) {
   return (
     <span
       className="mono"
+      title={title}
       style={{
         display: "inline-flex",
         alignItems: "baseline",
