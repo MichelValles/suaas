@@ -182,6 +182,14 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.72.3 · Momentum usa la persona completa (cierra la brecha de fidelidad)
+
+- [x] **v0.72.3 · Momentum con `buildSystemPrompt`**: el módulo canónico del Intent Momentum construía su persona ad hoc con solo demografía, backstory y JTBD, omitiendo Big Five, COM-B y los negative prompts anti-complacencia (la «brecha de fidelidad más grave» de `PERFILES-CALIBRADOS §5.6`). Ahora `analyzeProfileMomentum` (`lib/momentum.ts`) usa `buildSystemPrompt(profile)` como base (la voz canónica del resto de módulos con run) y monta encima las instrucciones de la tarea. Sin cambio de esquema ni de UI: las salidas ganan fidelidad. Verificado en producción (run real de un Trigger): las barreras del resultado citan ahora las barreras COM-B del propio perfil. Docs actualizadas (PERFILES-CALIBRADOS, GRAVITY-MODEL, ARQUITECTURA-CONCEPTUAL).
+
+## v0.72.2 · Pricing: «WTP» re-etiquetado a «Justo»
+
+- [x] **v0.72.2 · Justicia de precio, no WTP**: el chip «WTP» de la vista del run de pricing (`willingness_to_pay`) sugería disposición a pagar, pero mide justicia de precio percibida (1 = justo, 0 = abuso). Se re-etiqueta a «Justo» con tooltip y leyenda aclaratoria; el campo interno conserva el nombre por compatibilidad. Deuda documentada en `PERFILES-CALIBRADOS §5.3`.
+
 ## v0.72.1 · Señal de regresión en el historial de evals
 
 - [x] **v0.72.1 · Delta de regresión**: en el historial de `/evaluacion`, junto a la nota global de cada eval se muestra la variación en puntos respecto a la evaluación anterior del mismo modelo (▲ verde sube / ▼ roja baja), computada en la página desde `listEvals`. Hace visible de un vistazo si un cambio de prompt o de versión mejora o empeora la calidad.

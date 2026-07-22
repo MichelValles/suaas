@@ -7,6 +7,7 @@ Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo.
 ### Fixed
 
 - **Pricing: la métrica «WTP» se re-etiqueta a «Justo»** en la vista del run, con tooltip y leyenda que aclaran que mide cómo de justo percibe el perfil el precio (1 = justo, 0 = abuso), **no** la disposición a pagar. Corrige un nombre engañoso documentado en `PERFILES-CALIBRADOS.md §5.3`.
+- **Momentum usa la persona completa del perfil** (`v0.72.3`): el módulo construía una persona reducida (sin Big Five, COM-B ni negative prompts anti-complacencia); ahora usa la voz canónica (`buildSystemPrompt`) como el resto de módulos, así que sus salidas reflejan toda la calibración. Cerraba la «brecha de fidelidad más grave» documentada en `PERFILES-CALIBRADOS.md §5.6`.
 
 ## [0.72.0] · 2026-07-22
 

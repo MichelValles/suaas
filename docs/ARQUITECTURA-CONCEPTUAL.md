@@ -117,10 +117,10 @@ Verificado contra el código (los detalles con `archivo:línea` y migración est
 - **Mapa de fricción priorizado por instancia**: los embudos rankean fricción por frecuencia, pero falta la entidad «instancia».
 - **GEO pendiente**: AI Overview (SerpAPI) y Gemini como cuarto y quinto motor.
 
-### Incoherencias internas reconocidas (no descubrirlas en una demo)
+### Incoherencias internas (dos ya corregidas)
 
-- **Momentum omite media calibración**: su prompt de persona ad hoc **no usa `buildSystemPrompt`**; deja fuera Big Five, COM-B, renta y los negative prompts anti-complacencia. El módulo estrella del concepto estrella ignora la mitad del perfil.
-- **`willingness_to_pay` está mal etiquetado**: mide **justicia de precio** (1 = justo, 0 = abuso), no disposición a pagar. Y el `sweet_spot` es un argmax de ingreso esperado, **no** una curva de elasticidad ni un Monte Carlo.
+- **Momentum usaba media calibración**: su persona ad hoc no usaba `buildSystemPrompt` (dejaba fuera Big Five, COM-B y los negative prompts). **Corregido en v0.72.3**: ahora usa `buildSystemPrompt`, la voz completa, como el resto de módulos con run.
+- **`willingness_to_pay` medía justicia de precio, no disposición a pagar** (1 = justo, 0 = abuso). El nombre engañoso se **re-etiquetó en la UI en v0.72.2** (chip «Justo» con aclaración); el `sweet_spot` sigue siendo un argmax de ingreso esperado, **no** una curva de elasticidad ni un Monte Carlo.
 - **`social_friction`** es potente pero **solo del chat**, donde no se decide el CRO.
 
 ---

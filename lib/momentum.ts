@@ -11,6 +11,7 @@ import { buildBrandContextRag } from "@/lib/rag";
 import { recordUsage } from "@/lib/usage";
 import { chunks } from "@/lib/experiments/shared";
 import { listProfilesByIds, type Profile } from "@/lib/profiles";
+import { buildSystemPrompt } from "@/lib/prompts";
 
 // ============================================================
 // Tipos y schemas
@@ -116,29 +117,25 @@ export async function analyzeProfileMomentum(
 ): Promise<{ result: ProfileMomentumResult; latencyMs: number; usage: unknown }> {
   const startedAt = Date.now();
 
-  const { age, gender, occupation, geo } = profile.demographics;
-
+  // Persona completa (Big Five, COM-B, backstory, JTBD y negative prompts
+  // anti-complacencia), la misma voz canónica que el resto de módulos. Antes
+  // esta función montaba una persona ad hoc reducida (sin Big Five, COM-B ni
+  // negative prompts): la brecha de fidelidad de PERFILES-CALIBRADOS §5.6,
+  // ahora cerrada.
   const systemLines = [
-    `Eres ${profile.name}, un perfil calibrado de usuario.`,
+    buildSystemPrompt(profile),
     "",
-    "Tu perfil:",
-    `- Edad: ${age} años. Género: ${gender}. Ocupación: ${occupation}. Ubicación: ${geo ?? "España"}.`,
-    `- Historia: ${profile.backstory}`,
-    profile.intent_context
-      ? `- Contexto de intención (JTBD): ${profile.intent_context}`
-      : "",
-    "",
-    "Se te presenta un escenario de activación. Simula cómo TÚ, como este perfil, responderías naturalmente en tu vida real:",
+    "## Tarea de este análisis (Momentum)",
+    "Se te presenta un escenario de activación (un Trigger). Simula cómo TÚ, como este perfil, responderías naturalmente en tu vida real:",
     "- Qué pensarías al enfrentarte a ese Trigger",
     "- Qué primeros pasos concretos darías (buscar en Google, preguntar a alguien, ir al médico, ignorarlo, etc.)",
     "- Qué canales usarías y en qué orden",
-    "- Qué barreras o fricciones sentirías para actuar",
+    "- Qué barreras o fricciones sentirías para actuar (coherentes con tus barreras COM-B)",
     "- Con qué urgencia o intensidad lo abordarías",
     "",
-    "En 'intent_narrative' habla en primera persona, de forma concreta y realista.",
+    "En 'intent_narrative' habla en primera persona, de forma concreta y realista, con tu voz.",
     "En 'jtbd_expressed' exprésalo como lo dirías tú, no en lenguaje de negocio.",
-    "Sé fiel al perfil: una persona mayor con barreras tecnológicas se comporta diferente a un nativo digital.",
-  ].filter(Boolean);
+  ];
 
   const system = systemLines.join("\n");
 
