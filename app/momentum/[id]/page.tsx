@@ -5,9 +5,11 @@ import { BrandContextBox } from "@/components/brand-context-box";
 import { getRunsModel } from "@/lib/chat-models";
 import { estimateAction, partsForKind } from "@/lib/estimate";
 import {
+  aggregateMomentumQuality,
   getMomentumChallenge,
   type MomentumChallenge,
-  type ProfileMomentumResult,
+  type MomentumQualitySummary,
+  type MomentumResultStored,
 } from "@/lib/momentum";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { MomentumRunButton } from "./run-button";
@@ -135,6 +137,10 @@ export default async function MomentumDetailPage({
       {challenge.results && challenge.results.length > 0 && (
         <>
           <SummaryStrip challenge={challenge} />
+          {(() => {
+            const q = aggregateMomentumQuality(challenge.results);
+            return q ? <QualityPanel q={q} /> : null;
+          })()}
           <section style={{ display: "flex", flexDirection: "column", gap: 20 }}>
             <h2
               className="mono"
@@ -149,6 +155,83 @@ export default async function MomentumDetailPage({
         </>
       )}
     </AppShell>
+  );
+}
+
+const FAILURE_LABEL: Record<string, string> = {
+  ninguno: "Sin fallo",
+  rompe_rol: "Rompe rol",
+  generico: "Genérico",
+  complaciente: "Complaciente",
+  robotico: "Robótico",
+  otro: "Otro fallo",
+};
+
+function pctText(v: number): string {
+  return `${Math.round(v * 100)}%`;
+}
+
+function QualityPanel({ q }: { q: MomentumQualitySummary }) {
+  const judge = q.judge ? (q.judge.split("/").pop() ?? q.judge) : "otra familia";
+  return (
+    <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <h2
+        className="mono"
+        style={{ fontSize: 11, letterSpacing: "0.28em", textTransform: "uppercase", color: "var(--accent-text)", margin: 0 }}
+      >
+        Calidad de la simulación
+      </h2>
+      <p style={{ margin: 0, fontSize: 13, lineHeight: 1.55, color: "rgba(var(--fg),0.6)", maxWidth: "68ch" }}>
+        Un juez independiente ({judge}, otra familia de modelo) puntúa una muestra
+        de {q.n} {q.n === 1 ? "reacción" : "reacciones"} al Trigger: ¿suena a esta
+        persona, mantiene su escepticismo y es natural? Es un control de fidelidad
+        anti-complacencia, no una métrica de producto.
+      </p>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(130px, 1fr))", gap: 12 }}>
+        <MetricCard label="Global" value={pctText(q.overall)} color="var(--accent-text)" tooltip="Calidad como simulación calibrada de este perfil." />
+        <MetricCard label="Fidelidad de rol" value={pctText(q.role_fidelity)} tooltip="Habla como la persona, no como IA ni como un informe." />
+        <MetricCard label="Anclaje" value={pctText(q.grounding)} tooltip="Refleja a este perfil concreto, no a cualquiera." />
+        <MetricCard label="No complacencia" value={pctText(q.non_sycophancy)} tooltip="Mantiene su escepticismo y sus frenos reales." />
+        <MetricCard label="Naturalidad" value={pctText(q.naturalness)} tooltip="Suena a persona real contándolo, no a ChatGPT." />
+      </div>
+    </section>
+  );
+}
+
+function QualityNote({ q }: { q: NonNullable<MomentumResultStored["quality"]> }) {
+  const dims: [string, number][] = [
+    ["Global", q.overall],
+    ["Fidelidad", q.role_fidelity],
+    ["Anclaje", q.grounding],
+    ["No complac.", q.non_sycophancy],
+    ["Naturalidad", q.naturalness],
+  ];
+  const flagged = q.failure_mode && q.failure_mode !== "ninguno";
+  return (
+    <div style={{ borderTop: "1px dashed rgba(var(--fg),0.1)", paddingTop: 14, display: "flex", flexDirection: "column", gap: 8 }}>
+      <span className="mono" style={{ fontSize: 10, letterSpacing: "0.22em", textTransform: "uppercase", color: "var(--accent-text)" }}>
+        Calidad · juez independiente
+      </span>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
+        {dims.map(([label, value]) => (
+          <span key={label} style={{ fontSize: 12, color: "rgba(var(--fg),0.7)" }}>
+            <span style={{ color: "rgba(var(--fg),0.45)" }}>{label} </span>
+            <span style={{ color: "var(--text-strong)", fontWeight: 600 }}>{pctText(value)}</span>
+          </span>
+        ))}
+      </div>
+      <p style={{ fontSize: 12, lineHeight: 1.5, color: "rgba(var(--fg),0.7)", margin: 0, fontStyle: "italic" }}>
+        “{q.verdict}”
+      </p>
+      {flagged && (
+        <span
+          className="mono"
+          style={{ alignSelf: "flex-start", fontSize: 10, letterSpacing: "0.16em", textTransform: "uppercase", padding: "3px 8px", borderRadius: "var(--radius-pill)", background: "var(--warning-text)22", color: "var(--warning-text)", border: "1px solid var(--warning-text)55" }}
+        >
+          {FAILURE_LABEL[q.failure_mode] ?? q.failure_mode}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -284,7 +367,7 @@ function MetricCard({
   );
 }
 
-function ProfileCard({ result }: { result: ProfileMomentumResult }) {
+function ProfileCard({ result }: { result: MomentumResultStored }) {
   const dirColor = DIRECTION_COLOR[result.direction] ?? "rgba(var(--fg),0.6)";
   const initials = result.profile_name
     .split(" ")
@@ -429,6 +512,9 @@ function ProfileCard({ result }: { result: ProfileMomentumResult }) {
           </p>
         </Section>
       )}
+
+      {/* Nota del juez de calidad (solo en los perfiles muestreados) */}
+      {result.quality && <QualityNote q={result.quality} />}
     </div>
   );
 }

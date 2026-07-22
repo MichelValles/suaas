@@ -2,6 +2,14 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.75.0] · 2026-07-22
+
+El juez de calidad llega a Intent Momentum.
+
+### Added
+
+- **Calidad de la simulación en Intent Momentum**: el mismo juez independiente que ya puntúa Claridad 5s y Campañas se aplica a una muestra (hasta 5) de las reacciones de perfil al Trigger. La vista del challenge muestra el panel «Calidad de la simulación» (global + fidelidad de rol, anclaje, no complacencia, naturalidad) y, en cada tarjeta muestreada, la nota con veredicto y chip de fallo. La calidad se guarda en el propio resultado del challenge; coste bajo el scope `quality_judge`. Se juzga la VOZ del perfil (relato + necesidad + frenos), no el plan mecánico, y se avisa al juez de que los frenos vienen en lista para que puntúe la naturalidad por el relato. Verificado en producción (run real IVI): naturalidad ~0,88-0,91, anclaje 0,78-0,98, sin fallos («simulación excelente: suena claramente a Marta, con sus frenos reales, su escepticismo y un registro muy natural»). Con esto la Fase 2 mide con número las mejoras de fidelidad de Momentum, no solo a ojo.
+
 ## [0.74.5] · 2026-07-22
 
 Refinamiento de fidelidad (5/5): queries de GEO conversacionales.

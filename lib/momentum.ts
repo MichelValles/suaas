@@ -12,6 +12,11 @@ import { recordUsage } from "@/lib/usage";
 import { chunks } from "@/lib/experiments/shared";
 import { listProfilesByIds, type Profile } from "@/lib/profiles";
 import { buildSystemPrompt } from "@/lib/prompts";
+import {
+  judgeSimulationQuality,
+  pickJudgeModel,
+  type EvalScores,
+} from "@/lib/eval";
 
 // ============================================================
 // Tipos y schemas
@@ -34,6 +39,48 @@ export const ProfileMomentumResultSchema = z.object({
 });
 export type ProfileMomentumResult = z.infer<typeof ProfileMomentumResultSchema>;
 
+/**
+ * Resultado tal como se persiste: puede llevar la nota del juez de calidad
+ * (solo en los perfiles muestreados). No forma parte del schema del LLM: se
+ * adjunta post-hoc, igual que en 5s y campañas.
+ */
+export type MomentumResultStored = ProfileMomentumResult & {
+  quality?: EvalScores | null;
+  quality_judge?: string | null;
+};
+
+/** Calidad de simulación agregada (juez independiente sobre una muestra). */
+export type MomentumQualitySummary = {
+  n: number;
+  judge: string | null;
+  role_fidelity: number;
+  grounding: number;
+  non_sycophancy: number;
+  naturalness: number;
+  overall: number;
+};
+
+/** Media de las dimensiones del juez sobre los resultados muestreados. */
+export function aggregateMomentumQuality(
+  results: MomentumResultStored[] | null | undefined,
+): MomentumQualitySummary | null {
+  const scored = (results ?? []).filter(
+    (r): r is MomentumResultStored & { quality: EvalScores } => Boolean(r.quality),
+  );
+  if (scored.length === 0) return null;
+  const mean = (k: keyof EvalScores) =>
+    scored.reduce((s, r) => s + (r.quality[k] as number), 0) / scored.length;
+  return {
+    n: scored.length,
+    judge: scored.find((r) => r.quality_judge)?.quality_judge ?? null,
+    role_fidelity: mean("role_fidelity"),
+    grounding: mean("grounding"),
+    non_sycophancy: mean("non_sycophancy"),
+    naturalness: mean("naturalness"),
+    overall: mean("overall"),
+  };
+}
+
 export type MomentumChallengeInput = {
   name: string;
   trigger_scenario: string;
@@ -53,7 +100,7 @@ export type MomentumChallenge = {
   /** Null en triggers históricos o escritos a mano: comportamiento legado. */
   brand_id?: string | null;
   profile_ids: string[];
-  results: ProfileMomentumResult[] | null;
+  results: MomentumResultStored[] | null;
   status: "pending" | "running" | "done" | "error";
   deleted_at?: string | null;
 };
@@ -295,7 +342,7 @@ export async function runMomentumChallenge(
       if (ragCtx) brandContext = ragCtx;
     }
 
-    const results: ProfileMomentumResult[] = [];
+    const results: MomentumResultStored[] = [];
     for (const chunk of chunks(profiles, 5)) {
       const chunkResults = await Promise.all(
         chunk.map(async (profile) => {
@@ -311,11 +358,22 @@ export async function runMomentumChallenge(
             usage,
             meta: { challenge_id: id, profile_id: profile.id, latency_ms: latencyMs },
           });
-          return result;
+          return result as MomentumResultStored;
         }),
       );
       results.push(...chunkResults);
     }
+
+    // Juez de calidad independiente sobre una muestra (acota coste). Best-effort:
+    // adjunta la nota a los objetos muestreados antes de persistirlos.
+    await runMomentumQualitySample(
+      challenge.trigger_scenario,
+      results,
+      profiles,
+      runsModel,
+    ).catch((err) => {
+      console.warn("[quality momentum] muestra omitida:", (err as Error).message);
+    });
 
     const { data, error } = await supa
       .from("momentum_challenges")
@@ -336,4 +394,76 @@ export async function runMomentumChallenge(
     }
     throw err;
   }
+}
+
+// ============================================================
+// Juez de calidad (muestra por challenge)
+// ============================================================
+
+/** Cuántos perfiles se juzgan por challenge (acota coste del juez). */
+const MOMENTUM_QUALITY_SAMPLE = 5;
+
+/**
+ * Puntúa la calidad de simulación de una muestra de reacciones al Trigger con
+ * un juez de otra familia de modelo y adjunta la nota a esos resultados. Mismo
+ * patrón que 5s y campañas: la calidad pasa a ser parte del resultado.
+ */
+async function runMomentumQualitySample(
+  trigger: string,
+  results: MomentumResultStored[],
+  profiles: Profile[],
+  targetModel: string,
+): Promise<void> {
+  if (results.length === 0) return;
+  const judgeModel = pickJudgeModel(targetModel);
+  const profilesById = new Map(profiles.map((p) => [p.id, p]));
+  const sample = evenSampleMomentum(results, MOMENTUM_QUALITY_SAMPLE);
+  const stimulus = describeMomentumStimulus(trigger);
+
+  for (const r of sample) {
+    const profile = profilesById.get(r.profile_id);
+    if (!profile) continue;
+    try {
+      const scores = await judgeSimulationQuality({
+        profile,
+        stimulus,
+        response: [
+          `Cómo lo vive, en su voz: ${r.intent_narrative}`,
+          r.jtbd_expressed ? `Su necesidad, dicha por ella: ${r.jtbd_expressed}` : "",
+          r.barriers.length ? `Lo que le frena (lista): ${r.barriers.join("; ")}` : "",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+        judgeModel,
+        scope: "quality_judge",
+        meta: { profile_id: r.profile_id, kind: "momentum", judge: judgeModel },
+      });
+      r.quality = scores;
+      r.quality_judge = judgeModel;
+    } catch (err) {
+      console.warn(
+        "[quality momentum] juez falló para",
+        r.profile_id,
+        (err as Error).message,
+      );
+    }
+  }
+}
+
+/** Describe al juez el Trigger y qué debe valorar (fidelidad, no si el plan es bueno). */
+function describeMomentumStimulus(trigger: string): string {
+  return [
+    `El perfil se enfrenta a este Trigger, un momento de activación de su vida: «${trigger}».`,
+    "Se le pidió contar, en su voz, cómo lo asumiría. La reacción viene en un RELATO en su voz y, aparte, una LISTA de lo que le frena.",
+    "NO juzgues si su plan es bueno o correcto, ni penalices que los frenos vengan en lista (es el formato de la herramienta). Juzga la naturalidad por el RELATO. Valora la FIDELIDAD de la simulación: ¿el relato suena a ESTA persona en concreto (su situación, sus barreras, su registro) o podría decirlo cualquiera?, ¿es natural, como se lo contaría a alguien, y no un informe de IA?, ¿mantiene su escepticismo y sus frenos reales en vez de sonar servicial?",
+  ].join(" ");
+}
+
+/** Muestra uniformemente repartida a lo largo del array (cubre la distribución). */
+function evenSampleMomentum<T>(arr: T[], n: number): T[] {
+  if (arr.length <= n) return arr;
+  const step = arr.length / n;
+  const out: T[] = [];
+  for (let i = 0; i < n; i++) out.push(arr[Math.floor(i * step)]);
+  return out;
 }
