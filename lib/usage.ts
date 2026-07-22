@@ -24,7 +24,8 @@ export type UsageScope =
   | "batch_intent"
   | "rag_embed"
   | "eval_target"
-  | "eval_judge";
+  | "eval_judge"
+  | "quality_judge";
 
 type RawUsage = {
   promptTokens?: number;
@@ -382,6 +383,7 @@ export const USAGE_SCOPES: UsageScope[] = [
   "rag_embed",
   "eval_target",
   "eval_judge",
+  "quality_judge",
 ];
 
 export type UsageRow = {

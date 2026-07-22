@@ -19,6 +19,11 @@ import {
 import { getServerClient } from "@/lib/supabase";
 import { type Target, getTarget } from "@/lib/targets";
 import { recordUsage } from "@/lib/usage";
+import {
+  judgeSimulationQuality,
+  pickJudgeModel,
+  type EvalScores,
+} from "@/lib/eval";
 
 /**
  * Experimento: Test de claridad de 5 segundos.
@@ -84,6 +89,20 @@ export type FiveSecondResponse = {
   comprehension_rate: number | null;
   barriers_detected: string[];
   behavior_class: "optima" | "fuga" | "repesca" | null;
+  /** Puntuación del juez de calidad (solo en las respuestas muestreadas). */
+  quality?: EvalScores | null;
+  /** Modelo juez que puntuó esta respuesta, si se muestreó. */
+  qualityJudge?: string | null;
+};
+
+export type QualitySummary = {
+  n: number;
+  judge: string | null;
+  role_fidelity: number;
+  grounding: number;
+  non_sycophancy: number;
+  naturalness: number;
+  overall: number;
 };
 
 export type FiveSecondSummary = {
@@ -92,6 +111,8 @@ export type FiveSecondSummary = {
   mean_comprehension: number | null;
   top_barriers: { label: string; count: number }[];
   behavior_counts: { optima: number; fuga: number; repesca: number };
+  /** Calidad de la simulación juzgada por un modelo independiente (o null). */
+  quality: QualitySummary | null;
 };
 
 // ============================================================
@@ -271,6 +292,14 @@ export async function runFiveSecondTest(
       unit: "count",
     });
 
+    // Juez de calidad independiente sobre una MUESTRA de respuestas (acota
+    // coste). Best-effort: si falla, el run se cierra igual sin puntuación.
+    await runQualitySample(run.id, responses, profiles, target, runsModel).catch(
+      (err) => {
+        console.warn("[quality 5s] muestra omitida:", (err as Error).message);
+      },
+    );
+
     await markRunFinished(run.id, "done");
     return { runId: run.id, summary };
   } catch (err) {
@@ -371,6 +400,123 @@ async function probeOne(
 }
 
 // ============================================================
+// Juez de calidad (muestra por run)
+// ============================================================
+
+/** Cuántas respuestas se juzgan por run (acota coste del juez independiente). */
+const QUALITY_SAMPLE = 5;
+
+/**
+ * Puntúa la calidad de simulación de una muestra de respuestas con un juez de
+ * otra familia de modelo, guarda la nota en el `meta` de esas filas y agrega
+ * las medias como métricas del run. La calidad pasa así a ser parte del
+ * resultado del test, no solo del banco de pruebas de `/evaluacion`.
+ */
+async function runQualitySample(
+  runId: string,
+  responses: FiveSecondResponse[],
+  profiles: Profile[],
+  target: Target,
+  targetModel: string,
+): Promise<void> {
+  if (responses.length === 0) return;
+  const judgeModel = pickJudgeModel(targetModel);
+  const profilesById = new Map(profiles.map((p) => [p.id, p]));
+  const sample = evenSample(responses, QUALITY_SAMPLE);
+  const stimulus = describeStimulus(target);
+  const supa = getServerClient();
+
+  // Leemos el meta actual de las filas muestreadas para fusionar sin pisarlo.
+  const sampleIds = sample.map((r) => r.profileId);
+  const { data: metaRows } = await supa
+    .from("five_second_responses")
+    .select("profile_id, meta")
+    .eq("run_id", runId)
+    .in("profile_id", sampleIds);
+  const metaById = new Map<string, Record<string, unknown>>(
+    (metaRows ?? []).map((r) => [
+      r.profile_id as string,
+      (r.meta as Record<string, unknown> | null) ?? {},
+    ]),
+  );
+
+  const scored: EvalScores[] = [];
+  for (const r of sample) {
+    const profile = profilesById.get(r.profileId);
+    if (!profile) continue;
+    let scores: EvalScores;
+    try {
+      scores = await judgeSimulationQuality({
+        profile,
+        stimulus,
+        response: `Recuerdo tras 5 s: ${r.recall}\nOferta que cree que le hacen: ${r.perceived_offer}`,
+        judgeModel,
+        runId,
+        scope: "quality_judge",
+        meta: { profile_id: r.profileId, kind: "5s_test", judge: judgeModel },
+      });
+    } catch (err) {
+      console.warn(
+        "[quality 5s] juez falló para",
+        r.profileId,
+        (err as Error).message,
+      );
+      continue;
+    }
+    scored.push(scores);
+    const prevMeta = metaById.get(r.profileId) ?? {};
+    await supa
+      .from("five_second_responses")
+      .update({ meta: { ...prevMeta, quality: scores, quality_judge: judgeModel } })
+      .eq("run_id", runId)
+      .eq("profile_id", r.profileId);
+  }
+
+  if (scored.length === 0) return;
+  const meanOf = (k: keyof EvalScores) =>
+    scored.reduce((s, x) => s + (x[k] as number), 0) / scored.length;
+  const metrics: [string, number][] = [
+    ["quality_overall", meanOf("overall")],
+    ["quality_role_fidelity", meanOf("role_fidelity")],
+    ["quality_grounding", meanOf("grounding")],
+    ["quality_non_sycophancy", meanOf("non_sycophancy")],
+    ["quality_naturalness", meanOf("naturalness")],
+  ];
+  for (const [key, value] of metrics) {
+    await upsertMetric({ run_id: runId, key, value, unit: "0..1" });
+  }
+  await upsertMetric({
+    run_id: runId,
+    key: "quality_n",
+    value: scored.length,
+    unit: "count",
+  });
+}
+
+/** Describe al juez qué vio el perfil y qué debe valorar en su recuerdo. */
+function describeStimulus(target: Target): string {
+  const promise =
+    target.payload.kind === "5s_test" ? target.payload.main_promise : "";
+  return [
+    "El perfil vio durante 5 segundos una pantalla (landing o anuncio) y luego se le ocultó.",
+    promise ? `La promesa principal declarada de esa pantalla era: «${promise}».` : "",
+    "Se le pidió que dijera, en su propia voz, qué recuerda y qué cree que le ofrece.",
+    "Valora si su recuerdo suena a ESTA persona (anclaje), si mantiene su escepticismo en vez de repetir el reclamo de marketing (no complacencia) y si es natural. La fidelidad de rol aquí es no sonar a IA ni a copy publicitario.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+/** Muestra uniformemente repartida a lo largo del array (cubre la distribución). */
+function evenSample<T>(arr: T[], n: number): T[] {
+  if (arr.length <= n) return arr;
+  const step = arr.length / n;
+  const out: T[] = [];
+  for (let i = 0; i < n; i++) out.push(arr[Math.floor(i * step)]);
+  return out;
+}
+
+// ============================================================
 // Utilidades
 // ============================================================
 
@@ -410,6 +556,26 @@ function summarize(responses: FiveSecondResponse[]): FiveSecondSummary {
     mean_comprehension: meanComp,
     top_barriers: topBarriers,
     behavior_counts,
+    quality: aggregateQuality(responses),
+  };
+}
+
+/** Media de las dimensiones del juez sobre las respuestas muestreadas. */
+function aggregateQuality(responses: FiveSecondResponse[]): QualitySummary | null {
+  const scored = responses.filter(
+    (r): r is FiveSecondResponse & { quality: EvalScores } => Boolean(r.quality),
+  );
+  if (scored.length === 0) return null;
+  const mean = (k: keyof EvalScores) =>
+    scored.reduce((s, r) => s + (r.quality[k] as number), 0) / scored.length;
+  return {
+    n: scored.length,
+    judge: scored.find((r) => r.qualityJudge)?.qualityJudge ?? null,
+    role_fidelity: mean("role_fidelity"),
+    grounding: mean("grounding"),
+    non_sycophancy: mean("non_sycophancy"),
+    naturalness: mean("naturalness"),
+    overall: mean("overall"),
   };
 }
 
@@ -431,15 +597,21 @@ export async function listFiveSecondResponses(
     .eq("run_id", runId)
     .order("clarity", { ascending: false });
   if (error) throw new Error(error.message);
-  return (data ?? []).map((r) => ({
-    profileId: r.profile_id as string,
-    recall: r.recall as string,
-    perceived_offer: r.perceived_offer as string,
-    clarity: r.clarity as number,
-    comprehension_rate: (r.comprehension_rate as number | null) ?? null,
-    barriers_detected: (r.barriers_detected as string[]) ?? [],
-    behavior_class: (r.behavior_class as "optima" | "fuga" | "repesca" | null) ?? null,
-  }));
+  return (data ?? []).map((r) => {
+    const meta = (r.meta as Record<string, unknown> | null) ?? {};
+    return {
+      profileId: r.profile_id as string,
+      recall: r.recall as string,
+      perceived_offer: r.perceived_offer as string,
+      clarity: r.clarity as number,
+      comprehension_rate: (r.comprehension_rate as number | null) ?? null,
+      barriers_detected: (r.barriers_detected as string[]) ?? [],
+      behavior_class:
+        (r.behavior_class as "optima" | "fuga" | "repesca" | null) ?? null,
+      quality: (meta.quality as EvalScores | undefined) ?? null,
+      qualityJudge: (meta.quality_judge as string | undefined) ?? null,
+    };
+  });
 }
 
 export function summarizeResponses(
@@ -452,6 +624,7 @@ export function summarizeResponses(
       mean_comprehension: null,
       top_barriers: [],
       behavior_counts: { optima: 0, fuga: 0, repesca: 0 },
+      quality: null,
     };
   }
   return summarize(responses);

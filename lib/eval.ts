@@ -3,7 +3,7 @@ import { z } from "zod";
 import { buildSystemPrompt } from "@/lib/prompts";
 import type { Profile } from "@/lib/profiles";
 import { getServerClient, isSupabaseConfigured } from "@/lib/supabase";
-import { recordUsage } from "@/lib/usage";
+import { recordUsage, type UsageScope } from "@/lib/usage";
 import { APP_VERSION } from "@/lib/version";
 
 /**
@@ -371,6 +371,63 @@ export async function runEvalForModel(
       overall: mean("overall"),
     },
   };
+}
+
+// ============================================================
+// Juez de calidad reutilizable (para los tests por lotes)
+// ============================================================
+
+/**
+ * Elige un juez de OTRA familia que el modelo objetivo, para no juzgar a un
+ * modelo consigo mismo (circularidad, PERFILES-CALIBRADOS §8.1). Los targets de
+ * la app son Anthropic por defecto, así que el juez por defecto es OpenAI; si el
+ * target fuese OpenAI, cae a Anthropic.
+ */
+export function pickJudgeModel(targetModel: string): string {
+  return targetModel.startsWith("openai/")
+    ? "anthropic/claude-sonnet-4.6"
+    : DEFAULT_JUDGE_MODEL;
+}
+
+/**
+ * Puntúa la CALIDAD de una respuesta simulada arbitraria (no un caso del golden
+ * set): recibe el perfil real que se encarnaba, el estímulo que vio y la
+ * respuesta que generó, y devuelve las mismas dimensiones que el banco de
+ * pruebas (fidelidad de rol, anclaje, no complacencia, naturalidad). Sirve para
+ * llevar el juez independiente dentro de los runners por lotes (5s, campañas…).
+ */
+export async function judgeSimulationQuality(args: {
+  profile: EvalProfile;
+  stimulus: string;
+  response: string;
+  judgeModel: string;
+  runId?: string;
+  scope?: UsageScope;
+  meta?: Record<string, unknown>;
+}): Promise<EvalScores> {
+  const { object, usage } = await generateObject({
+    model: args.judgeModel,
+    schema: JudgeSchema,
+    system: JUDGE_SYSTEM,
+    messages: [
+      {
+        role: "user",
+        content: [
+          `## Perfil que debía encarnar\n${profileSummary(args.profile)}`,
+          `## Estímulo presentado\n${args.stimulus}`,
+          `## Respuesta generada (a evaluar)\n${args.response}`,
+        ].join("\n\n"),
+      },
+    ],
+  });
+  await recordUsage({
+    runId: args.runId,
+    scope: args.scope ?? "quality_judge",
+    model: args.judgeModel,
+    usage,
+    meta: args.meta,
+  });
+  return object;
 }
 
 // ============================================================

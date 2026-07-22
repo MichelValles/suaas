@@ -2,6 +2,14 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.73.0] · 2026-07-22
+
+El juez de calidad entra en los tests por lotes (Fase 2).
+
+### Added
+
+- **Calidad de la simulación en el run de Claridad 5s**: al terminar un test, un **juez independiente** (de otra familia de modelo que el objetivo: OpenAI si el target es Anthropic) puntúa una **muestra** de respuestas (hasta 5, repartidas por la distribución para acotar coste) en fidelidad de rol, anclaje en el perfil, no complacencia y naturalidad. La calidad deja de vivir solo en el banco de pruebas de `/evaluacion` y pasa a ser **parte del resultado del test**: la vista del run muestra un panel «Calidad de la simulación» con las medias y, en el detalle de cada respuesta muestreada, la nota y el veredicto del juez. Se guarda como métricas del run (`quality_*`) y en el `meta` de las respuestas; el coste se registra bajo el scope `quality_judge` (visible en `/tokens`).
+
 ## [0.72.2] · 2026-07-22
 
 ### Fixed

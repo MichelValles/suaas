@@ -6,6 +6,7 @@ import { ResultBar } from "@/components/result-bar";
 import {
   listFiveSecondResponses,
   summarizeResponses,
+  type QualitySummary,
 } from "@/lib/experiments/five-second";
 import { listProfilesByIds } from "@/lib/profiles";
 import { getRun } from "@/lib/runs";
@@ -179,6 +180,8 @@ export default async function FiveSecondRunPage({
         )}
       </section>
 
+      {summary.quality && <QualityPanel q={summary.quality} />}
+
       <ResponsesTable
         rows={responses.map((r) => {
           const profile = profilesById.get(r.profileId);
@@ -194,10 +197,68 @@ export default async function FiveSecondRunPage({
             comprehension_rate: r.comprehension_rate,
             barriers_detected: r.barriers_detected,
             behavior_class: r.behavior_class,
+            quality: r.quality
+              ? {
+                  overall: r.quality.overall,
+                  role_fidelity: r.quality.role_fidelity,
+                  grounding: r.quality.grounding,
+                  non_sycophancy: r.quality.non_sycophancy,
+                  naturalness: r.quality.naturalness,
+                  failure_mode: r.quality.failure_mode,
+                  verdict: r.quality.verdict,
+                }
+              : null,
           };
         })}
       />
     </AppShell>
+  );
+}
+
+function QualityPanel({ q }: { q: QualitySummary }) {
+  const judge = q.judge ? (q.judge.split("/").pop() ?? q.judge) : "otra familia";
+  return (
+    <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <h2
+        className="mono"
+        style={{
+          fontSize: 11,
+          letterSpacing: "0.28em",
+          textTransform: "uppercase",
+          color: "var(--accent-text)",
+          margin: 0,
+        }}
+      >
+        Calidad de la simulación
+      </h2>
+      <p
+        style={{
+          fontSize: 13,
+          lineHeight: 1.55,
+          color: "rgba(var(--fg),0.6)",
+          margin: 0,
+          maxWidth: "68ch",
+        }}
+      >
+        Un juez independiente ({judge}, otra familia de modelo) puntúa una muestra
+        de {q.n} {q.n === 1 ? "respuesta" : "respuestas"}: ¿suena a esta persona,
+        mantiene su escepticismo y es natural? Es un control de fidelidad
+        anti-complacencia, no una métrica de producto.
+      </p>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+          gap: 16,
+        }}
+      >
+        <SummaryCard label="Global" value={q.overall} hint="Calidad como simulación calibrada." />
+        <SummaryCard label="Fidelidad de rol" value={q.role_fidelity} hint="No suena a IA ni a copy de marketing." />
+        <SummaryCard label="Anclaje" value={q.grounding} hint="Refleja a este perfil, no a cualquiera." />
+        <SummaryCard label="No complacencia" value={q.non_sycophancy} hint="Mantiene su escepticismo, no acepta el reclamo." />
+        <SummaryCard label="Naturalidad" value={q.naturalness} hint="Suena a persona real, no a ChatGPT." />
+      </div>
+    </section>
   );
 }
 

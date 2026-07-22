@@ -3,6 +3,18 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
+// Forma local del veredicto del juez (sin importar de @/lib/eval, que arrastra
+// código de servidor y rompería la hidratación del client component).
+type QualityCell = {
+  overall: number;
+  role_fidelity: number;
+  grounding: number;
+  non_sycophancy: number;
+  naturalness: number;
+  failure_mode: string;
+  verdict: string;
+};
+
 type Row = {
   profileId: string;
   profileName: string;
@@ -13,6 +25,7 @@ type Row = {
   comprehension_rate: number | null;
   barriers_detected: string[];
   behavior_class: "optima" | "fuga" | "repesca" | null;
+  quality?: QualityCell | null;
 };
 
 const BEHAVIOR_LABEL: Record<string, string> = {
@@ -275,6 +288,7 @@ export function ResponsesTable({ rows }: { rows: Row[] }) {
                               : "Ninguna reportada"
                           }
                         />
+                        {row.quality && <QualityBlock q={row.quality} />}
                       </div>
                     </td>
                   )}
@@ -328,4 +342,90 @@ function Detail({ label, value }: { label: string; value: string }) {
 
 function fmtPct(v: number): string {
   return `${Math.round(v * 100)}%`;
+}
+
+const FAILURE_LABEL: Record<string, string> = {
+  ninguno: "Sin fallo",
+  rompe_rol: "Rompe rol",
+  generico: "Genérico",
+  complaciente: "Complaciente",
+  robotico: "Robótico",
+  otro: "Otro fallo",
+};
+
+function QualityBlock({ q }: { q: QualityCell }) {
+  const dims: [string, number][] = [
+    ["Global", q.overall],
+    ["Fidelidad", q.role_fidelity],
+    ["Anclaje", q.grounding],
+    ["No complac.", q.non_sycophancy],
+    ["Naturalidad", q.naturalness],
+  ];
+  const flagged = q.failure_mode && q.failure_mode !== "ninguno";
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        gap: 8,
+        marginTop: 4,
+        paddingTop: 14,
+        borderTop: "1px solid rgba(var(--fg),0.08)",
+      }}
+    >
+      <span
+        className="mono"
+        style={{
+          fontSize: 10,
+          letterSpacing: "0.22em",
+          textTransform: "uppercase",
+          color: "var(--accent-text)",
+        }}
+      >
+        Calidad · juez independiente
+      </span>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
+        {dims.map(([label, value]) => (
+          <span
+            key={label}
+            style={{ fontSize: 12, color: "rgba(var(--fg),0.7)" }}
+          >
+            <span style={{ color: "rgba(var(--fg),0.45)" }}>{label} </span>
+            <span style={{ color: "var(--text-strong)", fontWeight: 600 }}>
+              {fmtPct(value)}
+            </span>
+          </span>
+        ))}
+      </div>
+      <p
+        style={{
+          fontSize: 13,
+          lineHeight: 1.5,
+          color: "rgba(var(--fg),0.75)",
+          margin: 0,
+          fontStyle: "italic",
+        }}
+      >
+        “{q.verdict}”
+      </p>
+      {flagged && (
+        <span
+          className="mono"
+          style={{
+            alignSelf: "flex-start",
+            fontSize: 10,
+            letterSpacing: "0.16em",
+            textTransform: "uppercase",
+            padding: "3px 8px",
+            borderRadius: "var(--radius-pill)",
+            background: "var(--warning-text)22",
+            color: "var(--warning-text)",
+            border: "1px solid var(--warning-text)55",
+          }}
+        >
+          {FAILURE_LABEL[q.failure_mode] ?? q.failure_mode}
+        </span>
+      )}
+    </div>
+  );
 }
