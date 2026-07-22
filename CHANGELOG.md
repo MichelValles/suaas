@@ -10,6 +10,7 @@ Perfiles: origen visible en la rejilla y cliente de optimización.
 
 - **Origen del perfil en la rejilla**: icono de estrellas (accent) para los perfiles modelados para un cliente y de formulario (tenue) para los perfiles base, con el cliente en el tooltip al pasar el ratón.
 - **Cliente de optimización del perfil** (`optimized_for`): se elige en el editor (alta y edición) y en la ficha con edición inline, con sugerencias de las marcas ya usadas en la app (Cerebro y GEO: IVI, SegurCaixa Adeslas Dental, O2 Spain…). Nueva columna en `profiles` (migración `0030`).
+- **Los perfiles de clientes ya vienen etiquetados**: 3 modelados para **SegurCaixa Adeslas Dental** y 15 para **IVI** (identificados por el tema de su backstory: dental vs. fertilidad); el resto quedan como perfiles base del formulario, editables para asignarles cliente cuando toque.
 
 ## [0.67.3] · 2026-07-22
 
