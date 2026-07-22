@@ -49,11 +49,9 @@ app/
   diag/
     page.tsx                            Estado visual del esquema (audita tablas + columnas críticas de varias tablas, cada una con su migración asociada)
   tokens/
-    page.tsx                            Créditos del AI Gateway + acumulado interno por modelo/scope + serie 7d
-  observabilidad/
-    page.tsx                            Inspector por llamada de gateway_usage (fecha, scope, modelo, tokens, coste USD real, latencia, ok/fallo); filtrable y paginado (listUsageRows en lib/usage.ts). v0.69
+    page.tsx                            Créditos del AI Gateway + acumulado por modelo/scope + serie 7d + coste real USD + inspector por llamada de gateway_usage (usage-inspector.tsx sobre /api/usage/rows, filtrable y paginado). v0.71
   evaluacion/
-    page.tsx / evaluacion-client.tsx    Evaluación de calidad de salidas: golden set (lib/eval.ts) generado por el modelo objetivo y puntuado por un juez de otra familia (POST /api/eval/run). Compara modelos. v0.70
+    page.tsx / evaluacion-client.tsx    Evaluación de calidad de salidas: golden set (lib/eval.ts) generado por el modelo objetivo y puntuado por un juez de otra familia (POST /api/eval/run), persistida en la tabla evals con historial. Compara modelos. v0.70-0.71
   trash/
     page.tsx                            Papelera: lista soft-deleted con acciones restore / hard delete
     trash-row.tsx                       Client: cada fila con sus botones de acción
@@ -342,7 +340,8 @@ RLS activada sin policies en las tablas sensibles (bloquea `anon` y `authenticat
 | `funnels` | `name`, `description`, `deleted_at`. |
 | `funnel_steps` | `funnel_id`, `position` (único), `name`, `intent`, `payload jsonb {kind:"url", image_url, source_url?}`. |
 | `funnel_step_responses` | `(run_id, profile_id, step_id)` único. `position`, `perception`, `intent_match`, `effort`, `friction text[]`, `would_continue`, `reasoning`, `meta`. Sólo filas para pasos evaluados (dropoff corta). |
-| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy (unión `UsageScope` en `lib/usage.ts`): `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `campaign_judge`, `campaign_synthesis`, `onboard_synthesize`, `profile_avatar` (retratos: coste por imagen en `meta.est_usd`, sin tokens), `geo_probe` (sondas reales: el `model` es el del motor elegido en `/tokens`), `geo_analysis`, `momentum_probe`, `seed_brief`, `seed_profile` (generación de perfiles en lote), `batch_intent` (JTBD en lote) y `rag_embed` (embeddings del RAG de Cerebro). |
+| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy (unión `UsageScope` en `lib/usage.ts`): `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `campaign_judge`, `campaign_synthesis`, `onboard_synthesize`, `profile_avatar` (retratos: coste por imagen en `meta.est_usd`, sin tokens), `geo_probe` (sondas reales: el `model` es el del motor elegido en `/tokens`), `geo_analysis`, `momentum_probe`, `seed_brief`, `seed_profile` (generación de perfiles en lote), `batch_intent` (JTBD en lote), `rag_embed` (embeddings del RAG de Cerebro) y `eval_target`/`eval_judge` (harness de evaluación de calidad, v0.70). |
+| `evals` | Historial de evaluaciones de calidad (v0.71, migración 0031, con RLS). Una fila por (ejecución, modelo): `app_version`, `model`, `judge`, `n_cases`, agregados `role_fidelity`/`grounding`/`non_sycophancy`/`naturalness`/`overall` (real) y `cases` jsonb con el detalle por caso. Alimenta el historial de `/evaluacion`. |
 | `ab_tests` | `target_a_id` ≠ `target_b_id` (check). `hypothesis`. `deleted_at`. |
 | `ab_test_runs` | Vincula `(ab_test_id, run_id, variant 'A'|'B')`. Unique. |
 | `copy_decks` + `copy_blocks` + `copy_responses` | Deck con 2..10 bloques. Reacción `(run, profile, block)` con sentiment/clarity/persuasion/would_click/critique. |
@@ -387,8 +386,9 @@ RLS activada sin policies en las tablas sensibles (bloquea `anon` y `authenticat
 28. `0028_metrics_unique.sql` (v0.62: dedupe de `metrics` + índice único `(run_id, key)` para el upsert atómico; debe aplicarse antes de desplegar el código del upsert)
 29. `0029_rag_cerebro.sql` (v0.63: RAG de Cerebro; extensión `vector`, tabla `brand_document_chunks` con `embedding vector(1536)` e índice HNSW, función `match_brand_chunks`, `brand_id` en `geo_analyses` y `momentum_challenges`)
 30. `0030_profile_optimized_for.sql` (v0.68: `profiles.optimized_for` para el cliente/marca de optimización del perfil)
+31. `0031_evals.sql` (v0.71: tabla `evals`, historial de evaluaciones de calidad de salidas, con RLS)
 
-Las 30 constan aplicadas en `suaas_migrations` (las 20 primeras el 2026-06-11; la 0021 y la 0022 el 2026-06-12 vía SQL editor; la 0023 a la 0030 vía MCP de Supabase con `apply_migration`). Para futuras migraciones: el MCP de Supabase del proyecto (`.mcp.json`, OAuth) está operativo y permite `apply_migration`/`execute_sql`; también existe `scripts/apply-tiktok-setup.mjs` como referencia del patrón con `pg` (necesita `POSTGRES_URL_NON_POOLING` en `.env.local`, que Vercel exporta vacía por ser sensitive). Convención desde la 0019: cada migración nueva inserta su propia fila al final. Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado (sección «Tracking de migraciones» y campo `migrations_tracking`); el campo `pending_migrations` del JSON de `/api/diag` es el atajo para saber qué archivos `.sql` faltan por aplicar.
+Las 31 constan aplicadas en `suaas_migrations` (las 20 primeras el 2026-06-11; la 0021 y la 0022 el 2026-06-12 vía SQL editor; la 0023 a la 0031 vía MCP de Supabase con `apply_migration`). Para futuras migraciones: el MCP de Supabase del proyecto (`.mcp.json`, OAuth) está operativo y permite `apply_migration`/`execute_sql`; también existe `scripts/apply-tiktok-setup.mjs` como referencia del patrón con `pg` (necesita `POSTGRES_URL_NON_POOLING` en `.env.local`, que Vercel exporta vacía por ser sensitive). Convención desde la 0019: cada migración nueva inserta su propia fila al final. Tras cada `ALTER`, ejecutar `NOTIFY pgrst, 'reload schema';` en el SQL editor o esperar a que PostgREST refresque solo (lo hace cada ~10 min). `/diag` y `/api/diag` auditan el estado (sección «Tracking de migraciones» y campo `migrations_tracking`); el campo `pending_migrations` del JSON de `/api/diag` es el atajo para saber qué archivos `.sql` faltan por aplicar.
 
 ## Módulo Campañas (Paid Ads): detalle
 

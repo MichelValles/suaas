@@ -2,6 +2,18 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.71.0] · 2026-07-22
+
+Evaluaciones persistidas y observabilidad integrada en Tokens.
+
+### Added
+
+- **Historial de evaluaciones** (tabla `evals`): cada evaluación de calidad se guarda con la versión de la app, el modelo, el juez y las notas, y `/evaluacion` muestra el historial para comparar modelos y ver regresiones entre versiones.
+
+### Changed
+
+- **La observabilidad (inspector por llamada) pasa a vivir dentro de `/tokens`**, como apartado propio con filtros y paginación, junto a un nuevo KPI de coste real acumulado en USD. La ruta `/observabilidad` deja de existir (y su ítem del sidebar); la evaluación de calidad sigue en `/evaluacion`, enlazada desde Tokens.
+
 ## [0.70.0] · 2026-07-22
 
 Observabilidad, Fase 2: evaluación de calidad de las salidas del modelo.

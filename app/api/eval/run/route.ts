@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import {
   DEFAULT_JUDGE_MODEL,
   runEvalForModel,
+  saveEval,
   type EvalModelResult,
 } from "@/lib/eval";
 import { isGatewayConfigured } from "@/lib/gateway";
@@ -49,7 +50,9 @@ export async function POST(req: Request) {
 
     const results: EvalModelResult[] = [];
     for (const target of targets) {
-      results.push(await runEvalForModel(target, judge));
+      const result = await runEvalForModel(target, judge);
+      await saveEval(result, judge);
+      results.push(result);
     }
     return NextResponse.json({ judge, results });
   } catch (e) {

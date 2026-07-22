@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 // Solo tipos de @/lib/eval (se borran en compilación): importar un valor
 // runtime de ahí arrastraría código de servidor (ai, recordUsage → supabase)
@@ -44,6 +45,7 @@ export function EvaluacionClient({ defaultTarget }: { defaultTarget: string }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<ApiResponse | null>(null);
+  const router = useRouter();
 
   async function run() {
     setLoading(true);
@@ -59,6 +61,7 @@ export function EvaluacionClient({ defaultTarget }: { defaultTarget: string }) {
       const json = (await res.json()) as ApiResponse & { error?: string };
       if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
       setData(json);
+      router.refresh(); // refresca el historial de evaluaciones (server)
     } catch (e) {
       setError((e as Error).message);
     } finally {

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import {
   CHAT_MODEL_CATALOG,
@@ -6,14 +7,16 @@ import {
 } from "@/lib/chat-models";
 import { estimateManyUsd, partsForKind } from "@/lib/estimate";
 import { GEO_ENGINE_CATALOG, getGeoEngineModels } from "@/lib/geo-engines";
+import { usdForTokens } from "@/lib/model-pricing";
 import { settingsTableReady } from "@/lib/settings";
-import { getGatewayCredits, getUsageSummary } from "@/lib/usage";
+import { getGatewayCredits, getUsageSummary, USAGE_SCOPES } from "@/lib/usage";
 import {
   ChatModelSettings,
   RunsModelCostTable,
   RunsModelSettings,
 } from "./chat-models";
 import { GeoModelSettings } from "./geo-models";
+import { UsageInspector } from "./usage-inspector";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +41,11 @@ export default async function TokensPage() {
         partsForKind("momentum", { profiles: n, runsModel }),
       ]),
     ),
+  );
+
+  const totalUsd = summary.byModel.reduce(
+    (s, b) => s + usdForTokens(b.key, b.prompt, b.completion),
+    0,
   );
 
   const balanceStr =
@@ -98,6 +106,12 @@ export default async function TokensPage() {
                 : "Sin llamadas registradas todavía."
             }
             tone={summary.total.calls > 0 ? "accent" : "off"}
+          />
+          <BigKpi
+            label="Coste real acumulado (USD)"
+            value={formatUsd(totalUsd)}
+            hint="Tokens registrados × tarifa de cada modelo. Calculado al vuelo, no persistido."
+            tone={totalUsd > 0 ? "accent" : "off"}
           />
         </section>
 
@@ -214,6 +228,27 @@ export default async function TokensPage() {
           ) : (
             <DayBars rows={summary.last7d} />
           )}
+        </section>
+
+        {/* Observabilidad: inspector por llamada */}
+        <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <SectionLabel>Observabilidad · inspector por llamada</SectionLabel>
+          <p style={{ margin: 0, fontSize: 13, color: "rgba(var(--fg),0.6)", lineHeight: 1.6 }}>
+            Cada llamada individual al AI Gateway con su coste, latencia y estado
+            (los apartados de arriba son agregados). Para evaluar la CALIDAD de
+            las salidas del modelo, ve a{" "}
+            <Link
+              href="/evaluacion"
+              style={{ color: "var(--accent-text)", textDecoration: "underline" }}
+            >
+              Evaluación de calidad
+            </Link>
+            .
+          </p>
+          <UsageInspector
+            modelOptions={summary.byModel.map((b) => b.key)}
+            scopeOptions={[...USAGE_SCOPES]}
+          />
         </section>
 
         {/* Footer notice */}

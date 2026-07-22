@@ -2,7 +2,9 @@ import { generateObject, generateText } from "ai";
 import { z } from "zod";
 import { buildSystemPrompt } from "@/lib/prompts";
 import type { Profile } from "@/lib/profiles";
+import { getServerClient, isSupabaseConfigured } from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
+import { APP_VERSION } from "@/lib/version";
 
 /**
  * Harness de evaluación de calidad de salidas (Fase 2 de observabilidad).
@@ -376,4 +378,65 @@ export async function runEvalForModel(
       overall: mean("overall"),
     },
   };
+}
+
+// ============================================================
+// Persistencia (tabla evals, migración 0031)
+// ============================================================
+
+/** Guarda una ejecución de eval (una fila por modelo). Best-effort. */
+export async function saveEval(
+  result: EvalModelResult,
+  judge: string,
+): Promise<void> {
+  if (!isSupabaseConfigured()) return;
+  try {
+    const supa = getServerClient();
+    await supa.from("evals").insert({
+      app_version: APP_VERSION,
+      model: result.model,
+      judge,
+      n_cases: result.cases.length,
+      role_fidelity: result.aggregate.role_fidelity,
+      grounding: result.aggregate.grounding,
+      non_sycophancy: result.aggregate.non_sycophancy,
+      naturalness: result.aggregate.naturalness,
+      overall: result.aggregate.overall,
+      cases: result.cases,
+    });
+  } catch (err) {
+    console.warn("[saveEval] insert failed", (err as Error).message);
+  }
+}
+
+export type EvalRow = {
+  id: string;
+  created_at: string;
+  app_version: string | null;
+  model: string;
+  judge: string;
+  n_cases: number;
+  role_fidelity: number | null;
+  grounding: number | null;
+  non_sycophancy: number | null;
+  naturalness: number | null;
+  overall: number | null;
+};
+
+/** Historial de evaluaciones (agregados, sin el detalle por caso). */
+export async function listEvals(limit = 25): Promise<EvalRow[]> {
+  if (!isSupabaseConfigured()) return [];
+  const supa = getServerClient();
+  const { data, error } = await supa
+    .from("evals")
+    .select(
+      "id, created_at, app_version, model, judge, n_cases, role_fidelity, grounding, non_sycophancy, naturalness, overall",
+    )
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.warn("[listEvals] select failed", error.message);
+    return [];
+  }
+  return (data ?? []) as EvalRow[];
 }
