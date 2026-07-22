@@ -2,6 +2,14 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.74.3] · 2026-07-22
+
+Refinamiento de fidelidad (3/5): narrativa de Momentum más natural.
+
+### Changed
+
+- **La narrativa de intención de Momentum deja de sonar a informe**: la tarea enumeraba las dimensiones a cubrir (primeros pasos, canales, barreras, intensidad) y la narrativa las repetía con secciones. Ahora esas dimensiones se recogen en sus campos estructurados (`first_steps`, `channels`, `barriers`, `intensity`/`direction`/`velocity`) y `intent_narrative` pide un relato en primera persona, espontáneo, «como se lo contarías a alguien de confianza», sin enumerar ni analizar. Verificado en producción (run real IVI Preserva ovárica): salidas con muletillas y ancladas en la situación de cada perfil («Pues mira, es algo que llevo rondando desde la ruptura…», «Uf, lo de congelar óvulos me suena bien pero no sé, estoy metida de lleno en intentar quedarme embarazada…»).
+
 ## [0.74.2] · 2026-07-22
 
 Refinamiento de fidelidad (2/5): reacción a campañas más espontánea.

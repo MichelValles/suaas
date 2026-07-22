@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.74.3 · Refinamiento de fidelidad 3/5 · Narrativa de Momentum
+
+- [x] **v0.74.3 · Narrativa de Momentum como relato, no informe**: la tarea de `analyzeProfileMomentum` (`lib/momentum.ts`) enumeraba las dimensiones a cubrir y el `intent_narrative` las repetía con secciones («primero…, segundo…»). Ahora se aclara que el detalle va en los campos estructurados del schema (`first_steps`, `channels`, `barriers`, `intensity`/`direction`/`velocity`) y que `intent_narrative` es un relato en primera persona, espontáneo, «como se lo contarías a alguien de confianza», sin enumerar ni analizar. Verificado en producción (run real IVI): narrativas con muletillas y ancladas en la situación de cada perfil, cero registro de informe. Sin cambio de schema ni UI.
+
 ## v0.74.2 · Refinamiento de fidelidad 2/5 · Reacción a campañas
 
 - [x] **v0.74.2 · Razonamiento de campaña espontáneo**: la instrucción `reasoning` del probe de campañas (`evaluateSnippet` en `lib/experiments/campaign.ts`) pasaba de «qué te llama, qué te frena», que inducía un pro/contra ordenado y un tono analítico («robótico» según el juez de calidad, naturalidad ~0,71 en v0.74.0). Ahora pide una reacción de primer impulso en su voz (una duda suelta, un «ya empezamos», un tirón), «habla, no analices», y `perceived_offer` «sin sonar a folleto». **Medido en producción** (run IVI TikTok, 3 perfiles): naturalidad sube a ~0,79-0,88, el flag «robótico» casi desaparece (4/5 sin fallo) y el anclaje se mantiene (0,80-0,97). Salidas reales mucho más naturales («Ya empezamos: niña mona en el cine, música emocional…», «me detiene el pulgar un segundo»).

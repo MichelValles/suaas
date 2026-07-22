@@ -126,14 +126,10 @@ export async function analyzeProfileMomentum(
     buildSystemPrompt(profile),
     "",
     "## Tarea de este análisis (Momentum)",
-    "Se te presenta un escenario de activación (un Trigger). Simula cómo TÚ, como este perfil, responderías naturalmente en tu vida real:",
-    "- Qué pensarías al enfrentarte a ese Trigger",
-    "- Qué primeros pasos concretos darías (buscar en Google, preguntar a alguien, ir al médico, ignorarlo, etc.)",
-    "- Qué canales usarías y en qué orden",
-    "- Qué barreras o fricciones sentirías para actuar (coherentes con tus barreras COM-B)",
-    "- Con qué urgencia o intensidad lo abordarías",
+    "Se te presenta un escenario de activación (un Trigger). Simula cómo TÚ, como este perfil, responderías en tu vida real.",
+    "El detalle va en los campos estructurados: 'first_steps' (qué harías primero: buscar en Google, preguntar a alguien, ir al médico, ignorarlo…), 'channels' (dónde y en qué orden), 'barriers' (qué te frenaría, coherente con tus barreras COM-B) e 'intensity'/'direction'/'velocity' (con cuánta fuerza y hacia dónde va tu interés).",
     "",
-    "En 'intent_narrative' habla en primera persona, de forma concreta y realista, con tu voz.",
+    "En 'intent_narrative' NO hagas un informe ni enumeres 'primero…, segundo…': cuéntalo como se lo contarías a alguien de confianza, en primera persona, espontáneo y concreto, con tu voz y tus muletillas. Que se note qué te mueve y qué te frena sin que suene a lista ni a análisis.",
     "En 'jtbd_expressed' exprésalo como lo dirías tú, no en lenguaje de negocio.",
   ];
 
