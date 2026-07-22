@@ -54,29 +54,29 @@ export default function OnboardingPage() {
             <SubLabel>Orden de lectura recomendado</SubLabel>
             <ol style={olStyle}>
               <Li>
-                <Doc>PROYECTO.md</Doc>: qué es, stack, modelo de datos.
+                <DocLink slug="PROYECTO">PROYECTO.md</DocLink>: qué es, stack, modelo de datos.
               </Li>
               <Li>
-                <Doc>ARQUITECTURA-CONCEPTUAL.md</Doc>: la síntesis en cuatro
+                <DocLink slug="ARQUITECTURA-CONCEPTUAL">ARQUITECTURA-CONCEPTUAL.md</DocLink>: la síntesis en cuatro
                 preguntas. Puerta de entrada de alto nivel.
               </Li>
               <Li>
-                <Doc>PERFILES-CALIBRADOS.md</Doc>: el motor al detalle, escrito
+                <DocLink slug="PERFILES-CALIBRADOS">PERFILES-CALIBRADOS.md</DocLink>: el motor al detalle, escrito
                 para una audiencia experta. Tu documento de cabecera.
               </Li>
               <Li>
-                <Doc>CONOCIMIENTO-USUARIOS-SINTETICOS.md</Doc>: base teórica y
+                <DocLink slug="CONOCIMIENTO-USUARIOS-SINTETICOS">CONOCIMIENTO-USUARIOS-SINTETICOS.md</DocLink>: base teórica y
                 empírica con las fuentes verificadas.
               </Li>
               <Li>
-                <Doc>GRAVITY-MODEL.md</Doc> y <Doc>GRAVITY-MODEL-IVI.md</Doc>: el
+                <DocLink slug="GRAVITY-MODEL">GRAVITY-MODEL.md</DocLink> y <DocLink slug="GRAVITY-MODEL-IVI">GRAVITY-MODEL-IVI.md</DocLink>: el
                 marco estratégico y su caso real.
               </Li>
               <Li>Este guión, de la sección 06 en adelante: qué validar y cómo.</Li>
             </ol>
             <Note>
               Cuando aquí se cita «§8.1» se refiere a una sección de{" "}
-              <Doc>PERFILES-CALIBRADOS.md</Doc> salvo que se diga otra cosa.
+              <DocLink slug="PERFILES-CALIBRADOS">PERFILES-CALIBRADOS.md</DocLink> salvo que se diga otra cosa.
             </Note>
           </Section>
 
@@ -125,7 +125,7 @@ export default function OnboardingPage() {
             </div>
             <Note>
               Qué se puede afirmar hoy y qué no está en <Doc>§7</Doc> y{" "}
-              <Doc>§9</Doc> de <Doc>PERFILES-CALIBRADOS</Doc>.
+              <Doc>§9</Doc> de <DocLink slug="PERFILES-CALIBRADOS">PERFILES-CALIBRADOS</DocLink>.
             </Note>
           </Section>
 
@@ -162,8 +162,8 @@ export default function OnboardingPage() {
             </div>
             <Note>
               IVI y Adeslas tienen investigación de mercado detrás
-              (<Doc>IVI-PUBLICO-OBJETIVO.md</Doc>,{" "}
-              <Doc>ADESLAS-DENTAL-PUBLICO-OBJETIVO.md</Doc>): son los candidatos
+              (<DocLink slug="IVI-PUBLICO-OBJETIVO">IVI-PUBLICO-OBJETIVO.md</DocLink>,{" "}
+              <DocLink slug="ADESLAS-DENTAL-PUBLICO-OBJETIVO">ADESLAS-DENTAL-PUBLICO-OBJETIVO.md</DocLink>): son los candidatos
               naturales para contrastar contra realidad.
             </Note>
           </Section>
@@ -417,8 +417,8 @@ export default function OnboardingPage() {
           {/* 07 */}
           <Section id="infra" num="07" title="Infraestructura: acceso, datos, lanzamiento">
             <Body>
-              Referencias: <Doc>PROYECTO.md</Doc> (modelo de datos, auth),{" "}
-              <Doc>DESARROLLO.md</Doc> (comandos, deploy), <Doc>Plan-venta.md</Doc>{" "}
+              Referencias: <DocLink slug="PROYECTO">PROYECTO.md</DocLink> (modelo de datos, auth),{" "}
+              <DocLink slug="DESARROLLO">DESARROLLO.md</DocLink> (comandos, deploy), <DocLink slug="Plan-venta">Plan-venta.md</DocLink>{" "}
               (instancias por cliente).
             </Body>
             <SubLabel>Acceso</SubLabel>
@@ -592,22 +592,31 @@ export default function OnboardingPage() {
 
             <SubLabel>Mapa de documentos (docs/)</SubLabel>
             <div style={cardGrid(220)}>
-              <DocGroup title="Alto nivel">
-                ARQUITECTURA-CONCEPTUAL · GRAVITY-MODEL
-              </DocGroup>
-              <DocGroup title="Motor al detalle">
-                PERFILES-CALIBRADOS · CONOCIMIENTO-USUARIOS-SINTETICOS
-              </DocGroup>
-              <DocGroup title="Casos reales">
-                GRAVITY-MODEL-IVI · IVI-PUBLICO-OBJETIVO ·
-                ADESLAS-DENTAL-PUBLICO-OBJETIVO · GEO-PRUEBA-IVI
-              </DocGroup>
-              <DocGroup title="Infra y negocio">
-                PROYECTO · DESARROLLO · Plan-venta · SISTEMA-DISENO
-              </DocGroup>
-              <DocGroup title="Estado">
-                ROADMAP · SIGUIENTE-PASO · AUDITORIA-SEGURIDAD
-              </DocGroup>
+              <DocGroup
+                title="Alto nivel"
+                slugs={["ARQUITECTURA-CONCEPTUAL", "GRAVITY-MODEL"]}
+              />
+              <DocGroup
+                title="Motor al detalle"
+                slugs={["PERFILES-CALIBRADOS", "CONOCIMIENTO-USUARIOS-SINTETICOS"]}
+              />
+              <DocGroup
+                title="Casos reales"
+                slugs={[
+                  "GRAVITY-MODEL-IVI",
+                  "IVI-PUBLICO-OBJETIVO",
+                  "ADESLAS-DENTAL-PUBLICO-OBJETIVO",
+                  "GEO-PRUEBA-IVI",
+                ]}
+              />
+              <DocGroup
+                title="Infra y negocio"
+                slugs={["PROYECTO", "DESARROLLO", "Plan-venta", "SISTEMA-DISENO"]}
+              />
+              <DocGroup
+                title="Estado"
+                slugs={["ROADMAP", "SIGUIENTE-PASO", "AUDITORIA-SEGURIDAD"]}
+              />
             </div>
 
             <SubLabel>Checklist de «listo para juzgar»</SubLabel>
@@ -813,6 +822,31 @@ function Doc({ children }: { children: React.ReactNode }) {
     >
       {children}
     </span>
+  );
+}
+
+/** Referencia a un documento del repo, enlazada al visor `/docs/[slug]`. */
+function DocLink({
+  slug,
+  children,
+}: {
+  slug: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={`/docs/${slug}`}
+      className="mono"
+      style={{
+        fontSize: "0.86em",
+        color: "var(--accent-text)",
+        textDecoration: "none",
+        borderBottom: "1px dotted rgba(var(--fg),0.3)",
+        whiteSpace: "nowrap",
+      }}
+    >
+      {children}
+    </Link>
   );
 }
 
@@ -1063,7 +1097,7 @@ function WeakCard({ title, children }: { title: string; children: React.ReactNod
   );
 }
 
-function DocGroup({ title, children }: { title: string; children: React.ReactNode }) {
+function DocGroup({ title, slugs }: { title: string; slugs: string[] }) {
   return (
     <div style={miniCard}>
       <span
@@ -1072,14 +1106,20 @@ function DocGroup({ title, children }: { title: string; children: React.ReactNod
           fontSize: 10,
           letterSpacing: "0.18em",
           textTransform: "uppercase",
-          color: "rgba(var(--fg),0.5)",
+          color: "var(--text-secondary)",
         }}
       >
         {title}
       </span>
-      <p style={{ ...cardBody, fontFamily: "var(--font-mono)", fontSize: 12 }}>
-        {children}
-      </p>
+      <div
+        style={{ display: "flex", flexWrap: "wrap", gap: "6px 10px", alignItems: "center" }}
+      >
+        {slugs.map((s) => (
+          <DocLink key={s} slug={s}>
+            {s}
+          </DocLink>
+        ))}
+      </div>
     </div>
   );
 }

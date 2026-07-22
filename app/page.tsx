@@ -165,9 +165,9 @@ function Hero() {
             lineHeight: 1.55,
           }}
         >
-          Perfiles grounded con Big Five, COM-B y backstory. Los enfrentamos a
-          pantallas, embudos, copies y precios: devolvemos el vector de intención
-          antes de que el usuario llegue a tu web.
+          Valida la eficacia de un mensaje, una landing, un precio o una campaña
+          antes de comprometer tráfico real. Sabes qué funciona antes de
+          invertir en ello.
         </p>
         <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 4 }}>
           <Link href="/profiles" className="btn-pill solid">

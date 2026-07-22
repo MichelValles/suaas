@@ -182,6 +182,11 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.78.0 · Visor de documentación en la app + hero al valor · 2026-07-23
+
+- [x] **v0.78.0 · Visor de docs** (`/docs` índice + `/docs/[slug]` visor): la documentación viva (`docs/*.md`) se lee dentro de la app con `react-markdown` (componente `Markdown` ya existente, estilos `.markdown`) en vez de ir al repo. Generación **estática** (`generateStaticParams` lee `docs/` en build; `dynamicParams = false`), sin fs en runtime; tras el gate de auth del proxy. Los enlaces internos entre docs se reescriben a `/docs/…`. Las referencias `.md` del onboarding (orden de lectura, mapa de documentos, menciones inline) pasan a `DocLink` → `/docs/[slug]` (28 enlaces); las `§…` siguen como texto. Verificado en producción.
+- [x] **v0.78.0 · Hero de la home al valor**: el subtítulo pasa de liderar con el mecanismo a liderar con el valor («Valida la eficacia … antes de comprometer tráfico real. Sabes qué funciona antes de invertir en ello»), en línea con la redefinición de `v0.77.2`.
+
 ## v0.77.0 · Onboarding del sociólogo, versión visual navegable · 2026-07-23
 
 - [x] **v0.77.0 · Página `/gravity/onboarding`**: versión visual y navegable de `docs/ONBOARDING-SOCIOLOGO.md`. Server component (`app/gravity/onboarding/page.tsx`) con primitivas de presentación (Section, Callout, DataTable, LevelCard, StepCard, RouteCard, PhaseCard, Def) y un índice lateral pegajoso client (`onboarding-nav.tsx`) con scroll-spy. Clases de layout en `globals.css` (`.onboarding-shell`/`.onboarding-aside`/`.onboarding-section`), documentadas en SISTEMA-DISENO. Enlazada con una tarjeta destacada desde `/gravity`.

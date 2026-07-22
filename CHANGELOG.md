@@ -2,6 +2,16 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.78.0] · 2026-07-23
+
+### Added
+
+- **Visor de documentación dentro de la app** (`/docs` y `/docs/[slug]`): la documentación viva del repositorio (`docs/*.md`) se lee dentro de la app, renderizada con los estilos del design system, en vez de tener que ir al repositorio. Índice agrupado por tema en `/docs` y visor por documento. Las referencias `.md` del onboarding (orden de lectura, mapa de documentos y menciones inline) pasan a ser **enlaces** al visor. Los enlaces internos entre docs también navegan dentro del visor. Se genera en build y queda tras el gate de auth.
+
+### Changed
+
+- **Hero de la home alineado con el valor**: el subtítulo deja de liderar con el mecanismo («Perfiles grounded… devolvemos el vector de intención…») y pasa al valor: «Valida la eficacia de un mensaje, una landing, un precio o una campaña antes de comprometer tráfico real. Sabes qué funciona antes de invertir en ello.»
+
 ## [0.77.2] · 2026-07-23
 
 ### Changed
