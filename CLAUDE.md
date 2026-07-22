@@ -12,7 +12,7 @@ Antes de empezar a trabajar, **leer `docs/README.md`** para orientarte. La docum
 - `docs/SISTEMA-DISENO.md` — tokens, componentes, antipatrones, regla de "no Tailwind".
 - `docs/DESARROLLO.md` — comandos, deploy, env vars, troubleshooting.
 - `docs/ROADMAP.md` — qué está hecho, qué falta, decisiones pendientes.
-- `docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md` — base de conocimiento que fundamenta la plataforma (fidelidad grounded, Talker-Reasoner, métricas, riesgos).
+- `docs/BASE-CONOCIMIENTO.md` — base de conocimiento que fundamenta la plataforma (fidelidad grounded, Talker-Reasoner, métricas, riesgos).
 
 **Cada vez que hagas un cambio funcional**, revisa si afecta a algún archivo de `docs/` y **actualízalo en la misma sesión**. Si dudas, actualiza.
 
@@ -45,7 +45,7 @@ Aplica a cualquier texto visible: copy, intros, body, labels, alt, metadatos, me
 
 ### Otras reglas de copy
 
-- El término de producto es **«perfiles calibrados»** (en el onboard, «gemelo digital»). No usar «usuarios sintéticos» en texto visible ni en prompts; queda reservado a la base teórica (`docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md`) y a los registros históricos. El producto se llama **Gravity** (la plataforma interna y la superficie comercial comparten nombre).
+- El término de producto es **«perfiles calibrados»**, presentados como una **evolución del buyer persona** (en el onboard, «gemelo digital»). **No usar «usuarios sintéticos»** en la documentación, el texto visible ni los prompts. El producto se llama **Gravity** (la plataforma interna y la superficie comercial comparten nombre).
 - Castellano con acentos completos. Nunca sustituir diacríticos por ASCII.
 - Comillas tipográficas «…» o "…" en lugar de "…" cuando rodean texto destacado.
 - Números: separador de miles con punto (formato español).

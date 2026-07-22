@@ -1,8 +1,8 @@
 # Gravity Model: base teórica
 
-> **Fuente**: presentación estratégica de Flat 101 (deck «Suas», caso de aplicación: captación de no clientes en banca, ejemplo BBVA) más la síntesis operativa de Gravity. Este documento es la referencia teórica del marco; la base de los agentes que lo ejecutan está en [`CONOCIMIENTO-USUARIOS-SINTETICOS.md`](./CONOCIMIENTO-USUARIOS-SINTETICOS.md) y la anatomía completa del motor de perfiles (con su fundamento académico y sus límites) en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md). El mapa teoría → módulos vive en la sección 8.
+> **Fuente**: presentación estratégica de Flat 101 (deck «Suas», caso de aplicación: captación de no clientes en banca, ejemplo BBVA) más la síntesis operativa de Gravity. Este documento es la referencia teórica del marco; la base de los agentes que lo ejecutan está en [`BASE-CONOCIMIENTO.md`](./BASE-CONOCIMIENTO.md) y la anatomía completa del motor de perfiles (con su fundamento académico y sus límites) en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md). El mapa teoría → módulos vive en la sección 8.
 >
-> **Relación entre los documentos**: los perfiles calibrados (en la literatura, «usuarios sintéticos») son el *motor* (cómo se simula). El Gravity Model es el *marco estratégico* (qué se simula, por qué y en qué plano de la relación marca-usuario actúa cada simulación).
+> **Relación entre los documentos**: los perfiles calibrados (una evolución del buyer persona) son el *motor* (cómo se simula). El Gravity Model es el *marco estratégico* (qué se simula, por qué y en qué plano de la relación marca-usuario actúa cada simulación).
 >
 > **Nomenclatura**: el producto se llama **Gravity**. La superficie comercial (página `/gravity`, landing `/propuesta`, onboard público) y la plataforma comparten nombre; **Gravity Model** nombra el marco teórico que la plataforma implementa.
 
@@ -113,7 +113,7 @@ El lenguaje formal del segmento de intención es el **Job To Be Done**:
 
 ### 4.3 Perfiles comportamentales e instancias
 
-> Nota terminológica: el deck original habla de «agentes sintéticos». En Gravity ese concepto se nombra **perfil comportamental** (y su realización operativa es el **perfil calibrado**); «usuarios sintéticos» queda reservado a la base teórica. Esta sección conserva la idea del deck con el vocabulario del producto.
+> Nota terminológica: el deck original hablaba de «agentes». En Gravity ese concepto se nombra **perfil comportamental**, y su realización operativa es el **perfil calibrado** (una evolución del buyer persona). Esta sección conserva la idea del deck con el vocabulario del producto.
 
 El perfil comportamental es el cerebro de la hipersegmentación:
 
@@ -128,7 +128,7 @@ Ejemplo del deck: perfil comportamental «multibancarizado pasivo» (gestión fr
 
 Segundo ejemplo del deck: perfil «fiel tradicional», con instancias como **la herencia familiar** (nunca eligió, le abrieron la cuenta), **el pensionista analógico** o el que opera como si **«el banco no existe»**. Es a este ejemplo al que pertenece la observación clave: aunque los tres se comportan igual hoy (son fieles, no se mueven), lo que les haría cambiar, lo que les genera confianza y lo que activa su aha moment es radicalmente distinto.
 
-### 4.4 Qué valida el agente sintético antes del lanzamiento
+### 4.4 Qué valida el perfil calibrado antes del lanzamiento
 
 El deck llama a este enfoque **certeza predictiva**: simular antes de lanzar para eliminar la incertidumbre del lanzamiento. Su justificación: los flujos tienen **tramos de concentración de accidentes que se repiten en cada lanzamiento**, siempre en el mismo punto y por la misma razón, porque nadie los simuló antes «desde dentro de la cabeza del usuario». Sobre un flujo (en el deck, el onboarding bancario), el agente lo recorre con su carga cognitiva, su umbral de abandono y su motivación específica, y responde a:
 
@@ -283,7 +283,7 @@ La anatomía completa del perfil, sus fundamentos académicos y sus límites est
 
 | Concepto del modelo | Implementación real | Dónde |
 |---|---|---|
-| Perfiles calibrados grounded | Demografía + Big Five (0..1) + COM-B + backstory + JTBD, serializados por `buildSystemPrompt` (la única función de voz del perfil) con negative prompting anti-complacencia. | `lib/profiles.ts`, `lib/prompts.ts`, base teórica en `CONOCIMIENTO-USUARIOS-SINTETICOS.md` |
+| Perfiles calibrados grounded | Demografía + Big Five (0..1) + COM-B + backstory + JTBD, serializados por `buildSystemPrompt` (la única función de voz del perfil) con negative prompting anti-complacencia. | `lib/profiles.ts`, `lib/prompts.ts`, base teórica en `BASE-CONOCIMIENTO.md` |
 | Talker-Reasoner (Sistema 1/2) | **Solo en el chat 1:1** (Opus planifica, Sonnet habla). Todos los experimentos batch (5s, A/B, embudos, copy, pricing, campañas) son una sola pasada con Sonnet que colapsa deliberación y expresión. | `lib/agents.ts`, `app/api/chat/route.ts` |
 | Fidelidad por módulo | Desde v0.72.3 Momentum usa `buildSystemPrompt` como el resto (antes tenía una persona ad hoc reducida sin Big Five, COM-B ni negative prompts). Los jueces (5s, campañas) van sin persona por diseño (cegado). | `lib/momentum.ts`, `lib/experiments/campaign.ts` |
 

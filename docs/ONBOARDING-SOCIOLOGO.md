@@ -15,7 +15,7 @@ Orden de lectura sugerido (detallado como itinerario en la sección 8):
 1. `docs/PROYECTO.md`: qué es, stack, modelo de datos. 20 minutos.
 2. `docs/ARQUITECTURA-CONCEPTUAL.md`: síntesis en cuatro preguntas (arquitectura, qué computa, estado, diferencial). Es la puerta de entrada de alto nivel.
 3. `docs/PERFILES-CALIBRADOS.md`: el motor al detalle, escrito para una audiencia experta en behavioural economics y sociología. Es tu documento de cabecera.
-4. `docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md`: la base teórica y empírica con las fuentes verificadas y las cifras de validación existentes.
+4. `docs/BASE-CONOCIMIENTO.md`: la base teórica y empírica con las fuentes verificadas y las cifras de validación existentes.
 5. `docs/GRAVITY-MODEL.md` y `docs/GRAVITY-MODEL-IVI.md`: el marco estratégico y su aplicación al caso IVI.
 6. Este documento, sección 6 en adelante: qué vas a validar y cómo.
 
@@ -299,7 +299,7 @@ Cada fase cierra con un documento en `docs/` (misma disciplina que el resto del 
 
 **Mapa de documentos** (todos en `docs/`, índice en `docs/README.md`):
 - Alto nivel: `ARQUITECTURA-CONCEPTUAL.md`, `GRAVITY-MODEL.md`.
-- Motor al detalle: `PERFILES-CALIBRADOS.md` (tu cabecera), `CONOCIMIENTO-USUARIOS-SINTETICOS.md`.
+- Motor al detalle: `PERFILES-CALIBRADOS.md` (tu cabecera), `BASE-CONOCIMIENTO.md`.
 - Casos reales: `GRAVITY-MODEL-IVI.md`, `IVI-PUBLICO-OBJETIVO.md`, `ADESLAS-DENTAL-PUBLICO-OBJETIVO.md`, `GEO-PRUEBA-IVI.md`.
 - Infraestructura y negocio: `PROYECTO.md`, `DESARROLLO.md`, `Plan-venta.md`, `SISTEMA-DISENO.md`.
 - Estado y decisiones: `ROADMAP.md`, `SIGUIENTE-PASO.md`, `AUDITORIA-SEGURIDAD.md`.

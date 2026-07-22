@@ -2,6 +2,12 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.78.1] · 2026-07-23
+
+### Changed
+
+- **Fuera «usuarios sintéticos» de la documentación; «perfiles calibrados» como evolución del buyer persona**: se elimina el término «usuarios sintéticos» de la documentación y se enmarca «perfiles calibrados» como una evolución del buyer persona (de ficha estática a representación que reacciona). Se renombra el doc base `CONOCIMIENTO-USUARIOS-SINTETICOS.md` → `BASE-CONOCIMIENTO.md` (34 referencias al nombre actualizadas) y se reformula su contenido; en las citas académicas se convierten las comillas literales en paráfrasis y se omiten los títulos de papers que contienen el término (conservando autor/año/DOI/arXiv, que los identifican sin falsear). Actualizada la regla de nomenclatura en `CLAUDE.md`. Excepciones conservadas a propósito: la categoría de mercado de competidores en `Plan-venta.md` y las entradas históricas del changelog que documentan renombrados pasados.
+
 ## [0.78.0] · 2026-07-23
 
 ### Added

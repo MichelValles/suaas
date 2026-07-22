@@ -13,7 +13,7 @@ const DOCS_DIR = path.join(process.cwd(), "docs");
 const GROUPS: { title: string; slugs: string[] }[] = [
   { title: "Empieza aquí", slugs: ["README", "ONBOARDING-SOCIOLOGO"] },
   { title: "Alto nivel", slugs: ["ARQUITECTURA-CONCEPTUAL", "GRAVITY-MODEL"] },
-  { title: "Motor de perfiles", slugs: ["PERFILES-CALIBRADOS", "CONOCIMIENTO-USUARIOS-SINTETICOS"] },
+  { title: "Motor de perfiles", slugs: ["PERFILES-CALIBRADOS", "BASE-CONOCIMIENTO"] },
   {
     title: "Casos reales",
     slugs: ["GRAVITY-MODEL-IVI", "IVI-PUBLICO-OBJETIVO", "ADESLAS-DENTAL-PUBLICO-OBJETIVO", "GEO-PRUEBA-IVI"],

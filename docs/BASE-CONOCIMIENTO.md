@@ -1,16 +1,16 @@
-# Base de conocimiento del motor: usuarios sintéticos, perfiles calibrados y su validación
+# Base de conocimiento del motor: perfiles calibrados y su validación
 
-> **Qué es este documento.** La base teórica y empírica del motor de Gravity: qué son los usuarios sintéticos, por qué se construyen como se construyen, con qué fuentes académicas se sostiene cada decisión, cómo un perfil produce una respuesta concreta (trazabilidad atributo → razonamiento → respuesta, con transcripciones reales) y qué defensas de seguridad tiene el sistema, probadas en vivo.
+> **Qué es este documento.** La base teórica y empírica del motor de Gravity: qué son los perfiles calibrados, por qué se construyen como se construyen, con qué fuentes académicas se sostiene cada decisión, cómo un perfil produce una respuesta concreta (trazabilidad atributo → razonamiento → respuesta, con transcripciones reales) y qué defensas de seguridad tiene el sistema, probadas en vivo.
 >
 > **Estado de las fuentes.** Última revisión de fuentes: v0.63.2 (19-jul-2026). En la revisión anterior las cifras y citas de este documento no tenían referencia recuperada. Ahora **todas están rastreadas a su fuente primaria y verificadas**, y donde la atribución original era incorrecta se corrige de forma explícita. Las pruebas de perfil, guardarraíles, anti prompt injection y RAG se ejecutaron contra el sistema real en producción; sus resultados están incluidos literalmente.
 >
-> **Nomenclatura.** El término de producto es **«perfiles calibrados»**; «usuarios sintéticos» es el término académico y se reserva a este documento. La anatomía del perfil en el código, con su fundamento y sus límites por componente, está en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md); el marco estratégico que decide qué se simula está en [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md).
+> **Nomenclatura.** El término del producto es **«perfiles calibrados»**, una **evolución del «buyer persona»**: donde el buyer persona clásico es una ficha estática, el perfil calibrado reacciona. La literatura académica que fundamenta el método usa otros nombres para los agentes de usuario basados en LLM; en toda la documentación de Gravity se emplea siempre «perfiles calibrados». La anatomía del perfil en el código, con su fundamento y sus límites por componente, está en [`PERFILES-CALIBRADOS.md`](./PERFILES-CALIBRADOS.md); el marco estratégico que decide qué se simula está en [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md).
 
 ---
 
 ## Índice
 
-1. Qué son los usuarios sintéticos y por qué
+1. Qué son los perfiles calibrados y por qué
 2. La base académica (fuentes verificadas)
 3. Metodología de creación: el marco «grounded»
 4. Arquitectura de simulación: Talker-Reasoner
@@ -23,15 +23,15 @@
 
 ---
 
-## 1. Qué son los usuarios sintéticos y por qué
+## 1. Qué son los perfiles calibrados y por qué
 
-En la investigación de usuarios (UXR) y la optimización de la conversión (CRO), los **usuarios sintéticos** son agentes digitales impulsados por LLM que mimetizan el comportamiento, las respuestas cognitivas y las barreras psicológicas de un segmento de población concreto. No son «buyer personas» estáticos: son representaciones computacionales que reaccionan.
+En la investigación de usuarios y la optimización de la conversión, los **perfiles calibrados** son la evolución del «buyer persona»: agentes digitales impulsados por LLM que mimetizan el comportamiento, las respuestas cognitivas y las barreras psicológicas de un segmento de población concreto. Donde el buyer persona clásico es una ficha estática, el perfil calibrado es una representación computacional que reacciona.
 
 ### La razón de fondo: experimentación predictiva
 
 La propuesta de valor es transitar de un ciclo de test de meses a uno de minutos. En lugar de esperar semanas de tráfico orgánico y pagar reclutamiento, un equipo de Growth ejecuta simulaciones de usabilidad masivas para **descartar variantes de bajo rendimiento antes de gastar tráfico real**. Es un filtro de eficiencia previo a la validación humana, no un sustituto de ella.
 
-La motivación no es solo de coste. La adopción de IA en el sector ya es mayoritaria: en la encuesta **«AI in UX Research Report 2023» de User Interviews (N=1.093 respuestas cualificadas, recogidas del 14 al 18 de agosto de 2023)**, el **77,1%** de los investigadores usaba IA en al menos parte de su trabajo, con ChatGPT (51,1%), transcripción (47,8%) y toma de notas (40,8%) como usos principales [User Interviews 2023]. Los usuarios sintéticos son el siguiente escalón: pasar de asistir el análisis a simular al sujeto.
+La motivación no es solo de coste. La adopción de IA en el sector ya es mayoritaria: en la encuesta **«AI in UX Research Report 2023» de User Interviews (N=1.093 respuestas cualificadas, recogidas del 14 al 18 de agosto de 2023)**, el **77,1%** de los investigadores usaba IA en al menos parte de su trabajo, con ChatGPT (51,1%), transcripción (47,8%) y toma de notas (40,8%) como usos principales [User Interviews 2023]. Los perfiles calibrados son el siguiente escalón: pasar de asistir el análisis a simular al sujeto.
 
 ### Los tres pilares de la fidelidad
 
@@ -51,9 +51,9 @@ Esta sección existe porque el documento anterior citaba cifras y expertos sin r
 
 Las tres cifras de validación (secciones 7.1-7.3) y los dos datasets del método grounded proceden de **un único trabajo**, verificado íntegramente:
 
-> **Yun, T., Yang, E., Safdari, M., Lee, J. H., Vinod Kumar, V., Mahdavi, S. S., Amar, J., Peyton, D., Aharony, R., Michaelides, A., Schneider, L. D., Galatzer-Levy, I., Jia, Y., Canny, J., Gretton, A. y Matarić, M. (2025). «Sleepless Nights, Sugary Days: Creating Synthetic Users with Health Conditions for Realistic Coaching Agent Interactions». Findings of the ACL 2025, pp. 14159-14181. DOI 10.18653/v1/2025.findings-acl.729. arXiv:2502.13135.** (Google DeepMind, Verily Life Sciences, Google.)
+> **Yun, T., Yang, E., Safdari, M., Lee, J. H., Vinod Kumar, V., Mahdavi, S. S., Amar, J., Peyton, D., Aharony, R., Michaelides, A., Schneider, L. D., Galatzer-Levy, I., Jia, Y., Canny, J., Gretton, A. y Matarić, M. (2025). Findings of the ACL 2025, pp. 14159-14181. DOI 10.18653/v1/2025.findings-acl.729. arXiv:2502.13135.** (Google DeepMind, Verily Life Sciences, Google.) El título del paper se omite por contener el término académico que la documentación de Gravity no usa; el DOI y el arXiv lo identifican de forma inequívoca.
 
-Es la fuente natural de toda la sección de «prueba de concepto estadística» del documento: crea usuarios sintéticos grounded en dos etapas con los mismos dos datasets que se citan más abajo y evalúa dos agentes de coaching (sueño y diabetes).
+Es la fuente natural de toda la sección de «prueba de concepto estadística» del documento: crea perfiles calibrados grounded en dos etapas con los mismos dos datasets que se citan más abajo y evalúa dos agentes de coaching (sueño y diabetes).
 
 ### 2.2 Arquitectura
 
@@ -63,9 +63,9 @@ Es la fuente natural de toda la sección de «prueba de concepto estadística» 
 
 ### 2.3 Datasets del método grounded
 
-- **LifeSnaps:** Yfantidou, S. et al. (2022). «LifeSnaps, a 4-month multi-modal dataset...». *Scientific Data*, 9, 663. DOI 10.1038/s41597-022-01764-x. *Verificada:* **4 meses** (no 4 semanas), n=71, smartwatch Fitbit Sense, con datos de sueño. Yun et al. 2025 lo usan para generar los usuarios sintéticos de sueño.
+- **LifeSnaps:** Yfantidou, S. et al. (2022). «LifeSnaps, a 4-month multi-modal dataset...». *Scientific Data*, 9, 663. DOI 10.1038/s41597-022-01764-x. *Verificada:* **4 meses** (no 4 semanas), n=71, smartwatch Fitbit Sense, con datos de sueño. Yun et al. 2025 lo usan para generar los perfiles de sueño.
 - **Project Baseline Health Study:** Arges, K. et al. (2020). npj Digital Medicine, 3, 84. DOI 10.1038/s41746-020-0290-y. *Verificada:* cohorte prospectiva de Verily/Stanford/Duke; Yun et al. 2025 extraen de ella una subcohorte de 345 personas con diabetes tipo 2 (la restricción a «metabólico» la aplican ellos, no el estudio original).
-- **«Grounded Modeling» como término:** el método (datos estructurados → vignette narrativa) está formalizado en Yun et al. 2025 («Synthetic users are created in two stages... this combination of background information grounded in real data constitutes a vignette»), pero **el nombre exacto "Grounded Modeling" es acuñación de este documento**, no aparece en la literatura.
+- **«Grounded Modeling» como término:** el método (datos estructurados → vignette narrativa) está formalizado en Yun et al. 2025 (los perfiles se crean en dos etapas, y esa combinación de información de fondo anclada en datos reales constituye una vignette), pero **el nombre exacto "Grounded Modeling" es acuñación de este documento**, no aparece en la literatura.
 
 ### 2.4 Fundamentos conductuales
 
@@ -80,7 +80,7 @@ Una audiencia académica detectaría estos errores de inmediato; se corrigen aqu
 
 | Afirmación original | Realidad verificada |
 |---|---|
-| Cita de Hiroshi Ishii (MIT Media Lab): «No existe el usuario promedio. Los resultados promediados no representan la complejidad...» | Solo la **primera frase** es de Ishii, en Li, J. (2024), «How Far Can We Go with Synthetic User Experience Research?», *ACM Interactions* XXXI.3, DOI 10.1145/3653682. La segunda frase es una paráfrasis de Cher Lowies, no de Ishii. |
+| Cita de Hiroshi Ishii (MIT Media Lab): «No existe el usuario promedio. Los resultados promediados no representan la complejidad...» | Solo la **primera frase** es de Ishii, en Li, J. (2024), *ACM Interactions* XXXI.3, DOI 10.1145/3653682. La segunda frase es una paráfrasis de Cher Lowies, no de Ishii. |
 | Ruben Stegbauer, «UX Manager en **Google**» | La cita es real (comentario en LinkedIn, abril 2023, reproducido en Dovetail Outlier), pero su cargo es **UX Research en Trivago**, no Google. |
 | Dra. Sara Bouzit, «Head of Research & Insights (NL) en **EPAM**» (cita textual) | Es una **síntesis de la autora** Jie Li atribuida conjuntamente a Rizk y Bouzit, no una cita textual. Y «Head of Research & Insights en EPAM Netherlands» es el cargo de **Jie Li**, la autora del artículo, no de Bouzit. |
 | «89,7%», «71,4%», preferencia de expertos en ciego | Correctas, pero sin fuente. Ahora rastreadas a **Yun et al. 2025** (sección 2.1). |
@@ -217,7 +217,7 @@ El hallazgo es **más fino que la hipótesis ingenua «capital cultural bajo = d
 
 ## 6. Aplicaciones en el ciclo de optimización
 
-| Fase | Uso del usuario sintético | Métrica asociada | Módulo Gravity |
+| Fase | Uso del perfil calibrado | Métrica asociada | Módulo Gravity |
 | :--- | :--- | :--- | :--- |
 | Auditoría de landing | Test de claridad de 5 segundos | Tasa de comprensión (juez neutral) | Claridad 5s |
 | Pre-test de copy | Resonancia cognitiva por bloque | Persuasión, would_click | Copy |
@@ -231,11 +231,11 @@ El hallazgo es **más fino que la hipótesis ingenua «capital cultural bajo = d
 
 ## 7. Validación y calidad: la prueba de concepto estadística
 
-La validez de los usuarios sintéticos grounded se probó en salud de alta complejidad (sueño y diabetes), lo que constituye la prueba de concepto para el CRO: si un LLM simula con precisión las barreras de un paciente crónico, puede identificar las fricciones de un comprador. Todas las cifras proceden de **Yun et al. 2025** (verificadas contra el paper):
+La validez de los perfiles calibrados grounded se probó en salud de alta complejidad (sueño y diabetes), lo que constituye la prueba de concepto para el CRO: si un LLM simula con precisión las barreras de un paciente crónico, puede identificar las fricciones de un comprador. Todas las cifras proceden de **Yun et al. 2025** (verificadas contra el paper):
 
-- **7.1 Precisión en el diagnóstico:** «After a 10-turn interaction... the coaching agent was able to identify the synthetic user's primary sleep concern with **89.7% accuracy**» (cita literal).
+- **7.1 Precisión en el diagnóstico:** tras una interacción de 10 turnos, el agente de coaching identificó la principal preocupación de sueño del perfil con un **89,7% de acierto** (Yun et al. 2025; paráfrasis del resultado del paper).
 - **7.2 Recuperación de barreras:** «We obtained **71.4% mean recall** and **72.5% mean precision** for the barriers», usando fuzzy-matching por un LLM (Gemini 1.5 Pro) para capturar paráfrasis. *(El documento anterior omitía la precisión del 72,5% y presentaba el fuzzy-matching como algoritmo clásico; en realidad lo hace un LLM.)*
-- **7.3 Superioridad del perfil grounded:** en evaluaciones ciegas por expertos humanos, «the evaluators **overwhelmingly favored** our full synthetic users over the baseline» (solo demografía, sin condiciones ni rasgos), con diferencia altamente significativa (**p = 3,7 × 10⁻¹²**). En sueño: 5 evaluadores supervisados por un psicólogo clínico, acuerdo unánime en el 64% de casos.
+- **7.3 Superioridad del perfil grounded:** en evaluaciones ciegas por expertos humanos, los evaluadores prefirieron de forma abrumadora los perfiles grounded completos frente a la línea base (solo demografía, sin condiciones ni rasgos), con diferencia altamente significativa (**p = 3,7 × 10⁻¹²**). En sueño: 5 evaluadores supervisados por un psicólogo clínico, acuerdo unánime en el 64% de casos.
 
 **Matiz de honestidad para Gravity.** El pilar 1 (calibración VoC) exige VoC primaria (transcripciones, reseñas). Los sets IVI (15 perfiles) y Adeslas (3) se calibraron con **investigación secundaria de mercado verificada adversarialmente** (registros sectoriales SEF, INE, OCU, comparadores), no con VoC de clientes reales. Es un grounding serio pero de otra especie: conocimiento de mercado, no evidencia conductual de primera mano. La validación final con humanos sigue siendo el gold standard irrenunciable.
 
@@ -310,7 +310,7 @@ Cada pregunta recupera el documento semánticamente correcto, no por coincidenci
 - Granovetter, M. (1973). The strength of weak ties. *American Journal of Sociology*, 78(6), 1360-1380. (Dimensión relacional, aún no operacionalizada.)
 - Hyman, R. (1953). Stimulus information as a determinant of reaction time. *Journal of Experimental Psychology*, 45(3), 188-196.
 - Kahneman, D. (2011). *Thinking, Fast and Slow*. Farrar, Straus and Giroux.
-- Li, J. (2024). How Far Can We Go with Synthetic User Experience Research? *ACM Interactions*, XXXI.3. DOI 10.1145/3653682.
+- Li, J. (2024). *ACM Interactions*, XXXI.3. DOI 10.1145/3653682. (Título omitido por contener el término académico; el DOI lo identifica.)
 - Lindgaard, G., Fernandes, G., Dudek, C. y Brown, J. (2006). Attention web designers: You have 50 milliseconds... *Behaviour & Information Technology*, 25(2), 115-126.
 - Michie, S., van Stralen, M. M. y West, R. (2011). The behaviour change wheel. *Implementation Science*, 6, art. 42. DOI 10.1186/1748-5908-6-42.
 - Nielsen, J. (1994). *10 Usability Heuristics for User Interface Design*. Nielsen Norman Group.
@@ -320,4 +320,4 @@ Cada pregunta recupera el documento semánticamente correcto, no por coincidenci
 - User Interviews (2023). *AI in UX Research Report 2023* (N=1.093).
 - Vezhnevets, A. S. et al. (2023). *Generative agent-based modeling... using Concordia*. arXiv:2312.03664 (Google DeepMind).
 - Yfantidou, S. et al. (2022). LifeSnaps, a 4-month multi-modal dataset. *Scientific Data*, 9, 663. DOI 10.1038/s41597-022-01764-x.
-- Yun, T. et al. (2025). *Sleepless Nights, Sugary Days: Creating Synthetic Users with Health Conditions for Realistic Coaching Agent Interactions*. Findings of the ACL 2025, pp. 14159-14181. DOI 10.18653/v1/2025.findings-acl.729. arXiv:2502.13135.
+- Yun, T. et al. (2025). Findings of the ACL 2025, pp. 14159-14181. DOI 10.18653/v1/2025.findings-acl.729. arXiv:2502.13135. (Título omitido por contener el término académico; el DOI y el arXiv lo identifican.)

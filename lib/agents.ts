@@ -6,7 +6,7 @@ import { buildSystemPrompt } from "@/lib/prompts";
 
 /**
  * Arquitectura Talker-Reasoner.
- * Sigue docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md, sección 3.
+ * Sigue docs/BASE-CONOCIMIENTO.md, sección 3.
  *
  * - Reasoner (Sistema 2): analítico, lento. Modela el estado interno del
  *   usuario, detecta barreras, define plan de respuesta.

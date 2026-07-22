@@ -12,7 +12,7 @@
 --     habla directamente con la base, todo pasa por /api o Server Actions.
 
 -- ============================================================
--- profiles: vignettes grounded de usuarios sintéticos
+-- profiles: vignettes grounded de perfiles calibrados
 -- ============================================================
 create table if not exists profiles (
   id uuid primary key default gen_random_uuid(),

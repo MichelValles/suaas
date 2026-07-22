@@ -65,7 +65,7 @@ export default function OnboardingPage() {
                 para una audiencia experta. Tu documento de cabecera.
               </Li>
               <Li>
-                <DocLink slug="CONOCIMIENTO-USUARIOS-SINTETICOS">CONOCIMIENTO-USUARIOS-SINTETICOS.md</DocLink>: base teórica y
+                <DocLink slug="BASE-CONOCIMIENTO">BASE-CONOCIMIENTO.md</DocLink>: base teórica y
                 empírica con las fuentes verificadas.
               </Li>
               <Li>
@@ -132,7 +132,9 @@ export default function OnboardingPage() {
           {/* 02 */}
           <Section id="perfil" num="02" title="La unidad de análisis: el perfil">
             <Body>
-              Un perfil (esquema en <Code>lib/profiles.ts</Code>, detalle en{" "}
+              Un <Hl>perfil calibrado</Hl> es la evolución del «buyer persona»:
+              donde el buyer persona clásico es una ficha estática, este
+              reacciona. Su esquema (en <Code>lib/profiles.ts</Code>, detalle en{" "}
               <Doc>§1</Doc>) tiene estas capas:
             </Body>
             <DataTable
@@ -598,7 +600,7 @@ export default function OnboardingPage() {
               />
               <DocGroup
                 title="Motor al detalle"
-                slugs={["PERFILES-CALIBRADOS", "CONOCIMIENTO-USUARIOS-SINTETICOS"]}
+                slugs={["PERFILES-CALIBRADOS", "BASE-CONOCIMIENTO"]}
               />
               <DocGroup
                 title="Casos reales"

@@ -1164,7 +1164,7 @@ async function probeCampaignSnippet(
     {
       // El brief del anunciante NO se inyecta aquí: el persona no debe
       // conocer la intención interna del anuncio antes de interpretarlo
-      // (sesgo de cámara de eco, ver CONOCIMIENTO-USUARIOS-SINTETICOS §6.1).
+      // (sesgo de cámara de eco, ver BASE-CONOCIMIENTO §6.1).
       // El brief queda para la UI y como contexto de jueces neutrales.
       type: "text",
       text: [

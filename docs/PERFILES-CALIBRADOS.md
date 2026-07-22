@@ -2,7 +2,7 @@
 
 > **Propósito**: este documento explica el sistema de perfiles de Gravity con el rigor necesario para sostener una conversación con una persona experta en Behavioural Economics y sociología. Para cada componente responde tres preguntas: qué hay exactamente en el código, qué constructo académico encarna (con autores y obras canónicas) y dónde la operacionalización se queda corta frente al constructo. La honestidad sobre los límites es deliberada: es la parte que una revisora académica va a auditar primero.
 >
-> **Relación con los demás documentos**: el marco estratégico (por qué se simula y en qué plano) está en [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md). La base teórica fundacional del motor está en [`CONOCIMIENTO-USUARIOS-SINTETICOS.md`](./CONOCIMIENTO-USUARIOS-SINTETICOS.md). Los dos sets de perfiles construidos con investigación real están en [`IVI-PUBLICO-OBJETIVO.md`](./IVI-PUBLICO-OBJETIVO.md) y [`ADESLAS-DENTAL-PUBLICO-OBJETIVO.md`](./ADESLAS-DENTAL-PUBLICO-OBJETIVO.md).
+> **Relación con los demás documentos**: el marco estratégico (por qué se simula y en qué plano) está en [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md). La base teórica fundacional del motor está en [`BASE-CONOCIMIENTO.md`](./BASE-CONOCIMIENTO.md). Los dos sets de perfiles construidos con investigación real están en [`IVI-PUBLICO-OBJETIVO.md`](./IVI-PUBLICO-OBJETIVO.md) y [`ADESLAS-DENTAL-PUBLICO-OBJETIVO.md`](./ADESLAS-DENTAL-PUBLICO-OBJETIVO.md).
 >
 > **Verificado contra el código a v0.63.3 (2026-07-19).** Cada afirmación lleva su cita `archivo:línea`. Al cambiar cualquier pieza del sistema de perfiles, actualizar este documento en la misma sesión.
 
@@ -10,7 +10,7 @@
 
 ## 0. Qué es exactamente un perfil calibrado (y qué no es)
 
-Un **perfil calibrado** son dos cosas acopladas:
+Un **perfil calibrado** es la evolución del «buyer persona» (de una ficha estática a una representación que reacciona). Son dos cosas acopladas:
 
 1. **Un registro estructurado**: demografía, cinco rasgos de personalidad Big Five en escala 0..1, tres listas de barreras COM-B en texto libre, una viñeta narrativa (backstory) y un enunciado de intención en formato JTBD. La fuente de verdad es un conjunto de esquemas zod (`lib/profiles.ts:12-42`), persistidos como jsonb en la tabla `profiles` de Supabase.
 2. **Un agente**: un LLM (Claude Sonnet 4.6 por defecto; Opus 4.7 solo para el Reasoner del chat, `lib/gateway.ts:18-22`) condicionado por un system prompt que serializa ese registro (`lib/prompts.ts:14-72`).
@@ -264,7 +264,7 @@ El campo `willingness_to_pay` se define en el prompt como «cómo de justo te pa
 - **Cialdini**: ninguno de los seis principios existe como variable, manipulación o rúbrica en el código.
 - **Granovetter**: la dimensión relacional (prueba social, fuerza de lazos) sigue **sin operacionalizar**; la lista `channels` de Momentum no modela red, solo strings, y la lente `social_friction` (3.4) es simbólica, no relacional. Queda como hueco de roadmap: no citar como implementado.
 
-*Actualización de estatus*: las **cifras de validación** de la base teórica (89,7%, 71,4%, la preferencia de expertos en ciego) y la encuesta N=1.093 **ya están rastreadas a su fuente primaria** (Yun et al. 2025 y User Interviews 2023) en `CONOCIMIENTO-USUARIOS-SINTETICOS.md` §2, que además corrige las atribuciones erróneas de Ishii, Stegbauer y Bouzit. Ya son citables; el aviso anterior de «sin referencia» está resuelto.
+*Actualización de estatus*: las **cifras de validación** de la base teórica (89,7%, 71,4%, la preferencia de expertos en ciego) y la encuesta N=1.093 **ya están rastreadas a su fuente primaria** (Yun et al. 2025 y User Interviews 2023) en `BASE-CONOCIMIENTO.md` §2, que además corrige las atribuciones erróneas de Ishii, Stegbauer y Bouzit. Ya son citables; el aviso anterior de «sin referencia» está resuelto.
 
 ---
 

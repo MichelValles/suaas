@@ -154,7 +154,7 @@ El tier **Pro es el objetivo**: está dentro del presupuesto de servicio de una 
 
 ### Honestidad metodológica (protege la reputación de Flat101)
 
-El patrón 2026 es **sintético para el 80 % inicial** (iteración rápida, message testing, descartar conceptos, generar hipótesis) y reservar el research humano caro para el **20 % final** (decisión go/no-go, insight emocional, edge cases). Vender Gravity como complemento que acelera y abarata el grueso del research, no como sustituto total, es lo que hacen los players serios (Synthetic Users, Outset) y lo que sostiene la credibilidad de una agencia de CRO. La base teórica de fidelidad está en `CONOCIMIENTO-USUARIOS-SINTETICOS.md`.
+El patrón 2026 es **sintético para el 80 % inicial** (iteración rápida, message testing, descartar conceptos, generar hipótesis) y reservar el research humano caro para el **20 % final** (decisión go/no-go, insight emocional, edge cases). Vender Gravity como complemento que acelera y abarata el grueso del research, no como sustituto total, es lo que hacen los players serios (Synthetic Users, Outset) y lo que sostiene la credibilidad de una agencia de CRO. La base teórica de fidelidad está en `BASE-CONOCIMIENTO.md`.
 
 ### Por qué funciona el margen
 

@@ -26,7 +26,7 @@
 - **Acción del usuario**: crear `CRON_SECRET` en Vercel (sin ella los crons devuelven 401 fail-closed; **actualización: `CRON_SECRET` ya creado y verificado en producción, el fallback histórico rige solo para `GRAVITY_PASSWORD`**) y opcionalmente `GRAVITY_PASSWORD` (mientras tanto rige el fallback histórico). Comandos en `DESARROLLO.md`.
 - **A-01 (cookie de sesión constante)**: sigue pendiente; sigue siendo el hallazgo de mayor severidad del histórico.
 - Los 11 errores del lint recuperado (react-hooks/set-state-in-effect y purity) requieren revisión caso a caso.
-- Límite conocido de los guardarraíles: ninguna defensa de texto sanea instrucciones incrustadas en imágenes; `IMAGE_TEXT_GUARD` es mitigación por instrucción, no garantía. El PoC adversarial de inyección de texto se ejecutó el 19-jul-2026 (ver `CONOCIMIENTO-USUARIOS-SINTETICOS.md` §8.3-8.4); queda pendiente solo el vector de instrucciones incrustadas en imágenes (mitigado por instrucción con `IMAGE_TEXT_GUARD`, sin PoC).
+- Límite conocido de los guardarraíles: ninguna defensa de texto sanea instrucciones incrustadas en imágenes; `IMAGE_TEXT_GUARD` es mitigación por instrucción, no garantía. El PoC adversarial de inyección de texto se ejecutó el 19-jul-2026 (ver `BASE-CONOCIMIENTO.md` §8.3-8.4); queda pendiente solo el vector de instrucciones incrustadas en imágenes (mitigado por instrucción con `IMAGE_TEXT_GUARD`, sin PoC).
 
 ---
 
@@ -293,7 +293,7 @@ Un usuario con login (operador interno) crea una campaña con `final_url = "http
 **Archivos:** `app/onboard/result/[id]/page.tsx`, `app/api/onboard/og/route.tsx`
 
 **Descripción:**  
-`/onboard/result/<uuid>` y `/api/onboard/og?id=<uuid>` son rutas públicas (sin `auth_suaas`) diseñadas para que el usuario recién onboarded comparta su gemelo sintético. Ambas cargan el perfil con `getProfile(id)` sin filtrar por `source='self_report'`.
+`/onboard/result/<uuid>` y `/api/onboard/og?id=<uuid>` son rutas públicas (sin `auth_suaas`) diseñadas para que el usuario recién onboarded comparta su gemelo digital. Ambas cargan el perfil con `getProfile(id)` sin filtrar por `source='self_report'`.
 
 **Vector de ataque:**  
 1. Un visitante obtiene el UUID de cualquier perfil (por VULN-01, o si alguien compartió un link de resultado que incluye el UUID).

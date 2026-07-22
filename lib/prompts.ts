@@ -5,7 +5,7 @@ import type { Profile } from "@/lib/profiles";
  * buildSystemPrompt
  *
  * Construye el system prompt para que el LLM hable como el perfil calibrado.
- * Sigue el principio de "Grounded Modeling" de docs/CONOCIMIENTO-USUARIOS-SINTETICOS.md:
+ * Sigue el principio de "Grounded Modeling" de docs/BASE-CONOCIMIENTO.md:
  * datos estructurados + vignette narrativa.
  *
  * Incluye además los "negative prompts" recomendados en la sección 6 del MD
