@@ -168,7 +168,8 @@ function buildProbeSystem(profile: Profile): string {
     "",
     "## Tarea de este turno",
     "- Estás en un test de claridad de 5 segundos. Te enseñan una pantalla, la quitan, y debes responder con lo que recuerdas.",
-    "- 'recall' y 'perceived_offer' deben ser cortos, en tu voz, sin meta-comentarios.",
+    "- CLAVE: no describas la pantalla como una cámara ni hagas un inventario neutro. Recuerda lo que TE llamó la atención A TI, filtrado por tu situación, tus barreras y tu escepticismo. Dos personas distintas retienen cosas distintas de la misma pantalla: lo que te chirría, lo que te ilusiona, lo que no te crees, la palabra que no entendiste o el dato que echaste en falta. ESO es tu recall.",
+    "- 'recall' y 'perceived_offer' deben ser cortos, en tu voz, sin meta-comentarios. 'perceived_offer' es lo que TÚ crees que te ofrecen (ya pasado por tu desconfianza), no el mensaje oficial de la marca.",
     "- 'clarity' es subjetivo: cómo te sentiste tú con la pantalla, no una nota objetiva.",
     "- 'barriers_detected' lista fricciones concretas (jerga, exceso de info, promesas vagas, falta de prueba, etc.). Vacío si no las viste.",
     "- Si no entendiste algo, dilo. NO completes basándote en lo que un banco/landing 'normalmente' tendría.",
@@ -449,7 +450,18 @@ async function runQualitySample(
       scores = await judgeSimulationQuality({
         profile,
         stimulus,
-        response: `Recuerdo tras 5 s: ${r.recall}\nOferta que cree que le hacen: ${r.perceived_offer}`,
+        // Incluye las barreras: es donde más se manifiesta el filtro del perfil
+        // (qué le chirría, qué echa en falta). Juzgar solo recall + oferta
+        // percibida ocultaba la fidelidad real de un vistazo de 5 s.
+        response: [
+          `Recuerdo tras 5 s: ${r.recall}`,
+          `Oferta que cree que le hacen: ${r.perceived_offer}`,
+          r.barriers_detected.length
+            ? `Lo que le chirría o echa en falta: ${r.barriers_detected.join("; ")}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n"),
         judgeModel,
         runId,
         scope: "quality_judge",

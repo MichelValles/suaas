@@ -2,6 +2,14 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.74.1] · 2026-07-22
+
+Refinamiento de fidelidad (1/5): Recall del test de 5s.
+
+### Changed
+
+- **El recall de 5s refleja la atención selectiva del perfil**, no un inventario de cámara: el probe pide recordar lo que le llamó la atención a ÉL (filtrado por su situación, barreras y escepticismo), y la oferta percibida ya pasada por su desconfianza. Además, el juez de calidad ahora recibe la reacción completa (recall + oferta percibida + **barreras detectadas**), que es donde más se manifiesta el filtro del perfil; juzgar solo el recuerdo ocultaba la fidelidad real de un vistazo de 5 s. Efecto medido en producción (run real IVI): el anclaje sube de ~0,2 a ~0,9 y el global de ~0,45 a ~0,89, con 3 de 4 respuestas sin fallo del juez.
+
 ## [0.74.0] · 2026-07-22
 
 El juez de calidad llega a las campañas.
