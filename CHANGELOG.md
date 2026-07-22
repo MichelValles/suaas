@@ -2,6 +2,15 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.68.0] · 2026-07-22
+
+Perfiles: origen visible en la rejilla y cliente de optimización.
+
+### Added
+
+- **Origen del perfil en la rejilla**: icono de estrellas (accent) para los perfiles modelados para un cliente y de formulario (tenue) para los perfiles base, con el cliente en el tooltip al pasar el ratón.
+- **Cliente de optimización del perfil** (`optimized_for`): se elige en el editor (alta y edición) y en la ficha con edición inline, con sugerencias de las marcas ya usadas en la app (Cerebro y GEO: IVI, SegurCaixa Adeslas Dental, O2 Spain…). Nueva columna en `profiles` (migración `0030`).
+
 ## [0.67.3] · 2026-07-22
 
 Normalización de las tarjetas de módulo.

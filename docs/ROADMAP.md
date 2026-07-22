@@ -182,6 +182,11 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.68.0 · Perfiles: origen (estrellas vs formulario) y cliente de optimización
+
+- [x] **v0.68.0 · Icono de origen en la rejilla de perfiles**: cada tarjeta muestra `Sparkles` (accent) si el perfil está modelado para un cliente, o `PenLine` (tenue) si es un perfil base del formulario; tooltip en hover con «Modelado para [cliente]» / «Creado desde formulario» (`components/profile-explorer.tsx` → `OriginBadge`, patrón `.tooltip-host`).
+- [x] **v0.68.0 · Cliente de optimización** (`profiles.optimized_for`, migración `0030`): editable en el editor de perfil (alta y edición, `components/profile-form.tsx`, campo con datalist) y en la ficha con edición inline (`app/profiles/[id]/optimized-for-editor.tsx` + `optimized-for-actions.ts`). Sugerencias del datalist con las marcas de Cerebro + GEO (`listClientSuggestions` en `lib/profiles.ts`).
+
 ## v0.67.3 · Normalización de las cards de módulo (geo y momentum al EntityCard compartido)
 
 - [x] **v0.67.3 · geo y momentum usan EntityCard**: `app/geo/geo-list.tsx` y `app/momentum/momentum-list.tsx` se reescriben como mapeadores finos que producen `EntityListItem[]` y renderizan `<EntityListView>`, en lugar de sus cards custom (`GeoCard` con `.surface-feature` siempre oscuro; `MomentumCard` en lista vertical). Ahora los 8 listados de módulo comparten la misma tarjeta (cabecera, título display, descripción clamp 2 líneas, pie de stats, hover-lift, theme-aware) y la misma toolbar de búsqueda + orden. Claridad ya usaba EntityCard con `media` (muestra la imagen del test de 5s). geo deja de tener fondo oscuro fijo (ahora sigue el tema) y momentum pasa de lista vertical a grid `auto-fill`.

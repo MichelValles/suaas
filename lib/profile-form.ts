@@ -49,6 +49,7 @@ export const ProfileFormSchema = z.object({
   backstory: z.string().min(20, "Backstory debe tener al menos 20 caracteres"),
   source: z.string().optional().default("manual"),
   intent_context: z.string().optional().default(""),
+  optimized_for: z.string().optional().default(""),
 });
 export type ProfileFormValues = z.infer<typeof ProfileFormSchema>;
 
@@ -104,6 +105,7 @@ export function parseProfileForm(
       backstory: parsed.backstory,
       source: parsed.source || "manual",
       intent_context: parsed.intent_context || undefined,
+      optimized_for: parsed.optimized_for?.trim() || null,
     });
     return { ok: true, input };
   } catch (err) {

@@ -9,9 +9,11 @@ import { updateProfileAction } from "./actions";
 export function EditProfileForm({
   id,
   initial,
+  brandSuggestions,
 }: {
   id: string;
   initial: ProfileFormInitial;
+  brandSuggestions?: string[];
 }) {
   return (
     <ProfileForm
@@ -19,6 +21,7 @@ export function EditProfileForm({
       action={updateProfileAction}
       submitLabel="Guardar cambios"
       hiddenInputs={{ __id: id }}
+      brandSuggestions={brandSuggestions}
     />
   );
 }

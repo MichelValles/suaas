@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
-import { getProfile } from "@/lib/profiles";
+import { getProfile, listClientSuggestions } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { EditProfileForm } from "./edit-form";
 
@@ -23,6 +23,8 @@ export default async function EditProfilePage({
   }
   const profile = await getProfile(id);
   if (!profile) notFound();
+
+  const brandSuggestions = await listClientSuggestions().catch(() => []);
 
   return (
     <AppShell>
@@ -55,7 +57,9 @@ export default async function EditProfilePage({
           backstory: profile.backstory,
           source: profile.source ?? "manual",
           intent_context: profile.intent_context ?? "",
+          optimized_for: profile.optimized_for ?? "",
         }}
+        brandSuggestions={brandSuggestions}
       />
     </AppShell>
   );

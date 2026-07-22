@@ -7,10 +7,11 @@ import { COM_B_BARRIERS, COM_B_INTRO } from "@/lib/com-b";
 import { AVATAR_EST_USD } from "@/lib/avatar";
 import { getChatModels } from "@/lib/chat-models";
 import { estimateAction, partsForKind } from "@/lib/estimate";
-import { getProfile } from "@/lib/profiles";
+import { getProfile, listClientSuggestions } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { AvatarButton } from "./avatar-button";
 import { ChatPanel } from "./chat-panel";
+import { OptimizedForEditor } from "./optimized-for-editor";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,8 @@ export default async function ProfileDetailPage({
   const chatEstimate = await estimateAction(
     partsForKind("chat_turn", { chatModels }),
   ).catch(() => null);
+
+  const brandSuggestions = await listClientSuggestions().catch(() => []);
 
   const b = profile.big_five;
 
@@ -96,6 +99,12 @@ export default async function ProfileDetailPage({
             </span>
           </div>
         </section>
+
+        <OptimizedForEditor
+          profileId={profile.id}
+          current={profile.optimized_for ?? null}
+          suggestions={brandSuggestions}
+        />
 
         {profile.backstory && (
           <section

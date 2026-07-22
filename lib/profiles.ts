@@ -39,6 +39,8 @@ export const ProfileInputSchema = z.object({
   backstory: z.string().min(20, "El backstory debe tener al menos 20 caracteres."),
   source: z.string().optional(),
   intent_context: z.string().optional(),
+  /** Cliente/marca para el que se ha modelado el perfil (null = perfil base del formulario). */
+  optimized_for: z.string().nullable().optional(),
 });
 
 export const ProfileSchema = ProfileInputSchema.extend({
@@ -112,6 +114,21 @@ export async function listActiveProfilesByIds(ids: string[]): Promise<Profile[]>
   return (data ?? []) as Profile[];
 }
 
+/**
+ * Nombres de cliente/marca sugeridos para el campo «optimizado para»: marcas
+ * de Cerebro + marcas usadas en análisis GEO. Alimenta el datalist del editor
+ * de perfiles. Resiliente a tablas sin migrar (ignora errores por tabla).
+ */
+export async function listClientSuggestions(): Promise<string[]> {
+  const supa = getServerClient();
+  const names = new Set<string>();
+  const brands = await supa.from("brands").select("name").is("deleted_at", null);
+  for (const r of brands.data ?? []) if (r.name) names.add(r.name as string);
+  const geo = await supa.from("geo_analyses").select("brand_name");
+  for (const r of geo.data ?? []) if (r.brand_name) names.add(r.brand_name as string);
+  return [...names].sort((a, b) => a.localeCompare(b, "es"));
+}
+
 export async function getProfile(id: string): Promise<Profile | null> {
   const supa = getServerClient();
   let { data, error } = await supa
@@ -164,6 +181,18 @@ export async function updateProfileIntentContext(
   const { error } = await supa
     .from("profiles")
     .update({ intent_context: intent_context.trim() || null })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function updateProfileOptimizedFor(
+  id: string,
+  value: string,
+): Promise<void> {
+  const supa = getServerClient();
+  const { error } = await supa
+    .from("profiles")
+    .update({ optimized_for: value.trim() || null })
     .eq("id", id);
   if (error) throw new Error(error.message);
 }

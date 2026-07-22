@@ -26,6 +26,7 @@ export type ProfileFormInitial = {
   backstory: string;
   source: string;
   intent_context: string;
+  optimized_for: string;
 };
 
 export const DEFAULT_PROFILE_INITIAL: ProfileFormInitial = {
@@ -47,6 +48,7 @@ export const DEFAULT_PROFILE_INITIAL: ProfileFormInitial = {
     "Trabaja como diseñadora freelance desde casa. Su última factura llegó tarde y arrastra estrés económico. Teme fallar a su familia y por eso no tolera procesos opacos: si una herramienta no le ahorra tiempo en los primeros 30 segundos, la abandona.",
   source: "manual",
   intent_context: "",
+  optimized_for: "",
 };
 
 export function ProfileForm({
@@ -54,11 +56,14 @@ export function ProfileForm({
   action,
   submitLabel,
   hiddenInputs,
+  brandSuggestions,
 }: {
   initial: ProfileFormInitial;
   action: (prev: ProfileFormState, formData: FormData) => Promise<ProfileFormState>;
   submitLabel: string;
   hiddenInputs?: Record<string, string>;
+  /** Nombres de cliente/marca sugeridos en el datalist del campo «optimizado para». */
+  brandSuggestions?: string[];
 }) {
   const [state, formAction] = useActionState(action, { ok: false } as ProfileFormState);
   return (
@@ -170,6 +175,30 @@ export function ProfileForm({
           defaultValue={initial.intent_context}
           placeholder={"Cuando me llega una factura inesperada quiero entender si tengo margen para aplazarla para poder evitar el corte de suministro sin pedir prestado."}
         />
+      </FieldGroup>
+
+      <FieldGroup
+        title="Optimizado para cliente"
+        hint="Marca el cliente para el que se ha modelado este perfil (se distingue con un icono de estrellas en la rejilla). Déjalo vacío si es un perfil base creado desde el formulario."
+      >
+        <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <FieldLabel label="Cliente / marca" />
+          <input
+            name="optimized_for"
+            list="client-suggestions"
+            defaultValue={initial.optimized_for}
+            placeholder="p. ej. IVI, SegurCaixa Adeslas Dental…"
+            autoComplete="off"
+            style={inputStyle}
+          />
+          {brandSuggestions && brandSuggestions.length > 0 && (
+            <datalist id="client-suggestions">
+              {brandSuggestions.map((b) => (
+                <option key={b} value={b} />
+              ))}
+            </datalist>
+          )}
+        </label>
       </FieldGroup>
 
       <input type="hidden" name="source" value={initial.source} />

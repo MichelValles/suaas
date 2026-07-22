@@ -11,8 +11,10 @@ import {
   Eye,
   LayoutGrid,
   Pencil,
+  PenLine,
   Rows3,
   SlidersHorizontal,
+  Sparkles,
   Trash2,
   X,
 } from "lucide-react";
@@ -626,32 +628,35 @@ function ProfileCard({
             gap: 8,
           }}
         >
-          <label
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
-              cursor: "pointer",
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={selected}
-              onChange={onToggle}
-              aria-label={`Seleccionar ${profile.name}`}
-            />
-            <span
-              className="mono"
+          <div style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <label
               style={{
-                fontSize: 10,
-                letterSpacing: "0.22em",
-                textTransform: "uppercase",
-                color: "rgba(var(--fg),0.5)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 10,
+                cursor: "pointer",
               }}
             >
-              {profile.demographics.age} · {profile.demographics.gender}
-            </span>
-          </label>
+              <input
+                type="checkbox"
+                checked={selected}
+                onChange={onToggle}
+                aria-label={`Seleccionar ${profile.name}`}
+              />
+              <span
+                className="mono"
+                style={{
+                  fontSize: 10,
+                  letterSpacing: "0.22em",
+                  textTransform: "uppercase",
+                  color: "rgba(var(--fg),0.5)",
+                }}
+              >
+                {profile.demographics.age} · {profile.demographics.gender}
+              </span>
+            </label>
+            <OriginBadge profile={profile} />
+          </div>
           {mode === "manage" && <RowActions profile={profile} onDelete={onDelete} />}
         </div>
 
@@ -733,6 +738,35 @@ function ProfileCard({
         </div>
       </div>
     </li>
+  );
+}
+
+/**
+ * Icono de origen del perfil: estrellas (accent) si está modelado para un
+ * cliente, con su nombre en el hover; icono de formulario (tenue) si es un
+ * perfil base creado a mano. Usa el patrón de tooltip de la app.
+ */
+function OriginBadge({ profile }: { profile: Profile }) {
+  const client = profile.optimized_for?.trim();
+  const optimized = Boolean(client);
+  const Icon = optimized ? Sparkles : PenLine;
+  const label = optimized
+    ? `Modelado para ${client}`
+    : "Creado desde formulario";
+  return (
+    <span
+      className="tooltip-host"
+      aria-label={label}
+      style={{
+        color: optimized ? "var(--accent-500)" : "rgba(var(--fg),0.4)",
+        cursor: "help",
+      }}
+    >
+      <Icon size={14} aria-hidden />
+      <span className="tooltip-panel" role="tooltip">
+        {label}
+      </span>
+    </span>
   );
 }
 
