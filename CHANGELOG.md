@@ -2,6 +2,14 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.70.0] · 2026-07-22
+
+Observabilidad, Fase 2: evaluación de calidad de las salidas del modelo.
+
+### Added
+
+- **Página `/evaluacion`**: evalúa la calidad de las salidas del modelo sobre un golden set de perfiles calibrados. El modelo objetivo responde en personaje y un **juez de otra familia de modelo** (OpenAI, para no juzgar a Claude con Claude) puntúa fidelidad de rol, anclaje en el perfil, no complacencia y naturalidad, con veredicto por caso. Permite comparar modelos (Opus vs Sonnet vs Haiku) y ver cada salida con su nota independiente. El coste de la propia evaluación se registra en `/observabilidad`. Enlazada desde Observabilidad.
+
 ## [0.69.0] · 2026-07-22
 
 Capa de observabilidad: inspector de llamadas al modelo.

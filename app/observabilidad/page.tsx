@@ -83,9 +83,14 @@ export default async function ObservabilidadPage({
         title="Observabilidad"
         description="Inspector de las llamadas al AI Gateway: cada salida de modelo con su fecha, scope, modelo, tokens, coste y latencia. El coste se calcula al vuelo (tokens × tarifa del modelo); no se persiste."
         actions={
-          <Link href="/tokens" className="btn-pill">
-            Consumo y modelos
-          </Link>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <Link href="/evaluacion" className="btn-pill solid">
+              Evaluación de calidad
+            </Link>
+            <Link href="/tokens" className="btn-pill">
+              Consumo y modelos
+            </Link>
+          </div>
         }
       />
 

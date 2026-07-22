@@ -22,7 +22,9 @@ export type UsageScope =
   | "seed_brief"
   | "seed_profile"
   | "batch_intent"
-  | "rag_embed";
+  | "rag_embed"
+  | "eval_target"
+  | "eval_judge";
 
 type RawUsage = {
   promptTokens?: number;
@@ -378,6 +380,8 @@ export const USAGE_SCOPES: UsageScope[] = [
   "seed_profile",
   "batch_intent",
   "rag_embed",
+  "eval_target",
+  "eval_judge",
 ];
 
 export type UsageRow = {

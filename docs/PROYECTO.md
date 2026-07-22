@@ -52,6 +52,8 @@ app/
     page.tsx                            Créditos del AI Gateway + acumulado interno por modelo/scope + serie 7d
   observabilidad/
     page.tsx                            Inspector por llamada de gateway_usage (fecha, scope, modelo, tokens, coste USD real, latencia, ok/fallo); filtrable y paginado (listUsageRows en lib/usage.ts). v0.69
+  evaluacion/
+    page.tsx / evaluacion-client.tsx    Evaluación de calidad de salidas: golden set (lib/eval.ts) generado por el modelo objetivo y puntuado por un juez de otra familia (POST /api/eval/run). Compara modelos. v0.70
   trash/
     page.tsx                            Papelera: lista soft-deleted con acciones restore / hard delete
     trash-row.tsx                       Client: cada fila con sus botones de acción
