@@ -1437,6 +1437,33 @@ select option {
   background: rgba(var(--fg), 0.03);
 }
 
+/* Onboarding del sociólogo (/gravity/onboarding): guía navegable a dos columnas */
+.onboarding-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  gap: 44px;
+  align-items: start;
+}
+.onboarding-aside {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+}
+.onboarding-section {
+  scroll-margin-top: 24px;
+}
+/* Colapsa a 1 columna descontando el sidebar de 240px de .app-shell-main:
+   por debajo de ~1080px de viewport la columna de lectura quedaría estrecha. */
+@media (max-width: 1080px) {
+  .onboarding-shell {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .onboarding-aside {
+    position: static;
+  }
+}
+
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,

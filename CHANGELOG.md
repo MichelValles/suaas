@@ -2,6 +2,18 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.77.0] · 2026-07-23
+
+Versión visual navegable del onboarding del sociólogo, bajo /gravity.
+
+### Added
+
+- **Página `/gravity/onboarding`**: versión visual y navegable del guión de onboarding para el sociólogo experto, con índice lateral pegajoso y scroll-spy (resalta la sección activa al desplazar), tarjetas, tablas, callouts y las cinco fichas del protocolo de validación por niveles. Enlazada desde `/gravity`. El contenido es fiel a `docs/ONBOARDING-SOCIOLOGO.md`. Theme-aware (claro y oscuro), responsive (colapsa a una columna), sin Tailwind.
+
+### Fixed
+
+- **Revisión adversarial de la página** (multiagente): corregidos los hallazgos confirmados. El principal, un bug de CSS: pegar un alfa hex tras un `var()` (p. ej. `var(--accent-500)55`) no funciona (los tokens sustituidos no se fusionan), así que el borde se descartaba; ahora el alfa se aplica con `color-mix(...)` válido y theme-aware. Además: contraste de subtítulos y labels subido usando el token `--text-secondary`; breakpoint de colapso corregido para descontar el sidebar; y restaurado el matiz «intenta anticipar» del texto fuente.
+
 ## [0.76.0] · 2026-07-22
 
 El juez de calidad llega al módulo Intent (JTBD), y el JTBD se hace visible en la ficha.

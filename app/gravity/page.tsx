@@ -113,6 +113,53 @@ export default function GravityPage() {
         descriptionVariant="panel"
       />
 
+      <Link
+        href="/gravity/onboarding"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 16,
+          border: "1px solid var(--accent-500)",
+          borderRadius: "var(--radius-md)",
+          padding: "18px 22px",
+          background: "rgba(250,204,13,0.05)",
+          textDecoration: "none",
+          flexWrap: "wrap",
+        }}
+      >
+        <span style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <span
+            className="mono"
+            style={{
+              fontSize: 10,
+              letterSpacing: "0.24em",
+              textTransform: "uppercase",
+              color: "var(--accent-text)",
+            }}
+          >
+            Guía navegable
+          </span>
+          <span
+            style={{
+              fontFamily: "var(--font-display)",
+              fontWeight: 700,
+              fontSize: 18,
+              color: "var(--text-strong)",
+            }}
+          >
+            Onboarding del sociólogo experto
+          </span>
+          <span style={{ fontSize: 13, color: "rgba(var(--fg),0.6)", lineHeight: 1.5 }}>
+            Qué hay, qué hace y cómo lo hace, con el protocolo de validación
+            humana de las salidas.
+          </span>
+        </span>
+        <span className="mono" style={{ fontSize: 13, color: "var(--accent-text)" }}>
+          Abrir →
+        </span>
+      </Link>
+
       <section style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <SectionLabel>Intent Momentum</SectionLabel>
         <p style={{ fontSize: 14, color: "rgba(var(--fg),0.65)", lineHeight: 1.65, margin: 0 }}>

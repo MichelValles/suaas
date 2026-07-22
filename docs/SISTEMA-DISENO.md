@@ -252,6 +252,16 @@ Reglas:
 - ❌ Glow exterior / neón (`box-shadow` con blur de color). Elevación con borde de 1px; énfasis con peso y tamaño.
 - ❌ Aplicar `maxWidth`/`max-width` con valor en px (`maxWidth: 1100`, `max-width: 720px`...) a secciones o bloques de página: el front no usa topes en px (se retiraron en v0.61.4) y el ancho lo gobierna el grid del AppShell. Para acotar, valores relativos (`%`, `clamp`, `ch`). Excepción válida: los breakpoints `@media (max-width: …)`.
 - ❌ Diferenciar categorías conceptuales con un color por categoría (los «tres planos» de colores). Diferenciar con numeración editorial (`01 · 02 · 03` en accent), jerarquía tipográfica o alphas del canal `--fg`.
+- ❌ Pegar un alfa hex tras un `var()` para hacer un color translúcido: `` `1px solid ${"var(--accent-500)"}55` `` NO produce `#f9cb0d55`. La sustitución de custom properties opera sobre streams de tokens y no los fusiona (el clásico gotcha `var(--gap)px`), así que el resultado es inválido y el navegador **descarta** la declaración (el borde/tinte no se pinta). Para alfa sobre un token de color: `color-mix(in srgb, var(--token) 45%, transparent)` (válido y theme-aware), o `rgba(var(--fg), a)` si el color de origen es el canal `--fg`. El patrón `${color}22` **solo** funciona cuando `color` es un literal hex/rgb, no un `var()`.
+
+## Layout: guía navegable (`/gravity/onboarding`, v0.77.0)
+
+Página de documentación a dos columnas: contenido + índice lateral pegajoso con scroll-spy. Clases en `globals.css`:
+
+- `.onboarding-shell`: grid `minmax(0,1fr) 250px` con `gap 44px`. Colapsa a 1 columna en `@media (max-width: 1080px)` (el breakpoint descuenta el sidebar de 240px de `.app-shell-main`; medir solo el viewport dejaría la columna de lectura estrecha).
+- `.onboarding-aside`: `position: sticky; top: 24px` (estática al colapsar).
+- `.onboarding-section`: `scroll-margin-top: 24px` para que las anclas `#id` no queden pegadas al borde.
+- El scroll-spy (`onboarding-nav.tsx`) usa un listener de `scroll` + `getBoundingClientRect` computado **directo** en el handler (sin `requestAnimationFrame`, que en el navegador headless de prueba viene throttled y no dispara).
 
 ## Patrón: descripción destacada (`descriptionVariant="panel"`)
 
