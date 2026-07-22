@@ -2,6 +2,19 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.76.0] · 2026-07-22
+
+El juez de calidad llega al módulo Intent (JTBD), y el JTBD se hace visible en la ficha.
+
+### Added
+
+- **JTBD visible en la ficha del perfil**: hasta ahora el `intent_context` (JTBD) solo se veía en el editor; ahora la ficha muestra una sección «Intención · JTBD» con el JTBD del perfil.
+- **Juez de calidad del JTBD, on-demand**: junto al JTBD, un botón «Evaluar calidad» puntúa con el juez independiente (otra familia de modelo) si el JTBD está anclado en ESTE perfil y suena a su voz, o si es una fórmula de manual genérica, con las cuatro dimensiones, veredicto y chip de fallo. A diferencia de 5s/campañas/Momentum, el JTBD es un campo estático (no un «run»), así que el juez es on-demand y no se persiste: es un control de fidelidad puntual. Coste bajo el scope `quality_judge`.
+
+### Hallazgo (2026-07-22)
+
+- **El juez discrimina con claridad la fidelidad del JTBD** y confirma la brecha que atacó `v0.74.4`: un JTBD rico y anclado (Nuria Castellano) puntúa global **0,87** (anclaje 0,99, fidelidad 0,94), mientras un JTBD formulaico de una sola frase (David Lozano) puntúa global **0,44** (anclaje 0,42, naturalidad 0,38, fallo «genérico»: «correcto pero demasiado formulaico y poco personal»). Los JTBD viejos de la tanda son del tipo formulaico; el prompt de `v0.74.4` empuja las nuevas generaciones hacia el tipo anclado.
+
 ## [0.75.0] · 2026-07-22
 
 El juez de calidad llega a Intent Momentum.

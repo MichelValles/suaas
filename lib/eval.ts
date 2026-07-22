@@ -430,6 +430,33 @@ export async function judgeSimulationQuality(args: {
   return object;
 }
 
+/**
+ * Juzga la calidad de un JTBD (intent_context) como representación fiel del
+ * perfil. A diferencia de 5s/campañas/momentum, no hay estímulo ni reacción: el
+ * JTBD es el motor declarado de la persona. Reutiliza el mismo juez y esquema,
+ * con un estímulo que enmarca la tarea como «expresar tu JTBD» y foco en
+ * anclaje/voz frente a fórmula de manual.
+ */
+export async function judgeIntentQuality(
+  profile: EvalProfile,
+  jtbd: string,
+  judgeModel: string,
+  meta: Record<string, unknown> = {},
+): Promise<EvalScores> {
+  return judgeSimulationQuality({
+    profile,
+    stimulus: [
+      "Se le pidió expresar su Job-To-Be-Done (JTBD): qué quiere lograr, cuándo y por qué, en su propia voz (formato «Cuando…, quiero…, para poder…»).",
+      "NO es una reacción a un anuncio ni un plan de acción: es el motor de esta persona.",
+      "Juzga la FIDELIDAD: ¿el JTBD está anclado en ESTE perfil concreto (su backstory, sus barreras, su situación) y dicho con su registro y su vocabulario, o es una fórmula de manual genérica que valdría para cualquiera?, ¿capta su tensión y su escepticismo reales? La naturalidad aquí es que suene a su forma de hablar, no a consultoría.",
+    ].join(" "),
+    response: jtbd,
+    judgeModel,
+    scope: "quality_judge",
+    meta: { ...meta, kind: "intent" },
+  });
+}
+
 // ============================================================
 // Persistencia (tabla evals, migración 0031)
 // ============================================================

@@ -11,6 +11,7 @@ import { getProfile, listClientSuggestions } from "@/lib/profiles";
 import { isSupabaseConfigured } from "@/lib/supabase";
 import { AvatarButton } from "./avatar-button";
 import { ChatPanel } from "./chat-panel";
+import { IntentQualityPanel } from "./intent-quality-panel";
 import { OptimizedForEditor } from "./optimized-for-editor";
 
 export const dynamic = "force-dynamic";
@@ -175,6 +176,11 @@ export default async function ProfileDetailPage({
             />
           </div>
         </section>
+
+        <IntentQualityPanel
+          profileId={profile.id}
+          jtbd={profile.intent_context ?? null}
+        />
 
         <ChatPanel
           profileId={profile.id}
