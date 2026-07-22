@@ -2,6 +2,14 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.74.4] · 2026-07-22
+
+Refinamiento de fidelidad (4/5): JTBD (intent) anclado y en su voz.
+
+### Changed
+
+- **La generación de intent (JTBD) ancla en el backstory y usa la voz del perfil**: el generador pasaba de «experto en JTBD» a una fórmula de manual, correcta pero impersonal. Ahora pide capturar el motor real de ESA persona (trigger sacado de su backstory, motivación dicha como la diría ella, su vocabulario) y prohíbe las fórmulas genéricas («tomar una decisión informada», «mejorar mi calidad de vida»); además recorta el espacio sobrante del output. Verificado en producción (perfil de prueba, luego a la papelera): «Cuando salgo de una guardia y veo que ya llevamos año y medio buscando sin nada, quiero enterarme si mi seguro cubre esto y cuánto cuesta de verdad, sin que me mareen, para poder pedir cita en una clínica seria sin tener que contárselo a nadie del trabajo.»
+
 ## [0.74.3] · 2026-07-22
 
 Refinamiento de fidelidad (3/5): narrativa de Momentum más natural.

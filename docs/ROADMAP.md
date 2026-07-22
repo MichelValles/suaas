@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.74.4 · Refinamiento de fidelidad 4/5 · JTBD (intent)
+
+- [x] **v0.74.4 · Generación de intent anclada en el perfil**: el prompt de `generateIntentForProfile` (`app/api/profiles/batch-intent/route.ts`) producía un JTBD «de manual» (correcto pero impersonal). Ahora instruye capturar el motor real de ESA persona (trigger sacado de su backstory y momento, motivación en su registro, su vocabulario), prohíbe fórmulas genéricas de consultoría y recorta el output (`.trim()`, que además quita el espacio inicial que arrastraban las filas). Conserva la estructura JTBD canónica («Cuando…, quiero…, para poder…») porque `intent_context` alimenta `buildSystemPrompt`. Verificado en producción con un perfil de prueba (creado y devuelto a la papelera): JTBD claramente en la voz y la situación del perfil, sin fórmulas de manual.
+
 ## v0.74.3 · Refinamiento de fidelidad 3/5 · Narrativa de Momentum
 
 - [x] **v0.74.3 · Narrativa de Momentum como relato, no informe**: la tarea de `analyzeProfileMomentum` (`lib/momentum.ts`) enumeraba las dimensiones a cubrir y el `intent_narrative` las repetía con secciones («primero…, segundo…»). Ahora se aclara que el detalle va en los campos estructurados del schema (`first_steps`, `channels`, `barriers`, `intensity`/`direction`/`velocity`) y que `intent_narrative` es un relato en primera persona, espontáneo, «como se lo contarías a alguien de confianza», sin enumerar ni analizar. Verificado en producción (run real IVI): narrativas con muletillas y ancladas en la situación de cada perfil, cero registro de informe. Sin cambio de schema ni UI.

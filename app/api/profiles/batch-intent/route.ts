@@ -41,21 +41,20 @@ async function generateIntentForProfile(profile: Profile, model: string = DEFAUL
     model,
     schema: IntentSchema,
     system: [
-      "Eres un experto en Jobs To Be Done (JTBD).",
-      "Genera un JTBD realista para el perfil de usuario que se te presenta.",
+      "Eres un experto en Jobs To Be Done (JTBD) que captura el motor REAL de una persona concreta, no un JTBD de manual.",
+      "Genera el JTBD de ESTE perfil anclado en su backstory y sus barreras, dicho con SUS palabras.",
       "",
       "Reglas:",
-      "- Sé específico: usa el contexto de vida de ESTE perfil, no uno genérico.",
-      "- El trigger (Cuando...) debe ser una situación concreta y verosímil para su edad y ocupación.",
-      "- La motivación (quiero...) debe reflejar su personalidad y barreras reales.",
-      "- El resultado (para poder...) debe ser tangible y significativo para esta persona.",
-      "- Usa lenguaje natural, como lo expresaría esa persona en su día a día.",
-      "- No uses lenguaje corporativo ni académico.",
+      "- El trigger (Cuando...) es una situación concreta sacada de SU vida (su backstory, su momento actual), no una plantilla que valdría para cualquiera.",
+      "- La motivación (quiero...) refleja su personalidad y sus barreras reales, dicha como la diría ella, no en abstracto.",
+      "- El resultado (para poder...) es tangible y significativo para esta persona en concreto.",
+      "- Usa su registro y su vocabulario. Nada de lenguaje corporativo, académico ni de consultoría.",
+      "- Evita las fórmulas genéricas de manual ('tomar una decisión informada', 'mejorar mi calidad de vida', 'optimizar mi tiempo'): sé específico de este caso.",
     ].join("\n"),
     prompt: profileLines.join("\n"),
   });
 
-  return { intent: res.object.intent_context, usage: res.usage ?? null };
+  return { intent: res.object.intent_context.trim(), usage: res.usage ?? null };
 }
 
 export async function POST(req: Request) {
