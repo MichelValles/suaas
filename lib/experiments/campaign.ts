@@ -31,6 +31,11 @@ import { loadRunProfiles } from "@/lib/experiments/shared";
 import { createRun, markRunFinished, upsertMetric } from "@/lib/runs";
 import { getServerClient, isMissingColumnError } from "@/lib/supabase";
 import { recordUsage } from "@/lib/usage";
+import {
+  judgeSimulationQuality,
+  pickJudgeModel,
+  type EvalScores,
+} from "@/lib/eval";
 
 /**
  * Experimento: Campaign Tester (Paid Search RSA).
@@ -208,9 +213,24 @@ export type CampaignResponse = {
   ideal_description: string;
   ideal_promise: string;
   ideal_free_text: string | null;
+  /** Puntuación del juez de calidad (solo en las respuestas muestreadas). */
+  quality?: EvalScores | null;
+  /** Modelo juez que puntuó esta respuesta, si se muestreó. */
+  qualityJudge?: string | null;
 };
 
 export type BehaviorCounts = { optima: number; fuga: number; repesca: number };
+
+/** Calidad de simulación agregada (juez independiente sobre una muestra). */
+export type CampaignQualitySummary = {
+  n: number;
+  judge: string | null;
+  role_fidelity: number;
+  grounding: number;
+  non_sycophancy: number;
+  naturalness: number;
+  overall: number;
+};
 
 export type AssetPerformance = {
   asset: string;
@@ -273,6 +293,8 @@ export type CampaignSummary = {
    * intent («fuga» con intent ≥ 0,5 o «optima» con intent < 0,3).
    */
   behavior_inconsistencies: number;
+  /** Calidad de la simulación juzgada por un modelo independiente (o null). */
+  quality: CampaignQualitySummary | null;
 };
 
 // ============================================================
@@ -1748,6 +1770,16 @@ export async function executeCampaignRun(
         );
       }
     }
+    // Juez de calidad independiente sobre una muestra de reacciones (acota
+    // coste). Best-effort: si falla, el run se cierra igual sin puntuación.
+    await runCampaignQualitySample(runId, responses, profiles, model).catch(
+      (err) => {
+        console.warn(
+          "[quality campaign] muestra omitida:",
+          (err as Error).message,
+        );
+      },
+    );
     await markRunFinished(runId, responses.length > 0 ? "done" : "error");
   } catch (err) {
     console.error(`[campaign] cierre del run ${runId} falló:`, (err as Error).message);
@@ -2253,6 +2285,14 @@ export async function listCampaignResponses(
     ideal_description: r.ideal_description as string,
     ideal_promise: r.ideal_promise as string,
     ideal_free_text: (r.ideal_free_text as string | null) ?? null,
+    quality:
+      ((r.meta as Record<string, unknown> | null)?.quality as
+        | EvalScores
+        | undefined) ?? null,
+    qualityJudge:
+      ((r.meta as Record<string, unknown> | null)?.quality_judge as
+        | string
+        | undefined) ?? null,
   }));
 }
 
@@ -2287,6 +2327,7 @@ function summarize(
       behavior_counts: { optima: 0, fuga: 0, repesca: 0 },
       byAsset: [],
       behavior_inconsistencies: 0,
+      quality: null,
     };
   }
 
@@ -2351,7 +2392,155 @@ function summarize(
         (r.behavior_class === "fuga" && r.intent_to_click >= LANDING_THRESHOLD) ||
         (r.behavior_class === "optima" && r.intent_to_click < 0.3),
     ).length,
+    quality: aggregateCampaignQuality(rs),
   };
+}
+
+/** Media de las dimensiones del juez sobre las respuestas muestreadas. */
+function aggregateCampaignQuality(
+  rs: CampaignResponse[],
+): CampaignQualitySummary | null {
+  const scored = rs.filter(
+    (r): r is CampaignResponse & { quality: EvalScores } => Boolean(r.quality),
+  );
+  if (scored.length === 0) return null;
+  const mean = (k: keyof EvalScores) =>
+    scored.reduce((s, r) => s + (r.quality[k] as number), 0) / scored.length;
+  return {
+    n: scored.length,
+    judge: scored.find((r) => r.qualityJudge)?.qualityJudge ?? null,
+    role_fidelity: mean("role_fidelity"),
+    grounding: mean("grounding"),
+    non_sycophancy: mean("non_sycophancy"),
+    naturalness: mean("naturalness"),
+    overall: mean("overall"),
+  };
+}
+
+// ============================================================
+// Juez de calidad (muestra por run de campaña)
+// ============================================================
+
+/** Cuántas respuestas se juzgan por run de campaña (acota coste del juez). */
+const CAMPAIGN_QUALITY_SAMPLE = 5;
+
+/**
+ * Puntúa la calidad de simulación de una muestra de reacciones al anuncio con
+ * un juez de otra familia de modelo, guarda la nota en el `meta` de esas filas
+ * y agrega las medias como métricas del run. Mismo patrón que en Claridad 5s:
+ * la calidad pasa a ser parte del resultado del test de campaña.
+ */
+async function runCampaignQualitySample(
+  runId: string,
+  responses: CampaignResponse[],
+  profiles: Profile[],
+  targetModel: string,
+): Promise<void> {
+  if (responses.length === 0) return;
+  const judgeModel = pickJudgeModel(targetModel);
+  const profilesById = new Map(profiles.map((p) => [p.id, p]));
+  const sample = evenSampleCampaign(responses, CAMPAIGN_QUALITY_SAMPLE);
+  const supa = getServerClient();
+
+  const scored: EvalScores[] = [];
+  for (const r of sample) {
+    const profile = profilesById.get(r.profileId);
+    if (!profile) continue;
+    let scores: EvalScores;
+    try {
+      scores = await judgeSimulationQuality({
+        profile,
+        stimulus: describeCampaignStimulus(r),
+        response: [
+          `Qué cree que le ofrece el anuncio: ${r.perceived_offer}`,
+          r.reasoning ? `Su razonamiento: ${r.reasoning}` : "",
+          r.barriers.length
+            ? `Barreras que menciona: ${r.barriers.join("; ")}`
+            : "",
+        ]
+          .filter(Boolean)
+          .join("\n"),
+        judgeModel,
+        runId,
+        scope: "quality_judge",
+        meta: {
+          profile_id: r.profileId,
+          kind: "campaign",
+          channel: r.channel,
+          judge: judgeModel,
+        },
+      });
+    } catch (err) {
+      console.warn(
+        "[quality campaign] juez falló para",
+        r.profileId,
+        (err as Error).message,
+      );
+      continue;
+    }
+    scored.push(scores);
+    // Merge sobre el meta existente (que ya guarda reasoning, shown_*, etc.).
+    const { data: rows } = await supa
+      .from("campaign_responses")
+      .select("meta")
+      .eq("run_id", runId)
+      .eq("profile_id", r.profileId)
+      .eq("channel", r.channel)
+      .eq("query", r.query)
+      .limit(1);
+    const prevMeta =
+      (rows?.[0]?.meta as Record<string, unknown> | null) ?? {};
+    await supa
+      .from("campaign_responses")
+      .update({ meta: { ...prevMeta, quality: scores, quality_judge: judgeModel } })
+      .eq("run_id", runId)
+      .eq("profile_id", r.profileId)
+      .eq("channel", r.channel)
+      .eq("query", r.query);
+  }
+
+  if (scored.length === 0) return;
+  const meanOf = (k: keyof EvalScores) =>
+    scored.reduce((s, x) => s + (x[k] as number), 0) / scored.length;
+  const metrics: [string, number][] = [
+    ["quality_overall", meanOf("overall")],
+    ["quality_role_fidelity", meanOf("role_fidelity")],
+    ["quality_grounding", meanOf("grounding")],
+    ["quality_non_sycophancy", meanOf("non_sycophancy")],
+    ["quality_naturalness", meanOf("naturalness")],
+  ];
+  for (const [key, value] of metrics) {
+    await upsertMetric({ run_id: runId, key, value, unit: "0..1" });
+  }
+  await upsertMetric({
+    run_id: runId,
+    key: "quality_n",
+    value: scored.length,
+    unit: "count",
+  });
+}
+
+/** Describe al juez qué anuncio vio el perfil y qué debe valorar (fidelidad, no comprensión). */
+function describeCampaignStimulus(r: CampaignResponse): string {
+  const shown = [
+    ...(r.shown_headlines ?? []),
+    ...(r.shown_descriptions ?? []),
+  ].filter(Boolean);
+  const adText = shown.length ? shown.join(" · ") : "(anuncio de la campaña)";
+  return [
+    `El perfil vio un anuncio de ${networkLabel(r.channel)}${r.query ? ` al buscar «${r.query}»` : ""}. Texto del anuncio mostrado: «${adText}».`,
+    "Reaccionó con su intención de clic, qué cree que le ofrecen y su razonamiento.",
+    "NO juzgues si entendió el mensaje pretendido del anunciante (eso se mide aparte). Juzga la FIDELIDAD de la simulación: ¿el registro, el tono y la reacción son los de ESTA persona en concreto (su nivel cultural, su escepticismo, sus barreras) o podría decirlo cualquiera?, ¿suena natural y no a IA ni a copy de marketing?, ¿mantiene su actitud (p. ej. escéptica) en vez de comprar el reclamo?",
+  ].join(" ");
+}
+
+/** Muestra uniformemente repartida a lo largo del array (cubre la distribución). */
+function evenSampleCampaign<T>(arr: T[], n: number): T[] {
+  if (arr.length <= n) return arr;
+  const step = arr.length / n;
+  const out: T[] = [];
+  for (let i = 0; i < n; i++) out.push(arr[Math.floor(i * step)]);
+  return out;
 }
 
 /**

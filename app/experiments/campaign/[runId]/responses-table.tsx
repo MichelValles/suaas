@@ -333,6 +333,85 @@ function ResponseDetail({ response: r }: { response: CampaignResponse }) {
           </p>
         )}
       </div>
+      {r.quality && <QualityBlock q={r.quality} />}
+    </div>
+  );
+}
+
+const FAILURE_LABEL: Record<string, string> = {
+  ninguno: "Sin fallo",
+  rompe_rol: "Rompe rol",
+  generico: "Genérico",
+  complaciente: "Complaciente",
+  robotico: "Robótico",
+  otro: "Otro fallo",
+};
+
+function QualityBlock({ q }: { q: NonNullable<CampaignResponse["quality"]> }) {
+  const dims: [string, number][] = [
+    ["Global", q.overall],
+    ["Fidelidad", q.role_fidelity],
+    ["Anclaje", q.grounding],
+    ["No complac.", q.non_sycophancy],
+    ["Naturalidad", q.naturalness],
+  ];
+  const flagged = q.failure_mode && q.failure_mode !== "ninguno";
+  return (
+    <div
+      style={{
+        borderTop: "1px dashed rgba(var(--fg),0.1)",
+        paddingTop: 8,
+        marginTop: 2,
+        display: "flex",
+        flexDirection: "column",
+        gap: 6,
+      }}
+    >
+      <span
+        className="mono"
+        style={{ fontSize: 10, letterSpacing: "0.2em", color: "var(--accent-text)" }}
+      >
+        Calidad · juez independiente
+      </span>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+        {dims.map(([label, value]) => (
+          <span key={label} style={{ fontSize: 12, color: "rgba(var(--fg),0.7)" }}>
+            <span style={{ color: "rgba(var(--fg),0.45)" }}>{label} </span>
+            <span style={{ color: "var(--text-strong)", fontWeight: 600 }}>
+              {fmtPct(value)}
+            </span>
+          </span>
+        ))}
+      </div>
+      <p
+        style={{
+          fontSize: 12,
+          lineHeight: 1.5,
+          color: "rgba(var(--fg),0.7)",
+          margin: 0,
+          fontStyle: "italic",
+        }}
+      >
+        “{q.verdict}”
+      </p>
+      {flagged && (
+        <span
+          className="mono"
+          style={{
+            alignSelf: "flex-start",
+            fontSize: 10,
+            letterSpacing: "0.16em",
+            textTransform: "uppercase",
+            padding: "3px 8px",
+            borderRadius: "var(--radius-pill)",
+            background: "var(--warning-text)22",
+            color: "var(--warning-text)",
+            border: "1px solid var(--warning-text)55",
+          }}
+        >
+          {FAILURE_LABEL[q.failure_mode] ?? q.failure_mode}
+        </span>
+      )}
     </div>
   );
 }

@@ -16,6 +16,7 @@ import {
   summarizeCampaignResponses,
   type CampaignByChannel,
   type CampaignByQuery,
+  type CampaignQualitySummary,
   type CampaignRecommendations,
   type CampaignResponse,
 } from "@/lib/experiments/campaign";
@@ -228,6 +229,9 @@ export default async function CampaignRunPage({
           ? " Las creatividades de vídeo se evalúan por su miniatura (el modelo no procesa vídeo)."
           : ""}
       </p>
+
+      {/* Calidad de la simulación (juez independiente sobre una muestra) */}
+      {summary.quality && <QualityPanel q={summary.quality} />}
 
       {/* Qué cambiar: síntesis accionable del run */}
       {recommendations && (
@@ -618,6 +622,42 @@ export default async function CampaignRunPage({
         />
       </section>
     </AppShell>
+  );
+}
+
+function QualityPanel({ q }: { q: CampaignQualitySummary }) {
+  const judge = q.judge ? (q.judge.split("/").pop() ?? q.judge) : "otra familia";
+  return (
+    <section style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <SectionLabel>Calidad de la simulación</SectionLabel>
+      <p
+        style={{
+          margin: 0,
+          fontSize: 13,
+          lineHeight: 1.55,
+          color: "rgba(var(--fg),0.6)",
+          maxWidth: "68ch",
+        }}
+      >
+        Un juez independiente ({judge}, otra familia de modelo) puntúa una muestra
+        de {q.n} {q.n === 1 ? "reacción" : "reacciones"}: ¿suena a esta persona,
+        mantiene su escepticismo y es natural? Es un control de fidelidad
+        anti-complacencia, no una métrica de producto.
+      </p>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+          gap: 12,
+        }}
+      >
+        <KpiCard label="Global" value={fmtPct(q.overall)} accent />
+        <KpiCard label="Fidelidad de rol" value={fmtPct(q.role_fidelity)} hint="No suena a IA ni a copy de marketing." />
+        <KpiCard label="Anclaje" value={fmtPct(q.grounding)} hint="Refleja a este perfil, no a cualquiera." />
+        <KpiCard label="No complacencia" value={fmtPct(q.non_sycophancy)} hint="Mantiene su escepticismo, no acepta el reclamo." />
+        <KpiCard label="Naturalidad" value={fmtPct(q.naturalness)} hint="Suena a persona real, no a ChatGPT." />
+      </div>
+    </section>
   );
 }
 

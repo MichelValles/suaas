@@ -2,6 +2,14 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.74.0] · 2026-07-22
+
+El juez de calidad llega a las campañas.
+
+### Added
+
+- **Calidad de la simulación en los runs de campañas**: el mismo juez independiente que ya puntúa Claridad 5s se aplica ahora a una **muestra** de las reacciones de perfil al anuncio (hasta 5 por run). Puntúa fidelidad de rol, anclaje, no complacencia y naturalidad, con la misma metodología (juez de otra familia, foco en fidelidad y no en comprensión, que ya se mide aparte). La vista del run muestra el panel «Calidad de la simulación» con las medias y, en el detalle de cada respuesta muestreada, la nota y el veredicto del juez. Persistido en métricas del run (`quality_*`) y en el `meta` de las respuestas; coste bajo el scope `quality_judge`.
+
 ## [0.73.0] · 2026-07-22
 
 El juez de calidad entra en los tests por lotes (Fase 2).
