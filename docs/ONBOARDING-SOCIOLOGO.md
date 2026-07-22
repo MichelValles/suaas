@@ -8,7 +8,7 @@
 
 ## 0. Cómo usar este documento
 
-Gravity es una plataforma para hacer test de UX/CRO con **perfiles calibrados**: registros estructurados de usuario (personalidad, barreras, historia, intención) que condicionan a un LLM para que responda «en la voz» de ese usuario ante un estímulo (una landing, un anuncio, un precio, un buscador). Tu trabajo no es usar la herramienta: es **auditar si lo que produce es creíble, fiel y, en la medida de lo posible, predictivo**, y montar el protocolo para que esa validación sea sistemática y repetible.
+Gravity es una plataforma de **validación temprana**: anticipa la eficacia de un mensaje, una campaña o una decisión antes de comprometer tráfico real, para saber qué funciona antes de invertir en ello. Lo consigue con **perfiles calibrados**: registros estructurados de usuario (personalidad, barreras, historia, intención) que condicionan a un LLM para que responda «en la voz» de ese usuario ante un estímulo (una landing, un anuncio, un precio, un buscador). Tu trabajo no es usar la herramienta: es **auditar si lo que produce es creíble, fiel y, en la medida de lo posible, predictivo**, y montar el protocolo para que esa validación sea sistemática y repetible.
 
 Orden de lectura sugerido (detallado como itinerario en la sección 8):
 

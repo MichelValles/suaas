@@ -2,7 +2,7 @@
 
 # Reglas operativas del proyecto Gravity
 
-Gravity es una plataforma para hacer **test de UX/CRO con perfiles calibrados**, expuesta en `suaas.flat101.business`. Stack: Next.js 16 (App Router) + Supabase + Vercel AI Gateway. Sin Tailwind, sólo tokens del design system de sd.michelvalles.com.
+Gravity es una plataforma de **validación temprana**: mide la eficacia de un mensaje, una campaña o una decisión antes de comprometer tráfico real, para saber qué funciona antes de invertir en ello. Se apoya en perfiles calibrados. Expuesta en `suaas.flat101.business`. Stack: Next.js 16 (App Router) + Supabase + Vercel AI Gateway. Sin Tailwind, sólo tokens del design system de sd.michelvalles.com.
 
 ## 1. Documentación viva en `docs/`
 

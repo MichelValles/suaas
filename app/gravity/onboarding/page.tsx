@@ -40,9 +40,12 @@ export default function OnboardingPage() {
           {/* 00 */}
           <Section id="intro" num="00" title="Cómo usar este guión">
             <Lead>
-              Gravity hace test de UX/CRO con <Hl>perfiles calibrados</Hl>:
-              registros estructurados de usuario que condicionan a un modelo de
-              lenguaje para que responda «en la voz» de ese usuario ante un
+              Gravity es una plataforma de <Hl>validación temprana</Hl>:
+              anticipa la eficacia de un mensaje, una campaña o una decisión
+              antes de comprometer tráfico real, para saber qué funciona antes
+              de invertir en ello. Lo consigue con perfiles calibrados
+              (registros estructurados de usuario) que condicionan a un modelo
+              de lenguaje para que responda «en la voz» de ese usuario ante un
               estímulo (una landing, un anuncio, un precio, un buscador). Tu
               trabajo no es usar la herramienta: es auditar si lo que produce es
               creíble, fiel y, en la medida de lo posible, predictivo, y montar

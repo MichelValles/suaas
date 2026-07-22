@@ -2,6 +2,12 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.77.2] · 2026-07-23
+
+### Changed
+
+- **Redefinición de Gravity hacia el valor**: la definición deja de ser «test de UX/CRO con perfiles calibrados» y pasa a «plataforma de **validación temprana**: mide la eficacia de un mensaje, una campaña o una decisión antes de comprometer tráfico real, para saber qué funciona antes de invertir en ello». Aplicado a la copy visible (página `/gravity/onboarding`) y a las fuentes canónicas (`CLAUDE.md`, `docs/PROYECTO.md`, `docs/ONBOARDING-SOCIOLOGO.md`).
+
 ## [0.77.1] · 2026-07-23
 
 ### Fixed
