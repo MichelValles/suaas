@@ -182,6 +182,10 @@ Hardening del login y manejo robusto de migraciones pendientes, sin cambios func
 - [x] **v0.16.3**: imágenes saneadas antes de enviar a Anthropic (multimodal); `resolveOgImage` más permisivo con sitios que sirven og:image relativo o sin prefijo http.
 - [x] **v0.16.3 (ui)**: remaqueta de las 4 plantillas de RUN con más aire entre secciones y stats.
 
+## v0.74.5 · Refinamiento de fidelidad 5/5 · Queries de GEO
+
+- [x] **v0.74.5 · Queries de GEO conversacionales**: la sonda GEO es desnuda (sin persona, por decisión metodológica documentada) y la `query` del segmento la escribe el usuario, así que el lever de fidelidad no es una voz de perfil sino el realismo de la query. Las queries reales eran keyword estilo Google («mejor clínica de fertilidad en España para FIV»), pero los motores IA responden distinto a una pregunta conversacional. Se refuerza la guía hacia preguntas completas «como se le habla a un asistente»: placeholder y tooltip del formulario (`app/geo/new/new-form.tsx`) y descripciones del schema `query` (`lib/geo.ts` y `lib/seed-brief.ts`, que además guían al generador de ejemplos). Verificado en producción (formulario en vivo con el placeholder conversacional). **Cierra el refinamiento de fidelidad de los cinco módulos** (recall, campañas, momentum, intent, geo).
+
 ## v0.74.4 · Refinamiento de fidelidad 4/5 · JTBD (intent)
 
 - [x] **v0.74.4 · Generación de intent anclada en el perfil**: el prompt de `generateIntentForProfile` (`app/api/profiles/batch-intent/route.ts`) producía un JTBD «de manual» (correcto pero impersonal). Ahora instruye capturar el motor real de ESA persona (trigger sacado de su backstory y momento, motivación en su registro, su vocabulario), prohíbe fórmulas genéricas de consultoría y recorta el output (`.trim()`, que además quita el espacio inicial que arrastraban las filas). Conserva la estructura JTBD canónica («Cuando…, quiero…, para poder…») porque `intent_context` alimenta `buildSystemPrompt`. Verificado en producción con un perfil de prueba (creado y devuelto a la papelera): JTBD claramente en la voz y la situación del perfil, sin fórmulas de manual.

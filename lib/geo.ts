@@ -33,7 +33,9 @@ export const SegmentInputSchema = z.object({
   query: z
     .string()
     .min(1)
-    .describe("La query que este segmento escribiría en un buscador IA."),
+    .describe(
+      "La pregunta que este segmento le haría a un asistente IA (Claude, ChatGPT, Perplexity), conversacional y completa como se le habla a un asistente, no palabras clave sueltas de Google.",
+    ),
 });
 export type SegmentInput = z.infer<typeof SegmentInputSchema>;
 

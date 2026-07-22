@@ -260,8 +260,8 @@ function SegmentBlock({
         label="Query al buscador IA"
         value={segment.query}
         onChange={(v) => onChange("query", v)}
-        placeholder="hipoteca para autónomos sin nómina fija cuál es mejor 2025"
-        tooltip="La búsqueda exacta que este usuario escribiría en Claude, ChatGPT o Perplexity. Se lanza tal cual contra los 3 motores. Escríbela como la escribiría una persona real: en lenguaje natural, sin operadores de búsqueda."
+        placeholder="¿Cuál es la mejor hipoteca para autónomos sin nómina fija en 2026 y qué me conviene?"
+        tooltip="La pregunta que este usuario le haría a Claude, ChatGPT o Perplexity. Se lanza tal cual contra los 3 motores. CLAVE: escríbela conversacional, como se le habla a un asistente (una pregunta completa, con su duda real), NO como palabras clave sueltas de Google. Los motores IA responden distinto a una pregunta que a un keyword."
       />
     </div>
   );

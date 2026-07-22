@@ -153,7 +153,12 @@ export const GeoPlanSchema = z.object({
           .string()
           .min(10)
           .describe("Frase JTBD: «Cuando [situación] quiero [motivación] para poder [resultado]»."),
-        query: z.string().min(2).describe("La query que ese segmento escribiría en un buscador IA."),
+        query: z
+          .string()
+          .min(2)
+          .describe(
+            "La pregunta conversacional que ese segmento le haría a un asistente IA (como se le habla a ChatGPT/Claude), no palabras clave sueltas de Google.",
+          ),
       }),
     )
     .min(2)

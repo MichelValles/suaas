@@ -2,6 +2,14 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.74.5] · 2026-07-22
+
+Refinamiento de fidelidad (5/5): queries de GEO conversacionales.
+
+### Changed
+
+- **Las queries del GEO Tester se guían hacia preguntas conversacionales**, como se le habla a un asistente IA (Claude, ChatGPT, Perplexity), en vez de palabras clave estilo Google. A diferencia de los otros cuatro módulos, la sonda GEO es «desnuda» (sin persona, por decisión metodológica) y la query la escribe el usuario, así que el lever de fidelidad es el realismo de esa query: los motores IA responden distinto a una pregunta completa que a un keyword. Se refuerza en el placeholder y el tooltip del formulario (`app/geo/new/new-form.tsx`) y en las descripciones del schema (`lib/geo.ts`, `lib/seed-brief.ts`, que también guían al generador de ejemplos). Verificado en producción (formulario en vivo). Con esto se cierra el refinamiento de fidelidad en los cinco módulos.
+
 ## [0.74.4] · 2026-07-22
 
 Refinamiento de fidelidad (4/5): JTBD (intent) anclado y en su voz.
