@@ -148,6 +148,18 @@ export default function OnboardingPage() {
                 ["Momentum", "vector {intensidad, dirección, velocidad}", "teoría de campo de Lewin", "dinámico"],
               ]}
             />
+            <Body>
+              Las capas no son decorativas, son la <Hl>mecánica conductual</Hl>.{" "}
+              <Hl>COM-B</Hl> predice la fricción por tres vías (capacidad = no
+              sabe o no puede; oportunidad = el contexto se lo impide; motivación
+              = no quiere), el <Hl>JTBD</Hl> (<Code>intent_context</Code>) fija el
+              «trabajo» que la persona quiere resolver, y el <Hl>vector Intent
+              Momentum</Hl> describe cómo se mueve ese interés: <Code>intensidad</Code>{" "}
+              (0..1, cuánta pulsión hay ahora), <Code>dirección</Code>{" "}
+              (approaching / stable / drifting: se acerca a una solución, está
+              inmóvil o se aleja) y <Code>velocidad</Code> (accelerating / steady
+              / decelerating: si la urgencia crece, se mantiene o se disipa).
+            </Body>
             <SubLabel>Cuatro vías de creación, distinta fidelidad</SubLabel>
             <Body>
               Formulario manual, CSV, onboard determinista y seeds (<Doc>§1.2</Doc>,{" "}
@@ -196,6 +208,27 @@ export default function OnboardingPage() {
               instrucción, no un límite físico. Eso afecta a la validez
               ecológica.
             </Callout>
+            <SubLabel>La toma de decisión: óptima / fuga / repesca</SubLabel>
+            <Body>
+              Varios módulos (5s, campañas) clasifican la <Hl>decisión</Hl> del
+              perfil ante la acción principal, en el marco expectativa-valor y
+              carga cognitiva: <Hl>óptima</Hl> (entiende el mensaje y seguiría
+              hacia la acción), <Hl>fuga</Hl> (la carga cognitiva o la promesa
+              poco clara le hacen abandonar) y <Hl>repesca</Hl> (duda, pero la
+              intención sigue viva: recuperable con el mensaje correcto). El
+              fundamento académico (Kahneman, Sweller, Sheeran) está en{" "}
+              <DocLink slug="PERFILES-CALIBRADOS">PERFILES-CALIBRADOS</DocLink> §3.2.
+            </Body>
+            <SubLabel>De dónde sale el contexto</SubLabel>
+            <Body>
+              Los perfiles se calibran con investigación (VoC y de mercado). El{" "}
+              <Hl>contexto de marca</Hl> se inyecta solo cuando procede (GEO y
+              Momentum), recuperado por similitud (RAG) desde Cerebro, y se
+              mantiene fuera de las pruebas «a ciegas» (5s, embudos) para no
+              contaminar la medición. Punto importante para ti: Gravity{" "}
+              <Hl>simula, no rastrea</Hl> usuarios reales; no hay tracking de
+              conducta, hay una reacción declarada por el modelo ante un estímulo.
+            </Body>
           </Section>
 
           {/* 04 */}
@@ -273,6 +306,21 @@ export default function OnboardingPage() {
                 regresión.
               </Li>
             </ul>
+            <SubLabel>Qué mide exactamente (la lógica fina)</SubLabel>
+            <Body>
+              El juez recibe el perfil, el estímulo y la <Hl>voz</Hl> del perfil:
+              el relato, la oferta percibida y, clave, sus <Hl>barreras y frenos</Hl>,
+              que es donde vive el filtro personal. NO recibe los campos
+              mecánicos (planes en lista, scores). Puntúa con orden{" "}
+              <Hl>razón→score</Hl> y rúbrica por bandas, y separa deliberadamente{" "}
+              <Hl>fidelidad</Hl> (¿suena a ESTA persona?) de <Hl>comprensión</Hl>{" "}
+              (¿acertó el contenido?, que se mide aparte con otro juez sin
+              persona). Devuelve además un <Code>failure_mode</Code> (rompe_rol,
+              genérico, complaciente, robótico…) y un veredicto. Confundir
+              fidelidad con comprensión, o penalizar el formato de la
+              herramienta, produce lecturas falsamente bajas: es justo el
+              hallazgo documentado en <Doc>§8.7</Doc>.
+            </Body>
             <Callout variant="warn" title="Su límite, y es central">
               El juez es <Hl>otro LLM</Hl> de una familia distinta (OpenAI,{" "}
               <Code>gpt-5.4</Code>) para romper la circularidad de «juzgar a

@@ -2,6 +2,12 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.78.3] · 2026-07-23
+
+### Changed
+
+- **El onboarding explica inline la mecánica conductual, la decisión, los intents y la lógica del juez**: dentro de los bloques existentes (sin secciones nuevas) se amplía: §02 qué hacen las capas (COM-B como predictor de fricción, el vector Intent Momentum con el significado de intensidad/dirección/velocidad); §03 la toma de decisión óptima/fuga/repesca y de dónde sale el contexto (VoC + Cerebro/RAG, con la aclaración «Gravity simula, no rastrea»); §05 la lógica fina del juez (qué respuesta recibe: voz + barreras, no campos mecánicos; fidelidad vs comprensión; `failure_mode`; razón→score).
+
 ## [0.78.1] · 2026-07-23
 
 ### Changed
