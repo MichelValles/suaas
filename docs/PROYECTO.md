@@ -4,7 +4,7 @@
 
 ## Qué es
 
-**Gravity** es una plataforma interna de Flat 101 de **validación temprana**: mide la eficacia de una decisión (un mensaje, una landing, un precio, una creatividad) antes de comprometer tráfico real, para saber qué funciona antes de invertir en ello. Permite descartar variantes de bajo rendimiento antes del lanzamiento, simular elasticidad de precios, validar copy bajo intenciones de búsqueda específicas y comparar creatividades sin coste de reclutamiento. Se apoya en **perfiles calibrados**.
+**Gravity** es una plataforma para Flat 101 de **validación temprana**: mide la eficacia de una decisión (un mensaje, una landing, un precio, una creatividad) antes de comprometer tráfico real, para saber qué funciona antes de invertir en ello. Permite descartar variantes de bajo rendimiento antes del lanzamiento, simular elasticidad de precios, validar copy bajo intenciones de búsqueda específicas y comparar creatividades sin coste de reclutamiento. Se apoya en **perfiles calibrados**.
 
 - **Dominio**: `suaas.flat101.business`.
 - **Hosting**: Vercel (proyecto independiente, no comparte deploy con `flat101business`).
