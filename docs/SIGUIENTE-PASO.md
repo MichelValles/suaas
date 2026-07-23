@@ -1,9 +1,9 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-07-23 tras v0.78.1. Sesión larga: observabilidad + evaluación de calidad de salidas (con persistencia), el juez de calidad en los tests por lotes (5s + campañas + Momentum + Intent), un refinamiento de fidelidad en cinco módulos, el onboarding del sociólogo (doc + página visual navegable + visor de docs), la **redefinición de Gravity al valor** (validación temprana) y la retirada de «usuarios sintéticos» de la documentación. Hallazgos de fidelidad consolidados y fechados en `PERFILES-CALIBRADOS §8.7`.
+> Última actualización: 2026-07-23 tras v0.78.2. Sesión larga: observabilidad + evaluación de calidad de salidas (con persistencia), el juez de calidad en los tests por lotes (5s + campañas + Momentum + Intent), un refinamiento de fidelidad en cinco módulos, el onboarding del sociólogo (doc + página visual navegable + visor de docs), la **redefinición de Gravity al valor** (validación temprana) y la retirada de «usuarios sintéticos» de la documentación. Hallazgos de fidelidad consolidados y fechados en `PERFILES-CALIBRADOS §8.7`.
 
-## Estado actual (v0.78.1 desplegada)
+## Estado actual (v0.78.2 desplegada)
 
 Sesión 2026-07-22/23 (larga). Bloques principales, del más reciente al más antiguo:
 
