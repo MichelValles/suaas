@@ -2,6 +2,16 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.79.0] · 2026-07-23
+
+### Added
+
+- **Vercel Web Analytics** (`@vercel/analytics`): analítica de uso **cookieless** y **first-party** (`/_vercel/insights`), sin GTM ni datos a terceros, para ver el uso interno de la app (pageviews por ruta). Componente `<Analytics />` en el layout raíz. **Paso manual pendiente**: habilitar Web Analytics en el dashboard del proyecto en Vercel (Project → Analytics) para que empiece a recopilar.
+
+### Changed
+
+- La `description` de metadata se alinea con la redefinición al valor («Plataforma de validación temprana…»).
+
 ## [0.78.3] · 2026-07-23
 
 ### Changed

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Hanken_Grotesk } from "next/font/google";
+import { Analytics } from "@vercel/analytics/next";
 import { ConsoleBanner } from "@/components/console-banner";
 import "./globals.css";
 
@@ -14,7 +15,7 @@ const hanken = Hanken_Grotesk({
 
 export const metadata: Metadata = {
   title: "Gravity · Flat 101",
-  description: "Plataforma de test con perfiles calibrados.",
+  description: "Plataforma de validación temprana: mide la eficacia antes de comprometer tráfico real.",
   robots: {
     index: false,
     follow: false,
@@ -41,6 +42,9 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
         <ConsoleBanner />
         {children}
+        {/* Vercel Web Analytics: cookieless, first-party (/_vercel/insights),
+            sin GTM ni datos a terceros. Solo pageviews de uso interno. */}
+        <Analytics />
       </body>
     </html>
   );
