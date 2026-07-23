@@ -1,5 +1,6 @@
 "use server";
 
+import { track } from "@vercel/analytics/server";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { parseProfileForm } from "@/lib/profile-form";
@@ -25,5 +26,6 @@ export async function createProfileAction(
     return { ok: false, error: (err as Error).message };
   }
   revalidatePath("/profiles");
+  await track("profile_created", { source: "manual" });
   redirect(`/profiles/${id}`);
 }

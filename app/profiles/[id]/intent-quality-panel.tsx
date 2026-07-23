@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { useState, useTransition } from "react";
 import {
   judgeIntentQualityAction,
@@ -35,7 +36,11 @@ export function IntentQualityPanel({
   const [pending, start] = useTransition();
 
   function evaluate() {
-    start(async () => setState(await judgeIntentQualityAction(profileId)));
+    start(async () => {
+      const result = await judgeIntentQualityAction(profileId);
+      setState(result);
+      if (result.ok) track("intent_quality_evaluated");
+    });
   }
 
   const clean = jtbd?.trim();

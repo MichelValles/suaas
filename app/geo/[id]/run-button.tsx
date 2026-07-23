@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { formatUsd } from "@/lib/model-pricing";
@@ -31,6 +32,7 @@ export function GeoRunButton({
         setStatus("error");
         return;
       }
+      track("run_launched", { kind: "geo" });
       router.refresh();
       setStatus("idle");
     } catch (err) {

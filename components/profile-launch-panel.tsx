@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { ProfileExplorer } from "@/components/profile-explorer";
@@ -152,6 +153,7 @@ export function ProfileLaunchPanel({
           throw new Error(json.error ?? `HTTP ${res.status}`);
         }
         setProgress(null);
+        track("run_launched", { kind, profiles: selected.length });
         router.push(resolveRedirect(kind, json, redirectFallback));
       } catch (e) {
         setError((e as Error).message);

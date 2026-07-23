@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { EvalModelResult } from "@/lib/eval";
@@ -42,6 +43,7 @@ export function EvaluacionClient({ defaultTarget }: { defaultTarget: string }) {
       const json = (await res.json()) as ApiResponse & { error?: string };
       if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
       setData(json);
+      track("eval_run", { targets: targets.length, judge });
       router.refresh(); // refresca el historial de evaluaciones (server)
     } catch (e) {
       setError((e as Error).message);

@@ -2,6 +2,12 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.79.1] · 2026-07-23
+
+### Added
+
+- **Eventos custom de uso** (Vercel Analytics `track`) en los sitios clave: `run_launched` con `{ kind }` para los 8 runners (5s, campañas, funnel, copy, pricing, A/B vía el `ProfileLaunchPanel` compartido; Momentum y GEO en su botón), `eval_run` (`/evaluacion`), `chat_message` (chat de perfil), `intent_quality_evaluated` (botón «Evaluar calidad» del JTBD) y `profile_created` (server-side en la acción de creación). Permite ver qué módulos/acciones se usan, no solo qué páginas se visitan.
+
 ## [0.79.0] · 2026-07-23
 
 ### Added

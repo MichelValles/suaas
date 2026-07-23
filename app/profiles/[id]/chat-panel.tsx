@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { useRef, useState, type FormEvent } from "react";
 import { formatUsd } from "@/lib/model-pricing";
 
@@ -97,6 +98,7 @@ export function ChatPanel({
     setDraft("");
     setStatus("reasoning");
     setError(null);
+    track("chat_message");
 
     try {
       const response = await fetch("/api/chat", {
