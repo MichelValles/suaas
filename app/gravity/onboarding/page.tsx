@@ -515,6 +515,20 @@ export default function OnboardingPage() {
               persona real es el onboard (<Code>/onboard</Code>), que con su
               consentimiento construye un gemelo digital.
             </Callout>
+            <Note>
+              <Hl>Del coste al texto</Hl>: la fila de consumo NO lleva el texto,
+              solo conteos e identificadores (<Code>run_id</Code>,{" "}
+              <Code>scope</Code>, y en <Code>meta</Code>: <Code>profile_id</Code>,{" "}
+              <Code>case_id</Code>, <Code>query</Code>, <Code>segment_label</Code>…).
+              Para ver QUÉ generó ese consumo, cruza esos identificadores con la
+              tabla de dominio del scope: la salida vive en{" "}
+              <Code>five_second_responses.recall</Code>,{" "}
+              <Code>campaign_responses.reasoning</Code>,{" "}
+              <Code>momentum_challenges.results[].intent_narrative</Code>,{" "}
+              <Code>messages</Code>, etc. El prompt de entrada no se persiste: se
+              reconstruye con <Code>buildSystemPrompt(perfil)</Code> más el
+              estímulo.
+            </Note>
             <SubLabel>Tablas que importan</SubLabel>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {[
