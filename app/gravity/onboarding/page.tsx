@@ -496,6 +496,25 @@ export default function OnboardingPage() {
                 Estado del esquema, tracking de migraciones, modo beta.
               </RouteCard>
             </div>
+            <SubLabel>Qué se registra (observabilidad) y qué NO se rastrea</SubLabel>
+            <DataTable
+              head={["Qué se registra", "Qué contiene", "Dónde"]}
+              rows={[
+                ["Telemetría de llamadas", "scope, modelo, tokens, coste USD, latencia y estado (ok/fallo) de cada llamada al modelo", <><Code>gateway_usage</Code> · /tokens</>],
+                ["Calidad de las salidas", "nota del juez por dimensión, historial por versión y señal de regresión", <><Code>evals</Code>, <Code>meta.quality</Code> · /evaluacion</>],
+                ["Contexto de intención", "el JTBD y las capas del perfil (personalidad, barreras, historia)", <Code>profiles</Code>],
+                ["Contexto de marca", "documentos de marca recuperados por similitud (RAG), solo en GEO y Momentum", <>Cerebro (<Code>brands</Code> / <Code>brand_documents</Code>) · <Code>lib/rag.ts</Code></>],
+                ["Reacción por run", "la respuesta de cada perfil al estímulo (recuerdo, intención, conducta)", <><Code>five_second_responses</Code>, <Code>campaign_responses</Code>, <Code>momentum_challenges</Code>, <Code>geo_analyses</Code></>],
+              ]}
+            />
+            <Callout variant="info" title="Qué NO se rastrea">
+              Nada de lo anterior es analítica de personas reales. Gravity{" "}
+              <Hl>simula</Hl>: registra sus propias llamadas (telemetría del
+              sistema) y el contexto de los perfiles, pero <Hl>no rastrea la
+              conducta de usuarios reales</Hl>. El único punto donde entra una
+              persona real es el onboard (<Code>/onboard</Code>), que con su
+              consentimiento construye un gemelo digital.
+            </Callout>
             <SubLabel>Tablas que importan</SubLabel>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {[
