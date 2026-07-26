@@ -27,6 +27,7 @@
 | Datos | Supabase (Postgres + Storage) | Provisionado vía Marketplace de Vercel. RLS activada sin policies en las tablas sensibles (bloquea anon y authenticated); el acceso es server-only vía service role, que ignora RLS. |
 | LLM | Vercel AI Gateway | Multi-proveedor con failover. `Reasoner = anthropic/claude-opus-4.7`. `Talker = anthropic/claude-sonnet-4.6`. Override por env. |
 | Almacén media | Vercel Blob | Uploads de imágenes / vídeos (data:URLs) suben a Blob y se persiste la URL. Fallback a data: URL si `BLOB_READ_WRITE_TOKEN` falta. |
+| Analítica de uso | **Vercel Web Analytics** (`@vercel/analytics`) | Cookieless, first-party, sin GTM ni datos a terceros. Pageviews + eventos custom: `run_launched` {kind, profiles, model, source ui/seed} (server, en las rutas de runs y en el seed), `profile_created` {source manual/csv/onboard/seed}, `eval_run`, `chat_message`, `docs_viewed`, `avatar_generated`. Requiere habilitar Analytics en el dashboard de Vercel. |
 | Lenguaje | TypeScript 5 estricto |  |
 | Lint | ESLint 9 con `eslint-config-next` |  |
 | Deploy | Vercel CLI (`vercel --prod --yes`) |  |

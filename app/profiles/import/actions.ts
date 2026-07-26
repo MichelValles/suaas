@@ -1,5 +1,6 @@
 "use server";
 
+import { track } from "@vercel/analytics/server";
 import { revalidatePath } from "next/cache";
 import { createProfile, type ProfileInput } from "@/lib/profiles";
 
@@ -41,5 +42,11 @@ export async function importProfilesAction(payload: {
     }
   }
   revalidatePath("/profiles");
+  if (imported > 0) {
+    // Best-effort: la telemetría nunca debe bloquear la importación.
+    await track("profile_created", { source: "csv", count: imported }).catch(
+      () => {},
+    );
+  }
   return { ok: failed.length === 0, imported, failed };
 }

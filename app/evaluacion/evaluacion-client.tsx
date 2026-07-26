@@ -43,7 +43,11 @@ export function EvaluacionClient({ defaultTarget }: { defaultTarget: string }) {
       const json = (await res.json()) as ApiResponse & { error?: string };
       if (!res.ok) throw new Error(json.error || `HTTP ${res.status}`);
       setData(json);
-      track("eval_run", { targets: targets.length, judge });
+      track("eval_run", {
+        targets: targets.length,
+        judge,
+        models: targets.join(" vs "),
+      });
       router.refresh(); // refresca el historial de evaluaciones (server)
     } catch (e) {
       setError((e as Error).message);

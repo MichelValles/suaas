@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import { track } from "@vercel/analytics/server";
 import { budgetGate } from "@/lib/budget";
+import { getRunsModel } from "@/lib/chat-models";
 import { internalError, serviceUnavailable, validationError } from "@/lib/error-response";
 import { runMomentumChallenge } from "@/lib/momentum";
 import { isSupabaseConfigured } from "@/lib/supabase";
@@ -37,6 +39,13 @@ export async function POST(req: Request) {
   }
   try {
     const challenge = await runMomentumChallenge(challengeId);
+    // Telemetría de producto (best-effort): kind + nº de perfiles + modelo.
+    await track("run_launched", {
+      kind: "momentum",
+      profiles: challenge.profile_ids.length,
+      model: await getRunsModel().catch(() => "unknown"),
+      source: "ui",
+    }).catch(() => {});
     return NextResponse.json({ ok: true, challenge });
   } catch (err) {
     const message = (err as Error).message;

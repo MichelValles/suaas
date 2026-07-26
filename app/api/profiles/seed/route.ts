@@ -1,5 +1,6 @@
 import { cookies } from "next/headers";
 import { z } from "zod";
+import { track } from "@vercel/analytics/server";
 import { budgetGate } from "@/lib/budget";
 import { isGatewayConfigured } from "@/lib/gateway";
 import { SEED_COOKIE, SEED_VALUE } from "@/lib/seed-auth";
@@ -49,6 +50,10 @@ export async function POST(request: Request) {
       { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
+
+  // Best-effort: cuenta perfiles SOLICITADOS a la siembra (el resultado real
+  // llega en streaming y puede fallar parcialmente; la cifra exacta vive en BD).
+  await track("profile_created", { source: "seed", count: n }).catch(() => {});
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {

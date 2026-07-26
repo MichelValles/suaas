@@ -505,6 +505,7 @@ export default function OnboardingPage() {
                 ["Contexto de intención", "el JTBD y las capas del perfil (personalidad, barreras, historia)", <Code>profiles</Code>],
                 ["Contexto de marca", "documentos de marca recuperados por similitud (RAG), solo en GEO y Momentum", <>Cerebro (<Code>brands</Code> / <Code>brand_documents</Code>) · <Code>lib/rag.ts</Code></>],
                 ["Reacción por run", "la respuesta de cada perfil al estímulo (recuerdo, intención, conducta)", <><Code>five_second_responses</Code>, <Code>campaign_responses</Code>, <Code>momentum_challenges</Code>, <Code>geo_analyses</Code></>],
+                ["Uso de la app (producto)", <>pageviews y eventos custom cookieless: <Code>run_launched</Code> (kind, nº de perfiles, modelo, source ui/seed), <Code>profile_created</Code> (origen manual/csv/onboard/seed), <Code>eval_run</Code>, <Code>chat_message</Code>, <Code>docs_viewed</Code>, <Code>avatar_generated</Code></>, "Vercel Web Analytics"],
               ]}
             />
             <Callout variant="info" title="Qué NO se rastrea">

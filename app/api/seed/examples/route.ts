@@ -1,7 +1,9 @@
 import { cookies } from "next/headers";
 import { after } from "next/server";
 import { z } from "zod";
+import { track } from "@vercel/analytics/server";
 import { budgetGate } from "@/lib/budget";
+import { getRunsModel } from "@/lib/chat-models";
 import { runAbTest } from "@/lib/experiments/ab";
 import {
   executeCampaignRun,
@@ -319,6 +321,42 @@ export async function POST(request: Request) {
       results.push({ kind: "momentum", ok: true, momentumId, ran });
     } catch (err) {
       results.push({ kind: "momentum", ok: false, error: (err as Error).message });
+    }
+  }
+
+  // Telemetría de producto (best-effort): los runs lanzados desde el seed
+  // también cuentan como run_launched, con source "seed"; sin esto el uso
+  // sembrado quedaría invisible en la analítica.
+  if (launch > 0) {
+    const model = await getRunsModel().catch(() => null);
+    const base = model ? { model } : {};
+    for (const r of results) {
+      if (!r.ok) continue;
+      if (r.kind === "campaign_strategies" && "campaigns" in r) {
+        for (const c of r.campaigns) {
+          if (!c.runId) continue;
+          await track("run_launched", {
+            kind: "campaign",
+            source: "seed",
+            profiles: launch,
+            ...base,
+          }).catch(() => {});
+        }
+        continue;
+      }
+      const launched =
+        ("runId" in r && Boolean(r.runId)) ||
+        ("runIds" in r && Array.isArray(r.runIds) && r.runIds.length > 0) ||
+        ("ran" in r && r.ran === true);
+      if (!launched) continue;
+      const kind = r.kind === "clarity" ? "five-second" : r.kind;
+      await track("run_launched", {
+        kind,
+        source: "seed",
+        // GEO no usa perfiles (sonda por segmentos): sin la propiedad.
+        ...(kind === "geo" ? {} : { profiles: launch }),
+        ...base,
+      }).catch(() => {});
     }
   }
 

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { track } from "@vercel/analytics/server";
 import { budgetGate } from "@/lib/budget";
 import { internalError, serviceUnavailable, validationError } from "@/lib/error-response";
 import { runGeoAnalysis } from "@/lib/geo";
@@ -37,6 +38,13 @@ export async function POST(req: Request) {
   }
   try {
     const analysis = await runGeoAnalysis(geoId);
+    // Telemetría de producto (best-effort). GEO es multi-motor: sin `model`;
+    // la dimensión útil es el nº de segmentos sondeados.
+    await track("run_launched", {
+      kind: "geo",
+      segments: analysis.segments.length,
+      source: "ui",
+    }).catch(() => {});
     return NextResponse.json({ ok: true, analysis });
   } catch (err) {
     const message = (err as Error).message;

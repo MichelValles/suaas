@@ -243,6 +243,8 @@ Referencias: `docs/PROYECTO.md` (modelo de datos, auth), `docs/DESARROLLO.md` (c
 - `evals`: historial de evaluaciones del golden set (agregados + detalle por caso en `cases`).
 - `gateway_usage`: telemetría de todas las llamadas al modelo (para coste y auditoría).
 
+**Analítica de producto (uso de la app)**: además de la telemetría del motor, la app registra su propio uso con Vercel Web Analytics (cookieless, first-party, sin datos a terceros): pageviews por ruta y eventos custom (`run_launched` con kind, nº de perfiles, modelo y source ui/seed; `profile_created` por origen manual/csv/onboard/seed; `eval_run`; `chat_message`; `docs_viewed`; `avatar_generated`). Se consulta en el dashboard de Vercel (pestaña Analytics), no en la base de datos. Sigue sin rastrearse conducta de usuarios reales: mide el uso de la herramienta por el equipo.
+
 **Extracción de datos para trabajar offline**:
 - CSV directo: la vista de un run de **campañas** exporta CSV (incluye formato para Google Ads / Meta / TikTok).
 - El resto: consulta SQL de solo lectura contra las tablas de arriba (o pide que se te exporte). No hay todavía un exportador genérico para 5s/momentum/geo; es un hueco conocido y se puede añadir si tu análisis lo necesita.

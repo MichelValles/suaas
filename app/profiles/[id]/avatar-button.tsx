@@ -1,5 +1,6 @@
 "use client";
 
+import { track } from "@vercel/analytics";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
@@ -33,6 +34,7 @@ export function AvatarButton({
         setStatus("error");
         return;
       }
+      track("avatar_generated", { regenerated: hasAvatar });
       router.refresh();
       setStatus("idle");
     } catch (err) {

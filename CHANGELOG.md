@@ -2,6 +2,16 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.79.2] · 2026-07-26
+
+### Added
+
+- **Más señales de uso y propiedades enriquecidas** (Vercel Analytics): eventos nuevos `docs_viewed` (con el slug del documento), `avatar_generated` (con si es regeneración) y los **runs lanzados desde el seed** (`run_launched` con `source: "seed"`). `profile_created` se segmenta por origen: `manual`, `csv` (con nº importados), `onboard` (gemelo digital público) y `seed` (nº solicitados). `eval_run` añade los modelos comparados.
+
+### Changed
+
+- **`run_launched` pasa al servidor** (rutas de runs + momentum + geo, `@vercel/analytics/server`): es el único sitio que conoce de forma autoritativa el **modelo elegido** y el **nº de perfiles**, y esquiva ad-blockers. Propiedades: `{ kind, profiles, model, source: ui | ui-resume | seed }` (GEO reporta `segments` en vez de modelo, es multi-motor). Se retiran los `track` de cliente equivalentes para no contar doble. Todos los `track` de servidor son best-effort (`.catch`): la telemetría nunca bloquea el flujo.
+
 ## [0.79.1] · 2026-07-23
 
 ### Added

@@ -1,4 +1,5 @@
 import { type NextRequest } from "next/server";
+import { track } from "@vercel/analytics/server";
 import { BudgetExceededError, assertBudget } from "@/lib/budget";
 import {
   OnboardPayloadSchema,
@@ -115,6 +116,12 @@ export async function POST(req: NextRequest) {
       try {
         for await (const ev of synthesizeProfile(parsed.data)) {
           write(ev);
+          if ("done" in ev) {
+            // Best-effort: el gemelo digital creado desde el onboard público.
+            await track("profile_created", { source: "onboard" }).catch(
+              () => {},
+            );
+          }
           if ("done" in ev || "error" in ev) break;
         }
       } catch (err) {

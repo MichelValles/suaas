@@ -4,7 +4,9 @@ import {
   serviceUnavailable,
   validationError,
 } from "@/lib/error-response";
+import { track } from "@vercel/analytics/server";
 import { budgetGate } from "@/lib/budget";
+import { getRunsModel } from "@/lib/chat-models";
 import { runAbTest } from "@/lib/experiments/ab";
 import { isGatewayConfigured } from "@/lib/gateway";
 
@@ -30,6 +32,13 @@ export async function POST(request: Request) {
   }
   try {
     const result = await runAbTest(parsed);
+    // Telemetría de producto (best-effort): kind + nº de perfiles + modelo.
+    await track("run_launched", {
+      kind: "ab",
+      profiles: parsed.profileIds.length,
+      model: await getRunsModel().catch(() => "unknown"),
+      source: "ui",
+    }).catch(() => {});
     return Response.json({ ok: true, ...result });
   } catch (err) {
     return internalError(500, "/api/runs/ab", err);

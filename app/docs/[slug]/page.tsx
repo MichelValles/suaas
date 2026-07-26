@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppShell, PageHeading } from "@/components/app-shell";
 import { Markdown } from "@/components/markdown";
+import { DocsViewTracker } from "./docs-view-tracker";
 
 /**
  * Visor de la documentación viva del proyecto (`docs/*.md`) dentro de la app,
@@ -50,6 +51,7 @@ export default async function DocPage({
 
   return (
     <AppShell>
+      <DocsViewTracker slug={slug} />
       <PageHeading
         eyebrow="DOCUMENTACIÓN"
         title={`${slug}.md`}

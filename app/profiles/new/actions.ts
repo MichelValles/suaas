@@ -26,6 +26,7 @@ export async function createProfileAction(
     return { ok: false, error: (err as Error).message };
   }
   revalidatePath("/profiles");
-  await track("profile_created", { source: "manual" });
+  // Best-effort: la telemetría nunca debe bloquear la creación.
+  await track("profile_created", { source: "manual" }).catch(() => {});
   redirect(`/profiles/${id}`);
 }

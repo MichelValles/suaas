@@ -1,6 +1,8 @@
 import { after } from "next/server";
 import { z } from "zod";
+import { track } from "@vercel/analytics/server";
 import { budgetGate } from "@/lib/budget";
+import { getRunsModel } from "@/lib/chat-models";
 import {
   internalError,
   serviceUnavailable,
@@ -52,6 +54,13 @@ export async function POST(request: Request) {
     // Procesado tras la respuesta: la UI navega ya a la página de resultados,
     // que muestra el progreso con polling.
     after(() => executeCampaignRun(prep));
+    // Telemetría de producto (best-effort): kind + nº de perfiles + modelo.
+    await track("run_launched", {
+      kind: "campaign",
+      profiles: prep.profiles.length,
+      model: await getRunsModel().catch(() => "unknown"),
+      source: "resumeRunId" in parsed ? "ui-resume" : "ui",
+    }).catch(() => {});
     return Response.json({
       ok: true,
       runId: prep.runId,

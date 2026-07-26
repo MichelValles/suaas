@@ -1,6 +1,5 @@
 "use client";
 
-import { track } from "@vercel/analytics";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { formatUsd } from "@/lib/model-pricing";
@@ -28,7 +27,6 @@ export function MomentumRunButton({
         const data = (await res.json()) as { error?: string };
         alert(data.error ?? "Error al lanzar el análisis.");
       } else {
-        track("run_launched", { kind: "momentum" });
         router.refresh();
       }
     } catch {
