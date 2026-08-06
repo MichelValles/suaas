@@ -2,6 +2,16 @@
 
 Cambios notables de **Gravity**, agrupados por release y legibles de un vistazo. El detalle técnico versionado (desde v0.1, con fichero:línea y decisiones) vive en [`docs/ROADMAP.md`](./docs/ROADMAP.md). Formato inspirado en [Keep a Changelog](https://keepachangelog.com); versión en `lib/version.ts` y `package.json` (SemVer).
 
+## [0.79.3] · 2026-08-06
+
+### Added
+
+- **Plan del programa multiproyecto** (`docs/MULTIPROYECTO-PLAN.md`, aprobado y sin arrancar): Gravity pasará de instancia única con contraseña compartida a plataforma multiproyecto **con clientes dentro de la misma instancia**. Cuatro fases: proyectos como ámbito de trabajo (v0.80.0), identidad y roles con aislamiento garantizado (v0.81.0 a v0.84.0), coste y presupuesto por proyecto (v0.85.0) y arquetipos con cuotas más muestreo estratificado (v0.86.0 y v0.87.0). Techo de versión del programa: **v0.90.0**. Incluye el diagnóstico verificado contra producción (13 tablas raíz de 28, ~190 puntos de acceso sin filtro, ~200 entidades de dominio, cookie de sesión de valor constante y RLS sin policies), la condición de arranque (ninguna cuenta de cliente antes de cerrar la fase 2) y los puntos de diseño abiertos.
+
+### Changed
+
+- **`Plan-venta.md §1` queda derogado** y la §7 superada: la decisión pasa de «una instancia por cliente» (opción A) a multi-tenant real (opción B), que aquel análisis aplazaba hasta tener 5-8 clientes. Ambas secciones conservan el análisis original como registro, con una nota que apunta al plan nuevo. El modelo de costes por instancia (§4) se reescribe en la fase de coste por proyecto.
+
 ## [0.79.2] · 2026-07-26
 
 ### Added

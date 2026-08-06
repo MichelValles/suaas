@@ -1,9 +1,28 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-07-23 tras v0.78.5. Sesión larga: observabilidad + evaluación de calidad de salidas (con persistencia), el juez de calidad en los tests por lotes (5s + campañas + Momentum + Intent), un refinamiento de fidelidad en cinco módulos, el onboarding del sociólogo (doc + página visual navegable + visor de docs), la **redefinición de Gravity al valor** (validación temprana) y la retirada de «usuarios sintéticos» de la documentación. Hallazgos de fidelidad consolidados y fechados en `PERFILES-CALIBRADOS §8.7`.
+> Última actualización: 2026-08-06 tras v0.79.3. **Cambia el rumbo del proyecto**: se aprueba el programa multiproyecto, que marca el trabajo de las próximas versiones hasta el techo v0.90.0.
 
-## Estado actual (v0.78.5 desplegada)
+## Estado actual (v0.79.3 desplegada)
+
+### Por dónde seguir: el programa multiproyecto
+
+El plan está consolidado en [`MULTIPROYECTO-PLAN.md`](./MULTIPROYECTO-PLAN.md) (aprobado el 2026-08-06, **sin arrancar**). Decisión de negocio: los clientes entrarán **en la misma instancia**, no en instancias dedicadas, lo que **deroga `Plan-venta.md §1`**. Cuatro fases: proyectos como ámbito de trabajo (v0.80.0), identidad y roles con aislamiento garantizado (v0.81.0 a v0.84.0), coste y presupuesto por proyecto (v0.85.0) y arquetipos con cuotas más muestreo estratificado (v0.86.0 y v0.87.0). Techo del programa: **v0.90.0**, no se sube a 1.0.0. Esfuerzo estimado: 9-16 sesiones.
+
+**Empieza por la fase 1** (v0.80.0): migración de `projects` + `project_id` en las 13 tablas raíz con backfill desde `optimized_for`, capa de acceso única que inyecte el ámbito (la pieza crítica: sin ella el filtro hay que recordarlo en ~190 sitios), proyecto activo resuelto en servidor, guardas en los 8 runners y gestión de proyectos. **Condición de arranque del programa**: ninguna cuenta de cliente antes de cerrar y verificar la fase 2.
+
+### Pendientes operativos detectados el 2026-08-06
+
+- **Vercel Web Analytics NO está habilitado** en el dashboard del proyecto (la API responde `404 Web Analytics not found`). Las tres releases de analítica (v0.79.0, v0.79.1 y v0.79.2) **no están recopilando nada**: ni pageviews ni eventos custom. Paso manual del operador: Vercel → proyecto → Analytics.
+- **Doble deploy por commit**: el proyecto está conectado a GitHub en Vercel, así que el `git push` del final del ciclo dispara su propio deploy de producción además del `vercel --prod` manual. Detalle y decisión pendiente en `DESARROLLO.md → Deploy`.
+- **Saldo del AI Gateway sin verificar** desde junio (último dato anotado: ~4 $). Comprobar en `/tokens` antes de lanzar runs.
+- Salud verificada ese día: producción viva (307 a `/login`), último deploy `READY` con v0.79.2 y Supabase despierto (el cron de keep-alive cumple).
+
+### Estado anterior (v0.79.0 a v0.79.2 · analítica de uso)
+
+Vercel Web Analytics cookieless y first-party, sin GTM ni datos a terceros, más el catálogo de eventos custom: `run_launched` desde el servidor con `{kind, profiles, model, source}`, `profile_created` segmentado por origen, `docs_viewed`, `avatar_generated`, `eval_run`, `chat_message` e `intent_quality_evaluated`. Detalle en `ROADMAP.md → v0.79.x`. Recuerda que no recopila hasta habilitarlo en el dashboard.
+
+## Estado anterior (v0.78.5)
 
 Sesión 2026-07-22/23 (larga). Bloques principales, del más reciente al más antiguo:
 

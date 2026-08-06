@@ -6,6 +6,8 @@
 
 ## 1. Decisión de arquitectura
 
+> ⚠️ **Sección derogada el 2026-08-06 por [`MULTIPROYECTO-PLAN.md`](./MULTIPROYECTO-PLAN.md)**. La decisión de negocio ha cambiado: los clientes entrarán **en la misma instancia**, es decir, la opción B (multi-tenant). El análisis de abajo se conserva como registro de por qué se eligió A en su momento y qué costaba B. El modelo de costes de la §4 y el criterio de salto de la §7 se reescriben en la fase de coste por proyecto (v0.85.0).
+
 Dos caminos posibles:
 
 - **A) Una instancia por cliente (replicar Gravity)**: un proyecto de Vercel + un proyecto de Supabase + una API key del AI Gateway por cliente, todos desplegando desde el mismo repo.
@@ -206,6 +208,8 @@ La calculadora muestra a cualquiera sólo la tarifa. La **vista interna** (renta
 ~2-4 h/mes de base (releases + revisiones) más ~0,5-1 h/mes por instancia. Con 5 clientes: 5-8 h/mes una vez scriptados aprovisionamiento y migraciones. Onboarding de cliente nuevo: 1-2 h a mano, 15-30 min scriptado.
 
 ## 7. Cuándo saltar a multi-tenant
+
+> ⚠️ **Superada el 2026-08-06**: el salto ya está decidido y planificado en [`MULTIPROYECTO-PLAN.md`](./MULTIPROYECTO-PLAN.md), sin esperar al umbral de 5-8 clientes. El disparador no fue el número de clientes sino la decisión de darles acceso dentro de la misma instancia. El criterio de abajo queda como registro.
 
 Reevaluar la opción B cuando se cumpla alguna: más de 5-8 clientes activos, necesidad de alta self-service (registro sin intervención), o el coste de Supabase por instancia (10 $ × N) supere el coste del refactor. Los feature flags por env del punto 3 migran tal cual a una tabla `plans`.
 

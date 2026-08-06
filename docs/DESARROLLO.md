@@ -41,7 +41,7 @@ Ver `.env.example` para el listado completo. Esenciales:
 
    Las 29 constan aplicadas (las 20 primeras el 2026-06-11; el resto según se fueron añadiendo, vía SQL editor o MCP de Supabase). La 0028 (`metrics_unique`) debe aplicarse antes de desplegar el código del upsert de métricas. Usa `/diag` o `/api/diag` para confirmar que todas las tablas + columnas críticas están verdes y que «Tracking de migraciones» no lista pendientes. El campo `pending_migrations` del JSON de `/api/diag` es el atajo: lista deduplicada de los archivos `.sql` que faltan por aplicar.
 
-- **¿Cómo aplico las migraciones?** El proyecto suaas **no está conectado a Git en Vercel**, así que `supabase db push` automático no aplica. El flujo es manual:
+- **¿Cómo aplico las migraciones?** No hay `supabase db push` automático contra el proyecto, así que el flujo es manual:
    1. Vercel → Marketplace → Supabase → **Open in Supabase** → SQL editor.
    2. Pegar el contenido del archivo `.sql`.
    3. Ejecutar.
@@ -67,6 +67,8 @@ Cada cambio funcional sigue el ciclo de `CLAUDE.md`:
 4. `vercel --prod --yes`.
 5. Verificar versión en la consola del navegador (`Gravity · FLAT 101 vX.Y.Z · suaas.flat101.business`).
 6. `git add . && git commit -m "feat|fix|...: ..."` y `git push` si hay remote.
+
+> **Ojo, doble deploy (verificado el 2026-08-06)**: el proyecto **sí está conectado a GitHub en Vercel** (la integración llegó con el PR del bot que instaló Web Analytics en julio). Un `git push` a `main` dispara su propio deploy de producción, de modo que el paso 4 y el paso 6 publican **dos veces el mismo commit**. Se distinguen en el histórico: los del CLI llevan `actor: claude-code…` y `gitDirty`, los del push traen metadata completa de GitHub. Está pendiente decidir si se retira el `vercel --prod` manual del ciclo o si se desactiva el auto-deploy de la integración.
 
 ## Subdominio
 

@@ -21,7 +21,7 @@ const GROUPS: { title: string; slugs: string[] }[] = [
   { title: "Infraestructura y negocio", slugs: ["PROYECTO", "DESARROLLO", "Plan-venta", "SISTEMA-DISENO"] },
   {
     title: "Estado y decisiones",
-    slugs: ["ROADMAP", "SIGUIENTE-PASO", "AUDITORIA-SEGURIDAD", "CAMPANAS-PLAN-MEJORA", "VERTEX-AI-VALORACION", "ORQUESTACION-VALORACION"],
+    slugs: ["ROADMAP", "SIGUIENTE-PASO", "MULTIPROYECTO-PLAN", "AUDITORIA-SEGURIDAD", "CAMPANAS-PLAN-MEJORA", "VERTEX-AI-VALORACION", "ORQUESTACION-VALORACION"],
   },
 ];
 
