@@ -240,7 +240,7 @@ Entre los dos cubren los dos planos pre-clic: Momentum mide el momentum **antes*
 
 ## 8. Mapa teoría → implementación en Gravity
 
-> **Verificado contra el código a v0.63.3 (2026-07-19).** Este mapa caduca con cada cambio funcional: al tocar un módulo listado aquí, actualizar su fila en la misma sesión (regla 1 de `CLAUDE.md`). Las citas van por archivo y migración concreta, no por rangos.
+> **Verificado contra el código a v0.79.4 (2026-08-18; primera verificación v0.63.3, 2026-07-19).** Este mapa caduca con cada cambio funcional: al tocar un módulo listado aquí, actualizar su fila en la misma sesión (regla 1 de `CLAUDE.md`). Las citas van por archivo y migración concreta, no por rangos.
 
 Los módulos se agrupan por plano, igual que la navegación de la app (`/gravity`). La columna «momento» ancla cada uno a la tesis: la mayoría de la plataforma trabaja **antes del clic**.
 
@@ -303,9 +303,13 @@ El enum es único (`optima` / `fuga` / `repesca`) pero el criterio operacional c
 
 En embudos, copy y pricing la taxonomía no existe (el embudo colapsa fuga y repesca en el booleano `would_continue`).
 
+### Medición de fidelidad: el juez de calidad (v0.73-v0.76)
+
+Transversal a Claridad 5s, Campañas y Momentum: `judgeSimulationQuality` (`lib/eval.ts`, scope `quality_judge`) puntúa una muestra de cada run en 4 dimensiones (fidelidad de rol, anclaje, no complacencia, naturalidad) con un juez de otra familia de modelo. No mide si el módulo modela bien un concepto del Gravity Model, sino si la simulación es fiel a la voz del perfil que ese módulo invoca; el detalle académico está en `PERFILES-CALIBRADOS.md §5`. El harness independiente (`/evaluacion`) además compara modelos entre sí y persiste histórico. Fuera de alcance todavía: embudos, copy, pricing.
+
 ### Conceptos del modelo aún sin implementación directa
 
-Huecos identificados (insumo para el roadmap), reverificados contra v0.63.3. Esta lista está duplicada con redacción propia en el componente `ConceptosPendientes` de la página `/gravity` (`app/gravity/conceptos-pendientes.tsx`): este documento es la fuente de verdad; al cambiar la lista, sincronizar el componente en la misma sesión.
+Huecos identificados (insumo para el roadmap), reverificados contra v0.79.4 (los 8 puntos siguen coincidiendo uno a uno con el servidor). Esta lista está duplicada con redacción propia en el servidor (`PENDING` en `app/api/gravity/unlock/route.ts`; el componente cliente `app/gravity/conceptos-pendientes.tsx` solo pinta lo que recibe, desde v0.62.0 ni el contenido ni la contraseña viajan en el bundle): este documento es la fuente de verdad; al cambiar la lista, sincronizar `PENDING` en la misma sesión.
 
 - **Value Plane completo**: no hay simulación post-alta (descubrimiento, adopción, pertenencia, hábito recurrente, churn). Es el plano con menos cobertura: la plataforma es hoy fuerte en pre-clic (Construction + Acceleration) y débil en post-clic (Value).
 - **Instancias** como entidad: Gravity tiene perfiles individuales, pero no el par «perfil comportamental → N instancias» (mismo comportamiento, orígenes y aha moments distintos).

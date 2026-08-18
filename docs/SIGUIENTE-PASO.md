@@ -1,22 +1,25 @@
 # Siguiente paso (handoff)
 
 > Archivo vivo para retomar la sesión. Actualizar al cerrar cada sprint.
-> Última actualización: 2026-08-06 tras v0.79.3. **Cambia el rumbo del proyecto**: se aprueba el programa multiproyecto, que marca el trabajo de las próximas versiones hasta el techo v0.90.0.
+> Última actualización: 2026-08-18 tras v0.79.4 (puesta al día documental, sin cambios funcionales). El rumbo del proyecto sigue siendo el que fijó v0.79.3: el programa multiproyecto.
 
-## Estado actual (v0.79.3 desplegada)
+## Estado actual (v0.79.4 desplegada)
+
+### Esta sesión (2026-08-18): auditoría y puesta al día de toda la documentación
+
+Doce días sin commits desde `v0.79.3`. Se pidió poner `docs/` al día; la auditoría encontró que varios documentos llevaban desde `v0.63.4` sin una pasada de coherencia integral (banners de versión desincronizados, estructura de carpetas con doce releases de retraso, y una contradicción real: `SISTEMA-DISENO.md` describía la home con `<FeatureCard>`, clase retirada del código en `v0.65.1`). Verificado contra Supabase real vía MCP: **sin drift de esquema**, las 31 migraciones y las 28 tablas coinciden exactamente con lo documentado; el problema era solo de documentación. Detalle completo en `ROADMAP.md → v0.79.4`. No cambia el rumbo ni el plan: sigue siendo el programa multiproyecto de abajo.
 
 ### Por dónde seguir: el programa multiproyecto
 
-El plan está consolidado en [`MULTIPROYECTO-PLAN.md`](./MULTIPROYECTO-PLAN.md) (aprobado el 2026-08-06, **sin arrancar**). Decisión de negocio: los clientes entrarán **en la misma instancia**, no en instancias dedicadas, lo que **deroga `Plan-venta.md §1`**. Cuatro fases: proyectos como ámbito de trabajo (v0.80.0), identidad y roles con aislamiento garantizado (v0.81.0 a v0.84.0), coste y presupuesto por proyecto (v0.85.0) y arquetipos con cuotas más muestreo estratificado (v0.86.0 y v0.87.0). Techo del programa: **v0.90.0**, no se sube a 1.0.0. Esfuerzo estimado: 9-16 sesiones.
+El plan está consolidado en [`MULTIPROYECTO-PLAN.md`](./MULTIPROYECTO-PLAN.md) (aprobado el 2026-08-06, **confirmado sin arrancar el 2026-08-18**). Decisión de negocio: los clientes entrarán **en la misma instancia**, no en instancias dedicadas, lo que **deroga `Plan-venta.md §1`**. Cuatro fases: proyectos como ámbito de trabajo (v0.80.0), identidad y roles con aislamiento garantizado (v0.81.0 a v0.84.0), coste y presupuesto por proyecto (v0.85.0) y arquetipos con cuotas más muestreo estratificado (v0.86.0 y v0.87.0). Techo del programa: **v0.90.0**, no se sube a 1.0.0. Esfuerzo estimado: 9-16 sesiones.
 
 **Empieza por la fase 1** (v0.80.0): migración de `projects` + `project_id` en las 13 tablas raíz con backfill desde `optimized_for`, capa de acceso única que inyecte el ámbito (la pieza crítica: sin ella el filtro hay que recordarlo en ~190 sitios), proyecto activo resuelto en servidor, guardas en los 8 runners y gestión de proyectos. **Condición de arranque del programa**: ninguna cuenta de cliente antes de cerrar y verificar la fase 2.
 
-### Pendientes operativos detectados el 2026-08-06
+### Pendientes operativos detectados el 2026-08-06 (sin verificar de nuevo el 2026-08-18)
 
-- **Vercel Web Analytics NO está habilitado** en el dashboard del proyecto (la API responde `404 Web Analytics not found`). Las tres releases de analítica (v0.79.0, v0.79.1 y v0.79.2) **no están recopilando nada**: ni pageviews ni eventos custom. Paso manual del operador: Vercel → proyecto → Analytics.
+- **Vercel Web Analytics**: estado sin reverificar en esta sesión (no había acceso al dashboard). A la última comprobación (2026-08-06) NO estaba habilitado (la API respondía `404 Web Analytics not found`), así que las tres releases de analítica (v0.79.0, v0.79.1 y v0.79.2) no recopilaban nada. Paso manual del operador: Vercel → proyecto → Analytics. **Confirmar en la próxima sesión con acceso al dashboard.**
 - **Doble deploy por commit**: el proyecto está conectado a GitHub en Vercel, así que el `git push` del final del ciclo dispara su propio deploy de producción además del `vercel --prod` manual. Detalle y decisión pendiente en `DESARROLLO.md → Deploy`.
 - **Saldo del AI Gateway sin verificar** desde junio (último dato anotado: ~4 $). Comprobar en `/tokens` antes de lanzar runs.
-- Salud verificada ese día: producción viva (307 a `/login`), último deploy `READY` con v0.79.2 y Supabase despierto (el cron de keep-alive cumple).
 
 ### Estado anterior (v0.79.0 a v0.79.2 · analítica de uso)
 

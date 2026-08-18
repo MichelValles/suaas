@@ -2,6 +2,8 @@
 
 > Origen: investigación multiagente sobre el módulo (5 lentes de comprensión + 5 perspectivas de propuesta + síntesis), 2026-06-11, sobre la base v0.34.0.
 > Cada afirmación de este plan se verificó contra el código real. Las referencias `archivo:línea` pueden moverse con futuras ediciones: confírmalas antes de ejecutar.
+>
+> **✅ PLAN COMPLETADO (16/16)**: las seis releases (`v0.35.0` a `v0.40.0`) se publicaron íntegras entre 2026-06-11 y el cierre del muestreo RSA con ranking por asset. Detalle release a release en `ROADMAP.md → v0.35.x` a `v0.40.0`. Este documento se conserva como registro del diagnóstico y el diseño original; no quedan puntos pendientes de este plan (los canales Meta/TikTok y el resto de evolución del módulo posterior a `v0.40.0` se documentan directamente en `ROADMAP.md` y `PROYECTO.md`, no aquí).
 
 ## Diagnóstico
 

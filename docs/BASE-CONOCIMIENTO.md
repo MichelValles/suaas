@@ -239,6 +239,8 @@ La validez de los perfiles calibrados grounded se probó en salud de alta comple
 
 **Matiz de honestidad para Gravity.** El pilar 1 (calibración VoC) exige VoC primaria (transcripciones, reseñas). Los sets IVI (15 perfiles) y Adeslas (3) se calibraron con **investigación secundaria de mercado verificada adversarialmente** (registros sectoriales SEF, INE, OCU, comparadores), no con VoC de clientes reales. Es un grounding serio pero de otra especie: conocimiento de mercado, no evidencia conductual de primera mano. La validación final con humanos sigue siendo el gold standard irrenunciable.
 
+**Control interno de fidelidad (v0.70-v0.76), distinto de lo anterior.** Gravity añade su propio juez automático (`judgeSimulationQuality`, otra familia de modelo que el objetivo) que puntúa una muestra de las salidas de Claridad 5s, Campañas y Momentum en fidelidad de rol, anclaje, no complacencia y naturalidad, más un banco de pruebas (`/evaluacion`) que compara modelos y detecta regresión entre versiones. **No sustituye ni se acerca a la prueba de concepto de Yun et al.**: no hay ground truth externo ni evaluadores humanos ciegos detrás, es un LLM juzgando a otro LLM sobre si «suena» a la voz del perfil. Sirve para cazar regresiones de prompt entre releases, no para validar que la simulación predice conducta real. Detalle en `PROYECTO.md → Evaluación de calidad de las salidas` y `PERFILES-CALIBRADOS.md §5`.
+
 ---
 
 ## 8. Riesgos, ética y defensas de seguridad probadas

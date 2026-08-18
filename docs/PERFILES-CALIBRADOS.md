@@ -4,7 +4,7 @@
 >
 > **Relación con los demás documentos**: el marco estratégico (por qué se simula y en qué plano) está en [`GRAVITY-MODEL.md`](./GRAVITY-MODEL.md). La base teórica fundacional del motor está en [`BASE-CONOCIMIENTO.md`](./BASE-CONOCIMIENTO.md). Los dos sets de perfiles construidos con investigación real están en [`IVI-PUBLICO-OBJETIVO.md`](./IVI-PUBLICO-OBJETIVO.md) y [`ADESLAS-DENTAL-PUBLICO-OBJETIVO.md`](./ADESLAS-DENTAL-PUBLICO-OBJETIVO.md).
 >
-> **Verificado contra el código a v0.63.3 (2026-07-19).** Cada afirmación lleva su cita `archivo:línea`. Al cambiar cualquier pieza del sistema de perfiles, actualizar este documento en la misma sesión.
+> **Verificado contra el código a v0.63.3 (2026-07-19), releído sin cambios de fondo a v0.79.4 (2026-08-18).** Cada afirmación lleva su cita `archivo:línea`. Al cambiar cualquier pieza del sistema de perfiles, actualizar este documento en la misma sesión. La sección 5 (tabla de fidelidad) ya incorporaba el cierre de la brecha de Momentum de `v0.72.3`; no se han detectado cambios estructurales posteriores en cómo los módulos calibran al perfil.
 
 ---
 
@@ -229,6 +229,8 @@ La uniformidad que sugiere «los perfiles se inyectan en todo» tiene excepcione
 | Pricing | Sí | Una pasada por precio | No | No | `willingness_to_pay` mide justicia de precio, ver 5.3 |
 | Campañas | Sí | Snippet + landing condicional + juez + versión ideal | **Sí** (semántica de ads) | No | El módulo con más controles (cegado, rúbricas, muestreo determinista) |
 | **Momentum/Triggers** | **Sí** (desde v0.72.3) | Una pasada por perfil | No | **Sí, por escenario** | Antes usaba persona reducida; desde v0.72.3 usa `buildSystemPrompt` completo |
+
+**Medición de esta misma fidelidad (v0.73-v0.76)**: desde `v0.73.0` existe un juez de calidad automático (`judgeSimulationQuality`, `lib/eval.ts`, de otra familia de modelo que el objetivo) que puntúa una muestra de las salidas de Claridad 5s, Campañas y Momentum en 4 dimensiones, entre ellas el **anclaje/grounding** de esta misma tabla: es la comprobación empírica, run a run, de si la voz calibrada de cada módulo se sostiene. El Intent/JTBD tiene su propio juez on-demand (`v0.76.0`). Detalle en `PROYECTO.md → Evaluación de calidad de las salidas`. Embudos, A/B, Copy y Pricing quedan **fuera** del juez todavía.
 
 ### 5.3 Pricing: el constructo mal etiquetado
 

@@ -102,6 +102,8 @@ Verificado contra el código (los detalles con `archivo:línea` y migración est
 | **Copy** | ✅ | Resonancia de copy puro. |
 | **Cerebro** (contexto de marca + RAG + ZDR) | ✅ | Sustrato de los demás módulos. |
 | **Origen y cliente del perfil** (icono estrellas vs. formulario, `optimized_for`) | ✅ | v0.68. |
+| **Evaluación de calidad** (banco de pruebas `/evaluacion` + juez muestreado dentro de 5s/campañas/momentum) | ✅ | v0.70-v0.76. Mide fidelidad de la simulación, no acierto de contenido; ver `PROYECTO.md`. |
+| **Visor de documentación** (`/docs`) | ✅ | v0.78.0. La documentación viva se lee dentro de la app, generada estáticamente. |
 
 ### En beta (funciona, menos maduro)
 

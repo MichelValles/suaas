@@ -108,7 +108,7 @@ Reglas:
 | `.mono` | Tabular-nums Nunito para metadatos y HUD. |
 | `.btn-pill` | Pill outline con accent. Modificador `.solid` invierte. |
 | `.hl` | Highlight inline con fondo accent. |
-| `.feature-card` | Tarjeta clicable de módulo (icono + título + body + CTA). Altura uniforme `100%` para grids `auto-fit`. Hover-lift con borde accent. |
+| `.module-link` | Bloque plano clicable de módulo (icono + título + body + CTA), sin borde ni fondo de tarjeta: separado por una fina línea superior, acento solo al hover (línea + icono). Sustituyó a `.feature-card` (retirada) en v0.65.1. Usado en la home (`<ModuleCard>`). |
 | `.entity-card` | Plantilla de los listados de entidades testeables (targets, funnels, ab, copy, pricing, campaigns, geo, momentum). Cabecera (eyebrow de fecha o badges + trash overlay), body (título display + descripción) y pie de stats. Vive en `components/entity-card.tsx`. |
 | `.backstory-box` | Caja para mostrar el backstory de un perfil como cita en cursiva display. Glifo decorativo `"` en accent. Variante `.backstory-box--compact` para usos embebidos. |
 | `textarea.backstory-input` | Tratamiento cursiva display para el textarea de backstory en formularios. |
@@ -203,6 +203,17 @@ Props:
 - `label` *(string, opcional)*: eyebrow en `.mono`. Default `"Contexto de marca"`.
 
 Es un client component (usa `useState` para el toggle). Úsalo en cualquier vista que vuelque el contexto de marca con esta plantilla (ahora `momentum/[id]`; reutilizable en futuros módulos).
+
+## Otros componentes reutilizables
+
+| Componente | Uso |
+|---|---|
+| `theme-switch.tsx` | Conmutador oscuro/claro al pie del sidebar. Persiste en `localStorage` (`suaas-theme`); un script inline en `layout.tsx` aplica la preferencia antes del primer paint (anti-FOUC). |
+| `brand-picker.tsx` | Selector de marca de Cerebro (`GET /api/brands`) que rellena campos vía `buildBrandContext`; en los 6 formularios que piden contexto de marca (GEO, Momentum, Campañas, Copy, Pricing, Claridad 5s). Siempre se puede seguir escribiendo a mano. |
+| `markdown.tsx` | `<Markdown>`: render de markdown con `react-markdown` + `remark-gfm` (tablas, autolinks, tachado), clase `.markdown` en `globals.css`, enlaces con `target="_blank"`. Usado por el visor de documentos de Cerebro y por `/docs`. |
+| `compare-blocks.tsx` | Bloques de comparación lado a lado (Server Components puros): `fmtComparePct`, `pickCompareWinner` (regla de empate con epsilon, para no declarar ganador con diferencias que serían ruido en muestras pequeñas). Compartido por `/experiments/ab/[abTestId]` y `/campaigns/[id]/compare`. |
+| `beta-mode-toggle.tsx` + `beta-only.tsx` | Modo beta (v0.58): tarjeta en `/diag` que activa/desactiva (hook `use-beta-mode.ts`, `localStorage` `suaas-beta`, sync por evento de ventana) la visibilidad de los módulos aún inmaduros (Embudos, A/B, Pricing, Sembrar) en sidebar y home. Para sumar un módulo al modo beta: marcar su ítem con `beta: true` en `components/sidebar.tsx`. |
+| `onboard-share-modal.tsx` | Modal «Compartir cuestionario»: URL pública de `/onboard` + botón copiar + QR (`GET /api/qr`). Se abre desde la toolbar de `/profiles`. |
 
 ## Patrón HUD (login)
 
@@ -302,14 +313,21 @@ Desde v0.26.2 `.app-shell-main` es `display: flex; flex-direction: column; gap: 
 
 Por la misma razón, **no metas tu propio wrapper flex en una página normal** si lo único que necesitas es espaciado entre secciones: el shell ya lo da.
 
-## Panel 3x3 de la home
+## Home: hero orbital + planos con bloques planos (v0.64.9-v0.65.1, vigente)
 
-`/` renderiza una única sección «Panel» con 9 `<FeatureCard>` en un grid `auto-fit minmax(260px, 1fr)`. En desktop salen 3×3, en móvil 1 columna. Las cards son: Claridad 5s · Embudos · A/B · Copy · Pricing · Campañas · Perfiles · Tokens · Diag. Si añades un módulo nuevo, mantén la composición 3×N (con N múltiplo de 3) para evitar huérfanos.
+`/` ya **no** usa `<FeatureCard>` (la clase se retiró de `globals.css` en v0.65.1, sólo la usaba la home): esa sección de este documento queda obsoleta y se sustituye por esta. La página, dentro de `max-width: 1200` centrado, encadena:
+
+1. **Hero a dos columnas** (`.home-hero`, apila bajo `@media (max-width: 1120px)`): titular («La intención tiene masa.») + CTAs a la izquierda, `<OrbitalDiagram>` (los tres anillos animados, `size={320}`) a la derecha como firma visual.
+2. **Bloque Gravity Model**: el mismo `OrbitalDiagram` recurre en grande y `faint` como marca de agua sangrando por la derecha (`overflow: hidden` en el contenedor, cero scroll horizontal), con el índice de los tres planos (`01 Construction · 02 Acceleration · 03 Value`).
+3. **Sección Intent Momentum**: tres tarjetas (intensidad / dirección / velocidad) con mini-visualizaciones inline.
+4. **Tres `<PlaneSection>`** (Construction, Acceleration, Knowledge Tools; Value no tiene módulo propio, ver `ARQUITECTURA-CONCEPTUAL.md`), cada una con su descripción y un grid `auto-fit minmax(240px, 1fr)` de `<ModuleCard>`.
+
+`<ModuleCard>` renderiza **bloques planos** (`Link.module-link`, sin borde/fondo/elevación de tarjeta): icono en línea con el título (`display:flex; gap:10`), body y CTA en mono con flecha. El acento sólo aparece al hover (línea superior + icono). Los módulos marcados `beta: true` en el array de datos de la página se envuelven en `<BetaOnly>` (oculto salvo que el modo beta esté activo). La home no enlaza `/tokens` ni `/diag` (quedan solo en el sidebar, grupo Sistema); si añades un módulo de producto nuevo, añádelo al array de plano correspondiente en `app/page.tsx`.
 
 ## Iconos por canal y estrategia (módulo Campañas)
 
 - `components/channel-icon.tsx`: SVGs monocromos inline (`currentColor`) para `google · meta · linkedin · tiktok · x`. Sin dependencias externas. Heredan el color de su padre.
-- `components/strategy-icon.tsx`: switch sobre lucide-react para las 7 estrategias (`Search · Image · Sparkles · TrendingUp · Play · Smartphone · ShoppingBag`).
+- `components/strategy-icon.tsx`: switch sobre lucide-react para las 13 estrategias implementadas (7 de Google: `Search · Image · Sparkles · TrendingUp · Play · Smartphone · ShoppingBag`; 3 de Meta y 3 de TikTok, iconos propios por formato).
 
 Patrón de uso: dentro de un chip o de una pestaña, con un `display: inline-flex; gap: 8` para alinearlos con el label.
 

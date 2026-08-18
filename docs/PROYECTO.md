@@ -1,6 +1,6 @@
 # Proyecto
 
-> **Estado de este documento**: refleja el código a fecha de `v0.63.3` (2026-07). Si tocas estructura, schema o flujos, actualízalo en la misma sesión (regla `CLAUDE.md`).
+> **Estado de este documento**: refleja el código a fecha de `v0.79.4` (2026-08-18). Si tocas estructura, schema o flujos, actualízalo en la misma sesión (regla `CLAUDE.md`).
 
 ## Qué es
 
@@ -47,12 +47,24 @@ app/
   icon.svg                              Favicon
   page.tsx                              Home: panel 3x3 (9 cards: claridad, embudos, AB, copy, pricing, campañas, perfiles, tokens, diag) + tutorial 4 pasos
 
+  docs/
+    page.tsx                            Índice de la documentación viva (lee docs/*.md, tras el gate de auth). v0.78.0
+    [slug]/
+      page.tsx                          Visor markdown (react-markdown, generación estática con generateStaticParams, sin fs en runtime)
+      docs-view-tracker.tsx             Client: evento docs_viewed {slug}
   diag/
     page.tsx                            Estado visual del esquema (audita tablas + columnas críticas de varias tablas, cada una con su migración asociada)
   tokens/
-    page.tsx                            Créditos del AI Gateway + acumulado por modelo/scope + serie 7d + coste real USD + inspector por llamada de gateway_usage (usage-inspector.tsx sobre /api/usage/rows, filtrable y paginado). v0.71
+    page.tsx                            Créditos del AI Gateway + acumulado por modelo/scope + serie 7d + coste real USD
+    chat-models.tsx                     Selector de modelo del chat 1:1 (Talker/Reasoner) por empresa, persiste en app_settings.chat_models. v0.65
+    geo-models.tsx                      Selector de modelo por motor del GEO Tester, persiste en app_settings.geo_engine_models. v0.56
+    actions.ts                          saveChatModelsAction, saveRunsModelAction, saveGeoModelsAction
+    usage-inspector.tsx                 Client: inspector por llamada de gateway_usage sobre GET /api/usage/rows, filtrable y paginado. v0.71
   evaluacion/
-    page.tsx / evaluacion-client.tsx    Evaluación de calidad de salidas: golden set (lib/eval.ts) generado por el modelo objetivo y puntuado por un juez de otra familia (POST /api/eval/run), persistida en la tabla evals con historial. Compara modelos. v0.70-0.71
+    page.tsx / evaluacion-client.tsx    Evaluación de calidad de salidas: golden set (lib/eval.ts) generado por el modelo objetivo y puntuado por un juez de otra familia (POST /api/eval/run), persistida en la tabla evals con historial. Compara modelos y señala regresión vs. el eval anterior del mismo modelo. v0.70-0.72
+    eval-views.tsx                      Componentes de presentación compartidos por la ejecución en vivo y el detalle
+    [id]/
+      page.tsx                          Detalle de un eval guardado: agregado + salidas por caso (estímulo, respuesta, notas, veredicto). v0.72.0
   trash/
     page.tsx                            Papelera: lista soft-deleted con acciones restore / hard delete
     trash-row.tsx                       Client: cada fila con sus botones de acción
@@ -71,8 +83,13 @@ app/
       new-form.tsx                      Wrapper ProfileForm initial=DEFAULT_PROFILE_INITIAL
       actions.ts                        createProfileAction (parseProfileForm → createProfile)
     [id]/
-      page.tsx                          Detalle: traits + barreras + chat embebido
-      chat-panel.tsx                    Client: ChatPanel con NDJSON
+      page.tsx                          Detalle: traits + barreras + JTBD + chat embebido
+      chat-panel.tsx                    Client: ChatPanel con NDJSON, registro estilo WhatsApp
+      avatar-button.tsx                 Client: genera/regenera el retrato IA del perfil (evento avatar_generated)
+      optimized-for-editor.tsx          Client: edición inline del cliente de optimización (con datalist de sugerencias)
+      optimized-for-actions.ts          updateOptimizedForAction
+      intent-quality-panel.tsx          Client: panel «Intención · JTBD», botón «Evaluar calidad» (juez on-demand, no persiste). v0.76.0
+      intent-quality-actions.ts         judgeIntentQualityAction
       edit/
         page.tsx
         edit-form.tsx                   Wrapper ProfileForm initial=<datos>
@@ -120,17 +137,30 @@ app/
     page.tsx                            Listado de campañas publicitarias
     new/
       page.tsx                          /campaigns/new
-      new-form.tsx                      Form con sub-pestañas Canal (Google y Meta activos) y Estrategia filtrada por canal (CHANNEL_STRATEGIES). Preview en vivo por estrategia: SERP, banner Display, feed/9:16/carousel/colección de Meta
+      new-form.tsx                      Form con sub-pestañas Canal (Google, Meta y TikTok activos; LinkedIn y X «Próx.») y Estrategia filtrada por canal (CHANNEL_STRATEGIES). Preview en vivo por estrategia: SERP, banner Display, feed/9:16/carousel/colección de Meta, feed «Para ti»/carousel/spark de TikTok
       actions.ts                        createCampaignAction con superRefine condicional por strategy
     [id]/
       page.tsx                          Detalle: chips de canal y estrategia + secciones por campo + creatividades por rol + LaunchPanel
+      compare/
+        page.tsx                        Comparativa run vs. run de la misma campaña (KPIs lado a lado). compare-blocks.tsx en components/
 
-  geo/                                  GEO Tester (v0.29): page (lista), new/, [id] (pestañas por motor + citas + visibilidad por motor)
-  momentum/                             Momentum (v0.30): page (lista), new/ (server action), [id]
-  cerebro/                              Cerebro (v0.59): page (lista de marcas), new/, [id] (marca + documentos)
-  gravity/                              Marco teórico Gravity Model: page + «Conceptos pendientes» (desbloqueo server-side, v0.62)
-  onboard/                              Onboard público (sin login): wizard HEXACO + result; genera un perfil calibrado
-  propuesta/                            Landing comercial pública + calculadora; la vista interna (márgenes) tras el gate landing_internal
+  geo/                                  GEO Tester (v0.29): page (lista, geo-list.tsx sobre EntityListView), new/ (actions.ts), [id] (engine-tabs.tsx: pestañas por motor + citas + visibilidad por motor)
+  momentum/                             Momentum (v0.30): page (lista), new/ (new-challenge-form.tsx + actions.ts, server action), [id] (panel de calidad + BrandContextBox)
+  cerebro/                              Cerebro (v0.59-v0.63): page (lista de marcas), new/ (new-form.tsx + actions.ts), [id]/ (brand-detail.tsx: marca + documentos + flag sensitive + botón «Reindexar marca» del RAG, actions.ts)
+  gravity/                              Marco teórico Gravity Model
+    page.tsx                            Los tres planos + enlace destacado a /gravity/onboarding
+    conceptos-pendientes.tsx            «Conceptos pendientes» (desbloqueo server-side vía POST /api/gravity/unlock, v0.62)
+    onboarding/
+      page.tsx                          Versión visual navegable de docs/ONBOARDING-SOCIOLOGO.md (Section/Callout/DataTable/LevelCard/StepCard/RouteCard/PhaseCard/Def). v0.77.0
+      onboarding-nav.tsx                Client: índice lateral pegajoso con scroll-spy
+  onboard/                              Onboard público (sin login): wizard HEXACO + result; genera un perfil calibrado «gemelo digital»
+  propuesta/                            Landing comercial pública + calculadora
+    page.tsx                            Hero + metodología Gravity Model + paquetes + módulo de IA
+    nav.tsx                             Client: nav sticky con anclas que aparecen al hacer scroll up
+    flat-logo.tsx                       Logo inline con currentColor (sin AppShell)
+    ai-module.tsx                       Client: slider de coste de IA por proveedor/modelo en vivo
+    calculator.tsx                      Client: tarificador + rentabilidad bruta/neta; vista interna tras el gate landing_internal
+    unlock-form.tsx                     Client: desbloqueo de la vista interna (POST /api/propuesta/access)
 
   experiments/                          Páginas de resultados de runs (lectura)
     five-second/[runId]/page.tsx
@@ -148,6 +178,8 @@ app/
     og-image/route.ts                   GET ?url=... resuelve og:image (con assertPublicUrl anti-SSRF)
     diag/route.ts                       GET estado del esquema: tablas + columnas críticas con su migración. JSON con columns / missing_columns / pending_migrations
     chat/route.ts                       POST chat con perfil: Reasoner + Talker streaming NDJSON
+    eval/run/route.ts                   POST corre el golden set (lib/eval.ts) contra un modelo objetivo, puntuado por un juez de otra familia; persiste en evals. v0.70
+    usage/rows/route.ts                 GET filas individuales de gateway_usage (fecha, scope, modelo, tokens, coste USD, latencia, ok/fallo), filtrable y paginado. Alimenta usage-inspector.tsx. v0.69/v0.71
     profiles/
       [id]/route.ts                     DELETE perfil
       [id]/avatar/route.ts              POST genera/regenera el retrato del perfil (lib/avatar.ts, scope profile_avatar)
@@ -167,6 +199,7 @@ app/
     brands/route.ts                     GET lista ligera de marcas para el selector de Cerebro (buildBrandContext por marca)
     export/campaign/[runId]/route.ts    GET exporta el run de campaña (CSV/JSON) con respuestas por perfil
     onboard/submit/route.ts             POST público: sintetiza un perfil desde el wizard del onboard (rate limit + errores genéricos)
+    onboard/og/route.tsx                GET imagen OG 1200x630 (next/og) del resultado del onboard, para el botón «Descargar mi gemelo»
     propuesta/access/route.ts           POST desbloquea/bloquea la vista interna de /propuesta (cookie landing_internal)
     gravity/unlock/route.ts             POST verifica GRAVITY_PASSWORD en servidor y desbloquea «Conceptos pendientes» (v0.62)
     qr/route.ts                         GET genera el QR de acceso
@@ -207,10 +240,12 @@ lib/
   prompts.ts                            buildSystemPrompt(profile) con negative prompts y voice anchors
   agents.ts                             ReasonerPlanSchema, reason() (generateObject Opus), talkStream() (streamText Sonnet)
   image-source.ts                       resolveImageForApi (descarga + valida mime + redimensiona a 1024px de lado largo con sharp + base64 para Anthropic multimodal)
-  usage.ts                              UsageScope (incluye campaign_probe, campaign_landing, campaign_ideal), recordUsage, getUsageSummary (paginado), getScopeAverages (split prompt/completion), getGatewayCredits
+  usage.ts                              UsageScope (22 scopes: probe_5s, judge_5s, probe_funnel, reasoner_chat, talker_chat, copy_resonance, pricing_react, campaign_probe/landing/ideal/judge/synthesis, onboard_synthesize, profile_avatar, geo_probe, geo_analysis, momentum_probe, seed_brief, seed_profile, batch_intent, rag_embed, eval_target, eval_judge, quality_judge), recordUsage, getUsageSummary (paginado), listUsageRows (inspector por llamada, v0.69), getScopeAverages (split prompt/completion), getGatewayCredits
   model-pricing.ts                      tarifas $/MTok por modelo (con fallback por familia), usdForTokens, formatUsd (es-ES); módulo puro importable desde cliente
-  estimate.ts                           estimador de coste por acción: EstimatePart, estimateAction, estimateManyUsd, partsForKind (fórmulas de llamadas por kind); alimenta GET /api/estimate/run y los costes server-side de los botones
+  estimate.ts                           estimador de coste por acción: EstimatePart, estimateAction, estimateManyUsd, partsForKind (fórmulas de llamadas por kind, resuelve el modelo elegido en /tokens); alimenta GET /api/estimate/run y los costes server-side de los botones
   landing-pricing.ts                    datos de la landing comercial /propuesta: catálogo de modelos de IA (Anthropic/OpenAI/Gemini/Perplexity con precios verificados), tiers, runCostEur, runsForBudget; módulo puro para page (server) y calculadora (client)
+  chat-models.ts                        Catálogo de modelos elegibles por empresa (Anthropic/OpenAI) para /tokens: getChatModels()/CHAT_MODELS_SETTING_KEY (Talker+Reasoner del chat 1:1, app_settings.chat_models) y getRunsModel()/RUNS_MODEL_SETTING_KEY (un único modelo para las 9 tandas por lotes, app_settings.runs_model). Server-only (importa getSetting). v0.65-v0.66
+  eval.ts                               Evaluación de calidad de salidas (v0.70+): golden set de 4 casos (romper rol, respuesta genérica, complacencia, sonar a IA) + JudgeSchema/JUDGE_SYSTEM (4 dimensiones: fidelidad de rol, anclaje/grounding, no complacencia, naturalidad); pickJudgeModel (juez de otra familia que el objetivo, rompe la circularidad); judgeSimulationQuality (reutilizado por los runners de 5s/campañas/momentum para juzgar una muestra); judgeIntentQuality (juez on-demand del JTBD, v0.76); saveEval/listEvals/getEval (historial persistido en la tabla evals, migración 0031)
 
   targets.ts                            TargetInputSchema + CRUD + getTargetWithTrashed + resolveOgImageDetailed (con anti-SSRF, 5s timeout, max-redirects=3, body 1.5MB)
   funnels.ts                            FunnelInputSchema + CRUD + getFunnelWithTrashed
@@ -227,7 +262,8 @@ lib/
   momentum.ts                           Momentum (Gravity Model): runMomentumChallenge, simula cómo cada perfil aborda un trigger JTBD antes de que entre la marca
 
   experiments/
-    five-second.ts                      probeProfile + judgeComprehension + runFiveSecondTest + listFiveSecondResponses
+    shared.ts                           chunks() (troceo genérico para concurrencia) + loadRunProfiles() (una sola query para la muestra del run, preservando orden y cap de 20), compartidos por los runners. v0.62
+    five-second.ts                      probeProfile + judgeComprehension + runFiveSecondTest + listFiveSecondResponses + runQualitySample (juez de calidad, v0.73)
     funnel.ts                           probeFunnelStep + runFunnelTest + listFunnelStepResponses
     ab.ts                               runAbTest (dos 5s en paralelo, link a ab_test_runs)
     copy.ts                             reactToBlock + runCopyTest + listCopyResponses
@@ -251,8 +287,16 @@ components/
   runs-previous.tsx                     RunsPreviousGrid con tarjetas de runs previos + métricas configurable
   trash-button.tsx                      SendToTrashButton (icono en cada card) → POST /api/trash/[type]/[id]
   remove-icon-button.tsx                RemoveIconButton: icono papelera para borrar filas del estado local de los forms /new (no toca la papelera del sistema)
-  channel-icon.tsx                      SVGs monocromos para google · meta · linkedin · tiktok · x (Channel)
-  strategy-icon.tsx                     Iconos lucide para las 10 strategies (7 de Google + meta_single · meta_carousel · meta_collection)
+  channel-icon.tsx                      SVGs monocromos para google · meta · linkedin · tiktok · x (Channel) + CHANNEL_BRAND (color corporativo por canal)
+  strategy-icon.tsx                     Iconos lucide para las 13 strategies (7 de Google + 3 de Meta + 3 de TikTok)
+  theme-switch.tsx                      Conmutador oscuro/claro al pie del sidebar, persiste en localStorage (suaas-theme). v0.33
+  beta-mode-toggle.tsx                  Tarjeta de /diag para activar el «modo beta» (revela Embudos/A-B/Pricing/Sembrar) + hook use-beta-mode.ts. v0.58
+  beta-only.tsx                         Wrapper que oculta en sidebar/home los módulos marcados beta:true salvo que el modo beta esté activo
+  brand-picker.tsx                      Selector de marca de Cerebro que rellena campos vía buildBrandContext; en los 6 formularios que piden contexto de marca (GEO, Momentum, Campañas, Copy, Pricing, Claridad 5s). v0.59-v0.60
+  brand-context-box.tsx                 Caja «Contexto de marca» con extracto + botón «Ampliar» en las vistas de resultado (momentum y similares)
+  onboard-share-modal.tsx               Modal «Compartir cuestionario»: URL pública de /onboard + botón copiar + QR (GET /api/qr), lanzado desde la toolbar de /profiles
+  markdown.tsx                          Render de markdown (react-markdown + remark-gfm, clase .markdown) usado por el visor de documentos de Cerebro y por /docs
+  compare-blocks.tsx                    Bloques de comparación lado a lado (Server Components puros), compartidos por /experiments/ab/[abTestId] y /campaigns/[id]/compare
 
 public/
   logos/flat101.svg                     Logo de marca (ink → invertido sobre fondo oscuro)
@@ -306,8 +350,8 @@ docs/                                   Esta documentación
 Login con **password global** `ACCESS_PASSWORD` (env), fallback dev `michel101`. Cookie `auth_suaas=ok` (`httpOnly`, `sameSite=lax`, `secure` en prod, 30 días).
 
 Flujo:
-1. `proxy.ts` intercepta cada request (matcher excluye `_next/static`, `_next/image`).
-2. Si la ruta está en `PUBLIC_PATHS` (`/login`, `/api/auth`, `/robots.txt`, `/favicon.ico`), empieza por `/_next/` o `/logos/`, es del onboard público (`/onboard`, `/onboard/*`, `/api/onboard/*`), es `/api/qr`, o cumple los regex de favicons, pasa sin auth. **Toda ruta pública nueva amplía la superficie sin login: tratarla con el mismo rigor que el onboard** (rate limit, validación, errores genéricos).
+1. `proxy.ts` intercepta cada request (matcher excluye `_next/static`, `_next/image`). Antes de nada redirige 308 el host legado `usaas.flat101.business` → `suaas.flat101.business` (rename histórico USAAS → SUAAS → Gravity).
+2. Si la ruta está en `PUBLIC_PATHS` (`/login`, `/api/auth`, `/robots.txt`, `/favicon.ico`), empieza por `/_next/` o `/logos/`, es del onboard público (`/onboard`, `/onboard/*`, `/api/onboard/*`), es `/api/qr`, empieza por `/api/cron/` (la barrera real ahí es el header `Authorization` con `CRON_SECRET` que valida cada handler, no la cookie), es la landing comercial (`/propuesta` y `/api/propuesta/*`, se comparte con clientes sin login; su vista interna de márgenes lleva su propio gate `landing_internal`), o cumple los regex de favicons (`icon`/`apple-icon` con sufijo), pasa sin auth. **Toda ruta pública nueva amplía la superficie sin login: tratarla con el mismo rigor que el onboard** (rate limit, validación, errores genéricos). `/docs` NO es pública: requiere `auth_suaas` como el resto de la app.
 3. Si no, comprueba `auth_suaas` cookie. Si no es `"ok"`, redirige a `/login`.
 
 `verifyAccessPassword` usa `crypto.timingSafeEqual` y, en producción, sin `ACCESS_PASSWORD` definida devuelve `null` y rechaza todo intento.
@@ -341,7 +385,7 @@ RLS activada sin policies en las tablas sensibles (bloquea `anon` y `authenticat
 | `funnels` | `name`, `description`, `deleted_at`. |
 | `funnel_steps` | `funnel_id`, `position` (único), `name`, `intent`, `payload jsonb {kind:"url", image_url, source_url?}`. |
 | `funnel_step_responses` | `(run_id, profile_id, step_id)` único. `position`, `perception`, `intent_match`, `effort`, `friction text[]`, `would_continue`, `reasoning`, `meta`. Sólo filas para pasos evaluados (dropoff corta). |
-| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy (unión `UsageScope` en `lib/usage.ts`): `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `campaign_judge`, `campaign_synthesis`, `onboard_synthesize`, `profile_avatar` (retratos: coste por imagen en `meta.est_usd`, sin tokens), `geo_probe` (sondas reales: el `model` es el del motor elegido en `/tokens`), `geo_analysis`, `momentum_probe`, `seed_brief`, `seed_profile` (generación de perfiles en lote), `batch_intent` (JTBD en lote), `rag_embed` (embeddings del RAG de Cerebro) y `eval_target`/`eval_judge` (harness de evaluación de calidad, v0.70). |
+| `gateway_usage` | Telemetría por llamada: `scope`, `model`, `prompt_tokens`, `completion_tokens`, `total_tokens`, `meta`. Scopes hoy (unión `UsageScope` en `lib/usage.ts`): `probe_5s`, `judge_5s`, `probe_funnel`, `reasoner_chat`, `talker_chat`, `copy_resonance`, `pricing_react`, `campaign_probe`, `campaign_landing`, `campaign_ideal`, `campaign_judge`, `campaign_synthesis`, `onboard_synthesize`, `profile_avatar` (retratos: coste por imagen en `meta.est_usd`, sin tokens), `geo_probe` (sondas reales: el `model` es el del motor elegido en `/tokens`), `geo_analysis`, `momentum_probe`, `seed_brief`, `seed_profile` (generación de perfiles en lote), `batch_intent` (JTBD en lote), `rag_embed` (embeddings del RAG de Cerebro), `eval_target`/`eval_judge` (harness de evaluación de calidad, v0.70) y `quality_judge` (juez de calidad muestreado dentro de los runners de 5s, campañas y momentum, v0.73-v0.75). |
 | `evals` | Historial de evaluaciones de calidad (v0.71, migración 0031, con RLS). Una fila por (ejecución, modelo): `app_version`, `model`, `judge`, `n_cases`, agregados `role_fidelity`/`grounding`/`non_sycophancy`/`naturalness`/`overall` (real) y `cases` jsonb con el detalle por caso. Alimenta el historial de `/evaluacion`. |
 | `ab_tests` | `target_a_id` ≠ `target_b_id` (check). `hypothesis`. `deleted_at`. |
 | `ab_test_runs` | Vincula `(ab_test_id, run_id, variant 'A'|'B')`. Unique. |
@@ -549,6 +593,18 @@ Define **Triggers** (escenarios de activación JTBD) y simula cómo cada perfil 
 - **Por día** (últimos 7 días).
 
 Si la key del Gateway no está visible (modo OIDC implícito en runtime), la consulta de saldo falla con un mensaje accionable pero las llamadas siguen funcionando.
+
+`/tokens` también aloja el **inspector por llamada** (`usage-inspector.tsx` sobre `GET /api/usage/rows`, v0.69/v0.71): filas individuales de `gateway_usage` con coste USD real, filtrable por modelo/scope/solo-fallidas y paginado, más el KPI de coste real acumulado. Y los tres selectores de modelo por empresa (`lib/chat-models.ts`, `app_settings`): **modelo del chat** (Talker+Reasoner, `chat_models`), **modelo de las runs** (un único modelo para las 9 tandas por lotes, `runs_model`) y **modelos del GEO Tester** (por motor, `geo_engine_models`). Las estimaciones de coste previas al lanzamiento (`lib/estimate.ts`) reflejan el modelo elegido en cada flujo.
+
+## Evaluación de calidad de las salidas (`/evaluacion`, v0.70-v0.76)
+
+Dos mecanismos complementarios, ambos sobre `lib/eval.ts`, con el **juez de otra familia de modelo** que el objetivo (por defecto OpenAI si el objetivo es Anthropic) para no juzgar un modelo consigo mismo:
+
+1. **Banco de pruebas** (`/evaluacion`, `POST /api/eval/run`): un golden set de 4 casos que estresan los fallos que importan (romper rol / prompt injection, respuesta genérica, complacencia, sonar a IA) se lanza contra un modelo objetivo y se puntúa en 4 dimensiones (fidelidad de rol, anclaje/grounding, no complacencia, naturalidad) + global, con `failure_mode` y veredicto. Permite comparar modelos entre sí. Se persiste en la tabla `evals` (migración `0031`, con RLS): historial con detalle por caso (`/evaluacion/[id]`) y señal de regresión (delta vs. el eval anterior del mismo modelo).
+2. **Juez dentro de los runners** (`judgeSimulationQuality`, scope `quality_judge`): al cerrar un run de **Claridad 5s** (v0.73), **Campañas** (v0.74) o **Momentum** (v0.75), se juzga una muestra (hasta 5, repartida uniformemente) de las respuestas de perfil con el mismo esquema de 4 dimensiones. La nota se persiste en el `meta`/`results` de la fila y se agrega como panel «Calidad de la simulación» en la vista del run. Clave metodológica: el juez mide **fidelidad de la voz del perfil**, no acierto de contenido (que ya miden `comprehension_rate` o `landing_match` con otros jueces).
+3. **Juez on-demand del JTBD** (`judgeIntentQuality`, v0.76): el módulo Intent no tiene «run», así que la ficha de perfil (`intent-quality-panel.tsx`) ofrece un botón «Evaluar calidad» que puntúa el `intent_context` actual sin persistir.
+
+Pendiente de Fase 2 (anotado en `ROADMAP.md`/`SIGUIENTE-PASO.md`): validar el juez contra un experto humano, y extenderlo a los runners de embudos/pricing/copy.
 
 ## Seguridad activa
 
